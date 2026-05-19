@@ -1,0 +1,14 @@
+{
+  "name": "terminal.svelte",
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ashwin-mahadevan/terminal.svelte.git"
+  },
+  "author": {
+    "name": "Ashwin Mahadevan",
+    "email": "mahadevan@ashwinm.com",
+    "url": "https://ashwinm.com"
+  }
+}
