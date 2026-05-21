@@ -1,1 +1,1 @@
-// Reexport your entry components here
+export { default as Terminal } from './terminal.svelte';

@@ -54,5 +54,9 @@
 	},
 	"keywords": [
 		"svelte"
-	]
+	],
+	"dependencies": {
+		"@xterm/addon-fit": "^0.11.0",
+		"@xterm/xterm": "^6.0.0"
+	}
 }
