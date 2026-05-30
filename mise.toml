@@ -2,3 +2,12 @@
 node = "26"
 pnpm = "11"
 
+[tasks]
+dev = "vite dev"
+build = "vite build"
+preview = "vite preview"
+prepare = "svelte-kit sync"
+prepack = "svelte-kit sync && svelte-package && publint"
+check = "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json"
+lint = "eslint ."
+format = "prettier ."
