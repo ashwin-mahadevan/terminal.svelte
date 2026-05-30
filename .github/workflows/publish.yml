@@ -1,0 +1,44 @@
+name: Publish
+on:
+  pull_request:
+    branches: [master]
+    types: [closed]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    if: |
+      github.event.pull_request.merged == true &&
+      (startsWith(github.event.pull_request.title, '[MAJOR]') ||
+       startsWith(github.event.pull_request.title, '[MINOR]') ||
+       startsWith(github.event.pull_request.title, '[PATCH]'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: master
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '26'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Tag release
+        run: |
+          version=$(jq -r '.version' package.json)
+          git tag "v$version"
+          git push --tags
+
+      - run: pnpm install
+
+      - name: Publish to npm
+        run: npm stage publish
