@@ -2,6 +2,9 @@
 node = "26"
 pnpm = "11"
 
+[settings]
+lockfile = true
+
 [tasks]
 dev = "vite dev"
 build = "vite build"
