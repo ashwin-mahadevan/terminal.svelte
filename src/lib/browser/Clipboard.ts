@@ -24,6 +24,8 @@ export function bracketTextForPaste(text: string, bracketedPasteMode: boolean): 
 	}
 	// Sanitize pasted text to prevent injected escape sequences (e.g. exiting bracketed paste)
 	// by replacing ESC (\x1b) with its visible representation U+241B (␛).
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line no-control-regex
 	const sanitizedText = text.replace(/\x1b/g, '\u241b');
 	return `\x1b[200~${sanitizedText}\x1b[201~`;
 }
