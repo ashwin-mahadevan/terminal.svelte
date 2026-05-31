@@ -2318,6 +2318,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 				case 1049: // alt screen buffer cursor
 					this.saveCursor();
 				// FALL-THROUGH
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-fallthrough
 				case 47: // alt screen buffer
 				case 1047: // alt screen buffer
 					// Swap kitty keyboard flags: save main, restore alt
@@ -2562,6 +2564,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 					break;
 				case 1049: // alt screen buffer cursor
 				// FALL-THROUGH
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-fallthrough
 				case 47: // normal screen buffer
 				case 1047: // normal screen buffer - clearing it first
 					// Swap kitty keyboard flags: save alt, restore main
