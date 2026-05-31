@@ -14,9 +14,11 @@ function tail<T>(array: ArrayLike<T>, n: number = 0): T | undefined {
 }
 
 // TODO: Fix this upstream type error.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-function-type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function memoize(_target: any, key: string, descriptor: PropertyDescriptor): void {
 	let fnKey: string | null = null;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 	let fn: Function | null = null;
 
 	if (typeof descriptor.value === 'function') {
