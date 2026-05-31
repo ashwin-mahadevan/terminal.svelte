@@ -1,7 +1,6 @@
 {
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
-		"rewriteRelativeImportExtensions": true,
 		"allowJs": true,
 		"checkJs": true,
 		"forceConsistentCasingInFileNames": true,
@@ -9,8 +8,12 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext"
+		// The vendored xterm.js sources use TypeScript parameter decorators for
+		// dependency injection (e.g. @IBufferService), which require this flag.
+		"experimentalDecorators": true
+		// module / moduleResolution are inherited from .svelte-kit/tsconfig.json
+		// (module: "esnext", moduleResolution: "bundler"), which lets the copied
+		// xterm.js sources use extensionless $lib/... and relative imports.
 	}
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
