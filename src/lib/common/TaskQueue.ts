@@ -113,7 +113,8 @@ abstract class TaskQueue implements ITaskQueue {
  */
 export class PriorityTaskQueue extends TaskQueue {
   protected _requestCallback(callback: CallbackWithDeadline): number {
-    return setTimeout(() => callback(this._createDeadline(16)));
+    // TODO: Fix this upstream type error.
+    return setTimeout(() => callback(this._createDeadline(16))) as any;
   }
 
   protected _cancelCallback(identifier: number): void {
