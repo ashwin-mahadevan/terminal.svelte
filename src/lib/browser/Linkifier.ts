@@ -29,6 +29,8 @@ export class Linkifier extends Disposable implements ILinkifier2 {
 	private _lastBufferCell: IBufferCellPosition | undefined;
 	private _isMouseOut: boolean = true;
 	private _wasResized: boolean = false;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
 	private _activeProviderReplies: Map<Number, ILinkWithState[] | undefined> | undefined;
 	private _activeLine: number = -1;
 
@@ -178,6 +180,8 @@ export class Linkifier extends Disposable implements ILinkifier2 {
 
 	private _removeIntersectingLinks(
 		y: number,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
 		replies: Map<Number, ILinkWithState[] | undefined>
 	): void {
 		const occupiedCells = new Set<number>();
