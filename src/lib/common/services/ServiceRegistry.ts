@@ -36,7 +36,7 @@ export function createDecorator<T>(id: string): IServiceIdentifier<T> {
 	}
 
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-function-type
 	const decorator: any = function (target: Function, key: string, index: number): any {
 		if (arguments.length !== 3) {
 			throw new Error('@IServiceName-decorator can only be used to decorate a parameter');
@@ -51,6 +51,8 @@ export function createDecorator<T>(id: string): IServiceIdentifier<T> {
 	return decorator;
 }
 
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function storeServiceDependency(id: Function, target: Function, index: number): void {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
