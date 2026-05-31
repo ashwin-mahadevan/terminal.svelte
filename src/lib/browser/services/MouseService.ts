@@ -108,6 +108,8 @@ export class MouseService implements IMouseService {
 			})
 		);
 		// force initial onProtocolChange so we dont miss early mouse requests
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line no-self-assign
 		this._mouseStateService.activeProtocol = this._mouseStateService.activeProtocol;
 
 		// Ensure document-level listeners are removed on dispose
