@@ -20,7 +20,7 @@ To recreate this project with the same configuration:
 
 ```sh
 # recreate this project
-pnpm dlx sv@0.15.3 create --template library --types jsdoc --add prettier eslint sveltekit-adapter="adapter:node" --install pnpm ./
+pnpm dlx sv@0.15.3 create --template library --types ts --add prettier eslint sveltekit-adapter="adapter:node" --install pnpm ./
 ```
 
 ## Developing

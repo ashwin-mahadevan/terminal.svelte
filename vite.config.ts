@@ -1,19 +1,18 @@
+import type { Server as HttpServer } from 'node:http';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { spawn } from 'node-pty';
 import { Server } from 'socket.io';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 
 const SHELL = process.env.SHELL ?? 'bash';
-/** @type {Array<string>} */
-const ARGUMENTS = [];
+const ARGUMENTS: Array<string> = [];
 const OPTIONS = {
 	name: 'xterm-256color',
 	cols: 80,
 	rows: 24
 };
 
-/** @param {import('http').Server} server */
-function configure(server) {
+function configure(server: HttpServer) {
 	const io = new Server(server);
 	io.on('connection', (socket) => {
 		const pty = spawn(SHELL, ARGUMENTS, OPTIONS);
@@ -25,14 +24,13 @@ function configure(server) {
 	});
 }
 
-/** @type {import('vite').Plugin} */
-const socketio = {
+const socketio: Plugin = {
 	name: 'socketio',
 	configureServer({ httpServer }) {
-		configure(/** @type {import('http').Server} */ (httpServer));
+		configure(httpServer as HttpServer);
 	},
 	configurePreviewServer({ httpServer }) {
-		configure(/** @type {import('http').Server} */ (httpServer));
+		configure(httpServer as HttpServer);
 	}
 };
 

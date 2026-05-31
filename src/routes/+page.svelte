@@ -1,14 +1,11 @@
-<script>
-	import { io } from 'socket.io-client';
+<script lang="ts">
+	import { io, type Socket } from 'socket.io-client';
 	import Terminal from '$lib/terminal.svelte';
 
-	/** @type {ReturnType<typeof Terminal>} */
-	let terminal;
-	/** @type {import('socket.io-client').Socket} */
-	let socket;
+	let terminal: ReturnType<typeof Terminal>;
+	let socket: Socket;
 
-	/** @param {string} chunk */
-	function write(chunk) {
+	function write(chunk: string) {
 		terminal.write(chunk);
 	}
 
