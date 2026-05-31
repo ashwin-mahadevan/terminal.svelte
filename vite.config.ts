@@ -1,8 +1,9 @@
 import type { Server as HttpServer } from 'node:http';
+import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { spawn } from 'node-pty';
 import { Server } from 'socket.io';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, type Plugin } from 'vitest/config';
 
 const SHELL = process.env.SHELL ?? 'bash';
 const ARGUMENTS: Array<string> = [];
@@ -35,5 +36,32 @@ const socketio: Plugin = {
 };
 
 export default defineConfig({
-	plugins: [sveltekit(), socketio]
+	plugins: [sveltekit(), socketio],
+	test: {
+		expect: { requireAssertions: true },
+		projects: [
+			{
+				extends: './vite.config.ts',
+				test: {
+					name: 'client',
+					browser: {
+						enabled: true,
+						provider: playwright(),
+						instances: [{ browser: 'chromium', headless: true }]
+					},
+					include: ['src/lib/**/*.svelte.test.ts'],
+				}
+			},
+
+			{
+				extends: './vite.config.ts',
+				test: {
+					name: 'server',
+					environment: 'node',
+					include: ['src/lib/**/*.test.ts'],
+					exclude: ['src/lib/**/*.svelte.test.ts']
+				}
+			}
+		]
+	}
 });

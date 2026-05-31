@@ -14,3 +14,6 @@ prepack = "pnpm exec svelte-kit sync && pnpm exec svelte-package && pnpm exec pu
 check = "pnpm exec svelte-kit sync && pnpm exec svelte-check --tsconfig ./tsconfig.json"
 lint = "pnpm exec eslint ."
 format = "pnpm exec prettier --check ."
+
+unittest = "pnpm exec vitest --run"
+e2etest = "pnpm exec playwright test"
