@@ -235,6 +235,8 @@ export class DomRendererRowFactory {
 					charElement = this._document.createElement('span');
 					cellAmount = 0;
 
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line no-useless-assignment
 					text = '';
 				}
 			}
