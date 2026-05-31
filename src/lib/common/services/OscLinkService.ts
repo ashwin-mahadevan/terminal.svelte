@@ -110,6 +110,8 @@ interface IOscLinkEntry<T extends IOscLinkData> {
 	lines: IMarker[];
 }
 
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface IOscLinkEntryNoId extends IOscLinkEntry<IOscLinkData> {}
 
 interface IOscLinkEntryWithId extends IOscLinkEntry<Required<IOscLinkData>> {
