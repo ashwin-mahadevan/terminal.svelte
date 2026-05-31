@@ -4,12 +4,12 @@
  */
 
 export interface ISelectionRedrawRequestEvent {
-  start: [number, number] | undefined;
-  end: [number, number] | undefined;
-  columnSelectMode: boolean;
+	start: [number, number] | undefined;
+	end: [number, number] | undefined;
+	columnSelectMode: boolean;
 }
 
 export interface ISelectionRequestScrollLinesEvent {
-  amount: number;
-  suppressScrollEvent: boolean;
+	amount: number;
+	suppressScrollEvent: boolean;
 }

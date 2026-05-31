@@ -6,38 +6,37 @@
 import type { IDisposable } from '$lib/common/Types';
 import type { ParserState } from '$lib/common/parser/Constants';
 
-
 /** sequence params serialized to js arrays */
 export type ParamsArray = (number | number[])[];
 
 /** Params constructor type. */
 export interface IParamsConstructor {
-  new(maxLength: number, maxSubParamsLength: number): IParams;
+	new (maxLength: number, maxSubParamsLength: number): IParams;
 
-  /** create params from ParamsArray */
-  fromArray(values: ParamsArray): IParams;
+	/** create params from ParamsArray */
+	fromArray(values: ParamsArray): IParams;
 }
 
 /** Interface of Params storage class. */
 export interface IParams {
-  /** from ctor */
-  maxLength: number;
-  maxSubParamsLength: number;
+	/** from ctor */
+	maxLength: number;
+	maxSubParamsLength: number;
 
-  /** param values and its length */
-  params: Int32Array;
-  length: number;
+	/** param values and its length */
+	params: Int32Array;
+	length: number;
 
-  /** methods */
-  clone(): IParams;
-  toArray(): ParamsArray;
-  reset(): void;
-  resetZdm(): void;
-  addParam(value: number): void;
-  addSubParam(value: number): void;
-  hasSubParams(idx: number): boolean;
-  getSubParams(idx: number): Int32Array | null;
-  getSubParamsAll(): {[idx: number]: Int32Array};
+	/** methods */
+	clone(): IParams;
+	toArray(): ParamsArray;
+	reset(): void;
+	resetZdm(): void;
+	addParam(value: number): void;
+	addSubParam(value: number): void;
+	hasSubParams(idx: number): boolean;
+	getSubParams(idx: number): Int32Array | null;
+	getSubParamsAll(): { [idx: number]: Int32Array };
 }
 
 /**
@@ -49,18 +48,18 @@ export interface IParams {
  * Set `abort` to `true` to abort the current parsing.
  */
 export interface IParsingState {
-  // position in parse string
-  position: number;
-  // actual character code
-  code: number;
-  // current parser state
-  currentState: ParserState;
-  // collect buffer with intermediate characters
-  collect: number;
-  // params buffer
-  params: IParams;
-  // should abort (default: false)
-  abort: boolean;
+	// position in parse string
+	position: number;
+	// actual character code
+	code: number;
+	// current parser state
+	currentState: ParserState;
+	// collect buffer with intermediate characters
+	collect: number;
+	// params buffer
+	params: IParams;
+	// should abort (default: false)
+	abort: boolean;
 }
 
 /**
@@ -78,26 +77,30 @@ export type CsiFallbackHandlerType = (ident: number, params: IParams) => void;
  * DCS handler types.
  */
 export interface IDcsHandler {
-  /**
-   * Called when a DCS command starts.
-   * Prepare needed data structures here.
-   * Note: `params` is borrowed.
-   */
-  hook(params: IParams): void;
-  /**
-   * Incoming payload chunk.
-   * Note: `params` is borrowed.
-   */
-  put(data: Uint32Array, start: number, end: number): void;
-  /**
-   * End of DCS command. `success` indicates whether the
-   * command finished normally or got aborted, thus final
-   * execution of the command should depend on `success`.
-   * To save memory also cleanup data structures here.
-   */
-  unhook(success: boolean): boolean | Promise<boolean>;
+	/**
+	 * Called when a DCS command starts.
+	 * Prepare needed data structures here.
+	 * Note: `params` is borrowed.
+	 */
+	hook(params: IParams): void;
+	/**
+	 * Incoming payload chunk.
+	 * Note: `params` is borrowed.
+	 */
+	put(data: Uint32Array, start: number, end: number): void;
+	/**
+	 * End of DCS command. `success` indicates whether the
+	 * command finished normally or got aborted, thus final
+	 * execution of the command should depend on `success`.
+	 * To save memory also cleanup data structures here.
+	 */
+	unhook(success: boolean): boolean | Promise<boolean>;
 }
-export type DcsFallbackHandlerType = (ident: number, action: 'HOOK' | 'PUT' | 'UNHOOK', payload?: any) => void;
+export type DcsFallbackHandlerType = (
+	ident: number,
+	action: 'HOOK' | 'PUT' | 'UNHOOK',
+	payload?: any
+) => void;
 
 /**
  * ESC handler types.
@@ -115,48 +118,56 @@ export type ExecuteFallbackHandlerType = (ident: number) => void;
  * OSC handler types.
  */
 export interface IOscHandler {
-  /**
-   * Announces start of this OSC command.
-   * Prepare needed data structures here.
-   */
-  start(): void;
-  /**
-   * Incoming data chunk.
-   * Note: Data is borrowed.
-   */
-  put(data: Uint32Array, start: number, end: number): void;
-  /**
-   * End of OSC command. `success` indicates whether the
-   * command finished normally or got aborted, thus final
-   * execution of the command should depend on `success`.
-   * To save memory also cleanup data structures here.
-   */
-  end(success: boolean): boolean | Promise<boolean>;
+	/**
+	 * Announces start of this OSC command.
+	 * Prepare needed data structures here.
+	 */
+	start(): void;
+	/**
+	 * Incoming data chunk.
+	 * Note: Data is borrowed.
+	 */
+	put(data: Uint32Array, start: number, end: number): void;
+	/**
+	 * End of OSC command. `success` indicates whether the
+	 * command finished normally or got aborted, thus final
+	 * execution of the command should depend on `success`.
+	 * To save memory also cleanup data structures here.
+	 */
+	end(success: boolean): boolean | Promise<boolean>;
 }
-export type OscFallbackHandlerType = (ident: number, action: 'START' | 'PUT' | 'END', payload?: any) => void;
+export type OscFallbackHandlerType = (
+	ident: number,
+	action: 'START' | 'PUT' | 'END',
+	payload?: any
+) => void;
 
 /**
  * APC handler types.
  */
 export interface IApcHandler {
-  /**
-   * Announces start of this APC command.
-   * Prepare needed data structures here.
-   */
-  start(): void;
-  /**
-   * Incoming data chunk.
-   */
-  put(data: Uint32Array, start: number, end: number): void;
-  /**
-   * End of APC command. `success` indicates whether the
-   * command finished normally or got aborted, thus final
-   * execution of the command should depend on `success`.
-   * To save memory also cleanup data structures here.
-   */
-  end(success: boolean): boolean | Promise<boolean>;
+	/**
+	 * Announces start of this APC command.
+	 * Prepare needed data structures here.
+	 */
+	start(): void;
+	/**
+	 * Incoming data chunk.
+	 */
+	put(data: Uint32Array, start: number, end: number): void;
+	/**
+	 * End of APC command. `success` indicates whether the
+	 * command finished normally or got aborted, thus final
+	 * execution of the command should depend on `success`.
+	 * To save memory also cleanup data structures here.
+	 */
+	end(success: boolean): boolean | Promise<boolean>;
 }
-export type ApcFallbackHandlerType = (ident: number, action: 'START' | 'PUT' | 'END', payload?: any) => void;
+export type ApcFallbackHandlerType = (
+	ident: number,
+	action: 'START' | 'PUT' | 'END',
+	payload?: any
+) => void;
 
 /**
  * PRINT handler types.
@@ -164,68 +175,67 @@ export type ApcFallbackHandlerType = (ident: number, action: 'START' | 'PUT' | '
 export type PrintHandlerType = (data: Uint32Array, start: number, end: number) => void;
 export type PrintFallbackHandlerType = PrintHandlerType;
 
-
 /**
  * EscapeSequenceParser interface.
  */
 export interface IEscapeSequenceParser extends IDisposable {
-  /**
-   * Preceding grapheme-join-state.
-   * Used for joining grapheme clusters across calls to `print`.
-   * Also used by REP to check if repeating a character is allowed.
-   * It gets reset by the parser for any valid sequence besides text.
-   */
-  precedingJoinState: number; // More specifically: UnicodeJoinProperties
+	/**
+	 * Preceding grapheme-join-state.
+	 * Used for joining grapheme clusters across calls to `print`.
+	 * Also used by REP to check if repeating a character is allowed.
+	 * It gets reset by the parser for any valid sequence besides text.
+	 */
+	precedingJoinState: number; // More specifically: UnicodeJoinProperties
 
-  /**
-   * Reset the parser to its initial state (handlers are kept).
-   */
-  reset(): void;
+	/**
+	 * Reset the parser to its initial state (handlers are kept).
+	 */
+	reset(): void;
 
-  /**
-   * Parse UTF32 codepoints in `data` up to `length`.
-   * @param data The data to parse.
-   */
-  parse(data: Uint32Array, length: number, promiseResult?: boolean): void | Promise<boolean>;
+	/**
+	 * Parse UTF32 codepoints in `data` up to `length`.
+	 * @param data The data to parse.
+	 */
+	parse(data: Uint32Array, length: number, promiseResult?: boolean): void | Promise<boolean>;
 
-  /**
-   * Get string from numercial function identifier `ident`.
-   * Useful in fallback handlers which expose the low level
-   * numcerical function identifier for debugging purposes.
-   * Note: A full back translation to `IFunctionIdentifier`
-   * is not implemented.
-   */
-  identToString(ident: number): string;
+	/**
+	 * Get string from numercial function identifier `ident`.
+	 * Useful in fallback handlers which expose the low level
+	 * numcerical function identifier for debugging purposes.
+	 * Note: A full back translation to `IFunctionIdentifier`
+	 * is not implemented.
+	 */
+	identToString(ident: number): string;
 
-  setPrintHandler(handler: PrintHandlerType): void;
-  clearPrintHandler(): void;
+	setPrintHandler(handler: PrintHandlerType): void;
+	clearPrintHandler(): void;
 
-  registerEscHandler(id: IFunctionIdentifier, handler: EscHandlerType): IDisposable;
-  clearEscHandler(id: IFunctionIdentifier): void;
-  setEscHandlerFallback(handler: EscFallbackHandlerType): void;
+	registerEscHandler(id: IFunctionIdentifier, handler: EscHandlerType): IDisposable;
+	clearEscHandler(id: IFunctionIdentifier): void;
+	setEscHandlerFallback(handler: EscFallbackHandlerType): void;
 
-  setExecuteHandler(flag: string, handler: ExecuteHandlerType): void;
-  clearExecuteHandler(flag: string): void;
-  setExecuteHandlerFallback(handler: ExecuteFallbackHandlerType): void;
+	setExecuteHandler(flag: string, handler: ExecuteHandlerType): void;
+	clearExecuteHandler(flag: string): void;
+	setExecuteHandlerFallback(handler: ExecuteFallbackHandlerType): void;
 
-  registerCsiHandler(id: IFunctionIdentifier, handler: CsiHandlerType): IDisposable;
-  clearCsiHandler(id: IFunctionIdentifier): void;
-  setCsiHandlerFallback(callback: CsiFallbackHandlerType): void;
+	registerCsiHandler(id: IFunctionIdentifier, handler: CsiHandlerType): IDisposable;
+	clearCsiHandler(id: IFunctionIdentifier): void;
+	setCsiHandlerFallback(callback: CsiFallbackHandlerType): void;
 
-  registerDcsHandler(id: IFunctionIdentifier, handler: IDcsHandler): IDisposable;
-  clearDcsHandler(id: IFunctionIdentifier): void;
-  setDcsHandlerFallback(handler: DcsFallbackHandlerType): void;
+	registerDcsHandler(id: IFunctionIdentifier, handler: IDcsHandler): IDisposable;
+	clearDcsHandler(id: IFunctionIdentifier): void;
+	setDcsHandlerFallback(handler: DcsFallbackHandlerType): void;
 
-  registerOscHandler(ident: number, handler: IOscHandler): IDisposable;
-  clearOscHandler(ident: number): void;
-  setOscHandlerFallback(handler: OscFallbackHandlerType): void;
+	registerOscHandler(ident: number, handler: IOscHandler): IDisposable;
+	clearOscHandler(ident: number): void;
+	setOscHandlerFallback(handler: OscFallbackHandlerType): void;
 
-  registerApcHandler(id: IFunctionIdentifier, handler: IApcHandler): IDisposable;
-  clearApcHandler(id: IFunctionIdentifier): void;
-  setApcHandlerFallback(handler: ApcFallbackHandlerType): void;
+	registerApcHandler(id: IFunctionIdentifier, handler: IApcHandler): IDisposable;
+	clearApcHandler(id: IFunctionIdentifier): void;
+	setApcHandlerFallback(handler: ApcFallbackHandlerType): void;
 
-  setErrorHandler(handler: (state: IParsingState) => IParsingState): void;
-  clearErrorHandler(): void;
+	setErrorHandler(handler: (state: IParsingState) => IParsingState): void;
+	clearErrorHandler(): void;
 }
 
 /**
@@ -234,26 +244,26 @@ export interface IEscapeSequenceParser extends IDisposable {
  * called during `EscapeSequenceParser.parse`.
  */
 export interface ISubParser<T, U> extends IDisposable {
-  reset(): void;
-  registerHandler(ident: number, handler: T): IDisposable;
-  clearHandler(ident: number): void;
-  setHandlerFallback(handler: U): void;
-  put(data: Uint32Array, start: number, end: number): void;
+	reset(): void;
+	registerHandler(ident: number, handler: T): IDisposable;
+	clearHandler(ident: number): void;
+	setHandlerFallback(handler: U): void;
+	put(data: Uint32Array, start: number, end: number): void;
 }
 
 export interface IOscParser extends ISubParser<IOscHandler, OscFallbackHandlerType> {
-  start(): void;
-  end(success: boolean, promiseResult?: boolean): void | Promise<boolean>;
+	start(): void;
+	end(success: boolean, promiseResult?: boolean): void | Promise<boolean>;
 }
 
 export interface IDcsParser extends ISubParser<IDcsHandler, DcsFallbackHandlerType> {
-  hook(ident: number, params: IParams): void;
-  unhook(success: boolean, promiseResult?: boolean): void | Promise<boolean>;
+	hook(ident: number, params: IParams): void;
+	unhook(success: boolean, promiseResult?: boolean): void | Promise<boolean>;
 }
 
 export interface IApcParser extends ISubParser<IApcHandler, ApcFallbackHandlerType> {
-  start(ident: number): void;
-  end(success: boolean, promiseResult?: boolean): void | Promise<boolean>;
+	start(ident: number): void;
+	end(success: boolean, promiseResult?: boolean): void | Promise<boolean>;
 }
 
 /**
@@ -264,13 +274,13 @@ export interface IApcParser extends ISubParser<IApcHandler, ApcFallbackHandlerTy
  * in `EscapeSequenceParser.parse`.
  */
 export interface IFunctionIdentifier {
-  prefix?: string;
-  intermediates?: string;
-  final: string;
+	prefix?: string;
+	intermediates?: string;
+	final: string;
 }
 
 export interface IHandlerCollection<T> {
-  [key: string]: T[];
+	[key: string]: T[];
 }
 
 /**
@@ -279,14 +289,14 @@ export interface IHandlerCollection<T> {
 
 // type of saved stack state in parser
 export const enum ParserStackType {
-  NONE = 0,
-  FAIL,
-  RESET,
-  CSI,
-  ESC,
-  OSC,
-  DCS,
-  APC
+	NONE = 0,
+	FAIL,
+	RESET,
+	CSI,
+	ESC,
+	OSC,
+	DCS,
+	APC
 }
 
 // aggregate of resumable handler lists
@@ -294,16 +304,16 @@ export type ResumableHandlersType = CsiHandlerType[] | EscHandlerType[];
 
 // saved stack state of the parser
 export interface IParserStackState {
-  state: ParserStackType;
-  handlers: ResumableHandlersType;
-  handlerPos: number;
-  transition: number;
-  chunkPos: number;
+	state: ParserStackType;
+	handlers: ResumableHandlersType;
+	handlerPos: number;
+	transition: number;
+	chunkPos: number;
 }
 
 // saved stack state of subparser (OSC and DCS)
 export interface ISubParserStackState {
-  paused: boolean;
-  loopPosition: number;
-  fallThrough: boolean;
+	paused: boolean;
+	loopPosition: number;
+	fallThrough: boolean;
 }

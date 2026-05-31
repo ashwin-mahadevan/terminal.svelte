@@ -7,32 +7,32 @@ import type { ICharsetService } from '$lib/common/services/Services';
 import type { ICharset } from '$lib/common/Types';
 
 export class CharsetService implements ICharsetService {
-  public serviceBrand: any;
+	public serviceBrand: any;
 
-  public charset: ICharset | undefined;
-  public glevel: number = 0;
+	public charset: ICharset | undefined;
+	public glevel: number = 0;
 
-  private _charsets: (ICharset | undefined)[] = [];
+	private _charsets: (ICharset | undefined)[] = [];
 
-  public get charsets(): (ICharset | undefined)[] {
-    return this._charsets;
-  }
+	public get charsets(): (ICharset | undefined)[] {
+		return this._charsets;
+	}
 
-  public reset(): void {
-    this.charset = undefined;
-    this._charsets = [];
-    this.glevel = 0;
-  }
+	public reset(): void {
+		this.charset = undefined;
+		this._charsets = [];
+		this.glevel = 0;
+	}
 
-  public setgLevel(g: number): void {
-    this.glevel = g;
-    this.charset = this._charsets[g];
-  }
+	public setgLevel(g: number): void {
+		this.glevel = g;
+		this.charset = this._charsets[g];
+	}
 
-  public setgCharset(g: number, charset: ICharset | undefined): void {
-    this._charsets[g] = charset;
-    if (this.glevel === g) {
-      this.charset = charset;
-    }
-  }
+	public setgCharset(g: number, charset: ICharset | undefined): void {
+		this._charsets[g] = charset;
+		if (this.glevel === g) {
+			this.charset = charset;
+		}
+	}
 }

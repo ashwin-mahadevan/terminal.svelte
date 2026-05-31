@@ -8,90 +8,93 @@ import { Disposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IOptionsService } from '$lib/common/services/Services';
 
 export class TextBlinkStateManager extends Disposable {
-  private _intervalDuration: number = 0;
-  private _interval: number | undefined;
-  private _blinkOn: boolean = true;
-  private _needsBlinkInViewport: boolean = false;
-  private _isViewportVisible: boolean = true;
+	private _intervalDuration: number = 0;
+	private _interval: number | undefined;
+	private _blinkOn: boolean = true;
+	private _needsBlinkInViewport: boolean = false;
+	private _isViewportVisible: boolean = true;
 
-  constructor(
-    private readonly _renderCallback: () => void,
-    private readonly _coreBrowserService: ICoreBrowserService,
-    private readonly _optionsService: IOptionsService
-  ) {
-    super();
-    this._register(this._optionsService.onSpecificOptionChange('blinkIntervalDuration', duration => {
-      this.setIntervalDuration(duration);
-    }));
-    this.setIntervalDuration(this._optionsService.rawOptions.blinkIntervalDuration);
-    this._register(toDisposable(() => this._clearInterval()));
-  }
+	constructor(
+		private readonly _renderCallback: () => void,
+		private readonly _coreBrowserService: ICoreBrowserService,
+		private readonly _optionsService: IOptionsService
+	) {
+		super();
+		this._register(
+			this._optionsService.onSpecificOptionChange('blinkIntervalDuration', (duration) => {
+				this.setIntervalDuration(duration);
+			})
+		);
+		this.setIntervalDuration(this._optionsService.rawOptions.blinkIntervalDuration);
+		this._register(toDisposable(() => this._clearInterval()));
+	}
 
-  public get isBlinkOn(): boolean {
-    return this._blinkOn;
-  }
+	public get isBlinkOn(): boolean {
+		return this._blinkOn;
+	}
 
-  public get isEnabled(): boolean {
-    return this._intervalDuration > 0;
-  }
+	public get isEnabled(): boolean {
+		return this._intervalDuration > 0;
+	}
 
-  public setNeedsBlinkInViewport(needsBlinkInViewport: boolean): void {
-    if (this._needsBlinkInViewport === needsBlinkInViewport) {
-      return;
-    }
+	public setNeedsBlinkInViewport(needsBlinkInViewport: boolean): void {
+		if (this._needsBlinkInViewport === needsBlinkInViewport) {
+			return;
+		}
 
-    this._needsBlinkInViewport = needsBlinkInViewport;
-    this._updateIntervalState();
-  }
+		this._needsBlinkInViewport = needsBlinkInViewport;
+		this._updateIntervalState();
+	}
 
-  public setViewportVisible(isVisible: boolean): void {
-    if (this._isViewportVisible === isVisible) {
-      return;
-    }
+	public setViewportVisible(isVisible: boolean): void {
+		if (this._isViewportVisible === isVisible) {
+			return;
+		}
 
-    this._isViewportVisible = isVisible;
-    this._updateIntervalState();
-  }
+		this._isViewportVisible = isVisible;
+		this._updateIntervalState();
+	}
 
-  public setIntervalDuration(duration: number): void {
-    if (duration === this._intervalDuration) {
-      return;
-    }
+	public setIntervalDuration(duration: number): void {
+		if (duration === this._intervalDuration) {
+			return;
+		}
 
-    this._intervalDuration = duration;
-    this._clearInterval();
-    this._updateIntervalState();
-  }
+		this._intervalDuration = duration;
+		this._clearInterval();
+		this._updateIntervalState();
+	}
 
-  private _updateIntervalState(): void {
-    const shouldBlink = this._intervalDuration > 0 && this._needsBlinkInViewport && this._isViewportVisible;
-    if (shouldBlink) {
-      if (this._interval !== undefined) {
-        return;
-      }
-      const wasBlinkOn = this._blinkOn;
-      this._blinkOn = true;
-      this._interval = this._coreBrowserService.window.setInterval(() => {
-        this._blinkOn = !this._blinkOn;
-        this._renderCallback();
-      }, this._intervalDuration);
-      if (!wasBlinkOn) {
-        this._renderCallback();
-      }
-      return;
-    }
+	private _updateIntervalState(): void {
+		const shouldBlink =
+			this._intervalDuration > 0 && this._needsBlinkInViewport && this._isViewportVisible;
+		if (shouldBlink) {
+			if (this._interval !== undefined) {
+				return;
+			}
+			const wasBlinkOn = this._blinkOn;
+			this._blinkOn = true;
+			this._interval = this._coreBrowserService.window.setInterval(() => {
+				this._blinkOn = !this._blinkOn;
+				this._renderCallback();
+			}, this._intervalDuration);
+			if (!wasBlinkOn) {
+				this._renderCallback();
+			}
+			return;
+		}
 
-    this._clearInterval();
-    if (!this._blinkOn) {
-      this._blinkOn = true;
-      this._renderCallback();
-    }
-  }
+		this._clearInterval();
+		if (!this._blinkOn) {
+			this._blinkOn = true;
+			this._renderCallback();
+		}
+	}
 
-  private _clearInterval(): void {
-    if (this._interval !== undefined) {
-      this._coreBrowserService.window.clearInterval(this._interval);
-      this._interval = undefined;
-    }
-  }
+	private _clearInterval(): void {
+		if (this._interval !== undefined) {
+			this._coreBrowserService.window.clearInterval(this._interval);
+			this._interval = undefined;
+		}
+	}
 }

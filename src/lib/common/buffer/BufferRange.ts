@@ -6,8 +6,10 @@
 import type { IBufferRange } from '$lib/xterm';
 
 export function getRangeLength(range: IBufferRange, bufferCols: number): number {
-  if (range.start.y > range.end.y) {
-    throw new Error(`Buffer range end (${range.end.x}, ${range.end.y}) cannot be before start (${range.start.x}, ${range.start.y})`);
-  }
-  return bufferCols * (range.end.y - range.start.y) + (range.end.x - range.start.x + 1);
+	if (range.start.y > range.end.y) {
+		throw new Error(
+			`Buffer range end (${range.end.x}, ${range.end.y}) cannot be before start (${range.start.x}, ${range.start.y})`
+		);
+	}
+	return bufferCols * (range.end.y - range.start.y) + (range.end.x - range.start.x + 1);
 }

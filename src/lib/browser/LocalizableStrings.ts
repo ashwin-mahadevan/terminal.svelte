@@ -7,17 +7,14 @@
 
 let promptLabelInternal = 'Terminal input';
 const promptLabel = {
-  get: () => promptLabelInternal,
-  set: (value: string) => promptLabelInternal = value
+	get: () => promptLabelInternal,
+	set: (value: string) => (promptLabelInternal = value)
 };
 
 let tooMuchOutputInternal = 'Too much output to announce, navigate to rows manually to read';
 const tooMuchOutput = {
-  get: () => tooMuchOutputInternal,
-  set: (value: string) => tooMuchOutputInternal = value
+	get: () => tooMuchOutputInternal,
+	set: (value: string) => (tooMuchOutputInternal = value)
 };
 
-export {
-  promptLabel,
-  tooMuchOutput
-};
+export { promptLabel, tooMuchOutput };

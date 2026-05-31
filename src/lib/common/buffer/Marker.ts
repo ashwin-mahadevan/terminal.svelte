@@ -8,36 +8,35 @@ import { Emitter } from '$lib/common/Event';
 import { dispose } from '$lib/common/Lifecycle';
 
 export class Marker implements IMarker {
-  private static _nextId = 1;
+	private static _nextId = 1;
 
-  public isDisposed: boolean = false;
-  private readonly _disposables: IDisposable[] = [];
+	public isDisposed: boolean = false;
+	private readonly _disposables: IDisposable[] = [];
 
-  private readonly _id: number = Marker._nextId++;
-  public get id(): number { return this._id; }
+	private readonly _id: number = Marker._nextId++;
+	public get id(): number {
+		return this._id;
+	}
 
-  private readonly _onDispose = this.register(new Emitter<void>());
-  public readonly onDispose = this._onDispose.event;
+	private readonly _onDispose = this.register(new Emitter<void>());
+	public readonly onDispose = this._onDispose.event;
 
-  constructor(
-    public line: number
-  ) {
-  }
+	constructor(public line: number) {}
 
-  public dispose(): void {
-    if (this.isDisposed) {
-      return;
-    }
-    this.isDisposed = true;
-    this.line = -1;
-    // Emit before super.dispose such that dispose listeners get a change to react
-    this._onDispose.fire();
-    dispose(this._disposables);
-    this._disposables.length = 0;
-  }
+	public dispose(): void {
+		if (this.isDisposed) {
+			return;
+		}
+		this.isDisposed = true;
+		this.line = -1;
+		// Emit before super.dispose such that dispose listeners get a change to react
+		this._onDispose.fire();
+		dispose(this._disposables);
+		this._disposables.length = 0;
+	}
 
-  public register<T extends IDisposable>(disposable: T): T {
-    this._disposables.push(disposable);
-    return disposable;
-  }
+	public register<T extends IDisposable>(disposable: T): T {
+		this._disposables.push(disposable);
+		return disposable;
+	}
 }

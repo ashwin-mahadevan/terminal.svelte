@@ -10,44 +10,44 @@ import type { Terminal, ITerminalAddon } from '$lib/xterm';
  * its containing element.
  */
 export class FitAddon implements ITerminalAddon {
-  /**
-   * Creates a new fit addon.
-   */
-  constructor();
+	/**
+	 * Creates a new fit addon.
+	 */
+	constructor();
 
-  /**
-   * Activates the addon
-   * @param terminal The terminal the addon is being loaded in.
-   */
-  public activate(terminal: Terminal): void;
+	/**
+	 * Activates the addon
+	 * @param terminal The terminal the addon is being loaded in.
+	 */
+	public activate(terminal: Terminal): void;
 
-  /**
-   * Disposes the addon.
-   */
-  public dispose(): void;
+	/**
+	 * Disposes the addon.
+	 */
+	public dispose(): void;
 
-  /**
-   * Resizes the terminal to the dimensions of its containing element.
-   */
-  public fit(): void;
+	/**
+	 * Resizes the terminal to the dimensions of its containing element.
+	 */
+	public fit(): void;
 
-  /**
-   * Gets the proposed dimensions that will be used for a fit.
-   */
-  public proposeDimensions(): ITerminalDimensions | undefined;
+	/**
+	 * Gets the proposed dimensions that will be used for a fit.
+	 */
+	public proposeDimensions(): ITerminalDimensions | undefined;
 }
 
 /**
  * Represents the dimensions of a terminal.
  */
 export interface ITerminalDimensions {
-  /**
-   * The number of rows in the terminal.
-   */
-  rows: number;
+	/**
+	 * The number of rows in the terminal.
+	 */
+	rows: number;
 
-  /**
-   * The number of columns in the terminal.
-   */
-  cols: number;
+	/**
+	 * The number of columns in the terminal.
+	 */
+	cols: number;
 }

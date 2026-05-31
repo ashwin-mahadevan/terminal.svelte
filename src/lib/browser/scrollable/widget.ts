@@ -4,21 +4,32 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as dom from '../Dom';
-import type { IMouseEvent} from './mouseEvent';
+import type { IMouseEvent } from './mouseEvent';
 import { StandardMouseEvent } from './mouseEvent';
 import { Disposable } from '$lib/common/Lifecycle';
 
 export abstract class Widget extends Disposable {
+	protected _onclick(domNode: HTMLElement, listener: (e: IMouseEvent) => void): void {
+		this._register(
+			dom.addDisposableListener(domNode, dom.eventType.CLICK, (e: MouseEvent) =>
+				listener(new StandardMouseEvent(dom.getWindow(domNode), e))
+			)
+		);
+	}
 
-  protected _onclick(domNode: HTMLElement, listener: (e: IMouseEvent) => void): void {
-    this._register(dom.addDisposableListener(domNode, dom.eventType.CLICK, (e: MouseEvent) => listener(new StandardMouseEvent(dom.getWindow(domNode), e))));
-  }
+	protected _onmouseover(domNode: HTMLElement, listener: (e: IMouseEvent) => void): void {
+		this._register(
+			dom.addDisposableListener(domNode, dom.eventType.MOUSE_OVER, (e: MouseEvent) =>
+				listener(new StandardMouseEvent(dom.getWindow(domNode), e))
+			)
+		);
+	}
 
-  protected _onmouseover(domNode: HTMLElement, listener: (e: IMouseEvent) => void): void {
-    this._register(dom.addDisposableListener(domNode, dom.eventType.MOUSE_OVER, (e: MouseEvent) => listener(new StandardMouseEvent(dom.getWindow(domNode), e))));
-  }
-
-  protected _onmouseleave(domNode: HTMLElement, listener: (e: IMouseEvent) => void): void {
-    this._register(dom.addDisposableListener(domNode, dom.eventType.MOUSE_LEAVE, (e: MouseEvent) => listener(new StandardMouseEvent(dom.getWindow(domNode), e))));
-  }
+	protected _onmouseleave(domNode: HTMLElement, listener: (e: IMouseEvent) => void): void {
+		this._register(
+			dom.addDisposableListener(domNode, dom.eventType.MOUSE_LEAVE, (e: MouseEvent) =>
+				listener(new StandardMouseEvent(dom.getWindow(domNode), e))
+			)
+		);
+	}
 }

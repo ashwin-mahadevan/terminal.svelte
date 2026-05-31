@@ -4,5 +4,5 @@
  */
 
 export const enum ViewportConstants {
-  DEFAULT_SCROLL_BAR_WIDTH = 14
+	DEFAULT_SCROLL_BAR_WIDTH = 14
 }

@@ -4,9 +4,9 @@
  */
 
 interface INavigator {
-  userAgent: string;
-  language: string;
-  platform: string;
+	userAgent: string;
+	language: string;
+	platform: string;
 }
 
 // We're declaring a navigator global here as we expect it in all runtimes (node and browser), but
@@ -17,9 +17,14 @@ declare const process: unknown;
 // navigator.userAgent is also checked here because bundling with the process module can cause
 // issues otherwise. Note that navigator exists in Node.js 21+ but the userAgent is
 // "Node.js/<version>".
-export const isNode = (typeof process !== 'undefined' && 'title' in (process as any) && (typeof navigator === 'undefined' || navigator.userAgent.startsWith('Node.js/'))) ? true : false;
-const userAgent = (isNode) ? 'node' : navigator.userAgent;
-const platform = (isNode) ? 'node' : navigator.platform;
+export const isNode =
+	typeof process !== 'undefined' &&
+	'title' in (process as any) &&
+	(typeof navigator === 'undefined' || navigator.userAgent.startsWith('Node.js/'))
+		? true
+		: false;
+const userAgent = isNode ? 'node' : navigator.userAgent;
+const platform = isNode ? 'node' : navigator.platform;
 
 export const isFirefox = userAgent.includes('Firefox');
 export const isChrome = userAgent.includes('Chrome');
@@ -27,21 +32,21 @@ export const isLegacyEdge = userAgent.includes('Edge');
 export const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
 
 interface IZoomWindow {
-  devicePixelRatio?: number;
+	devicePixelRatio?: number;
 }
 
 export function getZoomFactor(_targetWindow: IZoomWindow): number {
-  return 1;
+	return 1;
 }
 export function getSafariVersion(): number {
-  if (!isSafari) {
-    return 0;
-  }
-  const majorVersion = userAgent.match(/Version\/(\d+)/);
-  if (majorVersion === null || majorVersion.length < 2) {
-    return 0;
-  }
-  return parseInt(majorVersion[1]);
+	if (!isSafari) {
+		return 0;
+	}
+	const majorVersion = userAgent.match(/Version\/(\d+)/);
+	if (majorVersion === null || majorVersion.length < 2) {
+		return 0;
+	}
+	return parseInt(majorVersion[1]);
 }
 
 // Find the users platform. We use this to interpret the meta key
