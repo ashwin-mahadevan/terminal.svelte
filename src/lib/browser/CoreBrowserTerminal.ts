@@ -293,6 +293,8 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 			}
 			switch (req.type) {
 				case ColorRequestType.REPORT:
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line no-case-declarations
 					const colorRgb = color.toColorRGB(
 						acc === 'ansi'
 							? this._themeService.colors.ansi[req.index]
@@ -1394,12 +1396,20 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 
 		switch (type) {
 			case WindowsOptionsReportType.GET_WIN_SIZE_PIXELS:
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const canvasWidth = this._renderService.dimensions.css.canvas.width.toFixed(0);
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const canvasHeight = this._renderService.dimensions.css.canvas.height.toFixed(0);
 				this.coreService.triggerDataEvent(`${C0.ESC}[4;${canvasHeight};${canvasWidth}t`);
 				break;
 			case WindowsOptionsReportType.GET_CELL_SIZE_PIXELS:
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const cellWidth = this._renderService.dimensions.css.cell.width.toFixed(0);
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const cellHeight = this._renderService.dimensions.css.cell.height.toFixed(0);
 				this.coreService.triggerDataEvent(`${C0.ESC}[6;${cellHeight};${cellWidth}t`);
 				break;

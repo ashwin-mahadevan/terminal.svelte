@@ -1025,7 +1025,11 @@ export class EscapeSequenceParser extends Disposable implements IEscapeSequenceP
 			switch (transition >> TableAccess.TRANSITION_ACTION_SHIFT) {
 				case ParserAction.PRINT:
 					// Note: 0x20 (SP) is included, 0x7F (DEL) is excluded
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line no-case-declarations
 					let c = i;
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line no-case-declarations
 					const l4 = length - 4;
 					while (
 						c < l4 &&
@@ -1058,6 +1062,8 @@ export class EscapeSequenceParser extends Disposable implements IEscapeSequenceP
 				case ParserAction.IGNORE:
 					break;
 				case ParserAction.ERROR:
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line no-case-declarations
 					const inject: IParsingState = this._errorHandler({
 						position: i,
 						code,
@@ -1071,7 +1077,11 @@ export class EscapeSequenceParser extends Disposable implements IEscapeSequenceP
 					break;
 				case ParserAction.CSI_DISPATCH:
 					// Trigger CSI Handler
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line no-case-declarations
 					const handlers = this._csiHandlers[(this._collect << 8) | code];
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line no-case-declarations
 					let j = handlers ? handlers.length - 1 : -1;
 					for (; j >= 0; j--) {
 						// true means success and to stop bubbling
@@ -1110,7 +1120,11 @@ export class EscapeSequenceParser extends Disposable implements IEscapeSequenceP
 					this._collect |= code;
 					break;
 				case ParserAction.ESC_DISPATCH:
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line no-case-declarations
 					const handlersEsc = this._escHandlers[(this._collect << 8) | code];
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line no-case-declarations
 					let jj = handlersEsc ? handlersEsc.length - 1 : -1;
 					for (; jj >= 0; jj--) {
 						// true means success and to stop bubbling

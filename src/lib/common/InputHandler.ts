@@ -1506,6 +1506,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 				break;
 			case 3:
 				// Clear scrollback (everything not in viewport)
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const scrollBackSize = this._activeBuffer.lines.length - this._bufferService.rows;
 				if (scrollBackSize > 0) {
 					this._activeBuffer.lines.trimStart(scrollBackSize);
@@ -3081,7 +3083,11 @@ export class InputHandler extends Disposable implements IInputHandler {
 				break;
 			case 6:
 				// cursor position
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const y = this._activeBuffer.y + 1;
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const x = this._activeBuffer.x + 1;
 				this._coreService.triggerDataEvent(`${C0.ESC}[${y};${x}R`);
 				break;
@@ -3096,7 +3102,11 @@ export class InputHandler extends Disposable implements IInputHandler {
 		switch (params.params[0]) {
 			case 6:
 				// cursor position
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const y = this._activeBuffer.y + 1;
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const x = this._activeBuffer.x + 1;
 				this._coreService.triggerDataEvent(`${C0.ESC}[?${y};${x}R`);
 				break;

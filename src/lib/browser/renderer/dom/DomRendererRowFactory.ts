@@ -469,6 +469,8 @@ export class DomRendererRowFactory {
 					}
 					break;
 				case Attributes.CM_RGB:
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line no-case-declarations
 					const color = channels.toColor((fg >> 16) & 0xff, (fg >> 8) & 0xff, fg & 0xff);
 					if (
 						!this._applyMinimumContrast(

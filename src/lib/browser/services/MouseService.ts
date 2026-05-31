@@ -196,10 +196,14 @@ export class MouseService implements IMouseService {
 				if (!this._mouseStateService.allowCustomWheelEvent(ev as WheelEvent)) {
 					return false;
 				}
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const deltaY = (ev as WheelEvent).deltaY;
 				if (deltaY === 0) {
 					return false;
 				}
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-case-declarations
 				const lines = this._consumeWheelEvent(
 					ev as WheelEvent,
 					this._renderService?.dimensions?.device?.cell?.height,
