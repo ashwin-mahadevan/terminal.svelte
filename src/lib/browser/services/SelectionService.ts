@@ -44,6 +44,8 @@ const enum Constants {
 	/**
 	 * The number of milliseconds between drag scroll updates.
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	DRAG_SCROLL_INTERVAL = 50,
 	/**
 	 * The maximum amount of time that can have elapsed for an alt click to move the

@@ -64,6 +64,8 @@ import { ApcParser } from '$lib/common/parser/ApcParser';
 const enum TableAccess {
 	TRANSITION_ACTION_SHIFT = 8,
 	TRANSITION_STATE_MASK = 255,
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	INDEX_STATE_SHIFT = 8
 }
 

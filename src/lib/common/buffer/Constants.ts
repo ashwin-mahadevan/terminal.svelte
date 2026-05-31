@@ -79,7 +79,11 @@ export const enum Attributes {
 	 */
 	BLUE_MASK = 0xff,
 	BLUE_SHIFT = 0,
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	PCOLOR_MASK = 0xff,
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	PCOLOR_SHIFT = 0,
 
 	/**
@@ -98,9 +102,13 @@ export const enum Attributes {
 	 * bit 25..26   color mode: DEFAULT (0) | P16 (1) | P256 (2) | RGB (3)
 	 */
 	CM_MASK = 0x3000000,
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	CM_DEFAULT = 0,
 	CM_P16 = 0x1000000,
 	CM_P256 = 0x2000000,
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	CM_RGB = 0x3000000,
 
 	/**
