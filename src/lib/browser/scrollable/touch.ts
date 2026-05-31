@@ -44,6 +44,8 @@ function memoize(_target: any, key: string, descriptor: PropertyDescriptor): voi
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	descriptorAny[fnKey] = function (...args: any[]) {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line no-prototype-builtins
 		if (!this.hasOwnProperty(memoizeKey)) {
 			Object.defineProperty(this, memoizeKey, {
 				configurable: false,
@@ -320,6 +322,8 @@ export class Gesture extends Disposable {
 		for (let i = 0, len = e.changedTouches.length; i < len; i++) {
 			const touch = e.changedTouches.item(i);
 
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line no-prototype-builtins
 			if (!this._activeTouches.hasOwnProperty(String(touch.identifier))) {
 				console.warn('move of an UNKNOWN touch', touch);
 				continue;
@@ -493,6 +497,8 @@ export class Gesture extends Disposable {
 		for (let i = 0, len = e.changedTouches.length; i < len; i++) {
 			const touch = e.changedTouches.item(i);
 
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line no-prototype-builtins
 			if (!this._activeTouches.hasOwnProperty(String(touch.identifier))) {
 				console.warn('end of an UNKNOWN touch', touch);
 				continue;
