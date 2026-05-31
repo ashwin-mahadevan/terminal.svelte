@@ -23,6 +23,8 @@ export interface IBuffer {
 	ybase: number;
 	y: number;
 	x: number;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	tabs: any;
 	scrollBottom: number;
 	scrollTop: number;

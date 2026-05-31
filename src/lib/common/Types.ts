@@ -51,6 +51,8 @@ export interface IDisposable {
 
 // TODO: The options that are not in the public API should be reviewed
 export interface ITerminalOptions extends IPublicTerminalOptions {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;
 	convertEol?: boolean;
 	termName?: string;
@@ -60,6 +62,8 @@ export type CursorStyle = 'block' | 'underline' | 'bar';
 
 export type CursorInactiveStyle = 'outline' | 'block' | 'bar' | 'underline' | 'none';
 
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type XtermListener = (...args: any[]) => void;
 
 /**

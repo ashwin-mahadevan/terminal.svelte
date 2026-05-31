@@ -14,8 +14,12 @@ import { IInstantiationService } from '$lib/common/services/Services';
 import { getServiceDependencies } from '$lib/common/services/ServiceRegistry';
 
 export class ServiceCollection {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _entries = new Map<IServiceIdentifier<any>, any>();
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	constructor(...entries: [IServiceIdentifier<any>, any][]) {
 		for (const [id, service] of entries) {
 			this.set(id, service);
@@ -28,12 +32,16 @@ export class ServiceCollection {
 		return result;
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public forEach(callback: (id: IServiceIdentifier<any>, instance: any) => void): void {
 		for (const [key, value] of this._entries.entries()) {
 			callback(key, value);
 		}
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public has(id: IServiceIdentifier<any>): boolean {
 		return this._entries.has(id);
 	}
@@ -60,9 +68,13 @@ export class InstantiationService implements IInstantiationService {
 		return this._services.get(id);
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public createInstance<T>(ctor: any, ...args: any[]): T {
 		const serviceDependencies = getServiceDependencies(ctor).sort((a, b) => a.index - b.index);
 
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const serviceArgs: any[] = [];
 		for (const dependency of serviceDependencies) {
 			const service = this._services.get(dependency.id);

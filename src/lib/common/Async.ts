@@ -38,6 +38,8 @@ export function disposableTimeout(
 }
 
 export class TimeoutTimer implements IDisposable {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _token: any = -1;
 	private _isDisposed = false;
 
@@ -137,6 +139,8 @@ export class IntervalTimer implements IDisposable {
 		}, interval);
 		this._disposable = {
 			dispose: () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				context.clearInterval(handle as any);
 				this._disposable = undefined;
 			}

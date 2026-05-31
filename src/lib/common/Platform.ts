@@ -19,6 +19,8 @@ declare const process: unknown;
 // "Node.js/<version>".
 export const isNode =
 	typeof process !== 'undefined' &&
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	'title' in (process as any) &&
 	(typeof navigator === 'undefined' || navigator.userAgent.startsWith('Node.js/'))
 		? true

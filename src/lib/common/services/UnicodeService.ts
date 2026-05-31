@@ -13,6 +13,8 @@ import type {
 import { Emitter } from '$lib/common/Event';
 
 export class UnicodeService implements IUnicodeService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 
 	private _providers: { [key: string]: IUnicodeVersionProvider } = Object.create(null);

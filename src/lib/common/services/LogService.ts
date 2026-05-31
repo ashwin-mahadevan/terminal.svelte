@@ -7,6 +7,8 @@ import { Disposable } from '$lib/common/Lifecycle';
 import type { ILogService } from '$lib/common/services/Services';
 import { IOptionsService, LogLevelEnum } from '$lib/common/services/Services';
 
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LogType = (message?: any, ...optionalParams: any[]) => void;
 
 interface IConsole {
@@ -33,6 +35,8 @@ const optionsKeyToLogLevel: { [key: string]: LogLevelEnum } = {
 const LOG_PREFIX = 'xterm.js: ';
 
 export class LogService extends Disposable implements ILogService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 
 	private _logLevel: LogLevelEnum = LogLevelEnum.OFF;
@@ -52,6 +56,8 @@ export class LogService extends Disposable implements ILogService {
 		this._logLevel = optionsKeyToLogLevel[this._optionsService.rawOptions.logLevel];
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _evalLazyOptionalParams(optionalParams: any[]): void {
 		for (let i = 0; i < optionalParams.length; i++) {
 			if (typeof optionalParams[i] === 'function') {
@@ -60,6 +66,8 @@ export class LogService extends Disposable implements ILogService {
 		}
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _log(type: LogType, message: string, optionalParams: any[]): void {
 		this._evalLazyOptionalParams(optionalParams);
 		type.call(
@@ -69,6 +77,8 @@ export class LogService extends Disposable implements ILogService {
 		);
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public trace(message: string, ...optionalParams: any[]): void {
 		if (this._logLevel <= LogLevelEnum.TRACE) {
 			this._log(
@@ -80,6 +90,8 @@ export class LogService extends Disposable implements ILogService {
 		}
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public debug(message: string, ...optionalParams: any[]): void {
 		if (this._logLevel <= LogLevelEnum.DEBUG) {
 			this._log(
@@ -91,6 +103,8 @@ export class LogService extends Disposable implements ILogService {
 		}
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public info(message: string, ...optionalParams: any[]): void {
 		if (this._logLevel <= LogLevelEnum.INFO) {
 			this._log(
@@ -102,6 +116,8 @@ export class LogService extends Disposable implements ILogService {
 		}
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public warn(message: string, ...optionalParams: any[]): void {
 		if (this._logLevel <= LogLevelEnum.WARN) {
 			this._log(
@@ -113,6 +129,8 @@ export class LogService extends Disposable implements ILogService {
 		}
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public error(message: string, ...optionalParams: any[]): void {
 		if (this._logLevel <= LogLevelEnum.ERROR) {
 			this._log(

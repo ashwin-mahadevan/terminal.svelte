@@ -99,6 +99,8 @@ export interface IDcsHandler {
 export type DcsFallbackHandlerType = (
 	ident: number,
 	action: 'HOOK' | 'PUT' | 'UNHOOK',
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	payload?: any
 ) => void;
 
@@ -139,6 +141,8 @@ export interface IOscHandler {
 export type OscFallbackHandlerType = (
 	ident: number,
 	action: 'START' | 'PUT' | 'END',
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	payload?: any
 ) => void;
 
@@ -166,6 +170,8 @@ export interface IApcHandler {
 export type ApcFallbackHandlerType = (
 	ident: number,
 	action: 'START' | 'PUT' | 'END',
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	payload?: any
 ) => void;
 

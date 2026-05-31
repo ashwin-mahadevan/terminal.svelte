@@ -23,6 +23,8 @@ export function getWindow(e: Node | UIEvent | undefined | null): Window {
 }
 
 class DomListener implements IDisposable {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _handler: ((e: any) => void) | null;
 	private _node: EventTarget | null;
 	private readonly _type: string;
@@ -31,6 +33,8 @@ class DomListener implements IDisposable {
 	constructor(
 		node: EventTarget,
 		type: string,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		handler: (e: any) => void,
 		options?: boolean | AddEventListenerOptions
 	) {
@@ -60,18 +64,24 @@ export function addDisposableListener<K extends keyof GlobalEventHandlersEventMa
 export function addDisposableListener(
 	node: EventTarget,
 	type: string,
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handler: (event: any) => void,
 	useCapture?: boolean
 ): IDisposable;
 export function addDisposableListener(
 	node: EventTarget,
 	type: string,
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handler: (event: any) => void,
 	options: AddEventListenerOptions
 ): IDisposable;
 export function addDisposableListener(
 	node: EventTarget,
 	type: string,
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handler: (event: any) => void,
 	useCaptureOrOptions?: boolean | AddEventListenerOptions
 ): IDisposable {
@@ -81,6 +91,8 @@ export function addDisposableListener(
 export function addStandardDisposableListener(
 	node: HTMLElement,
 	type: string,
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handler: (event: any) => void,
 	useCapture?: boolean
 ): IDisposable {

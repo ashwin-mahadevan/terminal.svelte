@@ -12,12 +12,16 @@ import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 export interface IEvent<T> {
 	(
 		listener: (e: T) => void,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		thisArgs?: any,
 		disposables?: IDisposable[] | DisposableStore
 	): IDisposable;
 }
 
 export class Emitter<T> {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _listeners: { fn: (e: T) => void; thisArgs: any }[] = [];
 	private _disposed = false;
 	private _event: IEvent<T> | undefined;
@@ -28,6 +32,8 @@ export class Emitter<T> {
 		}
 		this._event = (
 			listener: (e: T) => void,
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			thisArgs?: any,
 			disposables?: IDisposable[] | DisposableStore
 		) => {
@@ -97,6 +103,8 @@ export namespace EventUtils {
 	export function map<I, O>(event: IEvent<I>, map: (i: I) => O): IEvent<O> {
 		return (
 			listener: (e: O) => void,
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			thisArgs?: any,
 			disposables?: IDisposable[] | DisposableStore
 		) => {
@@ -105,10 +113,14 @@ export namespace EventUtils {
 	}
 
 	export function any<T>(...events: IEvent<T>[]): IEvent<T>;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export function any(...events: IEvent<any>[]): IEvent<void>;
 	export function any<T>(...events: IEvent<T>[]): IEvent<T> {
 		return (
 			listener: (e: T) => void,
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			thisArgs?: any,
 			disposables?: IDisposable[] | DisposableStore
 		) => {

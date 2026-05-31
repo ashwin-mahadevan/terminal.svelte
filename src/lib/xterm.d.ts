@@ -111,6 +111,8 @@ export interface ITerminalOptions {
 	 * The type is `any` because using `Document` can cause TS to have
 	 * performance/compiler problems.
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	documentOverride?: any | null;
 
 	/**
@@ -537,26 +539,36 @@ export interface ILogger {
 	 * Log a trace message, this will only be called if
 	 * {@link ITerminalOptions.logLevel} is set to trace.
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	trace(message: string, ...args: any[]): void;
 	/**
 	 * Log a debug message, this will only be called if
 	 * {@link ITerminalOptions.logLevel} is set to debug or below.
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	debug(message: string, ...args: any[]): void;
 	/**
 	 * Log a debug message, this will only be called if
 	 * {@link ITerminalOptions.logLevel} is set to info or below.
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	info(message: string, ...args: any[]): void;
 	/**
 	 * Log a debug message, this will only be called if
 	 * {@link ITerminalOptions.logLevel} is set to warn or below.
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	warn(message: string, ...args: any[]): void;
 	/**
 	 * Log a debug message, this will only be called if
 	 * {@link ITerminalOptions.logLevel} is set to error or below.
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	error(message: string | Error, ...args: any[]): void;
 }
 

@@ -24,6 +24,8 @@ let $xmin = 0;
 let $xmax = 0;
 
 export class DecorationService extends Disposable implements IDecorationService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 
 	/**

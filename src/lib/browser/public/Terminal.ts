@@ -51,9 +51,13 @@ export class Terminal extends Disposable implements ITerminalApi {
 		this._addonManager = this._register(new AddonManager());
 
 		this._publicOptions = { ...this._core.options };
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const getter = (propName: string): any => {
 			return this._core.options[propName];
 		};
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const setter = (propName: string, value: any): void => {
 			this._checkReadonlyOptions(propName);
 			this._core.options[propName] = value;

@@ -28,6 +28,8 @@ export class AddonManager implements IDisposable {
 		};
 		this._addons.push(loadedAddon);
 		instance.dispose = () => this._wrappedAddonDispose(loadedAddon);
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		instance.activate(terminal as any);
 	}
 

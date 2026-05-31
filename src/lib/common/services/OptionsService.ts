@@ -75,6 +75,8 @@ const FONT_WEIGHT_OPTIONS: Extract<FontWeight, string>[] = [
 ];
 
 export class OptionsService extends Disposable implements IOptionsService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 
 	public readonly rawOptions: Required<ITerminalOptions>;
@@ -136,6 +138,8 @@ export class OptionsService extends Disposable implements IOptionsService {
 	}
 
 	private _setupOptions(): void {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const getter = (propName: string): any => {
 			if (!(propName in DEFAULT_OPTIONS)) {
 				throw new Error(`No option with key "${propName}"`);
@@ -143,6 +147,8 @@ export class OptionsService extends Disposable implements IOptionsService {
 			return this.rawOptions[propName];
 		};
 
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const setter = (propName: string, value: any): void => {
 			if (!(propName in DEFAULT_OPTIONS)) {
 				throw new Error(`No option with key "${propName}"`);
@@ -165,6 +171,8 @@ export class OptionsService extends Disposable implements IOptionsService {
 		}
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _sanitizeAndValidateOption(key: string, value: any): any {
 		switch (key) {
 			case 'cursorStyle':

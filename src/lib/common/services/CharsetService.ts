@@ -7,6 +7,8 @@ import type { ICharsetService } from '$lib/common/services/Services';
 import type { ICharset } from '$lib/common/Types';
 
 export class CharsetService implements ICharsetService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 
 	public charset: ICharset | undefined;

@@ -16,10 +16,16 @@ const enum Constants {
 	DI_DEPENDENCIES = 'di$dependencies'
 }
 
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const serviceRegistry: Map<string, IServiceIdentifier<any>> = new Map();
 
 export function getServiceDependencies(
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	ctor: any
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): { id: IServiceIdentifier<any>; index: number; optional: boolean }[] {
 	return ctor[Constants.DI_DEPENDENCIES] || [];
 }
@@ -29,6 +35,8 @@ export function createDecorator<T>(id: string): IServiceIdentifier<T> {
 		return serviceRegistry.get(id)!;
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const decorator: any = function (target: Function, key: string, index: number): any {
 		if (arguments.length !== 3) {
 			throw new Error('@IServiceName-decorator can only be used to decorate a parameter');
@@ -44,10 +52,18 @@ export function createDecorator<T>(id: string): IServiceIdentifier<T> {
 }
 
 function storeServiceDependency(id: Function, target: Function, index: number): void {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	if ((target as any)[Constants.DI_TARGET] === target) {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(target as any)[Constants.DI_DEPENDENCIES].push({ id, index });
 	} else {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(target as any)[Constants.DI_DEPENDENCIES] = [{ id, index }];
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(target as any)[Constants.DI_TARGET] = target;
 	}
 }

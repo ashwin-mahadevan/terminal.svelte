@@ -176,6 +176,8 @@ const DEFAULT_ENCODINGS: { [key: string]: CoreMouseEncoding } = {
  * To send a mouse event call `triggerMouseEvent`.
  */
 export class MouseStateService extends Disposable implements IMouseStateService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 
 	private _protocols: { [name: string]: ICoreMouseProtocol } = {};

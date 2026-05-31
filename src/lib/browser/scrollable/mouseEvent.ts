@@ -220,6 +220,8 @@ export class StandardWheelEvent {
 
 	constructor(e: IMouseWheelEvent | null, deltaX: number = 0, deltaY: number = 0) {
 		this.browserEvent = e ?? null;
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		this.target = e ? (e.target ?? (e as any).targetNode ?? e.srcElement ?? null) : null;
 
 		this.deltaY = deltaY;
@@ -233,6 +235,8 @@ export class StandardWheelEvent {
 		}
 
 		if (e) {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const e1 = e as IWebKitMouseWheelEvent as any;
 			const e2 = e as unknown as IGeckoMouseWheelEvent;
 			const devicePixelRatio = e.view?.devicePixelRatio ?? 1;

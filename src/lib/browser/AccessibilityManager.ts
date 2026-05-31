@@ -351,6 +351,8 @@ export class AccessibilityManager extends Disposable {
 			offset
 		}: typeof begin): { row: number; column: number } | null => {
 			// `node` is either the row element or the Text node inside it.
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const rowElement: any = node instanceof Text ? node.parentNode : node;
 			let row = parseInt(rowElement?.getAttribute('aria-posinset'), 10) - 1;
 			if (isNaN(row)) {

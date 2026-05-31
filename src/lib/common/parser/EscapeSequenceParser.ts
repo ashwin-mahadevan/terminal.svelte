@@ -132,6 +132,8 @@ export const VT500_TRANSITION_TABLE = (function (): TransitionTable {
 
 	// range macro for byte
 	const BYTE_VALUES = 256;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const blueprint = Array.apply(null, Array(BYTE_VALUES)).map((unused: any, i: number) => i);
 	const r = (start: number, end: number): number[] => blueprint.slice(start, end);
 

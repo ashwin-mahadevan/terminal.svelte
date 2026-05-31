@@ -37,6 +37,8 @@ const DEFAULT_KITTY_KEYBOARD_STATE = (): IKittyKeyboardState => ({
 });
 
 export class CoreService extends Disposable implements ICoreService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 
 	public isCursorInitialized: boolean;

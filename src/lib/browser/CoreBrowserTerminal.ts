@@ -113,6 +113,8 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 	private _overviewRulerRenderer: OverviewRulerRenderer | undefined;
 	private _viewport: Viewport | undefined;
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public browser: IBrowser = Browser as any;
 
 	private _customKeyEventHandler: CustomKeyEventHandler | undefined;
@@ -645,6 +647,8 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 				this.textarea,
 				parent.ownerDocument.defaultView ?? window,
 				// Force unsafe null in node.js environment for tests
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				(this._document ?? typeof window !== 'undefined') ? window.document : (null as any)
 			)
 		);

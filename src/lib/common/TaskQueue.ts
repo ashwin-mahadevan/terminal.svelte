@@ -116,6 +116,7 @@ abstract class TaskQueue implements ITaskQueue {
 export class PriorityTaskQueue extends TaskQueue {
 	protected _requestCallback(callback: CallbackWithDeadline): number {
 		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return setTimeout(() => callback(this._createDeadline(16))) as any;
 	}
 

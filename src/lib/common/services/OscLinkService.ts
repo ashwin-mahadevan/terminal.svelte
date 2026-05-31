@@ -7,6 +7,8 @@ import { IBufferService } from '$lib/common/services/Services';
 import type { IMarker, IOscLinkData } from '$lib/common/Types';
 
 export class OscLinkService implements IOscLinkService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 
 	private _nextId = 1;

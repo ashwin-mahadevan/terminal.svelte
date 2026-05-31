@@ -13,6 +13,8 @@ function tail<T>(array: ArrayLike<T>, n: number = 0): T | undefined {
 	return array[array.length - (1 + n)];
 }
 
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function memoize(_target: any, key: string, descriptor: PropertyDescriptor): void {
 	let fnKey: string | null = null;
 	let fn: Function | null = null;
@@ -34,7 +36,11 @@ function memoize(_target: any, key: string, descriptor: PropertyDescriptor): voi
 	}
 
 	const memoizeKey = `$memoize$${key}`;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const descriptorAny = descriptor as { [key: string]: any };
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	descriptorAny[fnKey] = function (...args: any[]) {
 		if (!this.hasOwnProperty(memoizeKey)) {
 			Object.defineProperty(this, memoizeKey, {
@@ -45,11 +51,15 @@ function memoize(_target: any, key: string, descriptor: PropertyDescriptor): voi
 			});
 		}
 
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (this as { [key: string]: any })[memoizeKey];
 	};
 }
 
 class LinkedListNode<E> {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public static readonly Undefined = new LinkedListNode<any>(undefined);
 
 	public element: E;

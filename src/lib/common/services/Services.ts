@@ -145,6 +145,8 @@ export interface ICharsetService {
 }
 
 export interface IServiceIdentifier<T> {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	(...args: any[]): void;
 	type: T;
 	_id: string;
@@ -154,6 +156,8 @@ export interface IBrandedService {
 	serviceBrand: undefined;
 }
 
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type GetLeadingNonServiceArgs<TArgs extends any[]> = TArgs extends []
 	? []
 	: TArgs extends [...infer TFirst, infer TLast]
@@ -168,6 +172,8 @@ export interface IInstantiationService {
 
 	setService<T>(id: IServiceIdentifier<T>, instance: T): void;
 	getService<T>(id: IServiceIdentifier<T>): T | undefined;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	createInstance<Ctor extends new (...args: any[]) => any, R extends InstanceType<Ctor>>(
 		t: Ctor,
 		...args: GetLeadingNonServiceArgs<ConstructorParameters<Ctor>>
@@ -189,10 +195,20 @@ export interface ILogService {
 
 	readonly logLevel: LogLevelEnum;
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	trace(message: any, ...optionalParams: any[]): void;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	debug(message: any, ...optionalParams: any[]): void;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	info(message: any, ...optionalParams: any[]): void;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	warn(message: any, ...optionalParams: any[]): void;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	error(message: any, ...optionalParams: any[]): void;
 }
 
@@ -265,6 +281,8 @@ export interface ITerminalOptions {
 	cursorWidth?: number;
 	cursorInactiveStyle?: CursorInactiveStyle;
 	disableStdin?: boolean;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	documentOverride?: any | null;
 	drawBoldTextInBrightColors?: boolean;
 	fastScrollSensitivity?: number;
@@ -302,6 +320,8 @@ export interface ITerminalOptions {
 	scrollOnEraseInDisplay?: boolean;
 	vtExtensions?: IVtExtensions;
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;
 	termName: string;
 }

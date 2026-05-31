@@ -21,6 +21,8 @@ export const enum BufferServiceConstants {
 }
 
 export class BufferService extends Disposable implements IBufferService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 
 	public cols: number;
