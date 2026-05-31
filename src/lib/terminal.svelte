@@ -1,21 +1,17 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { Terminal } from '@xterm/xterm';
 	import { FitAddon } from '@xterm/addon-fit';
 
-	/**
-	 * @typedef {object} Props
-	 * @property {(data: string) => void} [ondata]
-	 * @property {(size: { cols: number; rows: number }) => void} [onresize]
-	 */
+	type Props = {
+		ondata?: (data: string) => void;
+		onresize?: (size: { cols: number; rows: number }) => void;
+	};
 
-	/** @type {Props} */
-	const { ondata, onresize } = $props();
+	const { ondata, onresize }: Props = $props();
 
-	/** @type {Terminal} */
-	let terminal;
-	/** @type {HTMLDivElement} */
-	let element;
+	let terminal: Terminal;
+	let element: HTMLDivElement;
 
 	onMount(() => {
 		terminal = new Terminal();
@@ -44,8 +40,7 @@
 		return () => disposable.dispose();
 	});
 
-	/** @param {string} data */
-	export function write(data) {
+	export function write(data: string) {
 		terminal.write(data);
 	}
 </script>
