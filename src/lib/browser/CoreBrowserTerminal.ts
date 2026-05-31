@@ -375,6 +375,8 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 	/**
 	 * Binds the desired focus behavior on a given terminal object.
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	private _handleTextAreaFocus(ev: FocusEvent): void {
 		if (this.coreService.decPrivateModes.sendFocus) {
 			this.coreService.triggerDataEvent(C0.ESC + '[I');
@@ -1320,6 +1322,8 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		super.resize(x, y);
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	private _afterResize(x: number, y: number): void {
 		this._charSizeService?.measure();
 	}

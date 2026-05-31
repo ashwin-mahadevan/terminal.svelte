@@ -66,6 +66,8 @@ export class HorizontalScrollbar extends AbstractScrollbar {
 		return this._shouldRender;
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected _pointerDownRelativePosition(offsetX: number, offsetY: number): number {
 		return offsetX;
 	}

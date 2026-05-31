@@ -109,6 +109,8 @@ export class ScrollbarArrow extends Widget {
 			e.target,
 			e.pointerId,
 			e.buttons,
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			(pointerMoveData) => {
 				/* Intentional empty */
 			},

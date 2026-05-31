@@ -550,11 +550,15 @@ export class SmoothScrollableElement extends Widget {
 		this._hide();
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	private _handleMouseLeave(e: IMouseEvent): void {
 		this._mouseIsOver = false;
 		this._hide();
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	private _handleMouseOver(e: IMouseEvent): void {
 		this._mouseIsOver = true;
 		this._reveal();

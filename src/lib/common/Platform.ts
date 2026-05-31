@@ -37,6 +37,8 @@ interface IZoomWindow {
 	devicePixelRatio?: number;
 }
 
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getZoomFactor(_targetWindow: IZoomWindow): number {
 	return 1;
 }

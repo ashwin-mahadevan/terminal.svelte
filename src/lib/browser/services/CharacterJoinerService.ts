@@ -47,6 +47,8 @@ export class JoinedCellData extends AttributeData implements ICellData {
 		return 0x1fffff;
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public setFromCharData(value: CharData): void {
 		throw new Error('not implemented');
 	}

@@ -82,6 +82,8 @@ export class GlobalPointerMoveMonitor implements IDisposable {
 		);
 
 		this._hooks.add(
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			dom.addDisposableListener(eventSource, dom.eventType.POINTER_UP, (e: PointerEvent) =>
 				this.stopMonitoring(true)
 			)

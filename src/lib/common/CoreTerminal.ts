@@ -251,6 +251,8 @@ export abstract class CoreTerminal extends Disposable implements ICoreTerminal {
 		this.scrollLines(-this._bufferService.buffer.ydisp);
 	}
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public scrollToBottom(disableSmoothScroll?: boolean): void {
 		this.scrollLines(this._bufferService.buffer.ybase - this._bufferService.buffer.ydisp);
 	}

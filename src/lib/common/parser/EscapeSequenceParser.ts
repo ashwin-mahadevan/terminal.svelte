@@ -570,9 +570,17 @@ export class EscapeSequenceParser extends Disposable implements IEscapeSequenceP
 		this.precedingJoinState = 0;
 
 		// set default fallback handlers and handler lookup containers
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		this._printHandlerFb = (data, start, end): void => {};
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		this._executeHandlerFb = (code: number): void => {};
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		this._csiHandlerFb = (ident: number, params: IParams): void => {};
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		this._escHandlerFb = (ident: number): void => {};
 		this._errorHandlerFb = (state: IParsingState): IParsingState => state;
 		this._printHandler = this._printHandlerFb;

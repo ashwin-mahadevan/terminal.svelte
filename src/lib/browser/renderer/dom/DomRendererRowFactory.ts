@@ -173,6 +173,8 @@ export class DomRendererRowFactory {
 			}
 
 			let isDecorated = false;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			this._decorationService.forEachDecorationAtCell(x, row, undefined, (d) => {
 				isDecorated = true;
 			});

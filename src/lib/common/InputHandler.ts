@@ -3156,6 +3156,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 	 *
 	 * FIXME: there are several more attributes missing (see VT520 manual)
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public softReset(params: IParams): boolean {
 		this._coreService.isCursorHidden = false;
 		this._onRequestSyncScrollBar.fire();
@@ -3339,6 +3341,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 	 * @vt: #P[TODO...]  CSI SCOSC   "Save Cursor"   "CSI s"   "Save cursor position, charmap and text attributes."
 	 * @vt: #Y ESC  SC   "Save Cursor"   "ESC 7"   "Save cursor position, charmap and text attributes."
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public saveCursor(params?: IParams): boolean {
 		this._activeBuffer.savedX = this._activeBuffer.x;
 		this._activeBuffer.savedY = this._activeBuffer.ybase + this._activeBuffer.y;
@@ -3360,6 +3364,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 	 * @vt: #P[TODO...]  CSI SCORC "Restore Cursor"  "CSI u"   "Restore cursor position, charmap and text attributes."
 	 * @vt: #Y ESC  RC "Restore Cursor"  "ESC 8"   "Restore cursor position, charmap and text attributes."
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public restoreCursor(params?: IParams): boolean {
 		this._activeBuffer.x = this._activeBuffer.savedX || 0;
 		this._activeBuffer.y = Math.max(this._activeBuffer.savedY - this._activeBuffer.ybase, 0);
@@ -3603,6 +3609,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 	 *
 	 * @vt: #Y  OSC   110    "Restore default foreground color"   "OSC 110 BEL"  "Restore default foreground to themed color."
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public restoreFgColor(data: string): boolean {
 		this._onColor.fire([{ type: ColorRequestType.RESTORE, index: SpecialColorIndex.FOREGROUND }]);
 		return true;
@@ -3613,6 +3621,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 	 *
 	 * @vt: #Y  OSC   111    "Restore default background color"   "OSC 111 BEL"  "Restore default background to themed color."
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public restoreBgColor(data: string): boolean {
 		this._onColor.fire([{ type: ColorRequestType.RESTORE, index: SpecialColorIndex.BACKGROUND }]);
 		return true;
@@ -3623,6 +3633,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 	 *
 	 * @vt: #Y  OSC   112    "Restore default cursor color"   "OSC 112 BEL"  "Restore default cursor to themed color."
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public restoreCursorColor(data: string): boolean {
 		this._onColor.fire([{ type: ColorRequestType.RESTORE, index: SpecialColorIndex.CURSOR }]);
 		return true;
@@ -3880,6 +3892,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 	 * - either check which conformance is better suited or remove the report completely
 	 *   --> we are currently a mixture of all up to VT400 but dont follow anyone strictly
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public requestStatusString(data: string, params: IParams): boolean {
 		const f = (s: string): boolean => {
 			this._coreService.triggerDataEvent(`${C0.ESC}${s}${C0.ESC}\\`);
@@ -3942,6 +3956,8 @@ export class InputHandler extends Disposable implements IInputHandler {
 	 *
 	 * @vt: #Y CSI KKBDQUERY "Kitty Keyboard Query" "CSI ? u" "Query Kitty keyboard protocol flags."
 	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public kittyKeyboardQuery(params: IParams): boolean {
 		if (!this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
 			return true;

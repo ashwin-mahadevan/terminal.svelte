@@ -86,6 +86,8 @@ const DEFAULT_PROTOCOLS: { [key: string]: ICoreMouseProtocol } = {
 			CoreMouseEventType.WHEEL |
 			CoreMouseEventType.DRAG |
 			CoreMouseEventType.MOVE,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		restrict: (e: ICoreMouseEvent) => true
 	}
 };

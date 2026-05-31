@@ -55,6 +55,8 @@ export function moveToCellSequence(
 /**
  * Find the number of cols from a row beginning to a col.
  */
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function colsFromRowBeginning(currX: number, bufferService: IBufferService): number {
 	return currX - 1;
 }
