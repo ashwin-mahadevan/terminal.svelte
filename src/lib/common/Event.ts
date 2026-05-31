@@ -95,6 +95,8 @@ export class Emitter<T> {
 	}
 }
 
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EventUtils {
 	export function forward<T>(from: IEvent<T>, to: Emitter<T>): IDisposable {
 		return from((e) => to.fire(e));

@@ -136,6 +136,8 @@ class LinkedList<E> {
 	}
 }
 
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EventType {
 	export const TAP = '-xterm-gesturetap';
 	export const CHANGE = '-xterm-gesturechange';

@@ -18,6 +18,8 @@ export const NULL_COLOR: IColor = {
 /**
  * Helper functions where the source type is "channels" (individual color channels as numbers).
  */
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace channels {
 	export function toCss(r: number, g: number, b: number, a?: number): string {
 		if (a !== undefined) {
@@ -44,6 +46,8 @@ export namespace channels {
 /**
  * Helper functions where the source type is `IColor`.
  */
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace color {
 	export function blend(bg: IColor, fg: IColor): IColor {
 		$a = (fg.rgba & 0xff) / 255;
@@ -111,6 +115,8 @@ export namespace color {
  * Helper functions where the source type is "css" (string: '#rgb', '#rgba', '#rrggbb',
  * '#rrggbbaa').
  */
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace css {
 	// Attempt to set get the shared canvas context
 	let $ctx: CanvasRenderingContext2D | undefined;
@@ -225,6 +231,8 @@ export namespace css {
 /**
  * Helper functions where the source type is "rgb" (number: 0xrrggbb).
  */
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace rgb {
 	/**
 	 * Gets the relative luminance of an RGB color, this is useful in determining the contrast ratio
@@ -258,6 +266,8 @@ export namespace rgb {
 /**
  * Helper functions where the source type is "rgba" (number: 0xrrggbbaa).
  */
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace rgba {
 	export function blend(bg: number, fg: number): number {
 		$a = (fg & 0xff) / 0xff;
