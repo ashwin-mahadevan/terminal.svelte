@@ -1053,8 +1053,8 @@ export class EscapeSequenceParser extends Disposable implements IEscapeSequenceP
 						(data[c] <= 0x7e || data[c] >= NON_ASCII_PRINTABLE) &&
 						data[++c] >= 0x20 &&
 						(data[c] <= 0x7e || data[c] >= NON_ASCII_PRINTABLE)
-					// TODO: Fix this upstream type error.
-					// eslint-disable-next-line no-empty
+						// TODO: Fix this upstream type error.
+						// eslint-disable-next-line no-empty
 					) {}
 					if (c >= l4) {
 						while (

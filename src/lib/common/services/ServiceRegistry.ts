@@ -24,8 +24,8 @@ export function getServiceDependencies(
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	ctor: any
-// TODO: Fix this upstream type error.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): { id: IServiceIdentifier<any>; index: number; optional: boolean }[] {
 	return ctor[Constants.DI_DEPENDENCIES] || [];
 }
