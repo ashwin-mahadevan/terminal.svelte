@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-import { UnicodeV6 } from 'common/input/UnicodeV6';
-import { IUnicodeService, IUnicodeVersionProvider, UnicodeCharProperties, UnicodeCharWidth } from 'common/services/Services';
-import { Emitter } from 'common/Event';
+import { UnicodeV6 } from '$lib/common/input/UnicodeV6';
+import type { IUnicodeService, IUnicodeVersionProvider, UnicodeCharProperties, UnicodeCharWidth } from '$lib/common/services/Services';
+import { Emitter } from '$lib/common/Event';
 
 export class UnicodeService implements IUnicodeService {
   public serviceBrand: any;

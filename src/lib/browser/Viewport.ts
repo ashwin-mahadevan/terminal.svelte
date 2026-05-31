@@ -3,16 +3,16 @@
  * @license MIT
  */
 
-import { ICoreBrowserService, IRenderService, IThemeService } from 'browser/services/Services';
-import { ViewportConstants } from 'browser/shared/Constants';
-import { Disposable, toDisposable } from 'common/Lifecycle';
-import { IBufferService, ICoreService, IMouseStateService, IOptionsService } from 'common/services/Services';
-import { CoreMouseEventType } from 'common/Types';
-import { scheduleAtNextAnimationFrame } from 'browser/Dom';
-import { SmoothScrollableElement } from 'browser/scrollable/scrollableElement';
-import type { IScrollableElementChangeOptions } from 'browser/scrollable/scrollableElementOptions';
-import { Emitter, EventUtils } from 'common/Event';
-import { Scrollable, ScrollbarVisibility, type IScrollEvent } from 'browser/scrollable/scrollable';
+import { ICoreBrowserService, IRenderService, IThemeService } from '$lib/browser/services/Services';
+import { ViewportConstants } from '$lib/browser/shared/Constants';
+import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { IBufferService, ICoreService, IMouseStateService, IOptionsService } from '$lib/common/services/Services';
+import { CoreMouseEventType } from '$lib/common/Types';
+import { scheduleAtNextAnimationFrame } from '$lib/browser/Dom';
+import { SmoothScrollableElement } from '$lib/browser/scrollable/scrollableElement';
+import type { IScrollableElementChangeOptions } from '$lib/browser/scrollable/scrollableElementOptions';
+import { Emitter, EventUtils } from '$lib/common/Event';
+import { Scrollable, ScrollbarVisibility, type IScrollEvent } from '$lib/browser/scrollable/scrollable';
 
 export class Viewport extends Disposable {
 

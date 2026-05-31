@@ -3,12 +3,12 @@
  * @license MIT
  */
 
-import { IRenderDimensions, IRenderer } from 'browser/renderer/shared/Types';
-import { IColorSet, ILink, ReadonlyColorSet } from 'browser/Types';
-import { ISelectionRedrawRequestEvent as ISelectionRequestRedrawEvent, ISelectionRequestScrollLinesEvent } from 'browser/selection/Types';
-import { createDecorator } from 'common/services/ServiceRegistry';
-import { AllColorIndex, IDisposable, IKeyboardResult } from 'common/Types';
-import type { IEvent } from 'common/Event';
+import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
+import type { IColorSet, ILink, ReadonlyColorSet } from '$lib/browser/Types';
+import type { ISelectionRedrawRequestEvent as ISelectionRequestRedrawEvent, ISelectionRequestScrollLinesEvent } from '$lib/browser/selection/Types';
+import { createDecorator } from '$lib/common/services/ServiceRegistry';
+import type { AllColorIndex, IDisposable, IKeyboardResult } from '$lib/common/Types';
+import type { IEvent } from '$lib/common/Event';
 
 export const ICharSizeService = createDecorator<ICharSizeService>('CharSizeService');
 export interface ICharSizeService {

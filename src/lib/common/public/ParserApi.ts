@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-import { IParams } from 'common/parser/Types';
-import { IDisposable, IFunctionIdentifier, IParser } from '@xterm/xterm';
-import { ICoreTerminal } from 'common/Types';
+import type { IParams } from '$lib/common/parser/Types';
+import type { IDisposable, IFunctionIdentifier, IParser } from '$lib/xterm';
+import type { ICoreTerminal } from '$lib/common/Types';
 
 export class ParserApi implements IParser {
   constructor(private _core: ICoreTerminal) { }

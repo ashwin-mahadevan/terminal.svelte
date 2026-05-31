@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColorZoneStore, IColorZone, IColorZoneStore } from 'browser/decorations/ColorZoneStore';
-import { ICoreBrowserService, IRenderService, IThemeService } from 'browser/services/Services';
-import { Disposable, toDisposable } from 'common/Lifecycle';
-import { IBufferService, IDecorationService, IOptionsService } from 'common/services/Services';
+import type { IColorZone, IColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
+import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
+import { ICoreBrowserService, IRenderService, IThemeService } from '$lib/browser/services/Services';
+import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { IBufferService, IDecorationService, IOptionsService } from '$lib/common/services/Services';
 
 const enum Constants {
   OVERVIEW_RULER_BORDER_WIDTH = 1

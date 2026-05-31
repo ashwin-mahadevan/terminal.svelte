@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import { IdleTaskQueue } from 'common/TaskQueue';
-import type { ILogService } from 'common/services/Services';
+import { IdleTaskQueue } from '$lib/common/TaskQueue';
+import type { ILogService } from '$lib/common/services/Services';
 
 // Work variables to avoid garbage collection.
 let i = 0;

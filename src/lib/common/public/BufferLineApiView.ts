@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-import { CellData } from 'common/buffer/CellData';
-import { IBufferLine, ICellData } from 'common/Types';
-import { IBufferCell as IBufferCellApi, IBufferLine as IBufferLineApi } from '@xterm/xterm';
+import { CellData } from '$lib/common/buffer/CellData';
+import type { IBufferLine, ICellData } from '$lib/common/Types';
+import type { IBufferCell as IBufferCellApi, IBufferLine as IBufferLineApi } from '$lib/xterm';
 
 export class BufferLineApiView implements IBufferLineApi {
   constructor(private _line: IBufferLine) { }

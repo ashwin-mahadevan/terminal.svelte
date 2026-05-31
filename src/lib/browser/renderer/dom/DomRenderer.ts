@@ -3,20 +3,20 @@
  * @license MIT
  */
 
-import { DomRendererRowFactory, RowCss } from 'browser/renderer/dom/DomRendererRowFactory';
-import { WidthCache } from 'browser/renderer/dom/WidthCache';
-import { INVERTED_DEFAULT_COLOR, RendererConstants } from 'browser/renderer/shared/Constants';
-import { createRenderDimensions } from 'browser/renderer/shared/RendererUtils';
-import { createSelectionRenderModel } from 'browser/renderer/shared/SelectionRenderModel';
-import { TextBlinkStateManager } from 'browser/renderer/shared/TextBlinkStateManager';
-import { IRenderDimensions, IRenderer, IRequestRedrawEvent, ISelectionRenderModel } from 'browser/renderer/shared/Types';
-import { ICharSizeService, ICoreBrowserService, IThemeService } from 'browser/services/Services';
-import { ILinkifier2, ILinkifierEvent, ITerminal, ReadonlyColorSet } from 'browser/Types';
-import { color } from 'common/Color';
-import { Disposable, toDisposable } from 'common/Lifecycle';
-import { IBufferService, ICoreService, IInstantiationService, IOptionsService } from 'common/services/Services';
-import { Emitter } from 'common/Event';
-import { addDisposableListener } from 'browser/Dom';
+import { DomRendererRowFactory, RowCss } from '$lib/browser/renderer/dom/DomRendererRowFactory';
+import { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
+import { INVERTED_DEFAULT_COLOR, RendererConstants } from '$lib/browser/renderer/shared/Constants';
+import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
+import { createSelectionRenderModel } from '$lib/browser/renderer/shared/SelectionRenderModel';
+import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
+import type { IRenderDimensions, IRenderer, IRequestRedrawEvent, ISelectionRenderModel } from '$lib/browser/renderer/shared/Types';
+import { ICharSizeService, ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
+import type { ILinkifier2, ILinkifierEvent, ITerminal, ReadonlyColorSet } from '$lib/browser/Types';
+import { color } from '$lib/common/Color';
+import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { IBufferService, ICoreService, IInstantiationService, IOptionsService } from '$lib/common/services/Services';
+import { Emitter } from '$lib/common/Event';
+import { addDisposableListener } from '$lib/browser/Dom';
 
 
 const enum Constants {

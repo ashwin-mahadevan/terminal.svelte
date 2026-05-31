@@ -3,15 +3,16 @@
  * @license MIT
  */
 
-import type { IDeleteEvent, IInsertEvent } from 'common/CircularList';
-import { MicrotaskTimer } from 'common/Async';
-import { css } from 'common/Color';
-import { Disposable, DisposableStore, MutableDisposable, toDisposable } from 'common/Lifecycle';
-import { IBufferService, IDecorationService, IInternalDecoration, ILogService } from 'common/services/Services';
-import { SortedList } from 'common/SortedList';
-import { IColor, ICircularList } from 'common/Types';
-import { IDecoration, IDecorationOptions, IMarker } from '@xterm/xterm';
-import { Emitter } from 'common/Event';
+import type { IDeleteEvent, IInsertEvent } from '$lib/common/CircularList';
+import { MicrotaskTimer } from '$lib/common/Async';
+import { css } from '$lib/common/Color';
+import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import type { IDecorationService, IInternalDecoration} from '$lib/common/services/Services';
+import { IBufferService, ILogService } from '$lib/common/services/Services';
+import { SortedList } from '$lib/common/SortedList';
+import type { IColor, ICircularList } from '$lib/common/Types';
+import type { IDecoration, IDecorationOptions, IMarker } from '$lib/xterm';
+import { Emitter } from '$lib/common/Event';
 
 // Work variables to avoid garbage collection
 let $xmin = 0;

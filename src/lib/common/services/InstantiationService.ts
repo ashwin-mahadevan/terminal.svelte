@@ -9,8 +9,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IInstantiationService, IServiceIdentifier } from 'common/services/Services';
-import { getServiceDependencies } from 'common/services/ServiceRegistry';
+import type { IServiceIdentifier } from '$lib/common/services/Services';
+import { IInstantiationService } from '$lib/common/services/Services';
+import { getServiceDependencies } from '$lib/common/services/ServiceRegistry';
 
 export class ServiceCollection {
 

@@ -3,14 +3,14 @@
  * @license MIT
  */
 
-import * as Strings from 'browser/LocalizableStrings';
-import { ITerminal, IRenderDebouncer } from 'browser/Types';
-import { TimeBasedDebouncer } from 'browser/TimeBasedDebouncer';
-import { Disposable, toDisposable } from 'common/Lifecycle';
-import { ICoreBrowserService, IRenderService } from 'browser/services/Services';
-import { IBuffer } from 'common/buffer/Types';
-import { IInstantiationService } from 'common/services/Services';
-import { addDisposableListener } from 'browser/Dom';
+import * as Strings from '$lib/browser/LocalizableStrings';
+import type { ITerminal, IRenderDebouncer } from '$lib/browser/Types';
+import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
+import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
+import type { IBuffer } from '$lib/common/buffer/Types';
+import { IInstantiationService } from '$lib/common/services/Services';
+import { addDisposableListener } from '$lib/browser/Dom';
 
 const enum Constants {
   MAX_ROWS_TO_READ = 20

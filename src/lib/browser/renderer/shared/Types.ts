@@ -3,10 +3,10 @@
  * @license MIT
  */
 
-import { Terminal } from '@xterm/xterm';
-import { ITerminal } from 'browser/Types';
-import { IDisposable } from 'common/Types';
-import type { IEvent } from 'common/Event';
+import type { Terminal } from '$lib/xterm';
+import type { ITerminal } from '$lib/browser/Types';
+import type { IDisposable } from '$lib/common/Types';
+import type { IEvent } from '$lib/common/Event';
 
 export interface IDimensions {
   width: number;

@@ -3,11 +3,11 @@
  * @license MIT
  */
 
-import { Disposable, toDisposable } from 'common/Lifecycle';
-import { isMac } from 'common/Platform';
-import { CursorStyle, IDisposable } from 'common/Types';
-import { FontWeight, IOptionsService, ITerminalOptions } from 'common/services/Services';
-import { Emitter } from 'common/Event';
+import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { isMac } from '$lib/common/Platform';
+import type { CursorStyle, IDisposable } from '$lib/common/Types';
+import type { FontWeight, IOptionsService, ITerminalOptions } from '$lib/common/services/Services';
+import { Emitter } from '$lib/common/Event';
 
 export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
   cols: 80,
@@ -99,7 +99,7 @@ export class OptionsService extends Disposable implements IOptionsService {
     }));
   }
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+   
   public onSpecificOptionChange<T extends keyof ITerminalOptions>(key: T, listener: (value: ITerminalOptions[T]) => any): IDisposable {
     return this.onOptionChange(eventKey => {
       if (eventKey === key) {
@@ -108,7 +108,7 @@ export class OptionsService extends Disposable implements IOptionsService {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+   
   public onMultipleOptionChange(keys: (keyof ITerminalOptions)[], listener: () => any): IDisposable {
     return this.onOptionChange(eventKey => {
       if (keys.indexOf(eventKey) !== -1) {

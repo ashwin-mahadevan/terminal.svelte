@@ -3,10 +3,11 @@
  * @license MIT
  */
 
-import { Disposable } from 'common/Lifecycle';
-import { IDecPrivateModes, IKittyKeyboardState, IModes } from 'common/Types';
-import { IBufferService, ICoreService, ILogService, IOptionsService } from 'common/services/Services';
-import { Emitter } from 'common/Event';
+import { Disposable } from '$lib/common/Lifecycle';
+import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
+import type { ICoreService} from '$lib/common/services/Services';
+import { IBufferService, ILogService, IOptionsService } from '$lib/common/services/Services';
+import { Emitter } from '$lib/common/Event';
 
 const DEFAULT_MODES: IModes = Object.freeze({
   insertMode: false

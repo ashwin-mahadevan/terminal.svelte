@@ -3,11 +3,11 @@
  * @license MIT
  */
 
-import { IOscHandler, IHandlerCollection, OscFallbackHandlerType, IOscParser, ISubParserStackState } from 'common/parser/Types';
-import { OscState, ParserConstants } from 'common/parser/Constants';
-import { utf32ToString } from 'common/input/TextDecoder';
-import { IDisposable } from 'common/Types';
-import { LimitedStringBuilder } from 'common/StringBuilder';
+import type { IOscHandler, IHandlerCollection, OscFallbackHandlerType, IOscParser, ISubParserStackState } from '$lib/common/parser/Types';
+import { OscState, ParserConstants } from '$lib/common/parser/Constants';
+import { utf32ToString } from '$lib/common/input/TextDecoder';
+import type { IDisposable } from '$lib/common/Types';
+import { LimitedStringBuilder } from '$lib/common/StringBuilder';
 
 const EMPTY_HANDLERS: IOscHandler[] = [];
 

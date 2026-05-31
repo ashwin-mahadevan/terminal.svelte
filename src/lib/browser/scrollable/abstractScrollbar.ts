@@ -6,13 +6,14 @@
 import * as dom from '../Dom';
 import { FastDomNode } from './fastDomNode';
 import { GlobalPointerMoveMonitor } from './globalPointerMoveMonitor';
-import { StandardWheelEvent } from './mouseEvent';
-import { ScrollbarArrow, IScrollbarArrowOptions } from './scrollbarArrow';
-import { ScrollbarState } from './scrollbarState';
+import type { StandardWheelEvent } from './mouseEvent';
+import type { IScrollbarArrowOptions } from './scrollbarArrow';
+import { ScrollbarArrow } from './scrollbarArrow';
+import type { ScrollbarState } from './scrollbarState';
 import { ScrollbarVisibilityController } from './scrollbarVisibilityController';
 import { Widget } from './widget';
-import * as platform from 'common/Platform';
-import { INewScrollPosition, Scrollable, ScrollbarVisibility } from './scrollable';
+import * as platform from '$lib/common/Platform';
+import type { INewScrollPosition, Scrollable, ScrollbarVisibility } from './scrollable';
 
 /**
  * The orthogonal distance to the slider at which dragging "resets". This implements "snapping"

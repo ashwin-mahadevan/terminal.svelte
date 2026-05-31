@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-import type { Terminal, ITerminalAddon, IRenderDimensions } from '@xterm/xterm';
-import type { FitAddon as IFitApi } from '@xterm/addon-fit';
-import { ViewportConstants } from 'browser/shared/Constants';
+import type { Terminal, ITerminalAddon, IRenderDimensions } from '$lib/xterm';
+import type { FitAddon as IFitApi } from '$lib/addon-fit';
+import { ViewportConstants } from '$lib/browser/shared/Constants';
 
 interface ITerminalDimensions {
   /**

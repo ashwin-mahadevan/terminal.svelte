@@ -4,8 +4,9 @@
  * @license MIT
  */
 
-import { IKeyboardEvent, IKeyboardResult, KeyboardResultType } from 'common/Types';
-import { C0 } from 'common/data/EscapeSequences';
+import type { IKeyboardEvent, IKeyboardResult} from '$lib/common/Types';
+import { KeyboardResultType } from '$lib/common/Types';
+import { C0 } from '$lib/common/data/EscapeSequences';
 
 // reg + shift key mappings for digits and special chars
 const KEYCODE_KEY_MAPPINGS: { [key: number]: [string, string]} = {

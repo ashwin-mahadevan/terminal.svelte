@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import { IRenderDebouncerWithCallback } from 'browser/Types';
-import { ICoreBrowserService } from 'browser/services/Services';
+import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
+import type { ICoreBrowserService } from '$lib/browser/services/Services';
 
 /**
  * Debounces calls to render terminal rows using animation frames.

@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import { ICoreTerminal } from 'common/Types';
-import { IUnicodeHandling, IUnicodeVersionProvider } from '@xterm/xterm';
+import type { ICoreTerminal } from '$lib/common/Types';
+import type { IUnicodeHandling, IUnicodeVersionProvider } from '$lib/xterm';
 
 export class UnicodeApi implements IUnicodeHandling {
   constructor(private _core: ICoreTerminal) { }

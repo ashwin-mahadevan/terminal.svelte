@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-import { ICoreBrowserService } from 'browser/services/Services';
-import { Disposable, toDisposable } from 'common/Lifecycle';
-import { IOptionsService } from 'common/services/Services';
+import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import type { IOptionsService } from '$lib/common/services/Services';
 
 export class TextBlinkStateManager extends Disposable {
   private _intervalDuration: number = 0;

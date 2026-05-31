@@ -1,6 +1,6 @@
-import { ILinkProvider, ILinkProviderService } from 'browser/services/Services';
-import { Disposable, toDisposable } from 'common/Lifecycle';
-import { IDisposable } from 'common/Types';
+import type { ILinkProvider, ILinkProviderService } from '$lib/browser/services/Services';
+import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Types';
 
 export class LinkProviderService extends Disposable implements ILinkProviderService {
   declare public serviceBrand: undefined;

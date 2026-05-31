@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import { ICharsetService } from 'common/services/Services';
-import { ICharset } from 'common/Types';
+import type { ICharsetService } from '$lib/common/services/Services';
+import type { ICharset } from '$lib/common/Types';
 
 export class CharsetService implements ICharsetService {
   public serviceBrand: any;

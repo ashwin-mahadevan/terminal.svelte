@@ -3,18 +3,18 @@
  * @license MIT
  */
 
-import { IBufferLine, ICellData, IColor } from 'common/Types';
-import { INVERTED_DEFAULT_COLOR } from 'browser/renderer/shared/Constants';
-import { WHITESPACE_CELL_CHAR, Attributes } from 'common/buffer/Constants';
-import { CellData } from 'common/buffer/CellData';
-import { ICoreService, IDecorationService, IOptionsService } from 'common/services/Services';
-import { channels, color } from 'common/Color';
-import { ICharacterJoinerService, ICoreBrowserService, IThemeService } from 'browser/services/Services';
-import { JoinedCellData } from 'browser/services/CharacterJoinerService';
-import { treatGlyphAsBackgroundColor } from 'browser/renderer/shared/RendererUtils';
-import { AttributeData } from 'common/buffer/AttributeData';
-import { WidthCache } from 'browser/renderer/dom/WidthCache';
-import { IColorContrastCache } from 'browser/Types';
+import type { IBufferLine, ICellData, IColor } from '$lib/common/Types';
+import { INVERTED_DEFAULT_COLOR } from '$lib/browser/renderer/shared/Constants';
+import { WHITESPACE_CELL_CHAR, Attributes } from '$lib/common/buffer/Constants';
+import { CellData } from '$lib/common/buffer/CellData';
+import { ICoreService, IDecorationService, IOptionsService } from '$lib/common/services/Services';
+import { channels, color } from '$lib/common/Color';
+import { ICharacterJoinerService, ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
+import { JoinedCellData } from '$lib/browser/services/CharacterJoinerService';
+import { treatGlyphAsBackgroundColor } from '$lib/browser/renderer/shared/RendererUtils';
+import { AttributeData } from '$lib/common/buffer/AttributeData';
+import type { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
+import type { IColorContrastCache } from '$lib/browser/Types';
 
 
 export const enum RowCss {
@@ -231,7 +231,7 @@ export class DomRendererRowFactory {
           }
           charElement = this._document.createElement('span');
           cellAmount = 0;
-          // eslint-disable-next-line no-useless-assignment
+           
           text = '';
         }
       }

@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AbstractScrollbar, ISimplifiedPointerEvent, IScrollbarHost } from './abstractScrollbar';
-import { IScrollableElementResolvedOptions } from './scrollableElementOptions';
+import type { ISimplifiedPointerEvent, IScrollbarHost } from './abstractScrollbar';
+import { AbstractScrollbar } from './abstractScrollbar';
+import type { IScrollableElementResolvedOptions } from './scrollableElementOptions';
 import { ScrollbarState } from './scrollbarState';
-import { INewScrollPosition, Scrollable, ScrollbarVisibility, IScrollEvent } from './scrollable';
+import type { INewScrollPosition, Scrollable, IScrollEvent } from './scrollable';
+import { ScrollbarVisibility } from './scrollable';
 import type { ScrollbarArrow } from './scrollbarArrow';
 
 export class VerticalScrollbar extends AbstractScrollbar {

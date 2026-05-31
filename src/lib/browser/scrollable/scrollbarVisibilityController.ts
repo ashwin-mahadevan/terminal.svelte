@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FastDomNode } from './fastDomNode';
-import { TimeoutTimer } from 'common/Async';
-import { Disposable } from 'common/Lifecycle';
+import type { FastDomNode } from './fastDomNode';
+import { TimeoutTimer } from '$lib/common/Async';
+import { Disposable } from '$lib/common/Lifecycle';
 import { ScrollbarVisibility } from './scrollable';
 
 export class ScrollbarVisibilityController extends Disposable {

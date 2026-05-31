@@ -3,13 +3,16 @@
  * @license MIT
  */
 
-import { addDisposableListener } from 'browser/Dom';
-import { IBufferService, IMouseStateService, ICoreService, ILogService, IOptionsService } from 'common/services/Services';
-import { CoreMouseAction, CoreMouseButton, CoreMouseEventType, ICoreMouseEvent, IDisposable } from 'common/Types';
-import { C0 } from 'common/data/EscapeSequences';
-import { DisposableStore, MutableDisposable, toDisposable } from 'common/Lifecycle';
-import { ICoreBrowserService, IMouseCoordsService, IMouseService, IMouseServiceTarget, IRenderService, ISelectionService } from './Services';
-import { Gesture, EventType as GestureEventType, IGestureEvent } from 'browser/scrollable/touch';
+import { addDisposableListener } from '$lib/browser/Dom';
+import { IBufferService, IMouseStateService, ICoreService, ILogService, IOptionsService } from '$lib/common/services/Services';
+import type { ICoreMouseEvent, IDisposable } from '$lib/common/Types';
+import { CoreMouseAction, CoreMouseButton, CoreMouseEventType } from '$lib/common/Types';
+import { C0 } from '$lib/common/data/EscapeSequences';
+import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import type { IMouseService, IMouseServiceTarget} from './Services';
+import { ICoreBrowserService, IMouseCoordsService, IRenderService, ISelectionService } from './Services';
+import type { IGestureEvent } from '$lib/browser/scrollable/touch';
+import { Gesture, EventType as GestureEventType } from '$lib/browser/scrollable/touch';
 
 type RequestedMouseEvents = Record<'mouseup' | 'wheel' | 'mousedrag' | 'mousemove', EventListener | null>;
 

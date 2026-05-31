@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Terminal } from '@xterm/xterm';
-	import { FitAddon } from '@xterm/addon-fit';
+	import { Terminal } from '$lib/browser/public/Terminal';
+	import { FitAddon } from '$lib/FitAddon';
 
 	type Props = {
 		ondata?: (data: string) => void;

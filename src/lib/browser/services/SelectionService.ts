@@ -3,20 +3,21 @@
  * @license MIT
  */
 
-import { IBufferRange, ILinkifier2 } from 'browser/Types';
-import { getCoordsRelativeToElement } from 'browser/input/Mouse';
-import { moveToCellSequence } from 'browser/input/MoveToCell';
-import { SelectionModel } from 'browser/selection/SelectionModel';
-import { ISelectionRedrawRequestEvent, ISelectionRequestScrollLinesEvent } from 'browser/selection/Types';
-import { ICoreBrowserService, IMouseCoordsService, IRenderService, ISelectionService } from 'browser/services/Services';
-import { Disposable, MutableDisposable, toDisposable } from 'common/Lifecycle';
-import * as Browser from 'common/Platform';
-import { IBufferLine, ICellData, IDisposable } from 'common/Types';
-import { getRangeLength } from 'common/buffer/BufferRange';
-import { CellData } from 'common/buffer/CellData';
-import { IBuffer } from 'common/buffer/Types';
-import { IBufferService, ICoreService, IMouseStateService, IOptionsService } from 'common/services/Services';
-import { Emitter } from 'common/Event';
+import type { IBufferRange, ILinkifier2 } from '$lib/browser/Types';
+import { getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
+import { moveToCellSequence } from '$lib/browser/input/MoveToCell';
+import { SelectionModel } from '$lib/browser/selection/SelectionModel';
+import type { ISelectionRedrawRequestEvent, ISelectionRequestScrollLinesEvent } from '$lib/browser/selection/Types';
+import type { ISelectionService } from '$lib/browser/services/Services';
+import { ICoreBrowserService, IMouseCoordsService, IRenderService } from '$lib/browser/services/Services';
+import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import * as Browser from '$lib/common/Platform';
+import type { IBufferLine, ICellData, IDisposable } from '$lib/common/Types';
+import { getRangeLength } from '$lib/common/buffer/BufferRange';
+import { CellData } from '$lib/common/buffer/CellData';
+import type { IBuffer } from '$lib/common/buffer/Types';
+import { IBufferService, ICoreService, IMouseStateService, IOptionsService } from '$lib/common/services/Services';
+import { Emitter } from '$lib/common/Event';
 
 const enum Constants {
   /**

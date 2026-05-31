@@ -3,11 +3,11 @@
  * @license MIT
  */
 
-import type { IDecoration, IDecorationOptions, ILinkHandler, ILogger, IWindowsPty, IOverviewRulerOptions } from '@xterm/xterm';
-import { CoreMouseEncoding, CoreMouseEventType, CursorInactiveStyle, CursorStyle, IAttributeData, ICharset, IColor, ICoreMouseEvent, ICoreMouseProtocol, IDecPrivateModes, IDisposable, IKittyKeyboardState, IModes, IOscLinkData, IWindowOptions } from 'common/Types';
-import { IBuffer, IBufferSet } from 'common/buffer/Types';
-import { createDecorator } from 'common/services/ServiceRegistry';
-import type { Emitter, IEvent } from 'common/Event';
+import type { IDecoration, IDecorationOptions, ILinkHandler, ILogger, IWindowsPty, IOverviewRulerOptions } from '$lib/xterm';
+import type { CoreMouseEncoding, CoreMouseEventType, CursorInactiveStyle, CursorStyle, IAttributeData, ICharset, IColor, ICoreMouseEvent, ICoreMouseProtocol, IDecPrivateModes, IDisposable, IKittyKeyboardState, IModes, IOscLinkData, IWindowOptions } from '$lib/common/Types';
+import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
+import { createDecorator } from '$lib/common/services/ServiceRegistry';
+import type { Emitter, IEvent } from '$lib/common/Event';
 
 export const IBufferService = createDecorator<IBufferService>('BufferService');
 export interface IBufferService {
@@ -191,7 +191,7 @@ export interface IOptionsService {
    * Adds an event listener for when a specific option changes, this is a convenience method that is
    * preferred over {@link onOptionChange} when only a single option is being listened to.
    */
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+   
   onSpecificOptionChange<T extends keyof ITerminalOptions>(key: T, listener: (arg1: Required<ITerminalOptions>[T]) => any): IDisposable;
 
   /**
@@ -199,7 +199,7 @@ export interface IOptionsService {
    * that is preferred over {@link onOptionChange} when multiple options are being listened to and
    * handled the same way.
    */
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+   
   onMultipleOptionChange(keys: (keyof ITerminalOptions)[], listener: () => any): IDisposable;
 }
 

@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-import { ITerminal } from 'browser/Types';
-import { ISelectionRenderModel } from 'browser/renderer/shared/Types';
-import { Terminal } from '@xterm/xterm';
+import type { ITerminal } from '$lib/browser/Types';
+import type { ISelectionRenderModel } from '$lib/browser/renderer/shared/Types';
+import type { Terminal } from '$lib/xterm';
 
 class SelectionRenderModel implements ISelectionRenderModel {
   public hasSelection!: boolean;

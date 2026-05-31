@@ -3,13 +3,13 @@
  * @license MIT
  */
 
-import { IKeyboardService } from 'browser/services/Services';
-import { evaluateKeyboardEvent } from 'common/input/Keyboard';
-import { KittyKeyboard, KittyKeyboardEventType, KittyKeyboardFlags } from 'common/input/KittyKeyboard';
-import { Win32InputMode } from 'common/input/Win32InputMode';
-import { isMac } from 'common/Platform';
-import { ICoreService, IOptionsService } from 'common/services/Services';
-import { IKeyboardResult } from 'common/Types';
+import type { IKeyboardService } from '$lib/browser/services/Services';
+import { evaluateKeyboardEvent } from '$lib/common/input/Keyboard';
+import { KittyKeyboard, KittyKeyboardEventType, KittyKeyboardFlags } from '$lib/common/input/KittyKeyboard';
+import { Win32InputMode } from '$lib/common/input/Win32InputMode';
+import { isMac } from '$lib/common/Platform';
+import { ICoreService, IOptionsService } from '$lib/common/services/Services';
+import type { IKeyboardResult } from '$lib/common/Types';
 
 export class KeyboardService implements IKeyboardService {
   public serviceBrand: undefined;

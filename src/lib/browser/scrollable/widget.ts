@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as dom from '../Dom';
-import { IMouseEvent, StandardMouseEvent } from './mouseEvent';
-import { Disposable } from 'common/Lifecycle';
+import type { IMouseEvent} from './mouseEvent';
+import { StandardMouseEvent } from './mouseEvent';
+import { Disposable } from '$lib/common/Lifecycle';
 
 export abstract class Widget extends Disposable {
 

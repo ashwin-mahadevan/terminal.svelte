@@ -3,20 +3,21 @@
  * @license MIT
  */
 
-import { CircularList, IInsertEvent } from 'common/CircularList';
-import { Disposable, toDisposable } from 'common/Lifecycle';
-import { IdleTaskQueue } from 'common/TaskQueue';
-import { IAttributeData, IBufferLine, ICellData, ICharset } from 'common/Types';
-import { ExtendedAttrs } from 'common/buffer/AttributeData';
-import { BufferLine, DEFAULT_ATTR_DATA } from 'common/buffer/BufferLine';
-import { BufferLineStringCache } from 'common/buffer/BufferLineStringCache';
-import { getWrappedLineTrimmedLength, reflowLargerApplyNewLayout, reflowLargerCreateNewLayout, reflowLargerGetLinesToRemove, reflowSmallerGetNewLineLengths } from 'common/buffer/BufferReflow';
-import { CellData } from 'common/buffer/CellData';
-import { NULL_CELL_CHAR, NULL_CELL_CODE, NULL_CELL_WIDTH, WHITESPACE_CELL_CHAR, WHITESPACE_CELL_CODE, WHITESPACE_CELL_WIDTH } from 'common/buffer/Constants';
-import { Marker } from 'common/buffer/Marker';
-import { IBuffer } from 'common/buffer/Types';
-import { DEFAULT_CHARSET } from 'common/data/Charsets';
-import { IBufferService, ILogService, IOptionsService } from 'common/services/Services';
+import type { IInsertEvent } from '$lib/common/CircularList';
+import { CircularList } from '$lib/common/CircularList';
+import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { IdleTaskQueue } from '$lib/common/TaskQueue';
+import type { IAttributeData, IBufferLine, ICellData, ICharset } from '$lib/common/Types';
+import { ExtendedAttrs } from '$lib/common/buffer/AttributeData';
+import { BufferLine, DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
+import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
+import { getWrappedLineTrimmedLength, reflowLargerApplyNewLayout, reflowLargerCreateNewLayout, reflowLargerGetLinesToRemove, reflowSmallerGetNewLineLengths } from '$lib/common/buffer/BufferReflow';
+import { CellData } from '$lib/common/buffer/CellData';
+import { NULL_CELL_CHAR, NULL_CELL_CODE, NULL_CELL_WIDTH, WHITESPACE_CELL_CHAR, WHITESPACE_CELL_CODE, WHITESPACE_CELL_WIDTH } from '$lib/common/buffer/Constants';
+import { Marker } from '$lib/common/buffer/Marker';
+import type { IBuffer } from '$lib/common/buffer/Types';
+import { DEFAULT_CHARSET } from '$lib/common/data/Charsets';
+import type { IBufferService, ILogService, IOptionsService } from '$lib/common/services/Services';
 
 export const MAX_BUFFER_SIZE = 4294967295; // 2^32 - 1
 

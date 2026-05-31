@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { ILogService } from 'common/services/Services';
+import type { ILogService } from '$lib/common/services/Services';
 
 interface ITaskQueue {
   /**
@@ -146,7 +146,7 @@ class IdleTaskQueueInternal extends TaskQueue {
  *
  * This reverts to a {@link PriorityTaskQueue} if the environment does not support idle callbacks.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
+ 
 export const IdleTaskQueue = ('requestIdleCallback' in globalThis) ? IdleTaskQueueInternal : PriorityTaskQueue;
 
 /**

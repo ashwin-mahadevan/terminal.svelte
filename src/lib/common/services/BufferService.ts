@@ -3,12 +3,13 @@
  * @license MIT
  */
 
-import { Disposable } from 'common/Lifecycle';
-import { IAttributeData, IBufferLine } from 'common/Types';
-import { BufferSet } from 'common/buffer/BufferSet';
-import { IBuffer, IBufferSet } from 'common/buffer/Types';
-import { IBufferService, ILogService, IOptionsService, type IBufferResizeEvent } from 'common/services/Services';
-import { Emitter } from 'common/Event';
+import { Disposable } from '$lib/common/Lifecycle';
+import type { IAttributeData, IBufferLine } from '$lib/common/Types';
+import { BufferSet } from '$lib/common/buffer/BufferSet';
+import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
+import type { IBufferService} from '$lib/common/services/Services';
+import { ILogService, IOptionsService, type IBufferResizeEvent } from '$lib/common/services/Services';
+import { Emitter } from '$lib/common/Event';
 
 export const enum BufferServiceConstants {
   MINIMUM_COLS = 2, // Less than 2 can mess with wide chars

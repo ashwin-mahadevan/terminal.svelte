@@ -5,17 +5,21 @@
 
 import * as dom from '../Dom';
 import { FastDomNode } from './fastDomNode';
-import { IMouseEvent, IMouseWheelEvent, StandardWheelEvent } from './mouseEvent';
-import { IScrollbarHost } from './abstractScrollbar';
+import type { IMouseEvent, IMouseWheelEvent} from './mouseEvent';
+import { StandardWheelEvent } from './mouseEvent';
+import type { IScrollbarHost } from './abstractScrollbar';
 import { HorizontalScrollbar } from './horizontalScrollbar';
-import { IScrollableElementChangeOptions, IScrollableElementCreationOptions, IScrollableElementResolvedOptions } from './scrollableElementOptions';
+import type { IScrollableElementChangeOptions, IScrollableElementCreationOptions, IScrollableElementResolvedOptions } from './scrollableElementOptions';
 import { VerticalScrollbar } from './verticalScrollbar';
 import { Widget } from './widget';
-import { TimeoutTimer } from 'common/Async';
-import { Emitter, IEvent } from 'common/Event';
-import { IDisposable, dispose } from 'common/Lifecycle';
-import * as platform from 'common/Platform';
-import { INewScrollDimensions, INewScrollPosition, IScrollDimensions, IScrollPosition, IScrollEvent, Scrollable, ScrollbarVisibility } from './scrollable';
+import { TimeoutTimer } from '$lib/common/Async';
+import type { IEvent } from '$lib/common/Event';
+import { Emitter } from '$lib/common/Event';
+import type { IDisposable} from '$lib/common/Lifecycle';
+import { dispose } from '$lib/common/Lifecycle';
+import * as platform from '$lib/common/Platform';
+import type { INewScrollDimensions, INewScrollPosition, IScrollDimensions, IScrollPosition, IScrollEvent} from './scrollable';
+import { Scrollable, ScrollbarVisibility } from './scrollable';
 // import 'vs/css!./media/scrollbars';
 
 const enum Constants {

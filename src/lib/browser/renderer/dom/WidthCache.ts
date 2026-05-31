@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-import { throwIfFalsy } from 'browser/renderer/shared/RendererUtils';
-import { IDisposable } from 'common/Types';
-import { FontWeight } from 'common/services/Services';
+import { throwIfFalsy } from '$lib/browser/renderer/shared/RendererUtils';
+import type { IDisposable } from '$lib/common/Types';
+import type { FontWeight } from '$lib/common/services/Services';
 
 
 export const enum WidthCacheSettings {

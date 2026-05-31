@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import { IAttributeData, IColorRGB, IExtendedAttrs } from 'common/Types';
-import { Attributes, FgFlags, BgFlags, UnderlineStyle, ExtFlags } from 'common/buffer/Constants';
+import type { IAttributeData, IColorRGB, IExtendedAttrs } from '$lib/common/Types';
+import { Attributes, FgFlags, BgFlags, UnderlineStyle, ExtFlags } from '$lib/common/buffer/Constants';
 
 export class AttributeData implements IAttributeData {
   public static toColorRGB(value: number): IColorRGB {

@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { IBufferService } from 'common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
 
 /**
  * Represents a selection within the buffer. This model only cares about column

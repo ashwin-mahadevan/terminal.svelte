@@ -6,8 +6,9 @@
  * @see https://sw.kovidgoyal.net/kitty/keyboard-protocol/
  */
 
-import { IKeyboardEvent, IKeyboardResult, KeyboardResultType } from 'common/Types';
-import { C0 } from 'common/data/EscapeSequences';
+import type { IKeyboardEvent, IKeyboardResult} from '$lib/common/Types';
+import { KeyboardResultType } from '$lib/common/Types';
+import { C0 } from '$lib/common/data/EscapeSequences';
 
 /**
  * Kitty keyboard protocol enhancement flags (bitfield).

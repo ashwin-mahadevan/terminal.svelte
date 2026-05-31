@@ -3,9 +3,10 @@
  * @license MIT
  */
 
-import { getWindow } from 'browser/Dom';
-import { getCoords, getCoordsRelativeToElement } from 'browser/input/Mouse';
-import { ICharSizeService, IMouseCoordsService, IRenderService } from 'browser/services/Services';
+import { getWindow } from '$lib/browser/Dom';
+import { getCoords, getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
+import type { IMouseCoordsService} from '$lib/browser/services/Services';
+import { ICharSizeService, IRenderService } from '$lib/browser/services/Services';
 
 export class MouseCoordsService implements IMouseCoordsService {
   public serviceBrand: undefined;

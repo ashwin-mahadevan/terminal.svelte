@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import { C0 } from 'common/data/EscapeSequences';
-import { IBufferService } from 'common/services/Services';
+import { C0 } from '$lib/common/data/EscapeSequences';
+import type { IBufferService } from '$lib/common/services/Services';
 
 const enum Direction {
   UP = 'A',

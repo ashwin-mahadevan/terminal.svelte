@@ -3,17 +3,17 @@
  * @license MIT
  */
 
-import * as Strings from 'browser/LocalizableStrings';
-import { CoreBrowserTerminal as TerminalCore } from 'browser/CoreBrowserTerminal';
-import { IBufferRange, ITerminal } from 'browser/Types';
-import { Disposable } from 'common/Lifecycle';
-import { ITerminalOptions } from 'common/Types';
-import { AddonManager } from 'common/public/AddonManager';
-import { BufferNamespaceApi } from 'common/public/BufferNamespaceApi';
-import { ParserApi } from 'common/public/ParserApi';
-import { UnicodeApi } from 'common/public/UnicodeApi';
-import { IBufferNamespace as IBufferNamespaceApi, IDecoration, IDecorationOptions, IDisposable, ILinkProvider, ILocalizableStrings, IMarker, IModes, IParser, IRenderDimensions, ITerminalAddon, Terminal as ITerminalApi, ITerminalInitOnlyOptions, IUnicodeHandling } from '@xterm/xterm';
-import type { IEvent } from 'common/Event';
+import * as Strings from '$lib/browser/LocalizableStrings';
+import { CoreBrowserTerminal as TerminalCore } from '$lib/browser/CoreBrowserTerminal';
+import type { IBufferRange, ITerminal } from '$lib/browser/Types';
+import { Disposable } from '$lib/common/Lifecycle';
+import type { ITerminalOptions } from '$lib/common/Types';
+import { AddonManager } from '$lib/common/public/AddonManager';
+import { BufferNamespaceApi } from '$lib/common/public/BufferNamespaceApi';
+import { ParserApi } from '$lib/common/public/ParserApi';
+import { UnicodeApi } from '$lib/common/public/UnicodeApi';
+import type { IBufferNamespace as IBufferNamespaceApi, IDecoration, IDecorationOptions, IDisposable, ILinkProvider, ILocalizableStrings, IMarker, IModes, IParser, IRenderDimensions, ITerminalAddon, Terminal as ITerminalApi, ITerminalInitOnlyOptions, IUnicodeHandling } from '$lib/xterm';
+import type { IEvent } from '$lib/common/Event';
 
 /**
  * The set of options that only have an effect when set in the Terminal constructor.

@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, IEvent } from 'common/Event';
-import { Disposable, IDisposable } from 'common/Lifecycle';
+import type { IEvent } from '$lib/common/Event';
+import { Emitter } from '$lib/common/Event';
+import type { IDisposable } from '$lib/common/Lifecycle';
+import { Disposable } from '$lib/common/Lifecycle';
 
 export const enum ScrollbarVisibility {
   AUTO = 1,

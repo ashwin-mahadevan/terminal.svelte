@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import { CHAR_DATA_CODE_INDEX, NULL_CELL_CODE, WHITESPACE_CELL_CODE } from 'common/buffer/Constants';
-import { IBufferService } from 'common/services/Services';
+import { CHAR_DATA_CODE_INDEX, NULL_CELL_CODE, WHITESPACE_CELL_CODE } from '$lib/common/buffer/Constants';
+import type { IBufferService } from '$lib/common/services/Services';
 
 export function updateWindowsModeWrappedState(bufferService: IBufferService): void {
   // Winpty does not support wraparound mode which means that lines will never

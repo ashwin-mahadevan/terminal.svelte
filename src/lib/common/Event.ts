@@ -6,7 +6,8 @@
  * Simplified from VS Code's event.ts - no leak detection/profiling.
  */
 
-import { IDisposable, DisposableStore, toDisposable } from 'common/Lifecycle';
+import type { IDisposable} from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 
 export interface IEvent<T> {
   (listener: (e: T) => any, thisArgs?: any, disposables?: IDisposable[] | DisposableStore): IDisposable;

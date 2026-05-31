@@ -3,8 +3,9 @@
  * @license MIT
  */
 
-import { Disposable } from 'common/Lifecycle';
-import { ILogService, IOptionsService, LogLevelEnum } from 'common/services/Services';
+import { Disposable } from '$lib/common/Lifecycle';
+import type { ILogService} from '$lib/common/services/Services';
+import { IOptionsService, LogLevelEnum } from '$lib/common/services/Services';
 
 type LogType = (message?: any, ...optionalParams: any[]) => void;
 
