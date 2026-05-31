@@ -226,7 +226,7 @@ export interface IOptionsService {
 
 	onSpecificOptionChange<T extends keyof ITerminalOptions>(
 		key: T,
-		listener: (arg1: Required<ITerminalOptions>[T]) => any
+		listener: (arg1: Required<ITerminalOptions>[T]) => void
 	): IDisposable;
 
 	/**
@@ -235,7 +235,7 @@ export interface IOptionsService {
 	 * handled the same way.
 	 */
 
-	onMultipleOptionChange(keys: (keyof ITerminalOptions)[], listener: () => any): IDisposable;
+	onMultipleOptionChange(keys: (keyof ITerminalOptions)[], listener: () => void): IDisposable;
 }
 
 export type FontWeight =

@@ -572,7 +572,7 @@ export interface IDisposable {
  * @returns an `IDisposable` to stop listening.
  */
 export interface IEvent<T, U = void> {
-	(listener: (arg1: T, arg2: U) => any): IDisposable;
+	(listener: (arg1: T, arg2: U) => void): IDisposable;
 }
 
 /**

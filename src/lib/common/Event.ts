@@ -11,14 +11,14 @@ import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 
 export interface IEvent<T> {
 	(
-		listener: (e: T) => any,
+		listener: (e: T) => void,
 		thisArgs?: any,
 		disposables?: IDisposable[] | DisposableStore
 	): IDisposable;
 }
 
 export class Emitter<T> {
-	private _listeners: { fn: (e: T) => any; thisArgs: any }[] = [];
+	private _listeners: { fn: (e: T) => void; thisArgs: any }[] = [];
 	private _disposed = false;
 	private _event: IEvent<T> | undefined;
 
@@ -27,7 +27,7 @@ export class Emitter<T> {
 			return this._event;
 		}
 		this._event = (
-			listener: (e: T) => any,
+			listener: (e: T) => void,
 			thisArgs?: any,
 			disposables?: IDisposable[] | DisposableStore
 		) => {
@@ -96,7 +96,7 @@ export namespace EventUtils {
 
 	export function map<I, O>(event: IEvent<I>, map: (i: I) => O): IEvent<O> {
 		return (
-			listener: (e: O) => any,
+			listener: (e: O) => void,
 			thisArgs?: any,
 			disposables?: IDisposable[] | DisposableStore
 		) => {
@@ -108,7 +108,7 @@ export namespace EventUtils {
 	export function any(...events: IEvent<any>[]): IEvent<void>;
 	export function any<T>(...events: IEvent<T>[]): IEvent<T> {
 		return (
-			listener: (e: T) => any,
+			listener: (e: T) => void,
 			thisArgs?: any,
 			disposables?: IDisposable[] | DisposableStore
 		) => {

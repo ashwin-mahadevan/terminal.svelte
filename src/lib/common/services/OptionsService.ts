@@ -115,7 +115,7 @@ export class OptionsService extends Disposable implements IOptionsService {
 
 	public onSpecificOptionChange<T extends keyof ITerminalOptions>(
 		key: T,
-		listener: (value: ITerminalOptions[T]) => any
+		listener: (value: ITerminalOptions[T]) => void
 	): IDisposable {
 		return this.onOptionChange((eventKey) => {
 			if (eventKey === key) {
@@ -126,7 +126,7 @@ export class OptionsService extends Disposable implements IOptionsService {
 
 	public onMultipleOptionChange(
 		keys: (keyof ITerminalOptions)[],
-		listener: () => any
+		listener: () => void
 	): IDisposable {
 		return this.onOptionChange((eventKey) => {
 			if (keys.indexOf(eventKey) !== -1) {

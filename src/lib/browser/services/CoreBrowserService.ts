@@ -73,7 +73,7 @@ export class CoreBrowserService extends Disposable implements ICoreBrowserServic
  */
 class ScreenDprMonitor extends Disposable {
 	private _currentDevicePixelRatio: number;
-	private _outerListener: ((this: MediaQueryList, ev: MediaQueryListEvent) => any) | undefined;
+	private _outerListener: ((this: MediaQueryList, ev: MediaQueryListEvent) => void) | undefined;
 	private _resolutionMediaMatchList: MediaQueryList | undefined;
 	private _windowResizeListener = this._register(new MutableDisposable());
 

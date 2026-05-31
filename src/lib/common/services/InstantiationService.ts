@@ -28,7 +28,7 @@ export class ServiceCollection {
 		return result;
 	}
 
-	public forEach(callback: (id: IServiceIdentifier<any>, instance: any) => any): void {
+	public forEach(callback: (id: IServiceIdentifier<any>, instance: any) => void): void {
 		for (const [key, value] of this._entries.entries()) {
 			callback(key, value);
 		}
