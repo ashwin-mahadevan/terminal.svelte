@@ -9,28 +9,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: jdx/mise-action@v2
-
-      - run: pnpm install
-      - run: mise run lint
+      - run: mise run check:lint
 
   format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: jdx/mise-action@v2
+      - run: mise run check:format
 
-      - run: pnpm install
-      - run: mise run format
-
-  check:
+  typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: jdx/mise-action@v2
+      - run: mise run check:types
 
-      - run: pnpm install
-      - run: mise run check
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v2
+      - run: mise run test:unit
+
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v2
+      - run: mise run test:integration
