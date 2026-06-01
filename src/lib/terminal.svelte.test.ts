@@ -7,7 +7,7 @@ describe('terminal.svelte', () => {
 	it('writes data to the terminal', async () => {
 		const { component } = await render(Terminal);
 
-		const example = "Hello, World!";
+		const example = 'Hello, World!';
 
 		component.write(example);
 
