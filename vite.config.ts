@@ -44,7 +44,7 @@ export default defineConfig({
 			{
 				extends: './vite.config.ts',
 				test: {
-					name: 'client',
+					name: 'component',
 					browser: {
 						enabled: true,
 						provider: playwright(),
@@ -57,7 +57,7 @@ export default defineConfig({
 			{
 				extends: './vite.config.ts',
 				test: {
-					name: 'server',
+					name: 'unit',
 					environment: 'node',
 					include: ['src/lib/**/*.test.ts'],
 					exclude: ['src/lib/**/*.svelte.test.ts']

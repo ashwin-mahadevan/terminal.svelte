@@ -42,30 +42,26 @@ run = "pnpm exec vite build"
 depends = ["install"]
 run = "pnpm exec vite preview"
 
-[tasks.prepare]
+[tasks."check:format"]
 depends = ["install"]
-run = "pnpm exec svelte-kit sync"
-
-[tasks.prepack]
-depends = ["install"]
-run = "pnpm exec svelte-kit sync && pnpm exec svelte-package && pnpm exec publint"
-
-[tasks."check:types"]
-depends = ["install"]
-run = "pnpm exec svelte-kit sync && pnpm exec svelte-check --tsconfig ./tsconfig.json"
+run = "pnpm exec prettier --check ."
 
 [tasks."check:lint"]
 depends = ["install"]
 run = "pnpm exec eslint ."
 
-[tasks."check:format"]
+[tasks."check:types"]
 depends = ["install"]
-run = "pnpm exec prettier --check ."
+run = "pnpm exec svelte-kit sync && pnpm exec svelte-check --tsconfig ./tsconfig.json"
 
-[tasks."test:unit"]
-depends = ["install:playwright"]
-run = "pnpm exec vitest --run"
-
-[tasks."test:integration"]
+[tasks."test:browser"]
 depends = ["install:playwright", "build"]
 run = "pnpm exec playwright test"
+
+[tasks."test:component"]
+depends = ["install:playwright"]
+run = "pnpm exec vitest run --project component"
+
+[tasks."test:unit"]
+depends = ["install"]
+run = "pnpm exec vitest run --project unit"
