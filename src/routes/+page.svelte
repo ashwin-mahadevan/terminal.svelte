@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { io, type Socket } from 'socket.io-client';
+	import { io } from 'socket.io-client';
+	import type { Socket } from 'socket.io-client';
 	import Terminal from '$lib/terminal.svelte';
 
 	let terminal: ReturnType<typeof Terminal>;

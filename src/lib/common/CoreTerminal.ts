@@ -48,7 +48,8 @@ import type { IBufferSet } from '$lib/common/buffer/Types';
 import { InputHandler } from '$lib/common/InputHandler';
 import { WriteBuffer } from '$lib/common/input/WriteBuffer';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
-import { Emitter, EventUtils, type IEvent } from '$lib/common/Event';
+import { Emitter, EventUtils } from '$lib/common/Event';
+import type { IEvent } from '$lib/common/Event';
 import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 
 // Only trigger this warning a single time per session

@@ -17,11 +17,8 @@ import { scheduleAtNextAnimationFrame } from '$lib/browser/Dom';
 import { SmoothScrollableElement } from '$lib/browser/scrollable/scrollableElement';
 import type { IScrollableElementChangeOptions } from '$lib/browser/scrollable/scrollableElementOptions';
 import { Emitter, EventUtils } from '$lib/common/Event';
-import {
-	Scrollable,
-	ScrollbarVisibility,
-	type IScrollEvent
-} from '$lib/browser/scrollable/scrollable';
+import { Scrollable, ScrollbarVisibility } from '$lib/browser/scrollable/scrollable';
+import type { IScrollEvent } from '$lib/browser/scrollable/scrollable';
 
 export class Viewport extends Disposable {
 	protected _onRequestScrollLines = this._register(new Emitter<number>());

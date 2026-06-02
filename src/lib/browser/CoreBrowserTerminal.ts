@@ -90,7 +90,8 @@ import { IDecorationService } from '$lib/common/services/Services';
 import { WindowsOptionsReportType } from '../common/InputHandler';
 import { AccessibilityManager } from './AccessibilityManager';
 import { Linkifier } from './Linkifier';
-import { Emitter, EventUtils, type IEvent } from '$lib/common/Event';
+import { Emitter, EventUtils } from '$lib/common/Event';
+import type { IEvent } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 
