@@ -6,6 +6,8 @@
 	import { WebFontsAddon } from '$lib/WebFontsAddon';
 	import { ProgressAddon } from '$lib/ProgressAddon';
 	import { WebLinksAddon } from '$lib/WebLinksAddon';
+	import { SerializeAddon } from '$lib/SerializeAddon';
+	import type { ISerializeOptions, IHTMLSerializeOptions } from '$lib/addon-serialize';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -16,6 +18,7 @@
 
 	let terminal: Terminal;
 	let element: HTMLDivElement;
+	let serializeAddon: SerializeAddon;
 
 	onMount(() => {
 		terminal = new Terminal();
@@ -25,6 +28,8 @@
 		terminal.loadAddon(new WebFontsAddon());
 		terminal.loadAddon(new ProgressAddon());
 		terminal.loadAddon(new WebLinksAddon());
+		serializeAddon = new SerializeAddon();
+		terminal.loadAddon(serializeAddon);
 		terminal.open(element);
 
 		const observer = new ResizeObserver(() => fitAddon.fit());
@@ -50,6 +55,14 @@
 
 	export function write(data: string) {
 		terminal.write(data);
+	}
+
+	export function serialize(options?: ISerializeOptions): string {
+		return serializeAddon.serialize(options);
+	}
+
+	export function serializeAsHTML(options?: Partial<IHTMLSerializeOptions>): string {
+		return serializeAddon.serializeAsHTML(options);
 	}
 </script>
 
