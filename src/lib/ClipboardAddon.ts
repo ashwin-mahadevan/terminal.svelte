@@ -4,7 +4,7 @@
  */
 
 import type { IDisposable, ITerminalAddon, Terminal } from '$lib/xterm';
-import { type IClipboardProvider, type IBase64 } from '$lib/addon-clipboard';
+import type { IClipboardProvider, IBase64 } from '$lib/addon-clipboard';
 
 export class ClipboardAddon implements ITerminalAddon {
 	private _terminal?: Terminal;
