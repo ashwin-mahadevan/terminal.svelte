@@ -2,6 +2,10 @@
 	import { onMount } from 'svelte';
 	import { Terminal } from '$lib/browser/public/Terminal';
 	import { FitAddon } from '$lib/FitAddon';
+	import { ClipboardAddon } from '$lib/ClipboardAddon';
+	import { WebFontsAddon } from '$lib/WebFontsAddon';
+	import { ProgressAddon } from '$lib/ProgressAddon';
+	import { WebLinksAddon } from '$lib/WebLinksAddon';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -17,6 +21,10 @@
 		terminal = new Terminal();
 		const fitAddon = new FitAddon();
 		terminal.loadAddon(fitAddon);
+		terminal.loadAddon(new ClipboardAddon());
+		terminal.loadAddon(new WebFontsAddon());
+		terminal.loadAddon(new ProgressAddon());
+		terminal.loadAddon(new WebLinksAddon());
 		terminal.open(element);
 
 		const observer = new ResizeObserver(() => fitAddon.fit());
