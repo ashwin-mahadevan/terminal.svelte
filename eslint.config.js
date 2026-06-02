@@ -2,6 +2,7 @@ import prettier from 'eslint-config-prettier';
 import path from 'node:path';
 import { includeIgnoreFile } from '@eslint/compat';
 import js from '@eslint/js';
+import importX from 'eslint-plugin-import-x';
 import svelte from 'eslint-plugin-svelte';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';
@@ -39,8 +40,11 @@ export default defineConfig([
 	},
 
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
+		plugins: { 'import-x': importX },
+		rules: {
+			// Ban inline `type` specifiers like `import { type Foo } from 'bar'`; autofix to a
+			// top-level `import type { Foo } from 'bar'`, splitting mixed value/type imports.
+			'import-x/consistent-type-specifier-style': ['error', 'prefer-top-level']
+		}
 	}
 ]);
