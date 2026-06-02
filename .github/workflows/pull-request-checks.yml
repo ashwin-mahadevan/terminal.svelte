@@ -26,6 +26,13 @@ jobs:
       - uses: jdx/mise-action@v2
       - run: mise run check:types
 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v2
+      - run: mise run build
+
   unit-test:
     runs-on: ubuntu-latest
     steps:
