@@ -6,6 +6,7 @@
 	import { WebFontsAddon } from '$lib/WebFontsAddon';
 	import { ProgressAddon } from '$lib/ProgressAddon';
 	import { WebLinksAddon } from '$lib/WebLinksAddon';
+	import { UnicodeGraphemesAddon } from '$lib/UnicodeGraphemesAddon';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -25,6 +26,7 @@
 		terminal.loadAddon(new WebFontsAddon());
 		terminal.loadAddon(new ProgressAddon());
 		terminal.loadAddon(new WebLinksAddon());
+		terminal.loadAddon(new UnicodeGraphemesAddon());
 		terminal.open(element);
 
 		const observer = new ResizeObserver(() => fitAddon.fit());
