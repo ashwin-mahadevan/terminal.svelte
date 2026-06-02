@@ -1619,7 +1619,7 @@ interface ILinkDecorations {
 /**
  * A range within a buffer.
  */
-interface IBufferRange {
+export interface IBufferRange {
 	/**
 	 * The start position of the range.
 	 */
@@ -1649,7 +1649,7 @@ interface IBufferCellPosition {
 /**
  * Represents a terminal buffer.
  */
-interface IBuffer {
+export interface IBuffer {
 	/**
 	 * The type of the buffer.
 	 */
@@ -1784,7 +1784,7 @@ interface IBufferLine {
 /**
  * Represents a single cell in the terminal's buffer.
  */
-interface IBufferCell {
+export interface IBufferCell {
 	/**
 	 * The width of the character. Some examples:
 	 *
