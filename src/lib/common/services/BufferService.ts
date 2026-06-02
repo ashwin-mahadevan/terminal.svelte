@@ -8,11 +8,8 @@ import type { IAttributeData, IBufferLine } from '$lib/common/Types';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
 import type { IBufferService } from '$lib/common/services/Services';
-import {
-	ILogService,
-	IOptionsService,
-	type IBufferResizeEvent
-} from '$lib/common/services/Services';
+import { ILogService, IOptionsService } from '$lib/common/services/Services';
+import type { IBufferResizeEvent } from '$lib/common/services/Services';
 import { Emitter } from '$lib/common/Event';
 
 export const enum BufferServiceConstants {

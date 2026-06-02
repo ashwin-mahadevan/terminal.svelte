@@ -5,7 +5,8 @@
 
 import type { Terminal, ITerminalAddon, IDisposable } from '$lib/xterm';
 import type { WebLinksAddon as IWebLinksApi } from '$lib/addon-web-links';
-import { WebLinkProvider, type ILinkProviderOptions } from './WebLinkProvider';
+import { WebLinkProvider } from './WebLinkProvider';
+import type { ILinkProviderOptions } from './WebLinkProvider';
 
 // consider everthing starting with http:// or https://
 // up to first whitespace, `"` or `'` as url

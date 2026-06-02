@@ -3,7 +3,8 @@ import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { spawn } from 'node-pty';
 import { Server } from 'socket.io';
-import { defineConfig, type Plugin } from 'vitest/config';
+import { defineConfig } from 'vitest/config';
+import type { Plugin } from 'vitest/config';
 
 const SHELL = process.env.SHELL ?? 'bash';
 const ARGUMENTS: Array<string> = [];

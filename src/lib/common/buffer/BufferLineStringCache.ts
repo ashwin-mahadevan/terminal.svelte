@@ -8,12 +8,8 @@ import type {
 	IBufferLineStringCacheEntry
 } from '$lib/common/buffer/BufferLine';
 import { disposableTimeout } from '$lib/common/Async';
-import {
-	Disposable,
-	MutableDisposable,
-	toDisposable,
-	type IDisposable
-} from '$lib/common/Lifecycle';
+import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 
 const enum Constants {
 	CACHE_TTL_MS = 15000
