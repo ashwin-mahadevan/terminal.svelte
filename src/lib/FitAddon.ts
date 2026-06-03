@@ -4,7 +4,6 @@
  */
 
 import type { Terminal, ITerminalAddon, IRenderDimensions } from '$lib/xterm';
-import type { FitAddon as IFitApi } from '$lib/addon-fit';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
 
 interface ITerminalDimensions {
@@ -35,7 +34,7 @@ function _getComputedStyle(el: HTMLElement): CSSStyleDeclaration {
 	return getWindow(el).getComputedStyle(el, null);
 }
 
-export class FitAddon implements ITerminalAddon, IFitApi {
+export class FitAddon implements ITerminalAddon {
 	private _terminal: Terminal | undefined;
 
 	public activate(terminal: Terminal): void {

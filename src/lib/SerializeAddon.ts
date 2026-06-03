@@ -5,16 +5,84 @@
  * (EXPERIMENTAL) This Addon is still under development
  */
 
-import type { IBuffer, IBufferCell, IBufferRange, ITerminalAddon, Terminal } from '$lib/xterm';
 import type {
-	IHTMLSerializeOptions,
-	SerializeAddon as ISerializeApi,
-	ISerializeOptions,
-	ISerializeRange
-} from '$lib/addon-serialize';
+	IBuffer,
+	IBufferCell,
+	IBufferRange,
+	IMarker,
+	ITerminalAddon,
+	Terminal
+} from '$lib/xterm';
 import type { IAttributeData, IColor } from '$lib/common/Types';
 import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 import { UnderlineStyle } from '$lib/common/buffer/Constants';
+
+export interface ISerializeOptions {
+	/**
+	 * The row range to serialize. The an explicit range is specified, the cursor will get its final
+	 * repositioning.
+	 */
+	range?: ISerializeRange;
+
+	/**
+	 * The number of rows in the scrollback buffer to serialize, starting from the bottom of the
+	 * scrollback buffer. When not specified, all available rows in the scrollback buffer will be
+	 * serialized. This will be ignored if {@link range} is specified.
+	 */
+	scrollback?: number;
+
+	/**
+	 * Whether to exclude the terminal modes from the serialization. False by default.
+	 */
+	excludeModes?: boolean;
+
+	/**
+	 * Whether to exclude the alt buffer from the serialization. False by default.
+	 */
+	excludeAltBuffer?: boolean;
+}
+
+export interface IHTMLSerializeOptions {
+	/**
+	 * The number of rows in the scrollback buffer to serialize, starting from the bottom of the
+	 * scrollback buffer. When not specified, all available rows in the scrollback buffer will be
+	 * serialized. This setting is ignored if {@link IHTMLSerializeOptions.onlySelection} is true.
+	 */
+	scrollback: number;
+
+	/**
+	 * Whether to only serialize the selection. If false, the whole active buffer is serialized in HTML.
+	 * False by default.
+	 */
+	onlySelection: boolean;
+
+	/**
+	 * Whether to include the global background of the terminal. False by default.
+	 */
+	includeGlobalBackground: boolean;
+
+	/**
+	 * The range to serialize. This is prioritized over {@link onlySelection}.
+	 */
+	range?: ISerializeBufferRange;
+}
+
+export interface ISerializeBufferRange {
+	startLine: number;
+	endLine: number;
+	startCol: number;
+}
+
+export interface ISerializeRange {
+	/**
+	 * The line to start serializing (inclusive).
+	 */
+	start: IMarker | number;
+	/**
+	 * The line to end serializing (inclusive).
+	 */
+	end: IMarker | number;
+}
 
 function constrain(value: number, low: number, high: number): number {
 	return Math.max(low, Math.min(value, high));
@@ -541,7 +609,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 	}
 }
 
-export class SerializeAddon implements ITerminalAddon, ISerializeApi {
+export class SerializeAddon implements ITerminalAddon {
 	private _terminal: Terminal | undefined;
 
 	public activate(terminal: Terminal): void {

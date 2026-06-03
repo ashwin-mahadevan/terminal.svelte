@@ -7,7 +7,7 @@
 	import { ProgressAddon } from '$lib/ProgressAddon';
 	import { WebLinksAddon } from '$lib/WebLinksAddon';
 	import { SerializeAddon } from '$lib/SerializeAddon';
-	import type { ISerializeOptions, IHTMLSerializeOptions } from '$lib/addon-serialize';
+	import type { ISerializeOptions, IHTMLSerializeOptions } from '$lib/SerializeAddon';
 
 	type Props = {
 		ondata?: (data: string) => void;

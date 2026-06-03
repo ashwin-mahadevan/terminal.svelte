@@ -4,7 +4,6 @@
  */
 
 import type { Terminal, ITerminalAddon, IDisposable } from '$lib/xterm';
-import type { WebLinksAddon as IWebLinksApi } from '$lib/addon-web-links';
 import { WebLinkProvider } from './WebLinkProvider';
 import type { ILinkProviderOptions } from './WebLinkProvider';
 
@@ -36,7 +35,7 @@ function handleLink(event: MouseEvent, uri: string): void {
 	}
 }
 
-export class WebLinksAddon implements ITerminalAddon, IWebLinksApi {
+export class WebLinksAddon implements ITerminalAddon {
 	private _terminal: Terminal | undefined;
 	private _linkProvider: IDisposable | undefined;
 

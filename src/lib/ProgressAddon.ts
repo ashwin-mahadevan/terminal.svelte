@@ -4,8 +4,32 @@
  */
 
 import type { Terminal, ITerminalAddon, IDisposable } from '$lib/xterm';
-import type { ProgressAddon as IProgressApi, IProgressState } from '$lib/addon-progress';
 import type { Emitter, IEvent } from '$lib/common/Event';
+
+/**
+ * Progress state tracked by the addon.
+ */
+export interface IProgressState {
+	/**
+	 * The progress state.
+	 *
+	 * - `0`: No progress. Setting this will resets progress value to 0
+	 *   regardless of the {@link value} used.
+	 * - `1`: Normal percentage-based from 0 to 100.
+	 * - `2`: Error with an optional progress value from 0 to 100.
+	 * - `3`: Indeterminate progress, any progress value will be ignored. This
+	 *   is used to indicate work is happening but a percentage value cannot be
+	 *   determined.
+	 * - `4`: Pause or warning state with an optional progress value.
+	 */
+	state: 0 | 1 | 2 | 3 | 4;
+
+	/**
+	 * The percentage value of progress from 0 to 100. See {@link state} for
+	 * whether this is relevant.
+	 */
+	value: number;
+}
 
 const enum ProgressType {
 	REMOVE = 0,
@@ -30,7 +54,7 @@ function toInt(s: string): number {
 	return v;
 }
 
-export class ProgressAddon implements ITerminalAddon, IProgressApi {
+export class ProgressAddon implements ITerminalAddon {
 	private _seqHandler: IDisposable | undefined;
 	private _st: ProgressType = ProgressType.REMOVE;
 	private _pr = 0;

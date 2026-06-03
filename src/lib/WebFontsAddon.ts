@@ -4,7 +4,6 @@
  */
 
 import type { Terminal, ITerminalAddon } from '$lib/xterm';
-import type { WebFontsAddon as IWebFontsApi } from '$lib/addon-web-fonts';
 
 /**
  * Unquote a font family name.
@@ -93,7 +92,7 @@ export function loadFonts(fonts?: (string | FontFace)[]): Promise<FontFace[]> {
 	return document.fonts.ready.then(() => _loadFonts(fonts));
 }
 
-export class WebFontsAddon implements ITerminalAddon, IWebFontsApi {
+export class WebFontsAddon implements ITerminalAddon {
 	private _term: Terminal | undefined;
 
 	constructor(public initialRelayout: boolean = true) {}

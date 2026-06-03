@@ -4,15 +4,14 @@
  */
 
 import type { IDisposable, ITerminalAddon, Terminal } from '$lib/xterm';
-import type { IClipboardProvider, IBase64 } from '$lib/addon-clipboard';
 
 export class ClipboardAddon implements ITerminalAddon {
 	private _terminal?: Terminal;
 	private _disposable?: IDisposable;
 
 	constructor(
-		private _base64: IBase64 = new Base64(),
-		private _provider: IClipboardProvider = new BrowserClipboardProvider()
+		private _base64 = new Base64(),
+		private _provider = new BrowserClipboardProvider()
 	) {}
 
 	public activate(terminal: Terminal): void {
@@ -70,7 +69,7 @@ export class ClipboardAddon implements ITerminalAddon {
 	}
 }
 
-export class BrowserClipboardProvider implements IClipboardProvider {
+export class BrowserClipboardProvider {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public readText(selection: string): Promise<string> {
 		return navigator.clipboard.readText();
@@ -81,7 +80,7 @@ export class BrowserClipboardProvider implements IClipboardProvider {
 	}
 }
 
-export class Base64 implements IBase64 {
+export class Base64 {
 	public encodeText(data: string): string {
 		return btoa(data);
 	}
