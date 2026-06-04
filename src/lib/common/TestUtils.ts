@@ -10,7 +10,7 @@ import { type IBufferSet, type IBuffer } from '$lib/common/buffer/Types';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import { type IDecPrivateModes, type ICoreMouseEvent, CoreMouseEventType, type ICharset, type IModes, type IAttributeData, type IOscLinkData, type IDisposable, type IBufferLine, type IExtendedAttrs } from '$lib/common/Types';
 import { UnicodeV6 } from '$lib/common/input/UnicodeV6';
-import { type IDecorationOptions, type IDecoration } from '$lib/xterm';
+import type { IDecorationOptions, IDecoration } from '$lib/xterm';
 import { Emitter, type IEvent } from '$lib/common/Event';
 import { CellData } from '$lib/common/buffer/CellData';
 import { DEFAULT_ATTR, NULL_CELL_CHAR, NULL_CELL_WIDTH } from '$lib/common/buffer/Constants';
