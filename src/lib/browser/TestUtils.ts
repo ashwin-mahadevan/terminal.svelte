@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { type IDisposable, type IMarker, type ILinkProvider, type IDecorationOptions, type IDecoration, type IRenderDimensions as IRenderDimensionsApi } from '$lib/xterm';
+import type { IDisposable, IMarker, ILinkProvider, IDecorationOptions, IDecoration, IRenderDimensions as IRenderDimensionsApi } from '$lib/xterm';
 import { ICharacterJoinerService, ICharSizeService, ICoreBrowserService, IMouseService, IRenderService, ISelectionService, IThemeService } from '$lib/browser/services/Services';
 import { type IRenderDimensions, type IRenderer, type IRequestRedrawEvent } from '$lib/browser/renderer/shared/Types';
 import { type IColorSet, type ITerminal, type ILinkifier2, type IBrowser, type IViewport, type ICompositionHelper, type CharacterJoinerHandler, type IBufferRange, type ReadonlyColorSet, type IBufferElementProvider } from '$lib/browser/Types';
