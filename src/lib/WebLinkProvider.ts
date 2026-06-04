@@ -53,7 +53,7 @@ function isUrl(urlString: string): boolean {
 	}
 }
 
-export class LinkComputer {
+class LinkComputer {
 	public static computeLink(
 		y: number,
 		regex: RegExp,

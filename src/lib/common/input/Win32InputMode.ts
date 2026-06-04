@@ -21,7 +21,7 @@ import { C0 } from '$lib/common/data/EscapeSequences';
 /**
  * Win32 control key state flags (from Windows API).
  */
-export const enum Win32ControlKeyState {
+const enum Win32ControlKeyState {
 	RIGHT_ALT_PRESSED = 0b000000001,
 	LEFT_ALT_PRESSED = 0b000000010,
 	RIGHT_CTRL_PRESSED = 0b000000100,

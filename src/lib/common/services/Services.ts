@@ -152,7 +152,7 @@ export interface IServiceIdentifier<T> {
 	_id: string;
 }
 
-export interface IBrandedService {
+interface IBrandedService {
 	serviceBrand: undefined;
 }
 
@@ -267,7 +267,7 @@ export type FontWeight =
 	| '800'
 	| '900'
 	| number;
-export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off';
+type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off';
 
 export interface ITerminalOptions {
 	allowProposedApi?: boolean;
@@ -357,18 +357,18 @@ export interface ITheme {
 	extendedAnsi?: string[];
 }
 
-export interface ITerminalQuirks {
+interface ITerminalQuirks {
 	allowSetCursorBlink?: boolean;
 }
 
-export interface IScrollbarOptions {
+interface IScrollbarOptions {
 	showScrollbar?: boolean;
 	showArrows?: boolean;
 	width?: number;
 	overviewRuler?: IOverviewRulerOptions;
 }
 
-export interface IVtExtensions {
+interface IVtExtensions {
 	kittyKeyboard?: boolean;
 	kittySgrBoldFaintControl?: boolean;
 	win32InputMode?: boolean;

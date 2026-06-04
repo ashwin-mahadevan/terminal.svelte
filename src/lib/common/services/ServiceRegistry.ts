@@ -18,7 +18,7 @@ const enum Constants {
 
 // TODO: Fix this upstream type error.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const serviceRegistry: Map<string, IServiceIdentifier<any>> = new Map();
+const serviceRegistry: Map<string, IServiceIdentifier<any>> = new Map();
 
 export function getServiceDependencies(
 	// TODO: Fix this upstream type error.

@@ -3,10 +3,6 @@
  * @license MIT
  */
 
-export const DEFAULT_COLOR = 0;
-export const DEFAULT_ATTR = (0 << 18) | (DEFAULT_COLOR << 9) | (256 << 0);
-export const DEFAULT_EXT = 0;
-
 export const CHAR_DATA_ATTR_INDEX = 0;
 export const CHAR_DATA_CHAR_INDEX = 1;
 export const CHAR_DATA_WIDTH_INDEX = 2;
@@ -74,36 +70,22 @@ export const enum Content {
 }
 
 export const enum Attributes {
-	/**
-	 * bit 1..8     blue in RGB, color in P256 and P16
-	 */
-	BLUE_MASK = 0xff,
-	BLUE_SHIFT = 0,
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	PCOLOR_MASK = 0xff,
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
-	PCOLOR_SHIFT = 0,
 
 	/**
 	 * bit 9..16    green in RGB
 	 */
-	GREEN_MASK = 0xff00,
 	GREEN_SHIFT = 8,
 
 	/**
 	 * bit 17..24   red in RGB
 	 */
-	RED_MASK = 0xff0000,
 	RED_SHIFT = 16,
 
 	/**
 	 * bit 25..26   color mode: DEFAULT (0) | P16 (1) | P256 (2) | RGB (3)
 	 */
 	CM_MASK = 0x3000000,
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	CM_DEFAULT = 0,
 	CM_P16 = 0x1000000,
 	CM_P256 = 0x2000000,

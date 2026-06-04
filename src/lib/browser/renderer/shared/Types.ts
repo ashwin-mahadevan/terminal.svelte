@@ -13,7 +13,7 @@ export interface IDimensions {
 	height: number;
 }
 
-export interface IOffset {
+interface IOffset {
 	top: number;
 	left: number;
 }

@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { CharData, IColor, ICoreTerminal, ITerminalOptions } from '$lib/common/Types';
+import type { IColor, ICoreTerminal, ITerminalOptions } from '$lib/common/Types';
 import type { IBuffer } from '$lib/common/buffer/Types';
 import type {
 	IDisposable,
@@ -40,8 +40,6 @@ export interface ITerminal extends InternalPassthroughApis, ICoreTerminal {
 
 export type CustomKeyEventHandler = (event: KeyboardEvent) => boolean;
 export type CustomWheelEventHandler = (event: WheelEvent) => boolean;
-
-export type LineData = CharData[];
 
 export interface ICompositionHelper {
 	readonly isComposing: boolean;
@@ -95,31 +93,6 @@ export interface IColorContrastCache {
 	getCss(bg: number, fg: number): string | null | undefined;
 	setColor(bg: number, fg: number, value: IColor | null): void;
 	getColor(bg: number, fg: number): IColor | null | undefined;
-}
-
-export interface IPartialColorSet {
-	foreground: IColor;
-	background: IColor;
-	cursor?: IColor;
-	cursorAccent?: IColor;
-	selectionBackground?: IColor;
-	ansi: IColor[];
-}
-
-export interface IViewport extends IDisposable {
-	scrollBarWidth: number;
-	readonly onRequestScrollLines: IEvent<{ amount: number; suppressScrollEvent: boolean }>;
-	syncScrollArea(immediate?: boolean, force?: boolean): void;
-	getLinesScrolled(ev: WheelEvent): number;
-	getBufferElements(
-		startLine: number,
-		endLine?: number
-	): { bufferElements: HTMLElement[]; cursorElement?: HTMLElement };
-	handleWheel(ev: WheelEvent): boolean;
-	handleTouchStart(ev: TouchEvent): void;
-	handleTouchMove(ev: TouchEvent): boolean;
-	scrollLines(disp: number): void; // todo api name?
-	reset(): void;
 }
 
 export interface ILinkifierEvent {
@@ -184,10 +157,6 @@ export interface IRenderDebouncer extends IDisposable {
 
 export interface IRenderDebouncerWithCallback extends IRenderDebouncer {
 	addRefreshCallback(callback: FrameRequestCallback): number;
-}
-
-export interface IBufferElementProvider {
-	provideBufferElements(): DocumentFragment | HTMLElement;
 }
 
 // An IIFE to generate DEFAULT_ANSI_COLORS.

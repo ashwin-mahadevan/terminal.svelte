@@ -8,10 +8,6 @@
 import type { DisposableStore, IDisposable } from '$lib/common/Lifecycle';
 import { toDisposable } from '$lib/common/Lifecycle';
 
-export function timeout(millis: number): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, millis));
-}
-
 /**
  * Creates a timeout that can be disposed using its returned value.
  * @param handler The timeout handler.

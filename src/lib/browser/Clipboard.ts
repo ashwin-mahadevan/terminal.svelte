@@ -10,7 +10,7 @@ import type { ICoreService, IOptionsService } from '$lib/common/services/Service
  * Prepares text to be pasted into the terminal by normalizing the line endings
  * @param text The pasted text that needs processing before inserting into the terminal
  */
-export function prepareTextForTerminal(text: string): string {
+function prepareTextForTerminal(text: string): string {
 	return text.replace(/\r?\n/g, '\r');
 }
 
@@ -18,7 +18,7 @@ export function prepareTextForTerminal(text: string): string {
  * Bracket text for paste, if necessary, as per https://cirw.in/blog/bracketed-paste
  * @param text The pasted text to bracket
  */
-export function bracketTextForPaste(text: string, bracketedPasteMode: boolean): string {
+function bracketTextForPaste(text: string, bracketedPasteMode: boolean): string {
 	if (!bracketedPasteMode) {
 		return text;
 	}

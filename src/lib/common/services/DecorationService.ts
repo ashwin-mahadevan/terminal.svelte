@@ -140,7 +140,7 @@ export class DecorationService extends Disposable implements IDecorationService 
  * Multi-line decorations appear in every line bucket they span. The index is kept aligned
  * with marker.line updates via buffer line trim/insert/delete events.
  */
-export class DecorationLineCache extends Disposable {
+class DecorationLineCache extends Disposable {
 	private readonly _decorationsByLine: Map<number, IInternalDecoration[]> = new Map();
 	private readonly _decorations = new Set<IInternalDecoration>();
 	private readonly _bufferLineListeners = this._register(new MutableDisposable<DisposableStore>());

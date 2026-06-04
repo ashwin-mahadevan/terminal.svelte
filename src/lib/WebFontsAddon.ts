@@ -88,7 +88,7 @@ function _loadFonts(fonts?: (string | FontFace)[]): Promise<FontFace[]> {
 	return Promise.all(toLoad.map((ff) => ff.load()));
 }
 
-export function loadFonts(fonts?: (string | FontFace)[]): Promise<FontFace[]> {
+function loadFonts(fonts?: (string | FontFace)[]): Promise<FontFace[]> {
 	return document.fonts.ready.then(() => _loadFonts(fonts));
 }
 

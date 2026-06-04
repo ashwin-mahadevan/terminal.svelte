@@ -7,7 +7,7 @@ import { throwIfFalsy } from '$lib/browser/renderer/shared/RendererUtils';
 import type { IDisposable } from '$lib/common/Types';
 import type { FontWeight } from '$lib/common/services/Services';
 
-export const enum WidthCacheSettings {
+const enum WidthCacheSettings {
 	/** sentinel for unset values in flat cache */
 	FLAT_UNSET = -9999,
 	/** size of flat cache, size-1 equals highest codepoint handled by flat */

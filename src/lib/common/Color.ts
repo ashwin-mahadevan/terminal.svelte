@@ -268,7 +268,7 @@ export namespace rgb {
  */
 // TODO: Fix this upstream type error.
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace rgba {
+namespace rgba {
 	export function blend(bg: number, fg: number): number {
 		$a = (fg & 0xff) / 0xff;
 		if ($a === 1) {
@@ -387,7 +387,7 @@ export namespace rgba {
 	}
 }
 
-export function toPaddedHex(c: number): string {
+function toPaddedHex(c: number): string {
 	const s = c.toString(16);
 	return s.length < 2 ? '0' + s : s;
 }
@@ -398,7 +398,7 @@ export function toPaddedHex(c: number): string {
  * @param l2 The first relative luminance.
  * @see https://www.w3.org/TR/WCAG20/#contrast-ratiodef
  */
-export function contrastRatio(l1: number, l2: number): number {
+function contrastRatio(l1: number, l2: number): number {
 	if (l1 < l2) {
 		return (l2 + 0.05) / (l1 + 0.05);
 	}

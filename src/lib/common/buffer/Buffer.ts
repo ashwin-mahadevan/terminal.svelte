@@ -32,7 +32,7 @@ import type { IBuffer } from '$lib/common/buffer/Types';
 import { DEFAULT_CHARSET } from '$lib/common/data/Charsets';
 import type { IBufferService, ILogService, IOptionsService } from '$lib/common/services/Services';
 
-export const MAX_BUFFER_SIZE = 4294967295; // 2^32 - 1
+const MAX_BUFFER_SIZE = 4294967295; // 2^32 - 1
 
 /**
  * This class represents a terminal buffer (an internal state of the terminal), where the

@@ -31,10 +31,6 @@ export function dispose<T extends IDisposable>(arg: T | T[] | undefined): T | T[
 	return arg;
 }
 
-export function combinedDisposable(...disposables: IDisposable[]): IDisposable {
-	return toDisposable(() => dispose(disposables));
-}
-
 export class DisposableStore implements IDisposable {
 	private readonly _disposables = new Set<IDisposable>();
 	private _isDisposed = false;

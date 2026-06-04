@@ -102,18 +102,6 @@ export namespace EventUtils {
 		return from((e) => to.fire(e));
 	}
 
-	export function map<I, O>(event: IEvent<I>, map: (i: I) => O): IEvent<O> {
-		return (
-			listener: (e: O) => void,
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			thisArgs?: any,
-			disposables?: IDisposable[] | DisposableStore
-		) => {
-			return event((i) => listener.call(thisArgs, map(i)), undefined, disposables);
-		};
-	}
-
 	export function any<T>(...events: IEvent<T>[]): IEvent<T>;
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

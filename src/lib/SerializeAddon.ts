@@ -67,7 +67,7 @@ export interface IHTMLSerializeOptions {
 	range?: ISerializeBufferRange;
 }
 
-export interface ISerializeBufferRange {
+interface ISerializeBufferRange {
 	startLine: number;
 	endLine: number;
 	startCol: number;
@@ -810,7 +810,7 @@ export class SerializeAddon implements ITerminalAddon {
 	public dispose(): void {}
 }
 
-export class HTMLSerializeHandler extends BaseSerializeHandler {
+class HTMLSerializeHandler extends BaseSerializeHandler {
 	private _currentRow: string = '';
 
 	private _htmlContent = '';

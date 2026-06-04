@@ -9,7 +9,7 @@ import type { CursorStyle, IDisposable } from '$lib/common/Types';
 import type { FontWeight, IOptionsService, ITerminalOptions } from '$lib/common/services/Services';
 import { Emitter } from '$lib/common/Event';
 
-export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
+const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	cols: 80,
 	rows: 24,
 	showCursorImmediately: false,

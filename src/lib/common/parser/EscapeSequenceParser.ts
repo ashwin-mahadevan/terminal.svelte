@@ -127,7 +127,7 @@ const NON_ASCII_PRINTABLE = 0xa0;
  * VT500 compatible transition table.
  * Taken from https://vt100.net/emu/dec_ansi_parser.
  */
-export const VT500_TRANSITION_TABLE = (function (): TransitionTable {
+const VT500_TRANSITION_TABLE = (function (): TransitionTable {
 	// table size:
 	// (ParserState.STATE_LENGTH - 1) << TableAccess.INDEX_STATE_SHIFT | NON_ASCII_PRINTABLE + 1
 	const table: TransitionTable = new TransitionTable(4257);

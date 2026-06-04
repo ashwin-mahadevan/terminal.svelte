@@ -9,13 +9,6 @@ import type { ParserState } from '$lib/common/parser/Constants';
 /** sequence params serialized to js arrays */
 export type ParamsArray = (number | number[])[];
 
-/** Params constructor type. */
-export interface IParamsConstructor {
-	new (maxLength: number, maxSubParamsLength: number): IParams;
-
-	/** create params from ParamsArray */
-	fromArray(values: ParamsArray): IParams;
-}
 
 /** Interface of Params storage class. */
 export interface IParams {
@@ -249,7 +242,7 @@ export interface IEscapeSequenceParser extends IDisposable {
  * The subparsers are instantiated in `EscapeSequenceParser` and
  * called during `EscapeSequenceParser.parse`.
  */
-export interface ISubParser<T, U> extends IDisposable {
+interface ISubParser<T, U> extends IDisposable {
 	reset(): void;
 	registerHandler(ident: number, handler: T): IDisposable;
 	clearHandler(ident: number): void;
