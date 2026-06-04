@@ -48,7 +48,7 @@ run = "pnpm exec prettier --check ."
 
 [tasks."check:lint"]
 depends = ["install"]
-run = "pnpm exec eslint ."
+run = "pnpm exec eslint --flag unstable_native_nodejs_ts_config ."
 
 [tasks."check:types"]
 depends = ["install"]
