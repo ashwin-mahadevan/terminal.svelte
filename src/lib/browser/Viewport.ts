@@ -16,7 +16,7 @@ import { CoreMouseEventType } from '$lib/common/Types';
 import { scheduleAtNextAnimationFrame } from '$lib/browser/Dom';
 import { SmoothScrollableElement } from '$lib/browser/scrollable/scrollableElement';
 import type { IScrollableElementChangeOptions } from '$lib/browser/scrollable/scrollableElementOptions';
-import { Emitter, EventUtils } from '$lib/common/Event';
+import { Emitter } from '$lib/common/Event';
 import { Scrollable, ScrollbarVisibility } from '$lib/browser/scrollable/scrollable';
 import type { IScrollEvent } from '$lib/browser/scrollable/scrollable';
 
@@ -92,34 +92,34 @@ export class Viewport extends Disposable {
 		);
 
 		this._scrollableElement.setScrollDimensions({ height: 0, scrollHeight: 0 });
-		this._register(
-			EventUtils.runAndSubscribe(themeService.onChangeColors, () => {
-				element.style.backgroundColor = themeService.colors.background.css;
-				this._scrollableElement.getDomNode().style.backgroundColor =
-					themeService.colors.background.css;
-			})
-		);
+		const updateBackgroundColor = (): void => {
+			element.style.backgroundColor = themeService.colors.background.css;
+			this._scrollableElement.getDomNode().style.backgroundColor =
+				themeService.colors.background.css;
+		};
+		updateBackgroundColor();
+		this._register(themeService.onChangeColors(updateBackgroundColor));
 		element.appendChild(this._scrollableElement.getDomNode());
 		this._register(toDisposable(() => this._scrollableElement.getDomNode().remove()));
 
 		this._styleElement = coreBrowserService.mainDocument.createElement('style');
 		screenElement.appendChild(this._styleElement);
 		this._register(toDisposable(() => this._styleElement.remove()));
-		this._register(
-			EventUtils.runAndSubscribe(themeService.onChangeColors, () => {
-				this._styleElement.textContent = [
-					`.xterm .xterm-scrollable-element > .xterm-scrollbar > .xterm-slider {`,
-					`  background: ${themeService.colors.scrollbarSliderBackground.css};`,
-					`}`,
-					`.xterm .xterm-scrollable-element > .xterm-scrollbar > .xterm-slider:hover {`,
-					`  background: ${themeService.colors.scrollbarSliderHoverBackground.css};`,
-					`}`,
-					`.xterm .xterm-scrollable-element > .xterm-scrollbar > .xterm-slider.xterm-active {`,
-					`  background: ${themeService.colors.scrollbarSliderActiveBackground.css};`,
-					`}`
-				].join('\n');
-			})
-		);
+		const updateScrollbarStyle = (): void => {
+			this._styleElement.textContent = [
+				`.xterm .xterm-scrollable-element > .xterm-scrollbar > .xterm-slider {`,
+				`  background: ${themeService.colors.scrollbarSliderBackground.css};`,
+				`}`,
+				`.xterm .xterm-scrollable-element > .xterm-scrollbar > .xterm-slider:hover {`,
+				`  background: ${themeService.colors.scrollbarSliderHoverBackground.css};`,
+				`}`,
+				`.xterm .xterm-scrollable-element > .xterm-scrollbar > .xterm-slider.xterm-active {`,
+				`  background: ${themeService.colors.scrollbarSliderActiveBackground.css};`,
+				`}`
+			].join('\n');
+		};
+		updateScrollbarStyle();
+		this._register(themeService.onChangeColors(updateScrollbarStyle));
 
 		this._register(this._bufferService.onResize(() => this.queueSync()));
 		this._register(
