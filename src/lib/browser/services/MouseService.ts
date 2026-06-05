@@ -13,7 +13,7 @@ import {
 import type { ICoreMouseEvent, IDisposable } from '$lib/common/Types';
 import { CoreMouseAction, CoreMouseButton, CoreMouseEventType } from '$lib/common/Types';
 import { C0 } from '$lib/common/data/EscapeSequences';
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IMouseService, IMouseServiceTarget } from './Services';
 import {
 	ICoreBrowserService,
@@ -668,7 +668,7 @@ export class MouseService implements IMouseService {
  * `mouseEventsRequireAlt` is active. DOM listeners are only registered while active.
  */
 export class AltMouseCursorController {
-	private _listeners: IDisposable | undefined;
+	private readonly _listeners = new MutableDisposable<IDisposable>();
 
 	constructor(
 		private readonly _element: HTMLElement,
@@ -677,13 +677,11 @@ export class AltMouseCursorController {
 	) {}
 
 	public dispose(): void {
-		this._listeners?.dispose();
-		this._listeners = undefined;
+		this._listeners.dispose();
 	}
 
 	public sync(): void {
-		this._listeners?.dispose();
-		this._listeners = undefined;
+		this._listeners.clear();
 
 		if (!this._isActive()) {
 			return;
@@ -704,7 +702,7 @@ export class AltMouseCursorController {
 				})
 			);
 		}
-		this._listeners = store;
+		this._listeners.value = store;
 	}
 
 	public resetClass(): void {

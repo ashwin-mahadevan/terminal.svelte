@@ -17,7 +17,7 @@ import {
 	IMouseCoordsService,
 	IRenderService
 } from '$lib/browser/services/Services';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import * as Browser from '$lib/common/Platform';
 import type { IBufferLine, ICellData, IDisposable } from '$lib/common/Types';
 import { getRangeLength } from '$lib/common/buffer/BufferRange';
@@ -117,7 +117,7 @@ export class SelectionService extends Disposable implements ISelectionService {
 
 	private _mouseMoveListener: EventListener;
 	private _mouseUpListener: EventListener;
-	private _trimListener: IDisposable | undefined;
+	private readonly _trimListener = this._register(new MutableDisposable<IDisposable>());
 	private _workCell: CellData = new CellData();
 
 	private _mouseDownTimeStamp: number = 0;
@@ -158,7 +158,7 @@ export class SelectionService extends Disposable implements ISelectionService {
 				this.clearSelection();
 			}
 		});
-		this._trimListener = this._bufferService.buffer.lines.onTrim((amount) =>
+		this._trimListener.value = this._bufferService.buffer.lines.onTrim((amount) =>
 			this._handleTrim(amount)
 		);
 		this._register(
@@ -172,7 +172,6 @@ export class SelectionService extends Disposable implements ISelectionService {
 
 		this._register(
 			toDisposable(() => {
-				this._trimListener?.dispose();
 				this._removeMouseDownListeners();
 			})
 		);
@@ -887,8 +886,7 @@ export class SelectionService extends Disposable implements ISelectionService {
 		// reverseIndex) and delete in a splice is only ever used when the same
 		// number of elements was just added. Given this is could actually be
 		// beneficial to leave the selection as is for these cases.
-		this._trimListener?.dispose();
-		this._trimListener = e.activeBuffer.lines.onTrim((amount) => this._handleTrim(amount));
+		this._trimListener.value = e.activeBuffer.lines.onTrim((amount) => this._handleTrim(amount));
 	}
 
 	/**

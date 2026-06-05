@@ -12,8 +12,7 @@ import {
 	ICoreBrowserService,
 	IThemeService
 } from '$lib/browser/services/Services';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
-import type { IDisposable } from '$lib/common/Lifecycle';
+import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
 import {
 	IBufferService,
@@ -36,10 +35,10 @@ const enum Constants {
 export class RenderService extends Disposable implements IRenderService {
 	public serviceBrand: undefined;
 
-	private _renderer: IRenderer | undefined;
+	private _renderer: MutableDisposable<IRenderer> = this._register(new MutableDisposable());
 	private _renderDebouncer: IRenderDebouncerWithCallback;
 	private _pausedResizeTask: DebouncedIdleTask;
-	private _observerDisposable: IDisposable | undefined;
+	private _observerDisposable = this._register(new MutableDisposable());
 	private _intersectionObserver: IntersectionObserver | undefined;
 
 	private _isPaused: boolean = false;
@@ -69,7 +68,7 @@ export class RenderService extends Disposable implements IRenderService {
 	public readonly onRefreshRequest = this._onRefreshRequest.event;
 
 	public get dimensions(): IRenderDimensions {
-		return this._renderer!.dimensions;
+		return this._renderer.value!.dimensions;
 	}
 
 	constructor(
@@ -84,11 +83,6 @@ export class RenderService extends Disposable implements IRenderService {
 		@IThemeService themeService: IThemeService
 	) {
 		super();
-
-		this._register(toDisposable(() => {
-			this._renderer?.dispose();
-			this._observerDisposable?.dispose();
-		}));
 
 		this._pausedResizeTask = this._register(new DebouncedIdleTask());
 
@@ -108,7 +102,7 @@ export class RenderService extends Disposable implements IRenderService {
 		this._register(this._coreBrowserService.onDprChange(() => this.handleDevicePixelRatioChange()));
 
 		this._register(bufferService.onResize(() => this._fullRefresh()));
-		this._register(bufferService.buffers.onBufferActivate(() => this._renderer?.clear()));
+		this._register(bufferService.buffers.onBufferActivate(() => this._renderer.value?.clear()));
 		this._register(this._optionsService.onOptionChange(() => this._handleOptionsChanged()));
 		this._register(this._charSizeService.onCharSizeChange(() => this.handleCharSizeChanged()));
 
@@ -168,8 +162,7 @@ export class RenderService extends Disposable implements IRenderService {
 				(e) => this._handleIntersectionChange(e[e.length - 1]),
 				{ threshold: 0 }
 			);
-			this._observerDisposable?.dispose();
-			this._observerDisposable = toDisposable(() => {
+			this._observerDisposable.value = toDisposable(() => {
 				this._intersectionObserver?.disconnect();
 				this._intersectionObserver = undefined;
 			});
@@ -181,7 +174,7 @@ export class RenderService extends Disposable implements IRenderService {
 	private _handleIntersectionChange(entry: IntersectionObserverEntry): void {
 		this._isPaused =
 			entry.isIntersecting === undefined ? entry.intersectionRatio === 0 : !entry.isIntersecting;
-		this._renderer?.handleViewportVisibilityChange?.(!this._isPaused);
+		this._renderer.value?.handleViewportVisibilityChange?.(!this._isPaused);
 
 		// Terminal was hidden on open
 		if (!this._isPaused && !this._charSizeService.hasValidSize) {
@@ -229,7 +222,7 @@ export class RenderService extends Disposable implements IRenderService {
 	}
 
 	private _renderRows(start: number, end: number): void {
-		if (!this._renderer) {
+		if (!this._renderer.value) {
 			return;
 		}
 
@@ -247,11 +240,11 @@ export class RenderService extends Disposable implements IRenderService {
 		end = Math.min(end, this._rowCount - 1);
 
 		// Render
-		this._renderer.renderRows(start, end);
+		this._renderer.value.renderRows(start, end);
 
 		// Update selection if needed
 		if (this._needsSelectionRefresh) {
-			this._renderer.handleSelectionChanged(
+			this._renderer.value.handleSelectionChanged(
 				this._selectionState.start,
 				this._selectionState.end,
 				this._selectionState.columnSelectMode
@@ -273,7 +266,7 @@ export class RenderService extends Disposable implements IRenderService {
 	}
 
 	private _handleOptionsChanged(): void {
-		if (!this._renderer) {
+		if (!this._renderer.value) {
 			return;
 		}
 		this.refreshRows(0, this._rowCount - 1);
@@ -281,29 +274,33 @@ export class RenderService extends Disposable implements IRenderService {
 	}
 
 	private _fireOnCanvasResize(): void {
-		if (!this._renderer) {
+		if (!this._renderer.value) {
 			return;
 		}
 		// Don't fire the event if the dimensions haven't changed
 		if (
-			this._renderer.dimensions.css.canvas.width === this._canvasWidth &&
-			this._renderer.dimensions.css.canvas.height === this._canvasHeight
+			this._renderer.value.dimensions.css.canvas.width === this._canvasWidth &&
+			this._renderer.value.dimensions.css.canvas.height === this._canvasHeight
 		) {
 			return;
 		}
-		this._onDimensionsChange.fire(this._renderer.dimensions);
+		this._onDimensionsChange.fire(this._renderer.value.dimensions);
 	}
 
 	public hasRenderer(): boolean {
-		return !!this._renderer;
+		return !!this._renderer.value;
 	}
 
 	public setRenderer(renderer: IRenderer): void {
-		this._renderer?.dispose();
-		this._renderer = renderer;
-		this._renderer.onRequestRedraw((e) => this.refreshRows(e.start, e.end, e.sync, true));
-		this._needsSelectionRefresh = true;
-		this._fullRefresh();
+		this._renderer.value = renderer;
+		// If the value was not set, the terminal is being disposed so ignore it
+		if (this._renderer.value) {
+			this._renderer.value.onRequestRedraw((e) => this.refreshRows(e.start, e.end, e.sync, true));
+
+			// Force a refresh
+			this._needsSelectionRefresh = true;
+			this._fullRefresh();
+		}
 	}
 
 	public addRefreshCallback(callback: FrameRequestCallback): number {
@@ -319,10 +316,10 @@ export class RenderService extends Disposable implements IRenderService {
 	}
 
 	public clearTextureAtlas(): void {
-		if (!this._renderer) {
+		if (!this._renderer.value) {
 			return;
 		}
-		this._renderer.clearTextureAtlas?.();
+		this._renderer.value.clearTextureAtlas?.();
 		this._fullRefresh();
 	}
 
@@ -331,36 +328,36 @@ export class RenderService extends Disposable implements IRenderService {
 		// when devicePixelRatio changes
 		this._charSizeService.measure();
 
-		if (!this._renderer) {
+		if (!this._renderer.value) {
 			return;
 		}
-		this._renderer.handleDevicePixelRatioChange();
+		this._renderer.value.handleDevicePixelRatioChange();
 		this.refreshRows(0, this._rowCount - 1);
 	}
 
 	public handleResize(cols: number, rows: number): void {
-		if (!this._renderer) {
+		if (!this._renderer.value) {
 			return;
 		}
 		if (this._isPaused) {
-			this._pausedResizeTask.set(() => this._renderer?.handleResize(cols, rows));
+			this._pausedResizeTask.set(() => this._renderer.value?.handleResize(cols, rows));
 		} else {
-			this._renderer.handleResize(cols, rows);
+			this._renderer.value.handleResize(cols, rows);
 		}
 		this._fullRefresh();
 	}
 
 	// TODO: Is this useful when we have onResize?
 	public handleCharSizeChanged(): void {
-		this._renderer?.handleCharSizeChanged();
+		this._renderer.value?.handleCharSizeChanged();
 	}
 
 	public handleBlur(): void {
-		this._renderer?.handleBlur();
+		this._renderer.value?.handleBlur();
 	}
 
 	public handleFocus(): void {
-		this._renderer?.handleFocus();
+		this._renderer.value?.handleFocus();
 	}
 
 	public handleSelectionChanged(
@@ -371,15 +368,15 @@ export class RenderService extends Disposable implements IRenderService {
 		this._selectionState.start = start;
 		this._selectionState.end = end;
 		this._selectionState.columnSelectMode = columnSelectMode;
-		this._renderer?.handleSelectionChanged(start, end, columnSelectMode);
+		this._renderer.value?.handleSelectionChanged(start, end, columnSelectMode);
 	}
 
 	public handleCursorMove(): void {
-		this._renderer?.handleCursorMove();
+		this._renderer.value?.handleCursorMove();
 	}
 
 	public clear(): void {
-		this._renderer?.clear();
+		this._renderer.value?.clear();
 	}
 }
 

@@ -85,3 +85,29 @@ export abstract class Disposable {
 	}
 }
 
+export class MutableDisposable<T extends IDisposable> {
+	private _value: T | undefined;
+	private _isDisposed = false;
+
+	public get value(): T | undefined {
+		return this._isDisposed ? undefined : this._value;
+	}
+
+	public set value(value: T | undefined) {
+		if (this._isDisposed || value === this._value) {
+			return;
+		}
+		this._value?.dispose();
+		this._value = value;
+	}
+
+	public clear(): void {
+		this.value = undefined;
+	}
+
+	public dispose(): void {
+		this._isDisposed = true;
+		this._value?.dispose();
+		this._value = undefined;
+	}
+}

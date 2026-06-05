@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { Disposable, MutableDisposable } from '$lib/common/Lifecycle';
 import type { IAttributeData } from '$lib/common/Types';
 import { Buffer } from '$lib/common/buffer/Buffer';
 import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
@@ -18,6 +18,8 @@ export class BufferSet extends Disposable implements IBufferSet {
 	private _normal!: Buffer;
 	private _alt!: Buffer;
 	private _activeBuffer!: Buffer;
+	private readonly _normalBuffer = this._register(new MutableDisposable<Buffer>());
+	private readonly _altBuffer = this._register(new MutableDisposable<Buffer>());
 
 	private readonly _onBufferActivate = this._register(
 		new Emitter<{ activeBuffer: IBuffer; inactiveBuffer: IBuffer }>()
@@ -33,10 +35,6 @@ export class BufferSet extends Disposable implements IBufferSet {
 	) {
 		super();
 		this.reset();
-		this._register(toDisposable(() => {
-			this._normal.dispose();
-			this._alt.dispose();
-		}));
 		this._register(
 			this._optionsService.onSpecificOptionChange('scrollback', () =>
 				this.resize(this._bufferService.cols, this._bufferService.rows)
@@ -48,14 +46,14 @@ export class BufferSet extends Disposable implements IBufferSet {
 	}
 
 	public reset(): void {
-		(this._normal as Buffer | undefined)?.dispose();
 		this._normal = new Buffer(true, this._optionsService, this._bufferService);
+		this._normalBuffer.value = this._normal;
 		this._normal.fillViewportRows();
 
 		// The alt buffer should never have scrollback.
 		// See http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-The-Alternate-Screen-Buffer
-		(this._alt as Buffer | undefined)?.dispose();
 		this._alt = new Buffer(false, this._optionsService, this._bufferService);
+		this._altBuffer.value = this._alt;
 		this._activeBuffer = this._normal;
 		this._onBufferActivate.fire({
 			activeBuffer: this._normal,

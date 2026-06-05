@@ -6,7 +6,12 @@
 import type { IDeleteEvent, IInsertEvent } from '$lib/common/CircularList';
 import { MicrotaskTimer } from '$lib/common/Async';
 import { css } from '$lib/common/Color';
-import { Disposable, DisposableStore, toDisposable } from '$lib/common/Lifecycle';
+import {
+	Disposable,
+	DisposableStore,
+	MutableDisposable,
+	toDisposable
+} from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
 import { IBufferService } from '$lib/common/services/Services';
 import { SortedList } from '$lib/common/SortedList';
@@ -135,13 +140,8 @@ export class DecorationService extends Disposable {
 export class DecorationLineCache extends Disposable {
 	private readonly _decorationsByLine: Map<number, IInternalDecoration[]> = new Map();
 	private readonly _decorations = new Set<IInternalDecoration>();
-	private _bufferLineListeners: DisposableStore | undefined;
+	private readonly _bufferLineListeners = this._register(new MutableDisposable<DisposableStore>());
 	private readonly _lineIndexSyncTimer = this._register(new MicrotaskTimer());
-
-	constructor() {
-		super();
-		this._register(toDisposable(() => this._bufferLineListeners?.dispose()));
-	}
 	private _lineIndexSyncCallbacks: (() => void)[] = [];
 
 	public clear(): void {
@@ -166,9 +166,8 @@ export class DecorationLineCache extends Disposable {
 	}
 
 	public attachToBufferLines(lines: ICircularList<unknown>): void {
-		this._bufferLineListeners?.dispose();
 		const store = new DisposableStore();
-		this._bufferLineListeners = store;
+		this._bufferLineListeners.value = store;
 		store.add(lines.onTrim((amount) => this._handleBufferLinesTrim(amount)));
 		store.add(lines.onInsert((event) => this._handleBufferLinesInsert(event)));
 		store.add(lines.onDelete((event) => this._handleBufferLinesDelete(event)));
