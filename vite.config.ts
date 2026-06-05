@@ -38,6 +38,15 @@ const socketio: Plugin = {
 
 export default defineConfig({
 	plugins: [sveltekit(), socketio],
+	build: {
+		rolldownOptions: {
+			output: {
+				minify: {
+					compress: { dropConsole: true }
+				}
+			}
+		}
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
