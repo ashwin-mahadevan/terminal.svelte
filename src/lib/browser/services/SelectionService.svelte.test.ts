@@ -272,8 +272,7 @@ describe('SelectionService', () => {
 			expect(selectionService.selectionText).toBe('foobar');
 		});
 		it('should expand both upwards and downwards for word wrapped over many lines', () => {
-			const expectedText =
-				'fooaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbccccccccccccccccccccbar';
+			const expectedText = 'fooaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbccccccccccccccccccccbar';
 			buffer.lines.set(0, stringToRow('                 foo'));
 			buffer.lines.set(1, stringToRow('aaaaaaaaaaaaaaaaaaaa'));
 			buffer.lines.set(2, stringToRow('bbbbbbbbbbbbbbbbbbbb'));

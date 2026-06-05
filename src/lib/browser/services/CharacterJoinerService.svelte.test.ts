@@ -22,7 +22,13 @@ describe('CharacterJoinerService', () => {
 		const lines = bufferService.buffer.lines;
 		lines.set(0, lineData([['a -> b -> c -> d']]));
 		lines.set(1, lineData([['a -> b => c -> d']]));
-		lines.set(2, lineData([['a -> b -', 0xffffffff], ['> c -> d', 0]]));
+		lines.set(
+			2,
+			lineData([
+				['a -> b -', 0xffffffff],
+				['> c -> d', 0]
+			])
+		);
 
 		lines.set(3, lineData([['no joined ranges']]));
 		lines.set(4, new BufferLine(TEST_STRING_CACHE, 0));
@@ -33,13 +39,15 @@ describe('CharacterJoinerService', () => {
 		let sub = lineData([['deemo']]);
 		let oldSize = line6.length;
 		line6.resize(oldSize + sub.length, createCellData(0, '', 0));
-		for (let i = 0; i < sub.length; ++i) line6.setCell(i + oldSize, sub.loadCell(i, new CellData()));
+		for (let i = 0; i < sub.length; ++i)
+			line6.setCell(i + oldSize, sub.loadCell(i, new CellData()));
 		line6.resize(line6.length + 1, CellData.fromCharData([0, '\xf0\x9f\x98\x81', 1, 128513]));
 		line6.resize(line6.length + 1, createCellData(0, ' ', 1));
 		sub = lineData([['jiabc']]);
 		oldSize = line6.length;
 		line6.resize(oldSize + sub.length, createCellData(0, '', 0));
-		for (let i = 0; i < sub.length; ++i) line6.setCell(i + oldSize, sub.loadCell(i, new CellData()));
+		for (let i = 0; i < sub.length; ++i)
+			line6.setCell(i + oldSize, sub.loadCell(i, new CellData()));
 		lines.set(6, line6);
 
 		service = new CharacterJoinerService(bufferService);

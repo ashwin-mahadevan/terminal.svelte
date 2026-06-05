@@ -106,7 +106,12 @@ const TEST_STRING_CACHE = new BufferLineStringCache();
 class MockWidthCacheFontVariantCanvas implements IWidthCacheFontVariantCanvas {
 	public widths: { [key: string]: number } = {};
 
-	public setFont(_fontFamily: string, _fontSize: number, _fontWeight: unknown, _italic: boolean): void {}
+	public setFont(
+		_fontFamily: string,
+		_fontSize: number,
+		_fontWeight: unknown,
+		_italic: boolean
+	): void {}
 
 	public measure(c: string): number {
 		return this.widths[c] ?? 5;
@@ -150,29 +155,85 @@ describe('DomRendererRowFactory', () => {
 
 	describe('createRow', () => {
 		it('should not create anything for an empty row', () => {
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe('');
 		});
 
 		it('should set correct attributes for double width characters', () => {
-			widthCache.setWidths({ '語': 10 });
+			widthCache.setWidths({ 語: 10 });
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, '語', 2));
 			// There should be no element for the following "empty" cell
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, '', 0));
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe('<span>語</span>');
 		});
 
 		it('should add class for cursor and cursor style', () => {
 			for (const style of ['block', 'bar', 'underline']) {
-				const spans = rowFactory.createRow(lineData, 0, true, style, undefined, 0, false, true, 5, widthCache, -1, -1);
-				expect(extractHtml(spans)).toBe(`<span class="xterm-cursor xterm-cursor-${style}"> </span>`);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					true,
+					style,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
+				expect(extractHtml(spans)).toBe(
+					`<span class="xterm-cursor xterm-cursor-${style}"> </span>`
+				);
 			}
 		});
 
 		it('should add class for cursor blink', () => {
-			const spans = rowFactory.createRow(lineData, 0, true, 'block', undefined, 0, true, true, 5, widthCache, -1, -1);
-			expect(extractHtml(spans)).toBe(`<span class="xterm-cursor xterm-cursor-blink xterm-cursor-block"> </span>`);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				true,
+				'block',
+				undefined,
+				0,
+				true,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
+			expect(extractHtml(spans)).toBe(
+				`<span class="xterm-cursor xterm-cursor-blink xterm-cursor-block"> </span>`
+			);
 		});
 
 		it('should add class for inactive cursor', () => {
@@ -188,11 +249,26 @@ describe('DomRendererRowFactory', () => {
 				new MockThemeService()
 			);
 			for (const inactiveStyle of ['outline', 'block', 'bar', 'underline', 'none']) {
-				const spans = rowFactory.createRow(lineData, 0, true, 'block', inactiveStyle, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					true,
+					'block',
+					inactiveStyle,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				if (inactiveStyle === 'none') {
 					expect(extractHtml(spans)).toBe(`<span class="xterm-cursor"> </span>`);
 				} else {
-					expect(extractHtml(spans)).toBe(`<span class="xterm-cursor xterm-cursor-${inactiveStyle}"> </span>`);
+					expect(extractHtml(spans)).toBe(
+						`<span class="xterm-cursor xterm-cursor-${inactiveStyle}"> </span>`
+					);
 				}
 			}
 		});
@@ -209,7 +285,20 @@ describe('DomRendererRowFactory', () => {
 				new MockDecorationService(),
 				new MockThemeService()
 			);
-			const spans = rowFactory.createRow(lineData, 0, true, 'block', undefined, 0, false, true, 5, widthCache, -1, -1);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				true,
+				'block',
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe(`<span> </span>`);
 		});
 
@@ -218,7 +307,20 @@ describe('DomRendererRowFactory', () => {
 				const cell = createCellData(0, 'a', 1);
 				cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.BOLD;
 				lineData.setCell(0, cell);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(spans)).toBe('<span class="xterm-bold">a</span>');
 			});
 
@@ -226,7 +328,20 @@ describe('DomRendererRowFactory', () => {
 				const cell = createCellData(0, 'a', 1);
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.ITALIC;
 				lineData.setCell(0, cell);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(spans)).toBe('<span class="xterm-italic">a</span>');
 			});
 
@@ -234,7 +349,20 @@ describe('DomRendererRowFactory', () => {
 				const cell = createCellData(0, 'a', 1);
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.DIM;
 				lineData.setCell(0, cell);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(spans)).toBe('<span class="xterm-dim">a</span>');
 			});
 
@@ -245,7 +373,20 @@ describe('DomRendererRowFactory', () => {
 					cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
 					cell.extended.underlineStyle = UnderlineStyle.SINGLE;
 					lineData.setCell(0, cell);
-					const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+					const spans = rowFactory.createRow(
+						lineData,
+						0,
+						false,
+						undefined,
+						undefined,
+						0,
+						false,
+						true,
+						5,
+						widthCache,
+						-1,
+						-1
+					);
 					expect(extractHtml(spans)).toBe('<span class="xterm-underline-1">a</span>');
 				});
 				it('should add class for double underline style', () => {
@@ -254,7 +395,20 @@ describe('DomRendererRowFactory', () => {
 					cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
 					cell.extended.underlineStyle = UnderlineStyle.DOUBLE;
 					lineData.setCell(0, cell);
-					const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+					const spans = rowFactory.createRow(
+						lineData,
+						0,
+						false,
+						undefined,
+						undefined,
+						0,
+						false,
+						true,
+						5,
+						widthCache,
+						-1,
+						-1
+					);
 					expect(extractHtml(spans)).toBe('<span class="xterm-underline-2">a</span>');
 				});
 				it('should add class for curly underline style', () => {
@@ -263,7 +417,20 @@ describe('DomRendererRowFactory', () => {
 					cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
 					cell.extended.underlineStyle = UnderlineStyle.CURLY;
 					lineData.setCell(0, cell);
-					const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+					const spans = rowFactory.createRow(
+						lineData,
+						0,
+						false,
+						undefined,
+						undefined,
+						0,
+						false,
+						true,
+						5,
+						widthCache,
+						-1,
+						-1
+					);
 					expect(extractHtml(spans)).toBe('<span class="xterm-underline-3">a</span>');
 				});
 				it('should add class for double dotted style', () => {
@@ -272,7 +439,20 @@ describe('DomRendererRowFactory', () => {
 					cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
 					cell.extended.underlineStyle = UnderlineStyle.DOTTED;
 					lineData.setCell(0, cell);
-					const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+					const spans = rowFactory.createRow(
+						lineData,
+						0,
+						false,
+						undefined,
+						undefined,
+						0,
+						false,
+						true,
+						5,
+						widthCache,
+						-1,
+						-1
+					);
 					expect(extractHtml(spans)).toBe('<span class="xterm-underline-4">a</span>');
 				});
 				it('should add class for dashed underline style', () => {
@@ -281,7 +461,20 @@ describe('DomRendererRowFactory', () => {
 					cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
 					cell.extended.underlineStyle = UnderlineStyle.DASHED;
 					lineData.setCell(0, cell);
-					const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+					const spans = rowFactory.createRow(
+						lineData,
+						0,
+						false,
+						undefined,
+						undefined,
+						0,
+						false,
+						true,
+						5,
+						widthCache,
+						-1,
+						-1
+					);
 					expect(extractHtml(spans)).toBe('<span class="xterm-underline-5">a</span>');
 				});
 			});
@@ -290,7 +483,20 @@ describe('DomRendererRowFactory', () => {
 				const cell = createCellData(0, 'a', 1);
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.OVERLINE;
 				lineData.setCell(0, cell);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(spans)).toBe('<span class="xterm-overline">a</span>');
 			});
 
@@ -298,7 +504,20 @@ describe('DomRendererRowFactory', () => {
 				const cell = createCellData(0, 'a', 1);
 				cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.STRIKETHROUGH;
 				lineData.setCell(0, cell);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(spans)).toBe('<span class="xterm-strikethrough">a</span>');
 			});
 
@@ -308,10 +527,38 @@ describe('DomRendererRowFactory', () => {
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
 				cell.extended.underlineStyle = UnderlineStyle.SINGLE;
 				lineData.setCell(0, cell);
-				const onSpans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const onSpans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(onSpans)).toBe('<span class="xterm-underline-1">a</span>');
-				const offSpans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, false, 5, widthCache, -1, -1);
-				expect(extractHtml(offSpans)).toBe('<span class="xterm-blink-hidden xterm-underline-1">a</span>');
+				const offSpans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					false,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
+				expect(extractHtml(offSpans)).toBe(
+					'<span class="xterm-blink-hidden xterm-underline-1">a</span>'
+				);
 			});
 
 			it('should add classes for 256 foreground colors', () => {
@@ -321,7 +568,20 @@ describe('DomRendererRowFactory', () => {
 					cell.fg &= ~Attributes.PCOLOR_MASK;
 					cell.fg |= i;
 					lineData.setCell(0, cell);
-					const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+					const spans = rowFactory.createRow(
+						lineData,
+						0,
+						false,
+						undefined,
+						undefined,
+						0,
+						false,
+						true,
+						5,
+						widthCache,
+						-1,
+						-1
+					);
 					expect(extractHtml(spans)).toBe(`<span class="xterm-fg-${i}">a</span>`);
 				}
 			});
@@ -333,7 +593,20 @@ describe('DomRendererRowFactory', () => {
 					cell.bg &= ~Attributes.PCOLOR_MASK;
 					cell.bg |= i;
 					lineData.setCell(0, cell);
-					const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+					const spans = rowFactory.createRow(
+						lineData,
+						0,
+						false,
+						undefined,
+						undefined,
+						0,
+						false,
+						true,
+						5,
+						widthCache,
+						-1,
+						-1
+					);
 					expect(extractHtml(spans)).toBe(`<span class="xterm-bg-${i}">a</span>`);
 				}
 			});
@@ -343,7 +616,20 @@ describe('DomRendererRowFactory', () => {
 				cell.fg |= Attributes.CM_P16 | 2 | FgFlags.INVERSE;
 				cell.bg |= Attributes.CM_P16 | 1;
 				lineData.setCell(0, cell);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(spans)).toBe('<span class="xterm-bg-2 xterm-fg-1">a</span>');
 			});
 
@@ -352,7 +638,20 @@ describe('DomRendererRowFactory', () => {
 				cell.fg |= FgFlags.INVERSE;
 				cell.bg |= Attributes.CM_P16 | 1;
 				lineData.setCell(0, cell);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(spans)).toBe('<span class="xterm-bg-257 xterm-fg-1">a</span>');
 			});
 
@@ -360,7 +659,20 @@ describe('DomRendererRowFactory', () => {
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_P16 | 1 | FgFlags.INVERSE;
 				lineData.setCell(0, cell);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(spans)).toBe('<span class="xterm-bg-1 xterm-fg-257">a</span>');
 			});
 
@@ -371,7 +683,20 @@ describe('DomRendererRowFactory', () => {
 					cell.fg &= ~Attributes.PCOLOR_MASK;
 					cell.fg |= i;
 					lineData.setCell(0, cell);
-					const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+					const spans = rowFactory.createRow(
+						lineData,
+						0,
+						false,
+						undefined,
+						undefined,
+						0,
+						false,
+						true,
+						5,
+						widthCache,
+						-1,
+						-1
+					);
 					expect(extractHtml(spans)).toBe(`<span class="xterm-bold xterm-fg-${i + 8}">a</span>`);
 				}
 			});
@@ -381,8 +706,23 @@ describe('DomRendererRowFactory', () => {
 				cell.fg |= Attributes.CM_RGB | (1 << 16) | (2 << 8) | 3;
 				cell.bg |= Attributes.CM_RGB | (4 << 16) | (5 << 8) | 6;
 				lineData.setCell(0, cell);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
-				expect(extractHtml(spans)).toBe('<span style="background-color:#040506;color:#010203;">a</span>');
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
+				expect(extractHtml(spans)).toBe(
+					'<span style="background-color:#040506;color:#010203;">a</span>'
+				);
 			});
 
 			it('should correctly invert RGB colors', () => {
@@ -390,8 +730,23 @@ describe('DomRendererRowFactory', () => {
 				cell.fg |= Attributes.CM_RGB | (1 << 16) | (2 << 8) | 3 | FgFlags.INVERSE;
 				cell.bg |= Attributes.CM_RGB | (4 << 16) | (5 << 8) | 6;
 				lineData.setCell(0, cell);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
-				expect(extractHtml(spans)).toBe('<span style="background-color:#010203;color:#040506;">a</span>');
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
+				expect(extractHtml(spans)).toBe(
+					'<span style="background-color:#010203;color:#040506;">a</span>'
+				);
 			});
 		});
 
@@ -400,7 +755,20 @@ describe('DomRendererRowFactory', () => {
 				lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 				lineData.setCell(1, createCellData(DEFAULT_ATTR, 'b', 1));
 				rowFactory.handleSelectionChanged([1, 0], [2, 0], false);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(spans)).toBe(
 					'<span>a</span><span style="background-color:#ff0000;" class="xterm-decoration-top">b</span>'
 				);
@@ -408,7 +776,20 @@ describe('DomRendererRowFactory', () => {
 			it('should force whitespace cells to be rendered above the background', () => {
 				lineData.setCell(1, createCellData(DEFAULT_ATTR, 'a', 1));
 				rowFactory.handleSelectionChanged([0, 0], [2, 0], false);
-				const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+				const spans = rowFactory.createRow(
+					lineData,
+					0,
+					false,
+					undefined,
+					undefined,
+					0,
+					false,
+					true,
+					5,
+					widthCache,
+					-1,
+					-1
+				);
 				expect(extractHtml(spans)).toBe(
 					'<span style="background-color:#ff0000;" class="xterm-decoration-top"> a</span>'
 				);
@@ -422,7 +803,20 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('should not create anything for an empty row', () => {
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe('');
 		});
 
@@ -430,7 +824,20 @@ describe('DomRendererRowFactory', () => {
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, 'b', 1));
 			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'c', 1));
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe('<span>abc</span>');
 		});
 
@@ -439,7 +846,20 @@ describe('DomRendererRowFactory', () => {
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, '€', 1));
 			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'c', 1));
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe(
 				'<span>a</span><span style="letter-spacing: 3px;">€</span><span>c</span>'
 			);
@@ -454,7 +874,20 @@ describe('DomRendererRowFactory', () => {
 			lineData.setCell(1, aColor1);
 			lineData.setCell(2, bColor2);
 			lineData.setCell(3, bColor2);
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe(
 				'<span class="xterm-fg-1">aa</span><span class="xterm-fg-2">bb</span>'
 			);
@@ -466,7 +899,20 @@ describe('DomRendererRowFactory', () => {
 			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'X', 1));
 			lineData.setCell(3, createCellData(DEFAULT_ATTR, 'b', 1));
 			lineData.setCell(4, createCellData(DEFAULT_ATTR, 'b', 1));
-			const spans = rowFactory.createRow(lineData, 0, true, undefined, undefined, 2, false, true, 5, widthCache, -1, -1);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				true,
+				undefined,
+				undefined,
+				2,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe(
 				'<span>aa</span><span class="xterm-cursor xterm-cursor-block">X</span><span>bb</span>'
 			);
@@ -479,7 +925,20 @@ describe('DomRendererRowFactory', () => {
 			nullCell.bg = Attributes.CM_P16 | 2;
 			lineData.setCell(3, nullCell);
 			lineData.setCell(4, nullCell);
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe(
 				'<span>  </span><span class="xterm-bg-1"> </span><span class="xterm-bg-2">  </span>'
 			);
@@ -489,28 +948,93 @@ describe('DomRendererRowFactory', () => {
 			const nullCell = lineData.loadCell(0, new CellData());
 			nullCell.bg = Attributes.CM_P16 | 1;
 			lineData.setCell(0, nullCell);
-			let spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			let spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe('<span class="xterm-bg-1"> </span>');
 			lineData.setCell(1, nullCell);
-			spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe('<span class="xterm-bg-1">  </span>');
 			lineData.setCell(2, nullCell);
 			lineData.setCell(3, nullCell);
-			spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe('<span class="xterm-bg-1">    </span>');
 			lineData.setCell(4, createCellData(DEFAULT_ATTR, 'a', 1));
-			spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe('<span class="xterm-bg-1">    </span><span>a</span>');
 		});
 
 		it('should apply correct positive or negative spacing', () => {
-			widthCache.setWidths({ '€': 2, '語': 10, '𝄞': 7 }); // €: too small (+3px), 語: exact, 𝄞: too wide (-2px)
+			widthCache.setWidths({ '€': 2, 語: 10, '𝄞': 7 }); // €: too small (+3px), 語: exact, 𝄞: too wide (-2px)
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, '€', 1));
 			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'c', 1));
 			lineData.setCell(3, CellData.fromCharData([DEFAULT_ATTR, '語', 2, 'c'.charCodeAt(0)]));
 			lineData.setCell(4, CellData.fromCharData([DEFAULT_ATTR, '𝄞', 1, 'c'.charCodeAt(0)]));
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -1, -1);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-1,
+				-1
+			);
 			expect(extractHtml(spans)).toBe(
 				'<span>a</span><span style="letter-spacing: 3px;">€</span><span>c語</span><span style="letter-spacing: -2px;">𝄞</span>'
 			);
@@ -524,7 +1048,20 @@ describe('DomRendererRowFactory', () => {
 			lineData.setCell(4, createCellData(DEFAULT_ATTR, 'x', 1));
 			lineData.setCell(5, createCellData(DEFAULT_ATTR, 'b', 1));
 			lineData.setCell(6, createCellData(DEFAULT_ATTR, 'b', 1));
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, 2, 4);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				2,
+				4
+			);
 			expect(extractHtml(spans)).toBe(
 				'<span>aa</span><span style="text-decoration: underline;">xxx</span><span>bb</span>'
 			);
@@ -535,7 +1072,20 @@ describe('DomRendererRowFactory', () => {
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'x', 1));
 			lineData.setCell(4, createCellData(DEFAULT_ATTR, 'x', 1));
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, 2, 4);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				2,
+				4
+			);
 			expect(extractHtml(spans)).toBe(
 				'<span>aa</span><span style="text-decoration: underline;">x x</span>'
 			);
@@ -545,7 +1095,20 @@ describe('DomRendererRowFactory', () => {
 			for (let i = 0; i < 10; ++i) {
 				lineData.setCell(i, createCellData(DEFAULT_ATTR, 'a', 1));
 			}
-			const spans = rowFactory.createRow(lineData, 0, false, undefined, undefined, 0, false, true, 5, widthCache, -100, 100);
+			const spans = rowFactory.createRow(
+				lineData,
+				0,
+				false,
+				undefined,
+				undefined,
+				0,
+				false,
+				true,
+				5,
+				widthCache,
+				-100,
+				100
+			);
 			expect(extractHtml(spans)).toBe(
 				'<span style="text-decoration: underline;">aaaaaaaaaa</span>'
 			);

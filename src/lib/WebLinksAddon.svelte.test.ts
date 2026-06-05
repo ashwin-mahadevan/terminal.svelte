@@ -68,36 +68,264 @@ describe('WebLinksAddon', () => {
 	}
 
 	const countryTlds = [
-		'.ac', '.ad', '.ae', '.af', '.ag', '.ai', '.al', '.am', '.ao', '.aq', '.ar', '.as', '.at',
-		'.au', '.aw', '.ax', '.az', '.ba', '.bb', '.bd', '.be', '.bf', '.bg', '.bh', '.bi', '.bj',
-		'.bm', '.bn', '.bo', '.bq', '.br', '.bs', '.bt', '.bw', '.by', '.bz', '.ca', '.cc', '.cd',
-		'.cf', '.cg', '.ch', '.ci', '.ck', '.cl', '.cm', '.cn', '.co', '.cr', '.cu', '.cv', '.cw',
-		'.cx', '.cy', '.cz', '.de', '.dj', '.dk', '.dm', '.do', '.dz', '.ec', '.ee', '.eg', '.eh',
-		'.er', '.es', '.et', '.eu', '.fi', '.fj', '.fk', '.fm', '.fo', '.fr', '.ga', '.gd', '.ge',
-		'.gf', '.gg', '.gh', '.gi', '.gl', '.gm', '.gn', '.gp', '.gq', '.gr', '.gs', '.gt', '.gu',
-		'.gw', '.gy', '.hk', '.hm', '.hn', '.hr', '.ht', '.hu', '.id', '.ie', '.il', '.im', '.in',
-		'.io', '.iq', '.ir', '.is', '.it', '.je', '.jm', '.jo', '.jp', '.ke', '.kg', '.kh', '.ki',
-		'.km', '.kn', '.kp', '.kr', '.kw', '.ky', '.kz', '.la', '.lb', '.lc', '.li', '.lk', '.lr',
-		'.ls', '.lt', '.lu', '.lv', '.ly', '.ma', '.mc', '.md', '.me', '.mg', '.mh', '.mk', '.ml',
-		'.mm', '.mn', '.mo', '.mp', '.mq', '.mr', '.ms', '.mt', '.mu', '.mv', '.mw', '.mx', '.my',
-		'.mz', '.na', '.nc', '.ne', '.nf', '.ng', '.ni', '.nl', '.no', '.np', '.nr', '.nu', '.nz',
-		'.om', '.pa', '.pe', '.pf', '.pg', '.ph', '.pk', '.pl', '.pm', '.pn', '.pr', '.ps', '.pt',
-		'.pw', '.py', '.qa', '.re', '.ro', '.rs', '.ru', '.rw', '.sa', '.sb', '.sc', '.sd', '.se',
-		'.sg', '.sh', '.si', '.sk', '.sl', '.sm', '.sn', '.so', '.sr', '.ss', '.st', '.su', '.sv',
-		'.sx', '.sy', '.sz', '.tc', '.td', '.tf', '.tg', '.th', '.tj', '.tk', '.tl', '.tm', '.tn',
-		'.to', '.tr', '.tt', '.tv', '.tw', '.tz', '.ua', '.ug', '.uk', '.us', '.uy', '.uz', '.va',
-		'.vc', '.ve', '.vg', '.vi', '.vn', '.vu', '.wf', '.ws', '.ye', '.yt', '.za', '.zm', '.zw'
+		'.ac',
+		'.ad',
+		'.ae',
+		'.af',
+		'.ag',
+		'.ai',
+		'.al',
+		'.am',
+		'.ao',
+		'.aq',
+		'.ar',
+		'.as',
+		'.at',
+		'.au',
+		'.aw',
+		'.ax',
+		'.az',
+		'.ba',
+		'.bb',
+		'.bd',
+		'.be',
+		'.bf',
+		'.bg',
+		'.bh',
+		'.bi',
+		'.bj',
+		'.bm',
+		'.bn',
+		'.bo',
+		'.bq',
+		'.br',
+		'.bs',
+		'.bt',
+		'.bw',
+		'.by',
+		'.bz',
+		'.ca',
+		'.cc',
+		'.cd',
+		'.cf',
+		'.cg',
+		'.ch',
+		'.ci',
+		'.ck',
+		'.cl',
+		'.cm',
+		'.cn',
+		'.co',
+		'.cr',
+		'.cu',
+		'.cv',
+		'.cw',
+		'.cx',
+		'.cy',
+		'.cz',
+		'.de',
+		'.dj',
+		'.dk',
+		'.dm',
+		'.do',
+		'.dz',
+		'.ec',
+		'.ee',
+		'.eg',
+		'.eh',
+		'.er',
+		'.es',
+		'.et',
+		'.eu',
+		'.fi',
+		'.fj',
+		'.fk',
+		'.fm',
+		'.fo',
+		'.fr',
+		'.ga',
+		'.gd',
+		'.ge',
+		'.gf',
+		'.gg',
+		'.gh',
+		'.gi',
+		'.gl',
+		'.gm',
+		'.gn',
+		'.gp',
+		'.gq',
+		'.gr',
+		'.gs',
+		'.gt',
+		'.gu',
+		'.gw',
+		'.gy',
+		'.hk',
+		'.hm',
+		'.hn',
+		'.hr',
+		'.ht',
+		'.hu',
+		'.id',
+		'.ie',
+		'.il',
+		'.im',
+		'.in',
+		'.io',
+		'.iq',
+		'.ir',
+		'.is',
+		'.it',
+		'.je',
+		'.jm',
+		'.jo',
+		'.jp',
+		'.ke',
+		'.kg',
+		'.kh',
+		'.ki',
+		'.km',
+		'.kn',
+		'.kp',
+		'.kr',
+		'.kw',
+		'.ky',
+		'.kz',
+		'.la',
+		'.lb',
+		'.lc',
+		'.li',
+		'.lk',
+		'.lr',
+		'.ls',
+		'.lt',
+		'.lu',
+		'.lv',
+		'.ly',
+		'.ma',
+		'.mc',
+		'.md',
+		'.me',
+		'.mg',
+		'.mh',
+		'.mk',
+		'.ml',
+		'.mm',
+		'.mn',
+		'.mo',
+		'.mp',
+		'.mq',
+		'.mr',
+		'.ms',
+		'.mt',
+		'.mu',
+		'.mv',
+		'.mw',
+		'.mx',
+		'.my',
+		'.mz',
+		'.na',
+		'.nc',
+		'.ne',
+		'.nf',
+		'.ng',
+		'.ni',
+		'.nl',
+		'.no',
+		'.np',
+		'.nr',
+		'.nu',
+		'.nz',
+		'.om',
+		'.pa',
+		'.pe',
+		'.pf',
+		'.pg',
+		'.ph',
+		'.pk',
+		'.pl',
+		'.pm',
+		'.pn',
+		'.pr',
+		'.ps',
+		'.pt',
+		'.pw',
+		'.py',
+		'.qa',
+		'.re',
+		'.ro',
+		'.rs',
+		'.ru',
+		'.rw',
+		'.sa',
+		'.sb',
+		'.sc',
+		'.sd',
+		'.se',
+		'.sg',
+		'.sh',
+		'.si',
+		'.sk',
+		'.sl',
+		'.sm',
+		'.sn',
+		'.so',
+		'.sr',
+		'.ss',
+		'.st',
+		'.su',
+		'.sv',
+		'.sx',
+		'.sy',
+		'.sz',
+		'.tc',
+		'.td',
+		'.tf',
+		'.tg',
+		'.th',
+		'.tj',
+		'.tk',
+		'.tl',
+		'.tm',
+		'.tn',
+		'.to',
+		'.tr',
+		'.tt',
+		'.tv',
+		'.tw',
+		'.tz',
+		'.ua',
+		'.ug',
+		'.uk',
+		'.us',
+		'.uy',
+		'.uz',
+		'.va',
+		'.vc',
+		'.ve',
+		'.vg',
+		'.vi',
+		'.vn',
+		'.vu',
+		'.wf',
+		'.ws',
+		'.ye',
+		'.yt',
+		'.za',
+		'.zm',
+		'.zw'
 	];
 
 	async function testHostName(hostname: string): Promise<void> {
 		await write(
 			`  http://${hostname}  \r\n` +
-			`  http://${hostname}/a~b#c~d?e~f  \r\n` +
-			`  http://${hostname}/colon:test  \r\n` +
-			`  http://${hostname}/colon:test:  \r\n` +
-			`"http://${hostname}/"\r\n` +
-			`\'http://${hostname}/\'\r\n` +
-			`http://${hostname}/subpath/+/id`
+				`  http://${hostname}/a~b#c~d?e~f  \r\n` +
+				`  http://${hostname}/colon:test  \r\n` +
+				`  http://${hostname}/colon:test:  \r\n` +
+				`"http://${hostname}/"\r\n` +
+				`\'http://${hostname}/\'\r\n` +
+				`http://${hostname}/subpath/+/id`
 		);
 		await expectLinkAtRow(1, `http://${hostname}`);
 		await expectLinkAtRow(2, `http://${hostname}/a~b#c~d?e~f`);
@@ -128,7 +356,10 @@ describe('WebLinksAddon', () => {
 		 */
 		async function expectLinks(
 			row: number,
-			expected: { uri: string; range: { start: { x: number; y: number }; end: { x: number; y: number } } }[]
+			expected: {
+				uri: string;
+				range: { start: { x: number; y: number }; end: { x: number; y: number } };
+			}[]
 		): Promise<void> {
 			const links = await linksAt(row);
 			const actual = links.map((l) => ({ uri: l.text, range: l.range }));
@@ -152,28 +383,42 @@ describe('WebLinksAddon', () => {
 			]);
 		});
 		it('full width within url and before', async () => {
-			await write('￥￥￥ https://ko.wikipedia.org/wiki/위키백과:대문 aaa https://ko.wikipedia.org/wiki/위키백과:대문 ￥￥￥');
+			await write(
+				'￥￥￥ https://ko.wikipedia.org/wiki/위키백과:대문 aaa https://ko.wikipedia.org/wiki/위키백과:대문 ￥￥￥'
+			);
 			// The two links span different buffer rows; the windowed line (and so
 			// the absolute range mapping) depends on which row the lookup starts
 			// at, exactly as upstream hovered cell (.,0) for the first link and
 			// cell (.,1) for the second. Query each at the matching buffer row.
 			await expectLinks(1, [
-				{ uri: 'https://ko.wikipedia.org/wiki/위키백과:대문', range: { start: { x: 8, y: 1 }, end: { x: 11, y: 2 } } }
+				{
+					uri: 'https://ko.wikipedia.org/wiki/위키백과:대문',
+					range: { start: { x: 8, y: 1 }, end: { x: 11, y: 2 } }
+				}
 			]);
 			await expectLinks(2, [
-				{ uri: 'https://ko.wikipedia.org/wiki/위키백과:대문', range: { start: { x: 17, y: 2 }, end: { x: 19, y: 3 } } }
+				{
+					uri: 'https://ko.wikipedia.org/wiki/위키백과:대문',
+					range: { start: { x: 17, y: 2 }, end: { x: 19, y: 3 } }
+				}
 			]);
 		});
 		it('name + password url after full width and combining', async () => {
 			await write('￥￥￥café http://test:password@example.com/some_path');
 			await expectLinks(1, [
-				{ uri: 'http://test:password@example.com/some_path', range: { start: { x: 12, y: 1 }, end: { x: 13, y: 2 } } }
+				{
+					uri: 'http://test:password@example.com/some_path',
+					range: { start: { x: 12, y: 1 }, end: { x: 13, y: 2 } }
+				}
 			]);
 		});
 		it('url encoded params work properly', async () => {
 			await write('￥￥￥café http://test:password@example.com/some_path?param=1%202%3');
 			await expectLinks(1, [
-				{ uri: 'http://test:password@example.com/some_path?param=1%202%3', range: { start: { x: 12, y: 1 }, end: { x: 27, y: 2 } } }
+				{
+					uri: 'http://test:password@example.com/some_path?param=1%202%3',
+					range: { start: { x: 12, y: 1 }, end: { x: 27, y: 2 } }
+				}
 			]);
 		});
 	});
@@ -182,10 +427,10 @@ describe('WebLinksAddon', () => {
 	it('uppercase in protocol and host, default ports', async () => {
 		await write(
 			`  HTTP://EXAMPLE.COM  \r\n` +
-			`  HTTPS://Example.com  \r\n` +
-			`  HTTP://Example.com:80  \r\n` +
-			`  HTTP://Example.com:80/staysUpper  \r\n` +
-			`  HTTP://Ab:xY@abc.com:80/staysUpper  \r\n`
+				`  HTTPS://Example.com  \r\n` +
+				`  HTTP://Example.com:80  \r\n` +
+				`  HTTP://Example.com:80/staysUpper  \r\n` +
+				`  HTTP://Ab:xY@abc.com:80/staysUpper  \r\n`
 		);
 		await expectLinkAtRow(1, `HTTP://EXAMPLE.COM`);
 		await expectLinkAtRow(2, `HTTPS://Example.com`);

@@ -38,7 +38,7 @@ function newArray<T>(initial: T | ((index: number) => T), count: number): T[] {
 function digitsString(length: number, from: number = 0, prefix: string = ''): string {
 	let s = prefix;
 	for (let i = 0; i < length; i++) {
-		s += `${(from++) % 10}`;
+		s += `${from++ % 10}`;
 	}
 	return s;
 }
@@ -264,13 +264,17 @@ describe('SerializeAddon', () => {
 		it('cells with bold styling', async () => {
 			await writeP(terminal, ' ' + sgr('1') + 'terminal' + sgr('22') + ' ');
 			const output = serializeAddon.serializeAsHTML();
-			expect((output.match(/<span style='font-weight: bold;'>terminal<\/span>/g) ?? []).length).toBe(1);
+			expect(
+				(output.match(/<span style='font-weight: bold;'>terminal<\/span>/g) ?? []).length
+			).toBe(1);
 		});
 
 		it('cells with italic styling', async () => {
 			await writeP(terminal, ' ' + sgr('3') + 'terminal' + sgr('23') + ' ');
 			const output = serializeAddon.serializeAsHTML();
-			expect((output.match(/<span style='font-style: italic;'>terminal<\/span>/g) ?? []).length).toBe(1);
+			expect(
+				(output.match(/<span style='font-style: italic;'>terminal<\/span>/g) ?? []).length
+			).toBe(1);
 		});
 
 		it('cells with inverse styling', async () => {
@@ -346,9 +350,9 @@ describe('SerializeAddon', () => {
 		it('cells with invisible styling', async () => {
 			await writeP(terminal, ' ' + sgr('8') + 'terminal' + sgr('28') + ' ');
 			const output = serializeAddon.serializeAsHTML();
-			expect((output.match(/<span style='visibility: hidden;'>terminal<\/span>/g) ?? []).length).toBe(
-				1
-			);
+			expect(
+				(output.match(/<span style='visibility: hidden;'>terminal<\/span>/g) ?? []).length
+			).toBe(1);
 		});
 
 		it('cells with dim styling', async () => {
@@ -361,7 +365,8 @@ describe('SerializeAddon', () => {
 			await writeP(terminal, ' ' + sgr('9') + 'terminal' + sgr('29') + ' ');
 			const output = serializeAddon.serializeAsHTML();
 			expect(
-				(output.match(/<span style='text-decoration: line-through;'>terminal<\/span>/g) ?? []).length
+				(output.match(/<span style='text-decoration: line-through;'>terminal<\/span>/g) ?? [])
+					.length
 			).toBe(1);
 		});
 
@@ -387,7 +392,9 @@ describe('SerializeAddon', () => {
 		it('cells with color styling', async () => {
 			await writeP(terminal, ' ' + sgr('38;5;46') + 'terminal' + sgr('39') + ' ');
 			const output = serializeAddon.serializeAsHTML();
-			expect((output.match(/<span style='color: #00ff00;'>terminal<\/span>/g) ?? []).length).toBe(1);
+			expect((output.match(/<span style='color: #00ff00;'>terminal<\/span>/g) ?? []).length).toBe(
+				1
+			);
 		});
 
 		it('cells with background styling', async () => {
@@ -443,7 +450,9 @@ describe('SerializeAddon', () => {
 
 			await writeP(terminal, ' ' + sgr('38;5;0') + 'terminal' + sgr('39') + ' ');
 			const output = serializeAddon.serializeAsHTML();
-			expect((output.match(/<span style='color: #ffa500;'>terminal<\/span>/g) ?? []).length).toBe(1);
+			expect((output.match(/<span style='color: #ffa500;'>terminal<\/span>/g) ?? []).length).toBe(
+				1
+			);
 		});
 
 		it('cells with color styling - xterm headless', async () => {
@@ -453,7 +462,9 @@ describe('SerializeAddon', () => {
 
 			await writeP(terminal, ' ' + sgr('38;5;46') + 'terminal' + sgr('39') + ' ');
 			const output = serializeAddon.serializeAsHTML();
-			expect((output.match(/<span style='color: #00ff00;'>terminal<\/span>/g) ?? []).length).toBe(1);
+			expect((output.match(/<span style='color: #00ff00;'>terminal<\/span>/g) ?? []).length).toBe(
+				1
+			);
 		});
 	});
 

@@ -25,15 +25,19 @@ describe('unicode provider', () => {
 	it('default to V6', () => {
 		expect(us.activeVersion).toBe('6');
 		expect(us.versions).toEqual(['6']);
-		expect(() => { us.activeVersion = '6'; }).not.toThrow();
+		expect(() => {
+			us.activeVersion = '6';
+		}).not.toThrow();
 		expect(us.getStringCellWidth('hello')).toBe(5);
 	});
 	it('activate should throw for unknown version', () => {
-		expect(() => { us.activeVersion = '55'; }).toThrow('unknown Unicode version "55"');
+		expect(() => {
+			us.activeVersion = '55';
+		}).toThrow('unknown Unicode version "55"');
 	});
 	it('should notify about version change', () => {
 		const notes: string[] = [];
-		us.onChange(version => notes.push(version));
+		us.onChange((version) => notes.push(version));
 		const dummyProvider = new DummyProvider();
 		us.register(dummyProvider);
 		us.activeVersion = dummyProvider.version;

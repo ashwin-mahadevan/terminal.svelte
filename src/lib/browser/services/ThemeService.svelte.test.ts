@@ -24,9 +24,7 @@ describe('ThemeService', () => {
 	describe('constructor', () => {
 		it('should fill all colors with values', () => {
 			for (const key of Object.keys(themeService.colors)) {
-				if (
-					!['ansi', 'contrastCache', 'halfContrastCache', 'selectionForeground'].includes(key)
-				) {
+				if (!['ansi', 'contrastCache', 'halfContrastCache', 'selectionForeground'].includes(key)) {
 					// A #rrggbb or rgba(...)
 					expect((themeService.colors as any)[key].css.length).toBeGreaterThanOrEqual(7);
 				}

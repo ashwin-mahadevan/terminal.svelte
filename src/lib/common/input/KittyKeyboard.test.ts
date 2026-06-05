@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { KittyKeyboard, KittyKeyboardEventType, KittyKeyboardFlags } from '$lib/common/input/KittyKeyboard';
+import {
+	KittyKeyboard,
+	KittyKeyboardEventType,
+	KittyKeyboardFlags
+} from '$lib/common/input/KittyKeyboard';
 import type { IKeyboardEvent } from '$lib/common/Types';
 
 function createEvent(partialEvent: Partial<IKeyboardEvent> = {}): IKeyboardEvent {
@@ -28,7 +32,9 @@ describe('KittyKeyboard', () => {
 		});
 
 		it('should return true when any flag is set', () => {
-			expect(KittyKeyboard.shouldUseProtocol(KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES)).toBe(true);
+			expect(KittyKeyboard.shouldUseProtocol(KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES)).toBe(
+				true
+			);
 			expect(KittyKeyboard.shouldUseProtocol(KittyKeyboardFlags.REPORT_EVENT_TYPES)).toBe(true);
 			expect(KittyKeyboard.shouldUseProtocol(0b11111)).toBe(true);
 		});
@@ -61,27 +67,42 @@ describe('KittyKeyboard', () => {
 			});
 
 			it('ctrl+shift=6 (1+4+1)', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', ctrlKey: true, shiftKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', ctrlKey: true, shiftKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[97;6u');
 			});
 
 			it('ctrl+alt=7 (1+4+2)', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', ctrlKey: true, altKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', ctrlKey: true, altKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[97;7u');
 			});
 
 			it('ctrl+alt+shift=8 (1+4+2+1)', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', ctrlKey: true, altKey: true, shiftKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', ctrlKey: true, altKey: true, shiftKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[97;8u');
 			});
 
 			it('ctrl+super=13 (1+4+8)', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', ctrlKey: true, metaKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', ctrlKey: true, metaKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[97;13u');
 			});
 
 			it('all four modifiers=16 (1+1+2+4+8)', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', shiftKey: true, altKey: true, ctrlKey: true, metaKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', shiftKey: true, altKey: true, ctrlKey: true, metaKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[97;16u');
 			});
 
@@ -228,7 +249,10 @@ describe('KittyKeyboard', () => {
 			});
 
 			it('Ctrl+Shift+ArrowRight → CSI 1;6 C', () => {
-				const result = kitty.evaluate(createEvent({ key: 'ArrowRight', ctrlKey: true, shiftKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'ArrowRight', ctrlKey: true, shiftKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[1;6C');
 			});
 		});
@@ -385,7 +409,10 @@ describe('KittyKeyboard', () => {
 			});
 
 			it('Ctrl+Numpad5 → CSI 57404;5 u', () => {
-				const result = kitty.evaluate(createEvent({ key: '5', code: 'Numpad5', ctrlKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: '5', code: 'Numpad5', ctrlKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[57404;5u');
 			});
 		});
@@ -394,42 +421,66 @@ describe('KittyKeyboard', () => {
 			const flags = KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES;
 
 			it('Left Shift → CSI 57441 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Shift', code: 'ShiftLeft', shiftKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Shift', code: 'ShiftLeft', shiftKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[57441;2u');
 			});
 
 			it('Right Shift → CSI 57447 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Shift', code: 'ShiftRight', shiftKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Shift', code: 'ShiftRight', shiftKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[57447;2u');
 			});
 
 			it('Left Control → CSI 57442 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Control', code: 'ControlLeft', ctrlKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Control', code: 'ControlLeft', ctrlKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[57442;5u');
 			});
 
 			it('Right Control → CSI 57448 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Control', code: 'ControlRight', ctrlKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Control', code: 'ControlRight', ctrlKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[57448;5u');
 			});
 
 			it('Left Alt → CSI 57443 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Alt', code: 'AltLeft', altKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Alt', code: 'AltLeft', altKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[57443;3u');
 			});
 
 			it('Right Alt → CSI 57449 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Alt', code: 'AltRight', altKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Alt', code: 'AltRight', altKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[57449;3u');
 			});
 
 			it('Left Meta/Super → CSI 57444 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Meta', code: 'MetaLeft', metaKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Meta', code: 'MetaLeft', metaKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[57444;9u');
 			});
 
 			it('Right Meta/Super → CSI 57450 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Meta', code: 'MetaRight', metaKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Meta', code: 'MetaRight', metaKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[57450;9u');
 			});
 
@@ -444,111 +495,195 @@ describe('KittyKeyboard', () => {
 			});
 
 			it('ScrollLock → CSI 57359 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'ScrollLock', code: 'ScrollLock' }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'ScrollLock', code: 'ScrollLock' }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[57359u');
 			});
 		});
 
 		describe('event types (press/repeat/release)', () => {
-			const flags = KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES | KittyKeyboardFlags.REPORT_EVENT_TYPES;
+			const flags =
+				KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES | KittyKeyboardFlags.REPORT_EVENT_TYPES;
 
 			it('UTF-8 text press event', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a' }), flags, KittyKeyboardEventType.PRESS);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a' }),
+					flags,
+					KittyKeyboardEventType.PRESS
+				);
 				expect(result.key).toBe('a');
 			});
 
 			it('Escape key press event (default, no suffix)', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Escape' }), flags, KittyKeyboardEventType.PRESS);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Escape' }),
+					flags,
+					KittyKeyboardEventType.PRESS
+				);
 				expect(result.key).toBe('\x1b[27u');
 			});
 
 			it('Enter key press event → legacy \\r', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Enter' }), flags, KittyKeyboardEventType.PRESS);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Enter' }),
+					flags,
+					KittyKeyboardEventType.PRESS
+				);
 				expect(result.key).toBe('\r');
 			});
 
 			it('Tab key press event → legacy \\t', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Tab' }), flags, KittyKeyboardEventType.PRESS);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Tab' }),
+					flags,
+					KittyKeyboardEventType.PRESS
+				);
 				expect(result.key).toBe('\t');
 			});
 
 			it('Backspace key press event → legacy \\x7f', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Backspace' }), flags, KittyKeyboardEventType.PRESS);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Backspace' }),
+					flags,
+					KittyKeyboardEventType.PRESS
+				);
 				expect(result.key).toBe('\x7f');
 			});
 
 			it('press event when modifiers present', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', ctrlKey: true }), flags, KittyKeyboardEventType.PRESS);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', ctrlKey: true }),
+					flags,
+					KittyKeyboardEventType.PRESS
+				);
 				expect(result.key).toBe('\x1b[97;5u');
 			});
 
 			it('UTF-8 text repeat event', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a' }), flags, KittyKeyboardEventType.REPEAT);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a' }),
+					flags,
+					KittyKeyboardEventType.REPEAT
+				);
 				expect(result.key).toBe('a');
 			});
 
 			it('Escape key repeat event → :2 suffix', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Escape' }), flags, KittyKeyboardEventType.REPEAT);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Escape' }),
+					flags,
+					KittyKeyboardEventType.REPEAT
+				);
 				expect(result.key).toBe('\x1b[27;1:2u');
 			});
 
 			it('Enter key repeat event → legacy \\r', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Enter' }), flags, KittyKeyboardEventType.REPEAT);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Enter' }),
+					flags,
+					KittyKeyboardEventType.REPEAT
+				);
 				expect(result.key).toBe('\r');
 			});
 
 			it('Tab key repeat event → legacy \\t', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Tab' }), flags, KittyKeyboardEventType.REPEAT);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Tab' }),
+					flags,
+					KittyKeyboardEventType.REPEAT
+				);
 				expect(result.key).toBe('\t');
 			});
 
 			it('Backspace key repeat event → legacy \\x7f', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Backspace' }), flags, KittyKeyboardEventType.REPEAT);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Backspace' }),
+					flags,
+					KittyKeyboardEventType.REPEAT
+				);
 				expect(result.key).toBe('\x7f');
 			});
 
 			it('release event → :3 suffix', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[97;1:3u');
 			});
 
 			it('Escape key release event → :3 suffix', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Escape' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Escape' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[27;1:3u');
 			});
 
 			it('Enter key release event is not reported', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Enter' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Enter' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe(undefined);
 			});
 
 			it('Tab key release event is not reported', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Tab' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Tab' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe(undefined);
 			});
 
 			it('Backspace key release event is not reported', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Backspace' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Backspace' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe(undefined);
 			});
 
 			it('release with modifier → mod:3', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', ctrlKey: true }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', ctrlKey: true }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[97;5:3u');
 			});
 
 			it('repeat with modifier → mod:2', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', shiftKey: true, altKey: true }), flags, KittyKeyboardEventType.REPEAT);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', shiftKey: true, altKey: true }),
+					flags,
+					KittyKeyboardEventType.REPEAT
+				);
 				expect(result.key).toBe('\x1b[97;4:2u');
 			});
 
 			it('functional key release → CSI code;1:3 ~', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Delete' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Delete' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[3;1:3~');
 			});
 
 			it('modifier key release includes its own bit cleared', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Shift', code: 'ShiftLeft', shiftKey: false }), flags | KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Shift', code: 'ShiftLeft', shiftKey: false }),
+					flags | KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[57441;1:3u');
 			});
 		});
@@ -559,17 +694,29 @@ describe('KittyKeyboard', () => {
 			const flags = KittyKeyboardFlags.REPORT_EVENT_TYPES;
 
 			it('press event is not swallowed when modifiers present', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', ctrlKey: true }), flags, KittyKeyboardEventType.PRESS);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', ctrlKey: true }),
+					flags,
+					KittyKeyboardEventType.PRESS
+				);
 				expect(result.key).toBe('\x1b[97;5u');
 			});
 
 			it('repeat event is not swallowed when modifiers present', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', ctrlKey: true }), flags, KittyKeyboardEventType.REPEAT);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', ctrlKey: true }),
+					flags,
+					KittyKeyboardEventType.REPEAT
+				);
 				expect(result.key).toBe('\x1b[97;5:2u');
 			});
 
 			it('release event is reported as CSI u sequence', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', ctrlKey: true }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', ctrlKey: true }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[97;5:3u');
 			});
 		});
@@ -578,31 +725,67 @@ describe('KittyKeyboard', () => {
 			const flags = KittyKeyboardFlags.REPORT_EVENT_TYPES;
 
 			it('does not report modifier press without REPORT_ALL_KEYS_AS_ESCAPE_CODES', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Shift', code: 'ShiftLeft', shiftKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Shift', code: 'ShiftLeft', shiftKey: true }),
+					flags
+				);
 				expect(result.key).toBe(undefined);
 			});
 
 			it('does not report modifier release without REPORT_ALL_KEYS_AS_ESCAPE_CODES', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Shift', code: 'ShiftLeft', shiftKey: false }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Shift', code: 'ShiftLeft', shiftKey: false }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe(undefined);
 			});
 
 			it('does not report CapsLock press without REPORT_ALL_KEYS_AS_ESCAPE_CODES', () => {
-				expect(kitty.evaluate(createEvent({ key: 'CapsLock', code: 'CapsLock' }), KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES).key).toBe(undefined);
-				expect(kitty.evaluate(createEvent({ key: 'CapsLock', code: 'CapsLock' }), KittyKeyboardFlags.REPORT_EVENT_TYPES).key).toBe(undefined);
-				expect(kitty.evaluate(createEvent({ key: 'CapsLock', code: 'CapsLock' }), KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES | KittyKeyboardFlags.REPORT_EVENT_TYPES).key).toBe(undefined);
+				expect(
+					kitty.evaluate(
+						createEvent({ key: 'CapsLock', code: 'CapsLock' }),
+						KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES
+					).key
+				).toBe(undefined);
+				expect(
+					kitty.evaluate(
+						createEvent({ key: 'CapsLock', code: 'CapsLock' }),
+						KittyKeyboardFlags.REPORT_EVENT_TYPES
+					).key
+				).toBe(undefined);
+				expect(
+					kitty.evaluate(
+						createEvent({ key: 'CapsLock', code: 'CapsLock' }),
+						KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES | KittyKeyboardFlags.REPORT_EVENT_TYPES
+					).key
+				).toBe(undefined);
 			});
 
 			it('does not report NumLock press without REPORT_ALL_KEYS_AS_ESCAPE_CODES', () => {
-				expect(kitty.evaluate(createEvent({ key: 'NumLock', code: 'NumLock' }), KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES).key).toBe(undefined);
+				expect(
+					kitty.evaluate(
+						createEvent({ key: 'NumLock', code: 'NumLock' }),
+						KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES
+					).key
+				).toBe(undefined);
 			});
 
 			it('does not report ScrollLock press without REPORT_ALL_KEYS_AS_ESCAPE_CODES', () => {
-				expect(kitty.evaluate(createEvent({ key: 'ScrollLock', code: 'ScrollLock' }), KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES).key).toBe(undefined);
+				expect(
+					kitty.evaluate(
+						createEvent({ key: 'ScrollLock', code: 'ScrollLock' }),
+						KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES
+					).key
+				).toBe(undefined);
 			});
 
 			it('does not report CapsLock release without REPORT_ALL_KEYS_AS_ESCAPE_CODES', () => {
-				const result = kitty.evaluate(createEvent({ key: 'CapsLock', code: 'CapsLock' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'CapsLock', code: 'CapsLock' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe(undefined);
 			});
 		});
@@ -644,56 +827,95 @@ describe('KittyKeyboard', () => {
 		});
 
 		describe('REPORT_ALL_KEYS_AS_ESCAPE_CODES flag with REPORT_EVENT_TYPES', () => {
-			const flags = KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES | KittyKeyboardFlags.REPORT_EVENT_TYPES;
+			const flags =
+				KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES | KittyKeyboardFlags.REPORT_EVENT_TYPES;
 
 			it('Enter key press event → CSI 13 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Enter' }), flags, KittyKeyboardEventType.PRESS);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Enter' }),
+					flags,
+					KittyKeyboardEventType.PRESS
+				);
 				expect(result.key).toBe('\x1b[13u');
 			});
 
 			it('Tab key press event → CSI 9 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Tab' }), flags, KittyKeyboardEventType.PRESS);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Tab' }),
+					flags,
+					KittyKeyboardEventType.PRESS
+				);
 				expect(result.key).toBe('\x1b[9u');
 			});
 
 			it('Backspace key press event → CSI 127 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Backspace' }), flags, KittyKeyboardEventType.PRESS);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Backspace' }),
+					flags,
+					KittyKeyboardEventType.PRESS
+				);
 				expect(result.key).toBe('\x1b[127u');
 			});
 
 			it('Enter key repeat event → CSI 13;1:2 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Enter' }), flags, KittyKeyboardEventType.REPEAT);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Enter' }),
+					flags,
+					KittyKeyboardEventType.REPEAT
+				);
 				expect(result.key).toBe('\x1b[13;1:2u');
 			});
 
 			it('Tab key repeat event → CSI 9;1:2 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Tab' }), flags, KittyKeyboardEventType.REPEAT);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Tab' }),
+					flags,
+					KittyKeyboardEventType.REPEAT
+				);
 				expect(result.key).toBe('\x1b[9;1:2u');
 			});
 
 			it('Backspace key repeat event → CSI 127;1:2 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Backspace' }), flags, KittyKeyboardEventType.REPEAT);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Backspace' }),
+					flags,
+					KittyKeyboardEventType.REPEAT
+				);
 				expect(result.key).toBe('\x1b[127;1:2u');
 			});
 
 			it('Enter key release event → CSI 13;1:3 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Enter' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Enter' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[13;1:3u');
 			});
 
 			it('Tab key release event → CSI 9;1:3 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Tab' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Tab' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[9;1:3u');
 			});
 
 			it('Backspace key release event → CSI 127;1:3 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Backspace' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Backspace' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[127;1:3u');
 			});
 		});
 
 		describe('REPORT_ASSOCIATED_TEXT flag', () => {
-			const flags = KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES | KittyKeyboardFlags.REPORT_ASSOCIATED_TEXT;
+			const flags =
+				KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES |
+				KittyKeyboardFlags.REPORT_ASSOCIATED_TEXT;
 
 			it('regular key includes text codepoint', () => {
 				const result = kitty.evaluate(createEvent({ key: 'a' }), flags);
@@ -717,7 +939,11 @@ describe('KittyKeyboard', () => {
 
 			it('release event has no text', () => {
 				const flagsWithEvents = flags | KittyKeyboardFlags.REPORT_EVENT_TYPES;
-				const result = kitty.evaluate(createEvent({ key: 'a' }), flagsWithEvents, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a' }),
+					flagsWithEvents,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[97;1:3u');
 			});
 
@@ -727,16 +953,24 @@ describe('KittyKeyboard', () => {
 			});
 
 			it('Shift+digit shows shifted symbol', () => {
-				const result = kitty.evaluate(createEvent({ key: '%', shiftKey: true, code: 'Digit5' }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: '%', shiftKey: true, code: 'Digit5' }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[53;2;37u');
 			});
 		});
 
 		describe('REPORT_ALTERNATE_KEYS flag', () => {
-			const flags = KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES | KittyKeyboardFlags.REPORT_ALTERNATE_KEYS;
+			const flags =
+				KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES |
+				KittyKeyboardFlags.REPORT_ALTERNATE_KEYS;
 
 			it('Shift+a includes shifted key → CSI 97:65 ; 2 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'A', shiftKey: true, code: 'KeyA' }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'A', shiftKey: true, code: 'KeyA' }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[97:65;2u');
 			});
 
@@ -746,7 +980,10 @@ describe('KittyKeyboard', () => {
 			});
 
 			it('Shift+5 includes shifted key → CSI 53:37 ; 2 u', () => {
-				const result = kitty.evaluate(createEvent({ key: '%', shiftKey: true, code: 'Digit5' }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: '%', shiftKey: true, code: 'Digit5' }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[53:37;2u');
 			});
 
@@ -757,16 +994,26 @@ describe('KittyKeyboard', () => {
 		});
 
 		describe('REPORT_ALTERNATE_KEYS with REPORT_ASSOCIATED_TEXT', () => {
-			const flags = KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES | KittyKeyboardFlags.REPORT_ALTERNATE_KEYS | KittyKeyboardFlags.REPORT_ASSOCIATED_TEXT;
+			const flags =
+				KittyKeyboardFlags.REPORT_ALL_KEYS_AS_ESCAPE_CODES |
+				KittyKeyboardFlags.REPORT_ALTERNATE_KEYS |
+				KittyKeyboardFlags.REPORT_ASSOCIATED_TEXT;
 
 			it('Shift+a → CSI 97:65 ; 2 ; 65 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'A', shiftKey: true, code: 'KeyA' }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'A', shiftKey: true, code: 'KeyA' }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[97:65;2;65u');
 			});
 
 			it('Shift+a release → CSI 97:65 ; 2:3 u (no text)', () => {
 				const flagsWithEvents = flags | KittyKeyboardFlags.REPORT_EVENT_TYPES;
-				const result = kitty.evaluate(createEvent({ key: 'A', shiftKey: true, code: 'KeyA' }), flagsWithEvents, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'A', shiftKey: true, code: 'KeyA' }),
+					flagsWithEvents,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe('\x1b[97:65;2:3u');
 			});
 		});
@@ -775,7 +1022,11 @@ describe('KittyKeyboard', () => {
 			const flags = KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES;
 
 			it('should not generate key sequence for release events', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a' }), flags, KittyKeyboardEventType.RELEASE);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a' }),
+					flags,
+					KittyKeyboardEventType.RELEASE
+				);
 				expect(result.key).toBe(undefined);
 			});
 		});
@@ -790,7 +1041,10 @@ describe('KittyKeyboard', () => {
 			});
 
 			it('ctrl+shift+a sends lowercase codepoint 97', () => {
-				const result = kitty.evaluate(createEvent({ key: 'A', ctrlKey: true, shiftKey: true }), flags);
+				const result = kitty.evaluate(
+					createEvent({ key: 'A', ctrlKey: true, shiftKey: true }),
+					flags
+				);
 				expect(result.key).toBe('\x1b[97;6u');
 			});
 
@@ -864,62 +1118,122 @@ describe('KittyKeyboard', () => {
 			const press = KittyKeyboardEventType.PRESS;
 
 			it('Opt+f (key=ƒ) → CSI 102;3 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'ƒ', code: 'KeyF', altKey: true }), flags, press, true);
+				const result = kitty.evaluate(
+					createEvent({ key: 'ƒ', code: 'KeyF', altKey: true }),
+					flags,
+					press,
+					true
+				);
 				expect(result.key).toBe('\x1b[102;3u');
 			});
 
 			it('Opt+b (key=∫) → CSI 98;3 u', () => {
-				const result = kitty.evaluate(createEvent({ key: '∫', code: 'KeyB', altKey: true }), flags, press, true);
+				const result = kitty.evaluate(
+					createEvent({ key: '∫', code: 'KeyB', altKey: true }),
+					flags,
+					press,
+					true
+				);
 				expect(result.key).toBe('\x1b[98;3u');
 			});
 
 			it('Opt+d (key=∂) → CSI 100;3 u', () => {
-				const result = kitty.evaluate(createEvent({ key: '∂', code: 'KeyD', altKey: true }), flags, press, true);
+				const result = kitty.evaluate(
+					createEvent({ key: '∂', code: 'KeyD', altKey: true }),
+					flags,
+					press,
+					true
+				);
 				expect(result.key).toBe('\x1b[100;3u');
 			});
 
 			it('Opt+n dead key (key=Dead, code=KeyN) → CSI 110;3 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Dead', code: 'KeyN', altKey: true }), flags, press, true);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Dead', code: 'KeyN', altKey: true }),
+					flags,
+					press,
+					true
+				);
 				expect(result.key).toBe('\x1b[110;3u');
 			});
 
 			it('Opt+e dead key (key=Dead, code=KeyE) → CSI 101;3 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Dead', code: 'KeyE', altKey: true }), flags, press, true);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Dead', code: 'KeyE', altKey: true }),
+					flags,
+					press,
+					true
+				);
 				expect(result.key).toBe('\x1b[101;3u');
 			});
 
 			it('Opt+u dead key (key=Dead, code=KeyU) → CSI 117;3 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Dead', code: 'KeyU', altKey: true }), flags, press, true);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Dead', code: 'KeyU', altKey: true }),
+					flags,
+					press,
+					true
+				);
 				expect(result.key).toBe('\x1b[117;3u');
 			});
 
 			it('Opt+5 (key=∞) → CSI 53;3 u', () => {
-				const result = kitty.evaluate(createEvent({ key: '∞', code: 'Digit5', altKey: true }), flags, press, true);
+				const result = kitty.evaluate(
+					createEvent({ key: '∞', code: 'Digit5', altKey: true }),
+					flags,
+					press,
+					true
+				);
 				expect(result.key).toBe('\x1b[53;3u');
 			});
 
 			it('Opt+Shift+f (key=Ï) → CSI 102;4 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'Ï', code: 'KeyF', altKey: true, shiftKey: true }), flags, press, true);
+				const result = kitty.evaluate(
+					createEvent({ key: 'Ï', code: 'KeyF', altKey: true, shiftKey: true }),
+					flags,
+					press,
+					true
+				);
 				expect(result.key).toBe('\x1b[102;4u');
 			});
 
 			it('Ctrl+Opt+f (key=ƒ) → CSI 102;7 u', () => {
-				const result = kitty.evaluate(createEvent({ key: 'ƒ', code: 'KeyF', altKey: true, ctrlKey: true }), flags, press, true);
+				const result = kitty.evaluate(
+					createEvent({ key: 'ƒ', code: 'KeyF', altKey: true, ctrlKey: true }),
+					flags,
+					press,
+					true
+				);
 				expect(result.key).toBe('\x1b[102;7u');
 			});
 
 			it('does not unwind when macOptionAsAlt is false (Linux Alt is a chord)', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', code: 'KeyA', altKey: true }), flags, press, false);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', code: 'KeyA', altKey: true }),
+					flags,
+					press,
+					false
+				);
 				expect(result.key).toBe('\x1b[97;3u');
 			});
 
 			it('does not unwind on Linux AZERTY (key=a, code=KeyQ) — uses ev.key not ev.code', () => {
-				const result = kitty.evaluate(createEvent({ key: 'a', code: 'KeyQ', altKey: true }), flags, press, false);
+				const result = kitty.evaluate(
+					createEvent({ key: 'a', code: 'KeyQ', altKey: true }),
+					flags,
+					press,
+					false
+				);
 				expect(result.key).toBe('\x1b[97;3u');
 			});
 
 			it('does not unwind when macOptionAsAlt is false even with composed key', () => {
-				const result = kitty.evaluate(createEvent({ key: 'ƒ', code: 'KeyF', altKey: true }), flags, press, false);
+				const result = kitty.evaluate(
+					createEvent({ key: 'ƒ', code: 'KeyF', altKey: true }),
+					flags,
+					press,
+					false
+				);
 				expect(result.key).toBe('\x1b[402;3u');
 			});
 
@@ -929,13 +1243,24 @@ describe('KittyKeyboard', () => {
 			});
 
 			it('falls through when ev.code is not Key*/Digit* (Opt+;)', () => {
-				const result = kitty.evaluate(createEvent({ key: '…', code: 'Semicolon', altKey: true }), flags, press, true);
+				const result = kitty.evaluate(
+					createEvent({ key: '…', code: 'Semicolon', altKey: true }),
+					flags,
+					press,
+					true
+				);
 				expect(result.key).toBe('\x1b[8230;3u');
 			});
 
 			it('Opt+f release with REPORT_EVENT_TYPES → CSI 102;3:3 u', () => {
-				const releaseFlags = KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES | KittyKeyboardFlags.REPORT_EVENT_TYPES;
-				const result = kitty.evaluate(createEvent({ key: 'ƒ', code: 'KeyF', altKey: true }), releaseFlags, KittyKeyboardEventType.RELEASE, true);
+				const releaseFlags =
+					KittyKeyboardFlags.DISAMBIGUATE_ESCAPE_CODES | KittyKeyboardFlags.REPORT_EVENT_TYPES;
+				const result = kitty.evaluate(
+					createEvent({ key: 'ƒ', code: 'KeyF', altKey: true }),
+					releaseFlags,
+					KittyKeyboardEventType.RELEASE,
+					true
+				);
 				expect(result.key).toBe('\x1b[102;3:3u');
 			});
 		});

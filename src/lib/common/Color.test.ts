@@ -7,7 +7,6 @@ import { describe, it, expect } from 'vitest';
 import { channels, color, css, rgb, rgba, toPaddedHex, contrastRatio } from '$lib/common/Color';
 
 describe('Color', () => {
-
 	describe('channels', () => {
 		describe('toCss', () => {
 			it('should convert an rgb array to css hex string', () => {
@@ -112,23 +111,74 @@ describe('Color', () => {
 				expect(channels.toColor(0xff, 0xff, 0xff)).toEqual({ css: '#ffffff', rgba: 0xffffffff });
 			});
 			it('should convert an rgba array to an IColor', () => {
-				expect(channels.toColor(0x00, 0x00, 0x00, 0x00)).toEqual({ css: '#00000000', rgba: 0x00000000 });
-				expect(channels.toColor(0x10, 0x10, 0x10, 0x10)).toEqual({ css: '#10101010', rgba: 0x10101010 });
-				expect(channels.toColor(0x20, 0x20, 0x20, 0x20)).toEqual({ css: '#20202020', rgba: 0x20202020 });
-				expect(channels.toColor(0x30, 0x30, 0x30, 0x30)).toEqual({ css: '#30303030', rgba: 0x30303030 });
-				expect(channels.toColor(0x40, 0x40, 0x40, 0x40)).toEqual({ css: '#40404040', rgba: 0x40404040 });
-				expect(channels.toColor(0x50, 0x50, 0x50, 0x50)).toEqual({ css: '#50505050', rgba: 0x50505050 });
-				expect(channels.toColor(0x60, 0x60, 0x60, 0x60)).toEqual({ css: '#60606060', rgba: 0x60606060 });
-				expect(channels.toColor(0x70, 0x70, 0x70, 0x70)).toEqual({ css: '#70707070', rgba: 0x70707070 });
-				expect(channels.toColor(0x80, 0x80, 0x80, 0x80)).toEqual({ css: '#80808080', rgba: 0x80808080 });
-				expect(channels.toColor(0x90, 0x90, 0x90, 0x90)).toEqual({ css: '#90909090', rgba: 0x90909090 });
-				expect(channels.toColor(0xa0, 0xa0, 0xa0, 0xa0)).toEqual({ css: '#a0a0a0a0', rgba: 0xa0a0a0a0 });
-				expect(channels.toColor(0xb0, 0xb0, 0xb0, 0xb0)).toEqual({ css: '#b0b0b0b0', rgba: 0xb0b0b0b0 });
-				expect(channels.toColor(0xc0, 0xc0, 0xc0, 0xc0)).toEqual({ css: '#c0c0c0c0', rgba: 0xc0c0c0c0 });
-				expect(channels.toColor(0xd0, 0xd0, 0xd0, 0xd0)).toEqual({ css: '#d0d0d0d0', rgba: 0xd0d0d0d0 });
-				expect(channels.toColor(0xe0, 0xe0, 0xe0, 0xe0)).toEqual({ css: '#e0e0e0e0', rgba: 0xe0e0e0e0 });
-				expect(channels.toColor(0xf0, 0xf0, 0xf0, 0xf0)).toEqual({ css: '#f0f0f0f0', rgba: 0xf0f0f0f0 });
-				expect(channels.toColor(0xff, 0xff, 0xff, 0xff)).toEqual({ css: '#ffffffff', rgba: 0xffffffff });
+				expect(channels.toColor(0x00, 0x00, 0x00, 0x00)).toEqual({
+					css: '#00000000',
+					rgba: 0x00000000
+				});
+				expect(channels.toColor(0x10, 0x10, 0x10, 0x10)).toEqual({
+					css: '#10101010',
+					rgba: 0x10101010
+				});
+				expect(channels.toColor(0x20, 0x20, 0x20, 0x20)).toEqual({
+					css: '#20202020',
+					rgba: 0x20202020
+				});
+				expect(channels.toColor(0x30, 0x30, 0x30, 0x30)).toEqual({
+					css: '#30303030',
+					rgba: 0x30303030
+				});
+				expect(channels.toColor(0x40, 0x40, 0x40, 0x40)).toEqual({
+					css: '#40404040',
+					rgba: 0x40404040
+				});
+				expect(channels.toColor(0x50, 0x50, 0x50, 0x50)).toEqual({
+					css: '#50505050',
+					rgba: 0x50505050
+				});
+				expect(channels.toColor(0x60, 0x60, 0x60, 0x60)).toEqual({
+					css: '#60606060',
+					rgba: 0x60606060
+				});
+				expect(channels.toColor(0x70, 0x70, 0x70, 0x70)).toEqual({
+					css: '#70707070',
+					rgba: 0x70707070
+				});
+				expect(channels.toColor(0x80, 0x80, 0x80, 0x80)).toEqual({
+					css: '#80808080',
+					rgba: 0x80808080
+				});
+				expect(channels.toColor(0x90, 0x90, 0x90, 0x90)).toEqual({
+					css: '#90909090',
+					rgba: 0x90909090
+				});
+				expect(channels.toColor(0xa0, 0xa0, 0xa0, 0xa0)).toEqual({
+					css: '#a0a0a0a0',
+					rgba: 0xa0a0a0a0
+				});
+				expect(channels.toColor(0xb0, 0xb0, 0xb0, 0xb0)).toEqual({
+					css: '#b0b0b0b0',
+					rgba: 0xb0b0b0b0
+				});
+				expect(channels.toColor(0xc0, 0xc0, 0xc0, 0xc0)).toEqual({
+					css: '#c0c0c0c0',
+					rgba: 0xc0c0c0c0
+				});
+				expect(channels.toColor(0xd0, 0xd0, 0xd0, 0xd0)).toEqual({
+					css: '#d0d0d0d0',
+					rgba: 0xd0d0d0d0
+				});
+				expect(channels.toColor(0xe0, 0xe0, 0xe0, 0xe0)).toEqual({
+					css: '#e0e0e0e0',
+					rgba: 0xe0e0e0e0
+				});
+				expect(channels.toColor(0xf0, 0xf0, 0xf0, 0xf0)).toEqual({
+					css: '#f0f0f0f0',
+					rgba: 0xf0f0f0f0
+				});
+				expect(channels.toColor(0xff, 0xff, 0xff, 0xff)).toEqual({
+					css: '#ffffffff',
+					rgba: 0xffffffff
+				});
 			});
 		});
 	});
@@ -136,45 +186,130 @@ describe('Color', () => {
 	describe('color', () => {
 		describe('blend', () => {
 			it('should blend colors based on the alpha channel', () => {
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF00', rgba: 0xffffff00 })).toEqual({ css: '#000000', rgba: 0x000000ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF10', rgba: 0xffffff10 })).toEqual({ css: '#101010', rgba: 0x101010ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF20', rgba: 0xffffff20 })).toEqual({ css: '#202020', rgba: 0x202020ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF30', rgba: 0xffffff30 })).toEqual({ css: '#303030', rgba: 0x303030ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF40', rgba: 0xffffff40 })).toEqual({ css: '#404040', rgba: 0x404040ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF50', rgba: 0xffffff50 })).toEqual({ css: '#505050', rgba: 0x505050ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF60', rgba: 0xffffff60 })).toEqual({ css: '#606060', rgba: 0x606060ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF70', rgba: 0xffffff70 })).toEqual({ css: '#707070', rgba: 0x707070ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF80', rgba: 0xffffff80 })).toEqual({ css: '#808080', rgba: 0x808080ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF90', rgba: 0xffffff90 })).toEqual({ css: '#909090', rgba: 0x909090ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFA0', rgba: 0xffffffa0 })).toEqual({ css: '#a0a0a0', rgba: 0xa0a0a0ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFB0', rgba: 0xffffffb0 })).toEqual({ css: '#b0b0b0', rgba: 0xb0b0b0ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFC0', rgba: 0xffffffc0 })).toEqual({ css: '#c0c0c0', rgba: 0xc0c0c0ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFD0', rgba: 0xffffffd0 })).toEqual({ css: '#d0d0d0', rgba: 0xd0d0d0ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFE0', rgba: 0xffffffe0 })).toEqual({ css: '#e0e0e0', rgba: 0xe0e0e0ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFF0', rgba: 0xfffffff0 })).toEqual({ css: '#f0f0f0', rgba: 0xf0f0f0ff });
-				expect(color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFFF', rgba: 0xffffffff })).toEqual({ css: '#FFFFFFFF', rgba: 0xffffffff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF00', rgba: 0xffffff00 })
+				).toEqual({ css: '#000000', rgba: 0x000000ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF10', rgba: 0xffffff10 })
+				).toEqual({ css: '#101010', rgba: 0x101010ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF20', rgba: 0xffffff20 })
+				).toEqual({ css: '#202020', rgba: 0x202020ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF30', rgba: 0xffffff30 })
+				).toEqual({ css: '#303030', rgba: 0x303030ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF40', rgba: 0xffffff40 })
+				).toEqual({ css: '#404040', rgba: 0x404040ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF50', rgba: 0xffffff50 })
+				).toEqual({ css: '#505050', rgba: 0x505050ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF60', rgba: 0xffffff60 })
+				).toEqual({ css: '#606060', rgba: 0x606060ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF70', rgba: 0xffffff70 })
+				).toEqual({ css: '#707070', rgba: 0x707070ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF80', rgba: 0xffffff80 })
+				).toEqual({ css: '#808080', rgba: 0x808080ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFF90', rgba: 0xffffff90 })
+				).toEqual({ css: '#909090', rgba: 0x909090ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFA0', rgba: 0xffffffa0 })
+				).toEqual({ css: '#a0a0a0', rgba: 0xa0a0a0ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFB0', rgba: 0xffffffb0 })
+				).toEqual({ css: '#b0b0b0', rgba: 0xb0b0b0ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFC0', rgba: 0xffffffc0 })
+				).toEqual({ css: '#c0c0c0', rgba: 0xc0c0c0ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFD0', rgba: 0xffffffd0 })
+				).toEqual({ css: '#d0d0d0', rgba: 0xd0d0d0ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFE0', rgba: 0xffffffe0 })
+				).toEqual({ css: '#e0e0e0', rgba: 0xe0e0e0ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFF0', rgba: 0xfffffff0 })
+				).toEqual({ css: '#f0f0f0', rgba: 0xf0f0f0ff });
+				expect(
+					color.blend({ css: '#000000', rgba: 0x000000ff }, { css: '#FFFFFFFF', rgba: 0xffffffff })
+				).toEqual({ css: '#FFFFFFFF', rgba: 0xffffffff });
 			});
 		});
 
 		describe('opaque', () => {
 			it('should make the color opaque', () => {
-				expect(color.opaque({ css: '#00000000', rgba: 0x00000000 })).toEqual({ css: '#000000', rgba: 0x000000ff });
-				expect(color.opaque({ css: '#10101010', rgba: 0x10101010 })).toEqual({ css: '#101010', rgba: 0x101010ff });
-				expect(color.opaque({ css: '#20202020', rgba: 0x20202020 })).toEqual({ css: '#202020', rgba: 0x202020ff });
-				expect(color.opaque({ css: '#30303030', rgba: 0x30303030 })).toEqual({ css: '#303030', rgba: 0x303030ff });
-				expect(color.opaque({ css: '#40404040', rgba: 0x40404040 })).toEqual({ css: '#404040', rgba: 0x404040ff });
-				expect(color.opaque({ css: '#50505050', rgba: 0x50505050 })).toEqual({ css: '#505050', rgba: 0x505050ff });
-				expect(color.opaque({ css: '#60606060', rgba: 0x60606060 })).toEqual({ css: '#606060', rgba: 0x606060ff });
-				expect(color.opaque({ css: '#70707070', rgba: 0x70707070 })).toEqual({ css: '#707070', rgba: 0x707070ff });
-				expect(color.opaque({ css: '#80808080', rgba: 0x80808080 })).toEqual({ css: '#808080', rgba: 0x808080ff });
-				expect(color.opaque({ css: '#90909090', rgba: 0x90909090 })).toEqual({ css: '#909090', rgba: 0x909090ff });
-				expect(color.opaque({ css: '#a0a0a0a0', rgba: 0xa0a0a0a0 })).toEqual({ css: '#a0a0a0', rgba: 0xa0a0a0ff });
-				expect(color.opaque({ css: '#b0b0b0b0', rgba: 0xb0b0b0b0 })).toEqual({ css: '#b0b0b0', rgba: 0xb0b0b0ff });
-				expect(color.opaque({ css: '#c0c0c0c0', rgba: 0xc0c0c0c0 })).toEqual({ css: '#c0c0c0', rgba: 0xc0c0c0ff });
-				expect(color.opaque({ css: '#d0d0d0d0', rgba: 0xd0d0d0d0 })).toEqual({ css: '#d0d0d0', rgba: 0xd0d0d0ff });
-				expect(color.opaque({ css: '#e0e0e0e0', rgba: 0xe0e0e0e0 })).toEqual({ css: '#e0e0e0', rgba: 0xe0e0e0ff });
-				expect(color.opaque({ css: '#f0f0f0f0', rgba: 0xf0f0f0f0 })).toEqual({ css: '#f0f0f0', rgba: 0xf0f0f0ff });
-				expect(color.opaque({ css: '#ffffffff', rgba: 0xffffffff })).toEqual({ css: '#ffffff', rgba: 0xffffffff });
+				expect(color.opaque({ css: '#00000000', rgba: 0x00000000 })).toEqual({
+					css: '#000000',
+					rgba: 0x000000ff
+				});
+				expect(color.opaque({ css: '#10101010', rgba: 0x10101010 })).toEqual({
+					css: '#101010',
+					rgba: 0x101010ff
+				});
+				expect(color.opaque({ css: '#20202020', rgba: 0x20202020 })).toEqual({
+					css: '#202020',
+					rgba: 0x202020ff
+				});
+				expect(color.opaque({ css: '#30303030', rgba: 0x30303030 })).toEqual({
+					css: '#303030',
+					rgba: 0x303030ff
+				});
+				expect(color.opaque({ css: '#40404040', rgba: 0x40404040 })).toEqual({
+					css: '#404040',
+					rgba: 0x404040ff
+				});
+				expect(color.opaque({ css: '#50505050', rgba: 0x50505050 })).toEqual({
+					css: '#505050',
+					rgba: 0x505050ff
+				});
+				expect(color.opaque({ css: '#60606060', rgba: 0x60606060 })).toEqual({
+					css: '#606060',
+					rgba: 0x606060ff
+				});
+				expect(color.opaque({ css: '#70707070', rgba: 0x70707070 })).toEqual({
+					css: '#707070',
+					rgba: 0x707070ff
+				});
+				expect(color.opaque({ css: '#80808080', rgba: 0x80808080 })).toEqual({
+					css: '#808080',
+					rgba: 0x808080ff
+				});
+				expect(color.opaque({ css: '#90909090', rgba: 0x90909090 })).toEqual({
+					css: '#909090',
+					rgba: 0x909090ff
+				});
+				expect(color.opaque({ css: '#a0a0a0a0', rgba: 0xa0a0a0a0 })).toEqual({
+					css: '#a0a0a0',
+					rgba: 0xa0a0a0ff
+				});
+				expect(color.opaque({ css: '#b0b0b0b0', rgba: 0xb0b0b0b0 })).toEqual({
+					css: '#b0b0b0',
+					rgba: 0xb0b0b0ff
+				});
+				expect(color.opaque({ css: '#c0c0c0c0', rgba: 0xc0c0c0c0 })).toEqual({
+					css: '#c0c0c0',
+					rgba: 0xc0c0c0ff
+				});
+				expect(color.opaque({ css: '#d0d0d0d0', rgba: 0xd0d0d0d0 })).toEqual({
+					css: '#d0d0d0',
+					rgba: 0xd0d0d0ff
+				});
+				expect(color.opaque({ css: '#e0e0e0e0', rgba: 0xe0e0e0e0 })).toEqual({
+					css: '#e0e0e0',
+					rgba: 0xe0e0e0ff
+				});
+				expect(color.opaque({ css: '#f0f0f0f0', rgba: 0xf0f0f0f0 })).toEqual({
+					css: '#f0f0f0',
+					rgba: 0xf0f0f0ff
+				});
+				expect(color.opaque({ css: '#ffffffff', rgba: 0xffffffff })).toEqual({
+					css: '#ffffff',
+					rgba: 0xffffffff
+				});
 			});
 		});
 
@@ -202,11 +337,26 @@ describe('Color', () => {
 
 		describe('opacity', () => {
 			it('should make the color transparent', () => {
-				expect(color.opacity(css.toColor('#000000'), 0)).toEqual({ css: '#00000000', rgba: 0x00000000 });
-				expect(color.opacity(css.toColor('#000000'), 0.25)).toEqual({ css: '#00000040', rgba: 0x00000040 });
-				expect(color.opacity(css.toColor('#000000'), 0.5)).toEqual({ css: '#00000080', rgba: 0x00000080 });
-				expect(color.opacity(css.toColor('#000000'), 0.75)).toEqual({ css: '#000000bf', rgba: 0x000000bf });
-				expect(color.opacity(css.toColor('#000000'), 1)).toEqual({ css: '#000000ff', rgba: 0x000000ff });
+				expect(color.opacity(css.toColor('#000000'), 0)).toEqual({
+					css: '#00000000',
+					rgba: 0x00000000
+				});
+				expect(color.opacity(css.toColor('#000000'), 0.25)).toEqual({
+					css: '#00000040',
+					rgba: 0x00000040
+				});
+				expect(color.opacity(css.toColor('#000000'), 0.5)).toEqual({
+					css: '#00000080',
+					rgba: 0x00000080
+				});
+				expect(color.opacity(css.toColor('#000000'), 0.75)).toEqual({
+					css: '#000000bf',
+					rgba: 0x000000bf
+				});
+				expect(color.opacity(css.toColor('#000000'), 1)).toEqual({
+					css: '#000000ff',
+					rgba: 0x000000ff
+				});
 			});
 		});
 	});
@@ -301,7 +451,10 @@ describe('Color', () => {
 				expect(css.toColor('rgba(80, 0, 0, 0.5)')).toEqual({ css: '#50000080', rgba: 0x50000080 });
 				expect(css.toColor('rgba(0, 80, 0, 0.5)')).toEqual({ css: '#00500080', rgba: 0x00500080 });
 				expect(css.toColor('rgba(0, 0, 80, 0.5)')).toEqual({ css: '#00005080', rgba: 0x00005080 });
-				expect(css.toColor('rgba(255, 255, 255, 1)')).toEqual({ css: '#ffffffff', rgba: 0xffffffff });
+				expect(css.toColor('rgba(255, 255, 255, 1)')).toEqual({
+					css: '#ffffffff',
+					rgba: 0xffffffff
+				});
 			});
 			it('should convert "transparent" to an IColor', () => {
 				expect(css.toColor('transparent')).toEqual({ css: 'transparent', rgba: 0x00000000 });

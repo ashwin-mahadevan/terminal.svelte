@@ -37,13 +37,7 @@ describe('TwoKeyMap', () => {
 });
 
 describe('FourKeyMap', () => {
-	let map: FourKeyMap<
-		number | string,
-		number | string,
-		number | string,
-		number | string,
-		string
-	>;
+	let map: FourKeyMap<number | string, number | string, number | string, number | string, string>;
 
 	beforeEach(() => {
 		map = new FourKeyMap();

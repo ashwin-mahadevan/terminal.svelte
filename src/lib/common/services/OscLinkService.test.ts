@@ -8,7 +8,11 @@ import { AttributeData } from '$lib/common/buffer/AttributeData';
 import { BufferService } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
-import type { IBufferService, IOptionsService, IOscLinkService } from '$lib/common/services/Services';
+import type {
+	IBufferService,
+	IOptionsService,
+	IOscLinkService
+} from '$lib/common/services/Services';
 import { MockLogService } from '$lib/common/TestUtils';
 
 describe('OscLinkService', () => {

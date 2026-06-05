@@ -130,7 +130,12 @@ describe('MouseService _triggerMouseEvent', () => {
 		mouseService = new MouseService(
 			new MockRenderService(),
 			{
-				getMouseReportCoords: (_ev: MouseEvent, _el: HTMLElement) => ({ col: 0, row: 0, x: 0, y: 0 })
+				getMouseReportCoords: (_ev: MouseEvent, _el: HTMLElement) => ({
+					col: 0,
+					row: 0,
+					x: 0,
+					y: 0
+				})
 			} as any,
 			mouseStateService,
 			coreService,
@@ -148,146 +153,433 @@ describe('MouseService _triggerMouseEvent', () => {
 
 	it('NONE', () => {
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.UP
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.MOVE })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.MOVE
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.MIDDLE, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.MIDDLE,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.RIGHT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.RIGHT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.WHEEL, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.WHEEL,
+				action: CoreMouseAction.UP
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE
+			})
 		).toBe(false);
 	});
 
 	it('X10', () => {
 		mouseStateService.activeProtocol = 'X10';
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.UP
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.MOVE })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.MOVE
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.MIDDLE, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.MIDDLE,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.RIGHT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.RIGHT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.WHEEL, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.WHEEL,
+				action: CoreMouseAction.UP
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE
+			})
 		).toBe(false);
 	});
 
 	it('VT200', () => {
 		mouseStateService.activeProtocol = 'VT200';
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.UP
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.MOVE })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.MOVE
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.MIDDLE, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.MIDDLE,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.RIGHT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.RIGHT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.WHEEL, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.WHEEL,
+				action: CoreMouseAction.UP
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE
+			})
 		).toBe(false);
 	});
 
 	it('DRAG', () => {
 		mouseStateService.activeProtocol = 'DRAG';
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.UP
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.MOVE })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.MOVE
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.MIDDLE, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.MIDDLE,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.RIGHT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.RIGHT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.WHEEL, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.WHEEL,
+				action: CoreMouseAction.UP
+			})
 		).toBe(true);
 	});
 
 	it('ANY', () => {
 		mouseStateService.activeProtocol = 'ANY';
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.UP
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.MOVE })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.MOVE
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.MIDDLE, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.MIDDLE,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.RIGHT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.RIGHT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.WHEEL, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.WHEEL,
+				action: CoreMouseAction.UP
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE
+			})
 		).toBe(true);
 		// should not report in any case
 		// invalid button + action combinations
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.WHEEL, action: CoreMouseAction.MOVE })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.WHEEL,
+				action: CoreMouseAction.MOVE
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.UP })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.UP
+			})
 		).toBe(false);
 		// invalid coords
 		expect(
-			trigger({ col: -1, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: -1,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 500, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 500,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: -1, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: -1,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(false);
 		expect(
-			trigger({ col: 0, row: 500, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+			trigger({
+				col: 0,
+				row: 500,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.DOWN
+			})
 		).toBe(false);
 	});
 
@@ -296,7 +588,14 @@ describe('MouseService _triggerMouseEvent', () => {
 			mouseStateService.activeProtocol = 'ANY';
 			for (let i = 0; i < bufferService.cols; ++i) {
 				expect(
-					trigger({ col: i, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+					trigger({
+						col: i,
+						row: 0,
+						x: 0,
+						y: 0,
+						button: CoreMouseButton.LEFT,
+						action: CoreMouseAction.DOWN
+					})
 				).toBe(true);
 				if (i > 222) {
 					// supress mouse reports if we are out of addressible range (max. 222)
@@ -312,7 +611,14 @@ describe('MouseService _triggerMouseEvent', () => {
 			mouseStateService.activeEncoding = 'SGR';
 			for (let i = 0; i < bufferService.cols; ++i) {
 				expect(
-					trigger({ col: i, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+					trigger({
+						col: i,
+						row: 0,
+						x: 0,
+						y: 0,
+						button: CoreMouseButton.LEFT,
+						action: CoreMouseAction.DOWN
+					})
 				).toBe(true);
 				expect(reports.pop()).toEqual(`\x1b[<0;${i + 1};1M`);
 			}
@@ -323,7 +629,14 @@ describe('MouseService _triggerMouseEvent', () => {
 			mouseStateService.activeEncoding = 'SGR_PIXELS';
 			for (let i = 0; i < 500; ++i) {
 				expect(
-					trigger({ col: 0, row: 0, x: i, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN })
+					trigger({
+						col: 0,
+						row: 0,
+						x: i,
+						y: 0,
+						button: CoreMouseButton.LEFT,
+						action: CoreMouseAction.DOWN
+					})
 				).toBe(true);
 				expect(reports.pop()).toEqual(`\x1b[<0;${i};0M`);
 			}
@@ -336,72 +649,259 @@ describe('MouseService _triggerMouseEvent', () => {
 		mouseStateService.activeEncoding = 'DEFAULT';
 		// all buttons + down + no modifer
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.DOWN, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.DOWN,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.MIDDLE, action: CoreMouseAction.DOWN, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.MIDDLE,
+				action: CoreMouseAction.DOWN,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.RIGHT, action: CoreMouseAction.DOWN, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.RIGHT,
+				action: CoreMouseAction.DOWN,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.WHEEL, action: CoreMouseAction.DOWN, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.WHEEL,
+				action: CoreMouseAction.DOWN,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(reports).toEqual(['\x1b[M !!', '\x1b[M!!!', '\x1b[M"!!', '\x1b[Ma!!']);
 		reports = [];
 
 		// all buttons + up + no modifier
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.UP, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.UP,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.MIDDLE, action: CoreMouseAction.UP, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.MIDDLE,
+				action: CoreMouseAction.UP,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.RIGHT, action: CoreMouseAction.UP, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.RIGHT,
+				action: CoreMouseAction.UP,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.WHEEL, action: CoreMouseAction.UP, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.WHEEL,
+				action: CoreMouseAction.UP,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(reports).toEqual(['\x1b[M#!!', '\x1b[M#!!', '\x1b[M#!!', '\x1b[M`!!']);
 		reports = [];
 
 		// all buttons + move + no modifier
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.LEFT, action: CoreMouseAction.MOVE, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.LEFT,
+				action: CoreMouseAction.MOVE,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.MIDDLE, action: CoreMouseAction.MOVE, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.MIDDLE,
+				action: CoreMouseAction.MOVE,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.RIGHT, action: CoreMouseAction.MOVE, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.RIGHT,
+				action: CoreMouseAction.MOVE,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE, ctrl: false, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE,
+				ctrl: false,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(reports).toEqual(['\x1b[M@!!', '\x1b[MA!!', '\x1b[MB!!', '\x1b[MC!!']);
 		reports = [];
 
 		// button none + move + modifiers
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE, ctrl: true, alt: false, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE,
+				ctrl: true,
+				alt: false,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE, ctrl: false, alt: true, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE,
+				ctrl: false,
+				alt: true,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE, ctrl: false, alt: false, shift: true })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE,
+				ctrl: false,
+				alt: false,
+				shift: true
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE, ctrl: true, alt: true, shift: false })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE,
+				ctrl: true,
+				alt: true,
+				shift: false
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE, ctrl: false, alt: true, shift: true })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE,
+				ctrl: false,
+				alt: true,
+				shift: true
+			})
 		).toBe(true);
 		expect(
-			trigger({ col: 0, row: 0, x: 0, y: 0, button: CoreMouseButton.NONE, action: CoreMouseAction.MOVE, ctrl: true, alt: true, shift: true })
+			trigger({
+				col: 0,
+				row: 0,
+				x: 0,
+				y: 0,
+				button: CoreMouseButton.NONE,
+				action: CoreMouseAction.MOVE,
+				ctrl: true,
+				alt: true,
+				shift: true
+			})
 		).toBe(true);
-		expect(reports).toEqual(['\x1b[MS!!', '\x1b[MK!!', '\x1b[MG!!', '\x1b[M[!!', '\x1b[MO!!', '\x1b[M_!!']);
+		expect(reports).toEqual([
+			'\x1b[MS!!',
+			'\x1b[MK!!',
+			'\x1b[MG!!',
+			'\x1b[M[!!',
+			'\x1b[MO!!',
+			'\x1b[M_!!'
+		]);
 		reports = [];
 	});
 });
@@ -414,7 +914,12 @@ describe('MouseService mouseEventsRequireAlt', () => {
 		const mouseService = new MouseService(
 			new MockRenderService(),
 			{
-				getMouseReportCoords: (_ev: MouseEvent, _el: HTMLElement) => ({ col: 0, row: 0, x: 0, y: 0 })
+				getMouseReportCoords: (_ev: MouseEvent, _el: HTMLElement) => ({
+					col: 0,
+					row: 0,
+					x: 0,
+					y: 0
+				})
 			} as any,
 			mouseStateService,
 			{

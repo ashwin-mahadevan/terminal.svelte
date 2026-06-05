@@ -160,11 +160,7 @@ describe('DecorationService', () => {
 
 	describe('line index maintenance', () => {
 		it('should keep lookups correct after buffer trim', () => {
-			const bufferService = new MockBufferService(
-				80,
-				5,
-				new MockOptionsService({ scrollback: 0 })
-			);
+			const bufferService = new MockBufferService(80, 5, new MockOptionsService({ scrollback: 0 }));
 			const service = new DecorationService(new MockLogService(), bufferService);
 			const buffer = bufferService.buffer;
 			(buffer as Buffer).fillViewportRows();
@@ -181,11 +177,7 @@ describe('DecorationService', () => {
 		});
 
 		it('should remove decoration from line index when marker is trimmed off buffer', () => {
-			const bufferService = new MockBufferService(
-				80,
-				5,
-				new MockOptionsService({ scrollback: 0 })
-			);
+			const bufferService = new MockBufferService(80, 5, new MockOptionsService({ scrollback: 0 }));
 			const service = new DecorationService(new MockLogService(), bufferService);
 			const buffer = bufferService.buffer;
 			(buffer as Buffer).fillViewportRows();
@@ -227,7 +219,9 @@ describe('DecorationService', () => {
 			expect(foundOnSpan).toContain(decoration);
 
 			const foundOutsideSpan: (typeof decoration)[] = [];
-			service.forEachDecorationAtCell(0, marker.line + 3, undefined, (d) => foundOutsideSpan.push(d));
+			service.forEachDecorationAtCell(0, marker.line + 3, undefined, (d) =>
+				foundOutsideSpan.push(d)
+			);
 			expect(foundOutsideSpan.length).toBe(0);
 		});
 	});
