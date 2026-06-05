@@ -117,12 +117,12 @@ export class MicrotaskTimer {
 }
 
 export class IntervalTimer {
-	private _disposable: IDisposable | undefined;
+	private _cleanup: (() => void) | undefined;
 	private _isDisposed = false;
 
 	public cancel(): void {
-		this._disposable?.dispose();
-		this._disposable = undefined;
+		this._cleanup?.();
+		this._cleanup = undefined;
 	}
 
 	public cancelAndSet(
@@ -137,13 +137,11 @@ export class IntervalTimer {
 		const handle = context.setInterval(() => {
 			runner();
 		}, interval);
-		this._disposable = {
-			dispose: () => {
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				context.clearInterval(handle as any);
-				this._disposable = undefined;
-			}
+		this._cleanup = () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			context.clearInterval(handle as any);
+			this._cleanup = undefined;
 		};
 	}
 

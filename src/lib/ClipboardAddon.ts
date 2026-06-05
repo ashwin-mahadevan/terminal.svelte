@@ -3,11 +3,11 @@
  * @license MIT
  */
 
-import type { IDisposable, ITerminalAddon, Terminal } from '$lib/xterm';
+import type { ITerminalAddon, Terminal } from '$lib/xterm';
 
 export class ClipboardAddon implements ITerminalAddon {
 	private _terminal?: Terminal;
-	private _disposable?: IDisposable;
+	private _cleanup?: () => void;
 
 	constructor(
 		private _base64 = new Base64(),
@@ -16,13 +16,14 @@ export class ClipboardAddon implements ITerminalAddon {
 
 	public activate(terminal: Terminal): void {
 		this._terminal = terminal;
-		this._disposable = terminal.parser.registerOscHandler(52, (data) =>
+		const disposable = terminal.parser.registerOscHandler(52, (data) =>
 			this._setOrReportClipboard(data)
 		);
+		this._cleanup = () => disposable.dispose();
 	}
 
 	public dispose(): void {
-		return this._disposable?.dispose();
+		this._cleanup?.();
 	}
 
 	private _readText(sel: string, data: string): void {
