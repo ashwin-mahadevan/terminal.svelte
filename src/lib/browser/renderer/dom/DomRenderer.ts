@@ -22,7 +22,7 @@ import {
 } from '$lib/browser/services/Services';
 import type { ILinkifier2, ILinkifierEvent, ITerminal, ReadonlyColorSet } from '$lib/browser/Types';
 import { color } from '$lib/common/Color';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import {
 	IBufferService,
 	ICoreService,
@@ -49,7 +49,8 @@ let nextTerminalId = 1;
  * particularly fast and will even lack some features such as custom glyphs, hoever this is more
  * reliable as webgl may not work on some machines.
  */
-export class DomRenderer extends Disposable implements IRenderer {
+export class DomRenderer implements IRenderer {
+	private readonly _store = new DisposableStore();
 	private _rowFactory: DomRendererRowFactory;
 	private _terminalClass: number = nextTerminalId++;
 
@@ -70,7 +71,7 @@ export class DomRenderer extends Disposable implements IRenderer {
 
 	public dimensions: IRenderDimensions;
 
-	private readonly _onRequestRedraw = this._register(new Emitter<IRequestRedrawEvent>());
+	private readonly _onRequestRedraw = this._store.add(new Emitter<IRequestRedrawEvent>());
 	public readonly onRequestRedraw = this._onRequestRedraw.event;
 
 	constructor(
@@ -89,7 +90,6 @@ export class DomRenderer extends Disposable implements IRenderer {
 		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService,
 		@IThemeService private readonly _themeService: IThemeService
 	) {
-		super();
 		this._rowContainer = this._document.createElement('div');
 		this._rowContainer.classList.add(Constants.ROW_CONTAINER_CLASS);
 		this._rowContainer.style.lineHeight = 'normal';
@@ -101,9 +101,9 @@ export class DomRenderer extends Disposable implements IRenderer {
 
 		this.dimensions = createRenderDimensions();
 		this._updateDimensions();
-		this._register(this._optionsService.onOptionChange(() => this._handleOptionsChanged()));
+		this._store.add(this._optionsService.onOptionChange(() => this._handleOptionsChanged()));
 
-		this._register(this._themeService.onChangeColors((e) => this._injectCss(e)));
+		this._store.add(this._themeService.onChangeColors((e) => this._injectCss(e)));
 		this._injectCss(this._themeService.colors);
 
 		this._rowFactory = instantiationService.createInstance(DomRendererRowFactory, document);
@@ -112,20 +112,20 @@ export class DomRenderer extends Disposable implements IRenderer {
 		this._screenElement.appendChild(this._rowContainer);
 		this._screenElement.appendChild(this._selectionContainer);
 
-		this._register(this._linkifier2.onShowLinkUnderline((e) => this._handleLinkHover(e)));
-		this._register(this._linkifier2.onHideLinkUnderline((e) => this._handleLinkLeave(e)));
+		this._store.add(this._linkifier2.onShowLinkUnderline((e) => this._handleLinkHover(e)));
+		this._store.add(this._linkifier2.onHideLinkUnderline((e) => this._handleLinkLeave(e)));
 
 		this._cursorBlinkStateManager = new CursorBlinkStateManager(
 			this._rowContainer,
 			this._coreBrowserService
 		);
-		this._register(
+		this._store.add(
 			addDisposableListener(this._document, 'mousedown', () =>
 				this._cursorBlinkStateManager.restartBlinkAnimation()
 			)
 		);
-		this._register(toDisposable(() => this._cursorBlinkStateManager.dispose()));
-		this._textBlinkStateManager = this._register(
+		this._store.add(toDisposable(() => this._cursorBlinkStateManager.dispose()));
+		this._textBlinkStateManager = this._store.add(
 			new TextBlinkStateManager(
 				() => this._onRequestRedraw.fire({ start: 0, end: this._bufferService.rows - 1 }),
 				this._coreBrowserService,
@@ -133,7 +133,7 @@ export class DomRenderer extends Disposable implements IRenderer {
 			)
 		);
 
-		this._register(
+		this._store.add(
 			toDisposable(() => {
 				this._element.classList.remove(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
 
@@ -155,6 +155,10 @@ export class DomRenderer extends Disposable implements IRenderer {
 			this._optionsService.rawOptions.fontWeightBold
 		);
 		this._setDefaultSpacing();
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	private _updateDimensions(): void {
