@@ -5,7 +5,7 @@
 
 import type { IInsertEvent } from '$lib/common/CircularList';
 import { CircularList } from '$lib/common/CircularList';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import { IdleTaskQueue } from '$lib/common/TaskQueue';
 import type { IAttributeData, IBufferLine, ICellData, ICharset } from '$lib/common/Types';
 import { ExtendedAttrs } from '$lib/common/buffer/AttributeData';
@@ -41,7 +41,8 @@ export const MAX_BUFFER_SIZE = 4294967295; // 2^32 - 1
  *   - cursor position
  *   - scroll position
  */
-export class Buffer extends Disposable implements IBuffer {
+export class Buffer implements IBuffer {
+	private readonly _store = new DisposableStore();
 	public lines: CircularList<IBufferLine>;
 	public ydisp: number = 0;
 	public ybase: number = 0;
@@ -83,7 +84,6 @@ export class Buffer extends Disposable implements IBuffer {
 		private _optionsService: IOptionsService,
 		private _bufferService: IBufferService
 	) {
-		super();
 		this._cols = this._bufferService.cols;
 		this._rows = this._bufferService.rows;
 		this.lines = new CircularList<IBufferLine>(this._getCorrectBufferLength(this._rows));
@@ -91,9 +91,13 @@ export class Buffer extends Disposable implements IBuffer {
 		this.scrollBottom = this._rows - 1;
 		this.setupTabStops();
 		this._memoryCleanupQueue = new IdleTaskQueue();
-		this._register(toDisposable(() => this._memoryCleanupQueue.clear()));
-		this._register(toDisposable(() => this.clearAllMarkers()));
-		this._stringCache = this._register(new BufferLineStringCache());
+		this._store.add(toDisposable(() => this._memoryCleanupQueue.clear()));
+		this._store.add(toDisposable(() => this.clearAllMarkers()));
+		this._stringCache = this._store.add(new BufferLineStringCache());
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public getNullCell(attr?: IAttributeData): ICellData {
