@@ -36,7 +36,7 @@ export function combinedDisposable(...disposables: IDisposable[]): IDisposable {
 }
 
 export class DisposableStore {
-	private readonly _disposables = new Set<IDisposable>();
+	private readonly _cleanups = new Set<() => void>();
 	private _isDisposed = false;
 
 	public get isDisposed(): boolean {
@@ -47,7 +47,7 @@ export class DisposableStore {
 		if (this._isDisposed) {
 			o.dispose();
 		} else {
-			this._disposables.add(o);
+			this._cleanups.add(() => o.dispose());
 		}
 		return o;
 	}
@@ -57,17 +57,17 @@ export class DisposableStore {
 			return;
 		}
 		this._isDisposed = true;
-		for (const d of this._disposables) {
-			d.dispose();
+		for (const cleanup of this._cleanups) {
+			cleanup();
 		}
-		this._disposables.clear();
+		this._cleanups.clear();
 	}
 
 	public clear(): void {
-		for (const d of this._disposables) {
-			d.dispose();
+		for (const cleanup of this._cleanups) {
+			cleanup();
 		}
-		this._disposables.clear();
+		this._cleanups.clear();
 	}
 }
 
