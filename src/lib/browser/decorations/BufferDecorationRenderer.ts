@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
 import { IBufferService, IDecorationService } from '$lib/common/services/Services';
 
-export class BufferDecorationRenderer extends Disposable {
+export class BufferDecorationRenderer {
+	private readonly _store = new DisposableStore();
 	private readonly _container: HTMLElement;
 	private readonly _decorationElements: Map<IInternalDecoration, HTMLElement> = new Map();
 
@@ -23,39 +24,41 @@ export class BufferDecorationRenderer extends Disposable {
 		@IDecorationService private readonly _decorationService: IDecorationService,
 		@IRenderService private readonly _renderService: IRenderService
 	) {
-		super();
-
 		this._container = document.createElement('div');
 		this._container.classList.add('xterm-decoration-container');
 		this._screenElement.appendChild(this._container);
 
-		this._register(
+		this._store.add(
 			this._renderService.onRenderedViewportChange(() => this._doRefreshDecorations())
 		);
-		this._register(
+		this._store.add(
 			this._renderService.onDimensionsChange(() => {
 				this._dimensionsChanged = true;
 				this._queueRefresh();
 			})
 		);
-		this._register(this._coreBrowserService.onDprChange(() => this._queueRefresh()));
-		this._register(
+		this._store.add(this._coreBrowserService.onDprChange(() => this._queueRefresh()));
+		this._store.add(
 			this._bufferService.buffers.onBufferActivate(() => {
 				this._altBufferIsActive = this._bufferService.buffer === this._bufferService.buffers.alt;
 			})
 		);
-		this._register(this._decorationService.onDecorationRegistered(() => this._queueRefresh()));
-		this._register(
+		this._store.add(this._decorationService.onDecorationRegistered(() => this._queueRefresh()));
+		this._store.add(
 			this._decorationService.onDecorationRemoved((decoration) =>
 				this._removeDecoration(decoration)
 			)
 		);
-		this._register(
+		this._store.add(
 			toDisposable(() => {
 				this._container.remove();
 				this._decorationElements.clear();
 			})
 		);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	private _queueRefresh(): void {
