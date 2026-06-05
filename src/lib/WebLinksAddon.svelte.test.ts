@@ -34,6 +34,8 @@ describe('WebLinksAddon', () => {
 		// Capture the link provider the addon registers so we can drive
 		// provideLinks() directly instead of via real mouse hover.
 		const realRegister = term.registerLinkProvider.bind(term);
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(term as any).registerLinkProvider = (p: ILinkProvider) => {
 			provider = p;
 			return realRegister(p);
@@ -324,6 +326,8 @@ describe('WebLinksAddon', () => {
 				`  http://${hostname}/colon:test  \r\n` +
 				`  http://${hostname}/colon:test:  \r\n` +
 				`"http://${hostname}/"\r\n` +
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-useless-escape
 				`\'http://${hostname}/\'\r\n` +
 				`http://${hostname}/subpath/+/id`
 		);

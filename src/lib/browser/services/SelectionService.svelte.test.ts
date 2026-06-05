@@ -65,11 +65,17 @@ class TestSelectionService extends SelectionService {
 			null!,
 			null!,
 			bufferService,
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			new MockCoreService() as any,
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			new MockMouseService() as any,
 			optionsService,
 			mouseStateService,
 			renderService,
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			new MockCoreBrowserService() as any
 		);
 	}
@@ -114,6 +120,8 @@ describe('SelectionService', () => {
 		mouseStateService = new MockMouseStateService();
 		bufferService = new MockBufferService(20, 20, optionsService);
 		buffer = bufferService.buffer;
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const renderService = new MockRenderService() as any;
 		renderService.dimensions.css.canvas.height = 10 * 20;
 		renderService.dimensions.css.canvas.width = 10 * 20;

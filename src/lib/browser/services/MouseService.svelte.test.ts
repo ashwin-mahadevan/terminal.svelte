@@ -62,9 +62,13 @@ function toBytes(s: string | undefined): number[] {
 
 // Minimal mocks for deps that MouseService touches in these tests
 const bufferService: IBufferService = {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	buffer: { hasScrollback: true } as any,
 	cols: 500,
 	rows: 500
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
 const optionsService: IOptionsService = {
@@ -73,6 +77,8 @@ const optionsService: IOptionsService = {
 		fastScrollSensitivity: 1,
 		scrollSensitivity: 1
 	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
 const logService: ILogService = {
@@ -80,6 +86,8 @@ const logService: ILogService = {
 	info: () => {},
 	warn: () => {},
 	error: () => {}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
 class TestSelectionService extends MockSelectionService {
@@ -109,6 +117,8 @@ function createTestMouseTargetElement(): HTMLElement {
 		},
 		addEventListener: () => {},
 		removeEventListener: () => {}
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} as any;
 }
 
@@ -125,17 +135,23 @@ describe('MouseService _triggerMouseEvent', () => {
 			triggerDataEvent: (data: string) => reports.push(data),
 			triggerBinaryEvent: (data: string) => reports.push(data),
 			decPrivateModes: { applicationCursorKeys: false }
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any;
 
 		mouseService = new MouseService(
 			new MockRenderService(),
 			{
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				getMouseReportCoords: (_ev: MouseEvent, _el: HTMLElement) => ({
 					col: 0,
 					row: 0,
 					x: 0,
 					y: 0
 				})
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any,
 			mouseStateService,
 			coreService,
@@ -147,7 +163,11 @@ describe('MouseService _triggerMouseEvent', () => {
 		);
 	});
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function trigger(e: Parameters<any>[0]): boolean {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (mouseService as any)._triggerMouseEvent(e);
 	}
 
@@ -914,18 +934,24 @@ describe('MouseService mouseEventsRequireAlt', () => {
 		const mouseService = new MouseService(
 			new MockRenderService(),
 			{
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				getMouseReportCoords: (_ev: MouseEvent, _el: HTMLElement) => ({
 					col: 0,
 					row: 0,
 					x: 0,
 					y: 0
 				})
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any,
 			mouseStateService,
 			{
 				triggerDataEvent: () => {},
 				triggerBinaryEvent: () => {},
 				decPrivateModes: { applicationCursorKeys: false }
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any,
 			bufferService,
 			optionsService,
@@ -938,6 +964,8 @@ describe('MouseService mouseEventsRequireAlt', () => {
 		const document = {
 			addEventListener: () => {},
 			removeEventListener: () => {}
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any;
 
 		mouseService.bindMouse(
@@ -973,12 +1001,16 @@ describe('MouseService mouseEventsRequireAlt', () => {
 			new MockRenderService(),
 			{
 				getMouseReportCoords: () => ({ col: 0, row: 0, x: 0, y: 0 })
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any,
 			mouseStateService,
 			{
 				triggerDataEvent: (data: string) => reports.push(data),
 				triggerBinaryEvent: () => {},
 				decPrivateModes: { applicationCursorKeys: false }
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any,
 			bufferService,
 			optionsService,
@@ -991,8 +1023,12 @@ describe('MouseService mouseEventsRequireAlt', () => {
 				screenElement: createTestMouseTargetElement()
 			},
 			requestedEvents: {}
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any;
 
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const sent = (mouseService as any)._sendEvent(ctx, {
 			type: 'mousedown',
 			button: 0,
@@ -1012,6 +1048,8 @@ describe('MouseService mouseEventsRequireAlt', () => {
 			{
 				addEventListener: () => {},
 				removeEventListener: () => {}
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any,
 			() => true
 		);

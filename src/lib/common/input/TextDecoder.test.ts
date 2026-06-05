@@ -13,7 +13,11 @@ import {
 
 // convert UTF32 codepoints to string
 function toString(data: Uint32Array, length: number): string {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	if ((String as any).fromCodePoint) {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (String as any).fromCodePoint.apply(null, data.subarray(0, length));
 	}
 	let result = '';

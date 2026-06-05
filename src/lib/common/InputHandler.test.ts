@@ -28,7 +28,8 @@ import {
 	MockOscLinkService,
 	extendedAttributes
 } from '$lib/common/TestUtils';
-import { IBufferService, ICoreService, type IOscLinkService } from '$lib/common/services/Services';
+import { IBufferService, ICoreService } from '$lib/common/services/Services';
+import type { IOscLinkService } from '$lib/common/services/Services';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import { BufferService } from '$lib/common/services/BufferService';
 import { CoreService } from '$lib/common/services/CoreService';
@@ -51,12 +52,18 @@ function getLines(bufferService: IBufferService, limit: number = bufferService.r
 
 class TestInputHandler extends InputHandler {
 	public get curAttrData(): IAttributeData {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (this as any)._curAttrData;
 	}
 	public get windowTitleStack(): string[] {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (this as any)._windowTitleStack;
 	}
 	public get iconNameStack(): string[] {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (this as any)._iconNameStack;
 	}
 
@@ -1681,8 +1688,12 @@ describe('InputHandler', () => {
 	});
 	it('should parse big chunks in smaller subchunks', async () => {
 		// max single chunk size is hardcoded as 131072
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const calls: any[] = [];
 		bufferService.resize(10, 10);
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(inputHandler as any)._parser.parse = (data: Uint32Array, length: number) => {
 			calls.push([data.length, length]);
 		};
@@ -1832,6 +1843,8 @@ describe('InputHandler', () => {
 			coreService.onData((data) => stack.push(data));
 			await inputHandler.parseP('\x1b[>q');
 			expect(stack.length).toBe(1);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line no-control-regex
 			expect(stack[0].match(/^\x1bP>\|xterm\.js\(\d+\.\d+\.\d+(-beta\.\d+)?\)\x1b\\/)).toBeTruthy();
 		});
 		it('should report xterm.js version for CSI > 0 q', async () => {
@@ -1839,6 +1852,8 @@ describe('InputHandler', () => {
 			coreService.onData((data) => stack.push(data));
 			await inputHandler.parseP('\x1b[>0q');
 			expect(stack.length).toBe(1);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line no-control-regex
 			expect(stack[0].match(/^\x1bP>\|xterm\.js\(\d+\.\d+\.\d+(-beta\.\d+)?\)\x1b\\/)).toBeTruthy();
 		});
 		it('should not report for CSI > 1 q', async () => {
@@ -2943,6 +2958,8 @@ describe('InputHandler', () => {
 				return inputHandler.cursorPosition(params);
 			});
 			coreService.onData((data) => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line no-control-regex
 				const m = data.match(/\x1b\[(.*?);(.*?)R/);
 				if (m) {
 					cpr.push([parseInt(m[1]), parseInt(m[2])]);

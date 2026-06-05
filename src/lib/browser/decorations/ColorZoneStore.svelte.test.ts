@@ -30,10 +30,14 @@ describe('ColorZoneStore', () => {
 		store.addDecoration({
 			marker: { line: 0 },
 			options: optionsRedFull
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any);
 		store.addDecoration({
 			marker: { line: 1 },
 			options: optionsRedFull
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any);
 		expect(store.zones).toEqual([
 			{
@@ -49,10 +53,14 @@ describe('ColorZoneStore', () => {
 		store.addDecoration({
 			marker: { line: 0 },
 			options: optionsRedFull
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any);
 		store.addDecoration({
 			marker: { line: 2 },
 			options: optionsRedFull
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any);
 		expect(store.zones).toEqual([
 			{
@@ -75,12 +83,16 @@ describe('ColorZoneStore', () => {
 			marker: { line: 0 },
 			options: optionsRedFull
 		};
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		store.addDecoration(obj as any);
 		const zone = store.zones[0];
 		store.clear();
 		store.addDecoration({
 			marker: { line: 1 },
 			options: optionsRedFull
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any);
 		// The object reference should be the same
 		expect(store.zones[0]).toBe(zone);

@@ -1300,6 +1300,8 @@ describe('Buffer', () => {
 			let now = 0;
 			const clearedTimeouts: number[] = [];
 			const scheduledTimeouts = new Map<number, { delay: number; fire: () => void }>();
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(globalThis as any).setTimeout = ((handler: (...args: any[]) => void, timeout?: number) => {
 				const id = ++timeoutId;
 				scheduledTimeouts.set(id, {
@@ -1311,6 +1313,8 @@ describe('Buffer', () => {
 				});
 				return id as ReturnType<typeof setTimeout>;
 			}) as typeof setTimeout;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(globalThis as any).clearTimeout = ((id: ReturnType<typeof setTimeout>) => {
 				const numericId = id as unknown as number;
 				clearedTimeouts.push(numericId);
@@ -1395,8 +1399,12 @@ describe('Buffer', () => {
 			for (let i = 0; i < INIT_ROWS; i++) {
 				const line = buffer.lines.get(i)!;
 				// line memory is still at old size from initialization
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				expect((line as any)._data.buffer.byteLength).toBe(INIT_COLS * 3 * 4);
 				// array.length and .length get immediately adjusted
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				expect((line as any)._data.length).toBe((INIT_COLS / 2 - 1) * 3);
 				expect(line.length).toBe(INIT_COLS / 2 - 1);
 			}
@@ -1408,6 +1416,8 @@ describe('Buffer', () => {
 			// cleanup should have realigned memory with exact bytelength
 			for (let i = 0; i < INIT_ROWS; i++) {
 				const line = buffer.lines.get(i)!;
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				expect((line as any)._data.buffer.byteLength).toBe((INIT_COLS / 2 - 1) * 3 * 4);
 			}
 		});

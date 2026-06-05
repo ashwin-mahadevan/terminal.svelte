@@ -53,6 +53,8 @@ function identifier(id: IFunctionIdentifier): number {
 
 class TestHandler implements IApcHandler {
 	constructor(
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		public output: any[],
 		public msg: string,
 		public returnFalse: boolean = false
@@ -74,6 +76,8 @@ class TestHandler implements IApcHandler {
 
 describe('ApcParser', () => {
 	let parser: ApcParser;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let reports: any[] = [];
 	beforeEach(() => {
 		reports = [];
@@ -343,6 +347,8 @@ describe('ApcParser', () => {
 
 class TestHandlerAsync implements IApcHandler {
 	constructor(
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		public output: any[],
 		public msg: string,
 		public returnFalse: boolean = false
@@ -373,6 +379,8 @@ async function unhookP(parser: ApcParser, success: boolean): Promise<void> {
 
 describe('ApcParser - async tests', () => {
 	let parser: ApcParser;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let reports: any[] = [];
 	beforeEach(() => {
 		reports = [];

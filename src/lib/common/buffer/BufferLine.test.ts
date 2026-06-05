@@ -340,21 +340,29 @@ describe('BufferLine', () => {
 		it('enlarge(false)', () => {
 			const line = new TestBufferLine(5, createCellData(1, 'a', 1), false);
 			line.resize(10, createCellData(1, 'a', 1));
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			expect(line.toArray()).toEqual((Array(10) as any).fill([1, 'a', 1, 'a'.charCodeAt(0)]));
 		});
 		it('enlarge(true)', () => {
 			const line = new TestBufferLine(5, createCellData(1, 'a', 1), false);
 			line.resize(10, createCellData(1, 'a', 1));
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			expect(line.toArray()).toEqual((Array(10) as any).fill([1, 'a', 1, 'a'.charCodeAt(0)]));
 		});
 		it('shrink(true) - should apply new size', () => {
 			const line = new TestBufferLine(10, createCellData(1, 'a', 1), false);
 			line.resize(5, createCellData(1, 'a', 1));
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			expect(line.toArray()).toEqual((Array(5) as any).fill([1, 'a', 1, 'a'.charCodeAt(0)]));
 		});
 		it('shrink to 0 length', () => {
 			const line = new TestBufferLine(10, createCellData(1, 'a', 1), false);
 			line.resize(0, createCellData(1, 'a', 1));
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			expect(line.toArray()).toEqual((Array(0) as any).fill([1, 'a', 1, 'a'.charCodeAt(0)]));
 		});
 		it('should remove combining data on replaced cells after shrinking then enlarging', () => {

@@ -11,10 +11,16 @@ import type { IBufferService, IOscLinkService } from '$lib/common/services/Servi
 import type { IBufferLine, IOscLinkData } from '$lib/common/Types';
 
 class TestOscLinkService implements IOscLinkService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public registerLink(_linkData: IOscLinkData): number {
 		return 0;
 	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public addLineToLink(_linkId: number, _y: number): void {}
 	public getLinkData(linkId: number): IOscLinkData | undefined {
 		return { uri: `https://example.com/${linkId}` };

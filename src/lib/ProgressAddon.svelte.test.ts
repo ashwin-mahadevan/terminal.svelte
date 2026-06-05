@@ -11,7 +11,8 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Terminal } from '$lib/browser/public/Terminal';
-import { ProgressAddon, type IProgressState } from '$lib/ProgressAddon';
+import { ProgressAddon } from '$lib/ProgressAddon';
+import type { IProgressState } from '$lib/ProgressAddon';
 
 function writeP(terminal: Terminal, data: string): Promise<void> {
 	return new Promise((r) => terminal.write(data, r));

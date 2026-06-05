@@ -20,10 +20,18 @@ import type { IMarker } from '$lib/common/Types';
 // terminal and (apart from the composition helper's `isComposing`) never have
 // their methods invoked by these tests, so trivial stubs suffice.
 class TestTerminal extends CoreBrowserTerminal {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public keyDown(ev: any): boolean | undefined {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (this as any)._keyDown(ev);
 	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public keyPress(ev: any): boolean {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (this as any)._keyPress(ev);
 	}
 	public writeP(data: string | Uint8Array): Promise<void> {
@@ -47,14 +55,22 @@ describe('CoreBrowserTerminal', () => {
 	beforeEach(() => {
 		term = new TestTerminal(termOptions);
 		term.refresh = () => {};
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(term as any).renderer = {};
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(term as any).viewport = {};
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(term as any)._compositionHelper = {
 			get isComposing() {
 				return false;
 			},
 			keydown: () => true
 		};
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(term as any).element = {
 			classList: {
 				toggle: () => {},
@@ -82,6 +98,8 @@ describe('CoreBrowserTerminal', () => {
 				term.coreService.triggerDataEvent('fake');
 			}));
 		it('should fire the onCursorMove event', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				let fired = false;
 				term.onCursorMove(() => {
@@ -93,6 +111,8 @@ describe('CoreBrowserTerminal', () => {
 			});
 		});
 		it('should fire the onLineFeed event', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				let fired = false;
 				term.onLineFeed(() => {
@@ -104,6 +124,8 @@ describe('CoreBrowserTerminal', () => {
 			});
 		});
 		it('should fire a scroll event when scrollback is created', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				term.onScroll((e) => {
 					expect(typeof e).toBe('number');
@@ -113,6 +135,8 @@ describe('CoreBrowserTerminal', () => {
 			});
 		});
 		it('should fire a scroll event when scrollback is cleared', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				await term.writeP('\n'.repeat(INIT_ROWS));
 				term.onScroll((e) => {
@@ -144,6 +168,8 @@ describe('CoreBrowserTerminal', () => {
 					expect(e.domEvent instanceof Object).toBe(true);
 					done();
 				});
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				(term as any).textarea = { value: '' };
 				const evKeyDown = {
 					preventDefault: () => {},
@@ -276,6 +302,8 @@ describe('CoreBrowserTerminal', () => {
 		// `paste()` writes back to `term.textarea.value` after firing onData; provide
 		// a stub textarea so the write target exists (upstream relied on it too).
 		beforeEach(() => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(term as any).textarea = { value: '' };
 		});
 		it('should fire data event', () =>
@@ -295,6 +323,8 @@ describe('CoreBrowserTerminal', () => {
 				term.paste('\r\nfoo\nbar\r');
 			}));
 		it('should respect bracketed paste mode', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				term.onData((e) => {
 					expect(e).toBe('\x1b[200~foo\x1b[201~');
@@ -466,6 +496,8 @@ describe('CoreBrowserTerminal', () => {
 			it('should not scroll down on modifier-only input in win32 input mode', async () => {
 				term.options.vtExtensions = { win32InputMode: true };
 				term.coreService.decPrivateModes.win32InputMode = true;
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				(term as any).textarea = { value: '' };
 
 				await term.writeP('test\r\n'.repeat(term.rows * 3));
@@ -493,6 +525,8 @@ describe('CoreBrowserTerminal', () => {
 
 				term.keyDown(evKeyDown);
 				expect(term.buffer.ydisp).toBe(scrolledYDisp);
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				(term as any)._keyUp(evKeyUp);
 				expect(term.buffer.ydisp).toBe(scrolledYDisp);
 			});
@@ -654,7 +688,11 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('Third level shift', () => {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let evKeyDown: any;
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let evKeyPress: any;
 
 		beforeEach(() => {

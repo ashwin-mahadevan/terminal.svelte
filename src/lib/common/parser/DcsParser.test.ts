@@ -54,6 +54,8 @@ function identifier(id: IFunctionIdentifier): number {
 
 class TestHandler implements IDcsHandler {
 	constructor(
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		public output: any[],
 		public msg: string,
 		public returnFalse: boolean = false
@@ -75,6 +77,8 @@ class TestHandler implements IDcsHandler {
 
 describe('DcsParser', () => {
 	let parser: DcsParser;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let reports: any[] = [];
 	beforeEach(() => {
 		reports = [];
@@ -349,6 +353,8 @@ describe('DcsParser', () => {
 
 class TestHandlerAsync implements IDcsHandler {
 	constructor(
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		public output: any[],
 		public msg: string,
 		public returnFalse: boolean = false
@@ -379,6 +385,8 @@ async function unhookP(parser: DcsParser, success: boolean): Promise<void> {
 
 describe('DcsParser - async tests', () => {
 	let parser: DcsParser;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let reports: any[] = [];
 	beforeEach(() => {
 		reports = [];

@@ -26,10 +26,14 @@ describe('MouseStateService', () => {
 	});
 	it('default protocols - NONE, X10, VT200, DRAG, ANY', () => {
 		const cms = new MouseStateService();
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		expect(Object.keys((cms as any)._protocols)).toEqual(['NONE', 'X10', 'VT200', 'DRAG', 'ANY']);
 	});
 	it('default encodings - DEFAULT, SGR', () => {
 		const cms = new MouseStateService();
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		expect(Object.keys((cms as any)._encodings)).toEqual(['DEFAULT', 'SGR', 'SGR_PIXELS']);
 	});
 	it('protocol/encoding setter, reset', () => {
@@ -50,6 +54,8 @@ describe('MouseStateService', () => {
 	});
 	it('addEncoding', () => {
 		const cms = new MouseStateService();
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		cms.addEncoding('XYZ', (e: ICoreMouseEvent) => '');
 		cms.activeEncoding = 'XYZ';
 		expect(cms.activeEncoding).toBe('XYZ');
@@ -58,6 +64,8 @@ describe('MouseStateService', () => {
 		const cms = new MouseStateService();
 		cms.addProtocol('XYZ', {
 			events: CoreMouseEventType.NONE,
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			restrict: (e: ICoreMouseEvent) => false
 		});
 		cms.activeProtocol = 'XYZ';

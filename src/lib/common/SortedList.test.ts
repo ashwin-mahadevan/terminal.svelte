@@ -5,7 +5,8 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SortedList } from '$lib/common/SortedList';
-import { LogLevelEnum, type ILogService } from '$lib/common/services/Services';
+import { LogLevelEnum } from '$lib/common/services/Services';
+import type { ILogService } from '$lib/common/services/Services';
 
 // NOTE: Upstream imports MockLogService from common/TestUtils.test. Our ported
 // $lib/common/TestUtils cannot be imported here because it pulls in a runtime
@@ -14,6 +15,8 @@ import { LogLevelEnum, type ILogService } from '$lib/common/services/Services';
 // so we provide an equivalent minimal mock inline rather than modify the vendored
 // helper.
 class MockLogService implements ILogService {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 	public logLevel = LogLevelEnum.DEBUG;
 	public trace(): void {}

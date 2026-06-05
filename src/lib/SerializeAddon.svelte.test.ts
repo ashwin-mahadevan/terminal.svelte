@@ -960,6 +960,8 @@ const FG_P16_RED = '31';
 const FG_P16_GREEN = '32';
 const FG_P256_RED = '38;5;196';
 const FG_P256_GREEN = '38;5;46';
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FG_P256_YELLOW = '38;5;226';
 const FG_RGB_RED = '38;2;255;0;0';
 const FG_RGB_GREEN = '38;2;0;255;0';

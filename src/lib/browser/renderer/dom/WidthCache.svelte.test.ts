@@ -4,19 +4,24 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
-	WidthCache,
-	WidthCacheSettings,
-	type IWidthCacheFontVariantCanvas
-} from '$lib/browser/renderer/dom/WidthCache';
+import { WidthCache, WidthCacheSettings } from '$lib/browser/renderer/dom/WidthCache';
+import type { IWidthCacheFontVariantCanvas } from '$lib/browser/renderer/dom/WidthCache';
 
 class MockWidthCacheFontVariantCanvas implements IWidthCacheFontVariantCanvas {
 	public widths: { [key: string]: number } = {};
 
 	public setFont(
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		_fontFamily: string,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		_fontSize: number,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		_fontWeight: unknown,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		_italic: boolean
 	): void {}
 
@@ -27,12 +32,18 @@ class MockWidthCacheFontVariantCanvas implements IWidthCacheFontVariantCanvas {
 
 class TestWidthCache extends WidthCache {
 	public get flat(): Float32Array {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (this as any)._flat;
 	}
 	public get holey(): Map<string, number> | undefined {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (this as any)._holey;
 	}
 	public get canvasElements(): MockWidthCacheFontVariantCanvas[] {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (this as any)._canvasElements;
 	}
 

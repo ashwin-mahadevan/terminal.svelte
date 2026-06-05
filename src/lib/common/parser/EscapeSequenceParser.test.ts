@@ -55,12 +55,18 @@ class MockOscPutParser implements IOscParser {
 			this._fallback(id, 'END', this.data.slice(this.data.indexOf(';') + 1));
 		}
 	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public registerHandler(ident: number, handler: IOscHandler): IDisposable {
 		throw new Error('not implemented');
 	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public setHandler(ident: number, handler: IOscHandler): void {
 		throw new Error('not implemented');
 	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public clearHandler(ident: number): void {
 		throw new Error('not implemented');
 	}
@@ -101,6 +107,8 @@ class TestEscapeSequenceParser extends EscapeSequenceParser {
 		}
 	}
 	public mockOscParser(): void {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(this as any)._oscParser = oscPutParser;
 	}
 	public identifier(id: IFunctionIdentifier): number {
@@ -128,11 +136,15 @@ class TestEscapeSequenceParser extends EscapeSequenceParser {
 }
 
 // test object to collect parser actions and compare them with expected values
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const testTerminal: any = {
 	calls: [],
 	clear(): void {
 		this.calls = [];
 	},
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	compare(value: any): void {
 		expect(this.calls).toEqual(value);
 	},
@@ -194,6 +206,8 @@ const states: number[] = [
 	ParserState.APC_INTERMEDIATE,
 	ParserState.APC_PASSTHROUGH
 ];
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let state: any;
 
 // parser with Uint8Array based transition table
@@ -339,6 +353,8 @@ describe('EscapeSequenceParser', () => {
 				'\x99',
 				'\x9a'
 			];
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const exceptions: { [key: number]: { [key: string]: any[] } } = {
 				8: { '\x18': [], '\x1a': [] }, // abort OSC_STRING
 				13: { '\x18': [['dcs unhook', false]], '\x1a': [['dcs unhook', false]] }, // abort DCS_PASSTHROUGH
@@ -1455,6 +1471,8 @@ describe('EscapeSequenceParser', () => {
 		});
 	});
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function test(s: string, value: any, noReset: any): void {
 		if (!noReset) {
 			parser.reset();
@@ -2795,6 +2813,8 @@ describe('EscapeSequenceParser', () => {
 				expect(callstack).toEqual(['z', '!z', '!!z']);
 			});
 			it('CSI', () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const callstack: any[] = [];
 				const h1 = parser.registerCsiHandler({ final: 'z' }, (params) => {
 					callstack.push(['z', params.toArray()]);
@@ -2844,6 +2864,8 @@ describe('EscapeSequenceParser', () => {
 				]);
 			});
 			it('DCS', () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const callstack: any[] = [];
 				const h1 = parser.registerDcsHandler(
 					{ final: 'z' },
@@ -2911,6 +2933,8 @@ describe('EscapeSequenceParser', () => {
 				]);
 			});
 			it('APC', () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const callstack: any[] = [];
 				const h1 = parser.registerApcHandler(
 					{ final: 'z' },
@@ -2980,6 +3004,8 @@ function evalStackSaves(
 	}
 }
 // helper similiar to assert.throws for async functions
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function throwsAsync(fn: () => Promise<any>, message?: string | undefined): Promise<void> {
 	let msg: string | undefined;
 	try {
@@ -3003,8 +3029,12 @@ describe('EscapeSequenceParser - async', () => {
 	// needed handlers: CSI m, PRINT, ESC %G, ESC E, EXE \r, EXE \n, OSC 1, APC X
 	const INPUT =
 		'\x1b[1;31mhello \x1b%Gwor\x1bEld!\x1b[0m\r\n$>\x1bP1;2axyz\x1b\\\x1b]1;foo=bar\x1b\\\x1b_Xabc\x1b\\FIN';
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let RESULT: any[];
 	let parser: TestEscapeSequenceParser;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const callstack: any[] = [];
 	function clearAccu(): void {
 		callstack.length = 0;

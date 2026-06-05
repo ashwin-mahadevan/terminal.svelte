@@ -6,7 +6,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { WriteBuffer } from '$lib/common/input/WriteBuffer';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
+// TODO: Fix this upstream type error.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare let Buffer: any;
 
 function toBytes(s: string): Uint8Array {

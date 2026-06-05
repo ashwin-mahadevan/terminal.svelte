@@ -21,6 +21,8 @@ const ev = (opts: EventOpts): IKeyboardEvent => ({
 });
 
 const parse = (seq: string) => {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line no-control-regex
 	const m = seq.match(/^\x1b\[(\d+);(\d+);(\d+);(\d+);(\d+);(\d+)_$/);
 	return m ? { vk: +m[1], sc: +m[2], uc: +m[3], kd: +m[4], cs: +m[5], rc: +m[6] } : null;
 };

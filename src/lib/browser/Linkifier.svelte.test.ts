@@ -11,6 +11,8 @@ import type { ILink } from '$lib/browser/Types';
 import { LinkProviderService } from '$lib/browser/services/LinkProviderService';
 
 class TestLinkifier2 extends Linkifier {
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public set currentLink(link: any) {
 		this._currentLink = link;
 	}
@@ -89,6 +91,8 @@ describe('Linkifier2', () => {
 				done();
 			});
 
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			linkifier.linkHover({ classList: { add: () => {} } } as any, link, {} as any);
 		}));
 
@@ -103,6 +107,8 @@ describe('Linkifier2', () => {
 				done();
 			});
 
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			linkifier.linkLeave({ classList: { add: () => {} } } as any, link, {} as any);
 		}));
 
@@ -117,6 +123,8 @@ describe('Linkifier2', () => {
 				done();
 			});
 
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			linkifier.linkHover({ classList: { add: () => {} } } as any, multiLineLink, {} as any);
 		}));
 
@@ -131,6 +139,8 @@ describe('Linkifier2', () => {
 				done();
 			});
 
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			linkifier.linkLeave({ classList: { add: () => {} } } as any, multiLineLink, {} as any);
 		}));
 });

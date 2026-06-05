@@ -79,6 +79,8 @@ describe('OptionsService', () => {
 			expect(service.options.fontWeight).toBe(DEFAULT_OPTIONS.fontWeight);
 
 			service.options.fontWeight = 350;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			service.options.fontWeight = 'bold700' as any;
 			// Wrong string literals should be reset to default
 			expect(service.options.fontWeight).toBe(DEFAULT_OPTIONS.fontWeight);

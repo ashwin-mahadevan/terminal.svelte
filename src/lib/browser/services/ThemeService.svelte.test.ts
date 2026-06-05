@@ -26,6 +26,8 @@ describe('ThemeService', () => {
 			for (const key of Object.keys(themeService.colors)) {
 				if (!['ansi', 'contrastCache', 'halfContrastCache', 'selectionForeground'].includes(key)) {
 					// A #rrggbb or rgba(...)
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					expect((themeService.colors as any)[key].css.length).toBeGreaterThanOrEqual(7);
 				}
 			}

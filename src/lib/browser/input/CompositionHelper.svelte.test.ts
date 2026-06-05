@@ -18,7 +18,11 @@ const MockRenderService = class {
 			canvas: { width: 0, height: 0 },
 			char: { width: 0, height: 0, left: 0, top: 0 }
 		}
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} as any;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
 /** Resolves after the next macrotask, mirroring upstream's `setTimeout(..., 0)`. */
@@ -46,6 +50,8 @@ describe('CompositionHelper', () => {
 				top: 0
 			},
 			textContent: ''
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any;
 		textarea = {
 			value: '',
@@ -53,6 +59,8 @@ describe('CompositionHelper', () => {
 				left: 0,
 				top: 0
 			}
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any;
 		const coreService = new MockCoreService();
 		coreService.triggerDataEvent = (text: string) => {

@@ -13,6 +13,8 @@ class FakeWindow {
 	public nextId = 1;
 	public intervals = new Map<number, () => void>();
 
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public setInterval(callback: () => void, _duration: number): number {
 		const id = this.nextId++;
 		this.intervals.set(id, callback);
@@ -37,7 +39,11 @@ function createManager(duration: number): {
 		dpr: 1,
 		onDprChange: new Emitter<number>().event,
 		onWindowChange: new Emitter<Window & typeof globalThis>().event,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		window: fakeWindow as any,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		mainDocument: {} as any
 	};
 	const optionsService = new MockOptionsService({ blinkIntervalDuration: duration });

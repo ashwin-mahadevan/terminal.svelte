@@ -90,6 +90,8 @@ describe('BufferSet', () => {
 
 	describe('lifecycle', () => {
 		it('should dispose previous buffers on reset', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const oldNormal = bufferSet.normal as any;
 			oldNormal.lines.get(0)!.setCell(0, createCellData(0, 'a', 1));
 			oldNormal.translateBufferLineToString(0, false);
@@ -106,11 +108,15 @@ describe('BufferSet', () => {
 		});
 
 		it('should dispose both buffers when disposed', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const normal = bufferSet.normal as any;
 			normal.lines.get(0)!.setCell(0, createCellData(0, 'a', 1));
 			normal.translateBufferLineToString(0, false);
 
 			bufferSet.activateAltBuffer();
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const alt = bufferSet.alt as any;
 			alt.lines.get(0)!.setCell(0, createCellData(0, 'b', 1));
 			alt.translateBufferLineToString(0, false);

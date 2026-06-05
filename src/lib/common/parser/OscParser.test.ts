@@ -17,6 +17,8 @@ function toUtf32(s: string): Uint32Array {
 class TestHandler implements IOscHandler {
 	constructor(
 		public id: number,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		public output: any[],
 		public msg: string,
 		public returnFalse: boolean = false
@@ -38,6 +40,8 @@ class TestHandler implements IOscHandler {
 
 describe('OscParser', () => {
 	let parser: OscParser;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let reports: any[] = [];
 	beforeEach(() => {
 		reports = [];
@@ -328,6 +332,8 @@ describe('OscParser', () => {
 class TestHandlerAsync implements IOscHandler {
 	constructor(
 		public id: number,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		public output: any[],
 		public msg: string,
 		public returnFalse: boolean = false
@@ -357,6 +363,8 @@ async function endP(parser: OscParser, success: boolean): Promise<void> {
 
 describe('OscParser - async tests', () => {
 	let parser: OscParser;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let reports: any[] = [];
 	beforeEach(() => {
 		reports = [];

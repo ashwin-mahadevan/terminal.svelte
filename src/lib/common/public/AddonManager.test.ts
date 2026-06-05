@@ -4,7 +4,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { AddonManager, type ILoadedAddon } from '$lib/common/public/AddonManager';
+import { AddonManager } from '$lib/common/public/AddonManager';
+import type { ILoadedAddon } from '$lib/common/public/AddonManager';
 import type { ITerminalAddon } from '$lib/xterm';
 
 class TestAddonManager extends AddonManager {
@@ -24,6 +25,8 @@ describe('AddonManager', () => {
 		it('should call addon constructor', () => {
 			let called = false;
 			class Addon implements ITerminalAddon {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				public activate(terminal: any): void {
 					// The first constructor arg should be Terminal
 					expect(terminal).toBe('foo');
@@ -31,6 +34,8 @@ describe('AddonManager', () => {
 				}
 				public dispose(): void {}
 			}
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			manager.loadAddon('foo' as any, new Addon());
 			expect(called).toBe(true);
 		});

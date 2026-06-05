@@ -23,10 +23,8 @@ import {
 	createCellData,
 	NULL_CELL_DATA
 } from '$lib/common/TestUtils';
-import {
-	WidthCache,
-	type IWidthCacheFontVariantCanvas
-} from '$lib/browser/renderer/dom/WidthCache';
+import { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
+import type { IWidthCacheFontVariantCanvas } from '$lib/browser/renderer/dom/WidthCache';
 import { Emitter } from '$lib/common/Event';
 import { css } from '$lib/common/Color';
 
@@ -39,12 +37,18 @@ import { css } from '$lib/common/Color';
 // rather than editing the vendored helper. See report / FIXME below.
 class MockCharacterJoinerService {
 	public serviceBrand: undefined;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public register(_handler: (text: string) => [number, number][]): number {
 		return 0;
 	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public deregister(_joinerId: number): boolean {
 		return true;
 	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public getJoinedCharacters(_row: number): [number, number][] {
 		return [];
 	}
@@ -66,13 +70,21 @@ class MockCoreBrowserService {
 
 class MockThemeService {
 	public serviceBrand: undefined;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public onChangeColors = new Emitter<any>().event;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public restoreColor(_slot?: unknown): void {
 		throw new Error('Method not implemented.');
 	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
 	public modifyColors(_callback: (colors: any) => void): void {
 		throw new Error('Method not implemented.');
 	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public colors: any = {
 		background: css.toColor('#010101'),
 		foreground: css.toColor('#020202'),
@@ -107,9 +119,17 @@ class MockWidthCacheFontVariantCanvas implements IWidthCacheFontVariantCanvas {
 	public widths: { [key: string]: number } = {};
 
 	public setFont(
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		_fontFamily: string,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		_fontSize: number,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		_fontWeight: unknown,
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		_italic: boolean
 	): void {}
 
@@ -120,6 +140,8 @@ class MockWidthCacheFontVariantCanvas implements IWidthCacheFontVariantCanvas {
 
 class TestWidthCache extends WidthCache {
 	public get canvasElements(): MockWidthCacheFontVariantCanvas[] {
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (this as any)._canvasElements;
 	}
 

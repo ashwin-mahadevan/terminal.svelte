@@ -14,6 +14,8 @@ describe('Mouse getCoords', () => {
 
 	beforeEach(() => {
 		windowOverride = {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			getComputedStyle(): any {
 				return {
 					getPropertyValue: () => '0px'

@@ -37,6 +37,8 @@ describe('ClipboardAddon', () => {
 		term = new Terminal();
 		term.open(element);
 		provider = new StubClipboardProvider();
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		clipboard = new ClipboardAddon(new Base64(), provider as any);
 		term.loadAddon(clipboard);
 	});

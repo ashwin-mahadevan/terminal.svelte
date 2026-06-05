@@ -9,6 +9,8 @@ import type { IUnicodeVersionProvider } from '$lib/common/services/Services';
 
 class DummyProvider implements IUnicodeVersionProvider {
 	public version = '123';
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public wcwidth(n: number): 0 | 1 | 2 {
 		return 2;
 	}
