@@ -8,22 +8,26 @@ import type {
 	IBufferLineStringCacheEntry
 } from '$lib/common/buffer/BufferLine';
 import { disposableTimeout } from '$lib/common/Async';
-import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 
 const enum Constants {
 	CACHE_TTL_MS = 15000
 }
 
-export class BufferLineStringCache extends Disposable implements IBufferLineStringCache {
+export class BufferLineStringCache implements IBufferLineStringCache {
+	private readonly _store = new DisposableStore();
 	public generation: number = 0;
 	public readonly entries: Set<IBufferLineStringCacheEntry> = new Set();
-	private readonly _clearTimeout = this._register(new MutableDisposable<IDisposable>());
+	private readonly _clearTimeout = this._store.add(new MutableDisposable<IDisposable>());
 	private _lastAccessTimestamp: number = 0;
 
 	constructor() {
-		super();
-		this._register(toDisposable(() => this.entries.clear()));
+		this._store.add(toDisposable(() => this.entries.clear()));
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public touch(): void {
