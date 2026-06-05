@@ -8,7 +8,7 @@ import type {
 	IBufferLineStringCacheEntry
 } from '$lib/common/buffer/BufferLine';
 import { disposableTimeout } from '$lib/common/Async';
-import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { Disposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 
 const enum Constants {
@@ -18,11 +18,12 @@ const enum Constants {
 export class BufferLineStringCache extends Disposable implements IBufferLineStringCache {
 	public generation: number = 0;
 	public readonly entries: Set<IBufferLineStringCacheEntry> = new Set();
-	private readonly _clearTimeout = this._register(new MutableDisposable<IDisposable>());
+	private _clearTimeout: IDisposable | undefined;
 	private _lastAccessTimestamp: number = 0;
 
 	constructor() {
 		super();
+		this._register(toDisposable(() => this._clearTimeout?.dispose()));
 		this._register(toDisposable(() => this.entries.clear()));
 	}
 
@@ -42,7 +43,8 @@ export class BufferLineStringCache extends Disposable implements IBufferLineStri
 	}
 
 	public clear(): void {
-		this._clearTimeout.clear();
+		this._clearTimeout?.dispose();
+		this._clearTimeout = undefined;
 		this._lastAccessTimestamp = 0;
 		this.generation++;
 		for (const entry of this.entries) {
@@ -54,14 +56,15 @@ export class BufferLineStringCache extends Disposable implements IBufferLineStri
 
 	private _scheduleClear(): void {
 		this._lastAccessTimestamp = Date.now();
-		if (this._clearTimeout.value) {
+		if (this._clearTimeout) {
 			return;
 		}
 		this._scheduleClearTimeout(Constants.CACHE_TTL_MS);
 	}
 
 	private _scheduleClearTimeout(timeoutMs: number): void {
-		this._clearTimeout.value = disposableTimeout(() => {
+		this._clearTimeout?.dispose();
+		this._clearTimeout = disposableTimeout(() => {
 			const elapsed = Date.now() - this._lastAccessTimestamp;
 			if (elapsed >= Constants.CACHE_TTL_MS) {
 				this.clear();

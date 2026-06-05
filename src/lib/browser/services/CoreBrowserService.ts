@@ -6,7 +6,8 @@
 import type { ICoreBrowserService } from './Services';
 import { Emitter, EventUtils } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
-import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 
 export class CoreBrowserService extends Disposable implements ICoreBrowserService {
 	public serviceBrand: undefined;
@@ -75,7 +76,7 @@ class ScreenDprMonitor extends Disposable {
 	private _currentDevicePixelRatio: number;
 	private _outerListener: ((this: MediaQueryList, ev: MediaQueryListEvent) => void) | undefined;
 	private _resolutionMediaMatchList: MediaQueryList | undefined;
-	private _windowResizeListener = this._register(new MutableDisposable());
+	private _windowResizeListener: IDisposable | undefined;
 
 	private readonly _onDprChange = this._register(new Emitter<number>());
 	public readonly onDprChange = this._onDprChange.event;
@@ -92,6 +93,7 @@ class ScreenDprMonitor extends Disposable {
 		this._setWindowResizeListener();
 
 		// Setup additional disposables
+		this._register(toDisposable(() => this._windowResizeListener?.dispose()));
 		this._register(toDisposable(() => this.clearListener()));
 	}
 
@@ -102,7 +104,8 @@ class ScreenDprMonitor extends Disposable {
 	}
 
 	private _setWindowResizeListener(): void {
-		this._windowResizeListener.value = addDisposableListener(this._parentWindow, 'resize', () =>
+		this._windowResizeListener?.dispose();
+		this._windowResizeListener = addDisposableListener(this._parentWindow, 'resize', () =>
 			this._setDprAndFireIfDiffers()
 		);
 	}

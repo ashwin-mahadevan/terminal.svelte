@@ -93,7 +93,7 @@ import { Linkifier } from './Linkifier';
 import { Emitter, EventUtils } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
-import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { toDisposable } from '$lib/common/Lifecycle';
 
 export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 	public textarea: HTMLTextAreaElement | undefined;
@@ -105,11 +105,9 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 	private _helperContainer: HTMLElement | undefined;
 	private _compositionView: HTMLElement | undefined;
 
-	private readonly _linkifier: MutableDisposable<ILinkifier2> = this._register(
-		new MutableDisposable()
-	);
+	private _linkifier: ILinkifier2 | undefined;
 	public get linkifier(): ILinkifier2 | undefined {
-		return this._linkifier.value;
+		return this._linkifier;
 	}
 	private _overviewRulerRenderer: OverviewRulerRenderer | undefined;
 	private _viewport: Viewport | undefined;
@@ -163,9 +161,7 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 	private _unprocessedDeadKey: boolean = false;
 
 	private _compositionHelper: ICompositionHelper | undefined;
-	private _accessibilityManager: MutableDisposable<AccessibilityManager> = this._register(
-		new MutableDisposable()
-	);
+	private _accessibilityManager: AccessibilityManager | undefined;
 
 	private readonly _onCursorMove = this._register(new Emitter<void>());
 	public readonly onCursorMove = this._onCursorMove.event;
@@ -257,6 +253,7 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 
 		this._register(
 			toDisposable(() => {
+				this._accessibilityManager?.dispose();
 				this._customKeyEventHandler = undefined;
 				this.element?.parentNode?.removeChild(this.element);
 			})
@@ -362,14 +359,15 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 
 	private _handleScreenReaderModeOptionChange(value: boolean): void {
 		if (value) {
-			if (!this._accessibilityManager.value && this._renderService) {
-				this._accessibilityManager.value = this._instantiationService.createInstance(
+			if (!this._accessibilityManager && this._renderService) {
+				this._accessibilityManager = this._instantiationService.createInstance(
 					AccessibilityManager,
 					this
 				);
 			}
 		} else {
-			this._accessibilityManager.clear();
+			this._accessibilityManager?.dispose();
+			this._accessibilityManager = undefined;
 		}
 	}
 
@@ -725,7 +723,7 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		this._mouseCoordsService = this._instantiationService.createInstance(MouseCoordsService);
 		this._instantiationService.setService(IMouseCoordsService, this._mouseCoordsService);
 
-		const linkifier = (this._linkifier.value = this._register(
+		const linkifier = (this._linkifier = this._register(
 			this._instantiationService.createInstance(Linkifier, this.screenElement)
 		));
 
@@ -829,7 +827,7 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		if (this.options.screenReaderMode) {
 			// Note that this must be done *after* the renderer is created in order to
 			// ensure the correct order of the dprchange event
-			this._accessibilityManager.value = this._instantiationService.createInstance(
+			this._accessibilityManager = this._instantiationService.createInstance(
 				AccessibilityManager,
 				this
 			);
