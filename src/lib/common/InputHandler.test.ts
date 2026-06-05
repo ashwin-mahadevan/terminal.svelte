@@ -16,7 +16,6 @@ import {
 	MockCoreService,
 	MockBufferService,
 	MockOptionsService,
-	MockLogService,
 	MockMouseStateService,
 	MockCharsetService,
 	MockUnicodeService,
@@ -84,16 +83,15 @@ describe('InputHandler', () => {
 
 	beforeEach(() => {
 		optionsService = new MockOptionsService();
-		bufferService = new BufferService(optionsService, new MockLogService());
+		bufferService = new BufferService(optionsService);
 		bufferService.resize(80, 30);
-		coreService = new CoreService(bufferService, new MockLogService(), optionsService);
+		coreService = new CoreService(bufferService, optionsService);
 		oscLinkService = new OscLinkService(bufferService);
 
 		inputHandler = new TestInputHandler(
 			bufferService,
 			new MockCharsetService(),
 			coreService,
-			new MockLogService(),
 			optionsService,
 			oscLinkService,
 			new MockMouseStateService(),
@@ -370,7 +368,6 @@ describe('InputHandler', () => {
 				new MockBufferService(80, 30),
 				new MockCharsetService(),
 				coreService,
-				new MockLogService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -390,7 +387,6 @@ describe('InputHandler', () => {
 				new MockBufferService(80, 30),
 				new MockCharsetService(),
 				coreService,
-				new MockLogService(),
 				optionsService,
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -411,7 +407,6 @@ describe('InputHandler', () => {
 				new MockBufferService(80, 30),
 				new MockCharsetService(),
 				coreService,
-				new MockLogService(),
 				optionsService,
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -436,7 +431,6 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService(),
 				new MockCoreService(),
-				new MockLogService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -492,7 +486,6 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService(),
 				new MockCoreService(),
-				new MockLogService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -551,7 +544,6 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService(),
 				new MockCoreService(),
-				new MockLogService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -593,7 +585,6 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService(),
 				new MockCoreService(),
-				new MockLogService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -643,7 +634,6 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService(),
 				new MockCoreService(),
-				new MockLogService(),
 				new MockOptionsService({ scrollOnEraseInDisplay: true }),
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -675,7 +665,6 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService(),
 				new MockCoreService(),
-				new MockLogService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -798,7 +787,6 @@ describe('InputHandler', () => {
 				new MockBufferService(80, 30),
 				new MockCharsetService(),
 				new MockCoreService(),
-				new MockLogService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -834,7 +822,6 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService(),
 				new MockCoreService(),
-				new MockLogService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -1062,7 +1049,6 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService(),
 				coreService,
-				new MockLogService(),
 				optionsService,
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -2866,14 +2852,13 @@ describe('InputHandler', () => {
 
 		beforeEach(() => {
 			optionsService = new MockOptionsService({ vtExtensions: { kittyKeyboard: true } });
-			bufferService = new BufferService(optionsService, new MockLogService());
+			bufferService = new BufferService(optionsService);
 			bufferService.resize(80, 30);
-			coreService = new CoreService(bufferService, new MockLogService(), optionsService);
+			coreService = new CoreService(bufferService, optionsService);
 			inputHandler = new TestInputHandler(
 				bufferService,
 				new MockCharsetService(),
 				coreService,
-				new MockLogService(),
 				optionsService,
 				new MockOscLinkService(),
 				new MockMouseStateService(),
@@ -2924,9 +2909,9 @@ describe('InputHandler', () => {
 
 		beforeEach(() => {
 			optionsService = new MockOptionsService();
-			bufferService = new BufferService(optionsService, new MockLogService());
+			bufferService = new BufferService(optionsService);
 			bufferService.resize(80, 30);
-			coreService = new CoreService(bufferService, new MockLogService(), optionsService);
+			coreService = new CoreService(bufferService, optionsService);
 			coreService.onData((data) => {
 				console.log(data);
 			});
@@ -2935,7 +2920,6 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService(),
 				coreService,
-				new MockLogService(),
 				optionsService,
 				new MockOscLinkService(),
 				new MockMouseStateService(),

@@ -13,7 +13,7 @@ import {
 	toDisposable
 } from '$lib/common/Lifecycle';
 import type { IDecorationService, IInternalDecoration } from '$lib/common/services/Services';
-import { IBufferService, ILogService } from '$lib/common/services/Services';
+import { IBufferService } from '$lib/common/services/Services';
 import { SortedList } from '$lib/common/SortedList';
 import type { IColor, ICircularList } from '$lib/common/Types';
 import type { IDecoration, IDecorationOptions, IMarker } from '$lib/xterm';
@@ -46,13 +46,10 @@ export class DecorationService extends Disposable implements IDecorationService 
 		return this._decorations.values();
 	}
 
-	constructor(
-		@ILogService private readonly _logService: ILogService,
-		@IBufferService private readonly _bufferService: IBufferService
-	) {
+	constructor(@IBufferService private readonly _bufferService: IBufferService) {
 		super();
 
-		this._decorations = new SortedList((e) => e?.marker.line, this._logService);
+		this._decorations = new SortedList((e) => e?.marker.line);
 
 		this._register(toDisposable(() => this.reset()));
 		this._register(

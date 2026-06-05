@@ -4,7 +4,6 @@
  */
 
 import { IdleTaskQueue } from '$lib/common/TaskQueue';
-import type { ILogService } from '$lib/common/services/Services';
 
 // Work variables to avoid garbage collection.
 let i = 0;
@@ -26,12 +25,9 @@ export class SortedList<T> {
 	private readonly _flushDeletedTask: InstanceType<typeof IdleTaskQueue>;
 	private _isFlushingDeleted = false;
 
-	constructor(
-		private readonly _getKey: (value: T) => number,
-		logService: ILogService
-	) {
-		this._flushInsertedTask = new IdleTaskQueue(logService);
-		this._flushDeletedTask = new IdleTaskQueue(logService);
+	constructor(private readonly _getKey: (value: T) => number) {
+		this._flushInsertedTask = new IdleTaskQueue();
+		this._flushDeletedTask = new IdleTaskQueue();
 	}
 
 	public clear(): void {

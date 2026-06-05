@@ -48,6 +48,7 @@ export default defineConfig({
 		}
 	},
 	test: {
+		onConsoleLog: () => false,
 		expect: { requireAssertions: true },
 		projects: [
 			{

@@ -3,8 +3,6 @@
  * @license MIT
  */
 
-import type { ILogService } from '$lib/common/services/Services';
-
 interface ITaskQueue {
 	/**
 	 * Adds a task to the queue which will run in a future idle callback.
@@ -34,11 +32,6 @@ abstract class TaskQueue implements ITaskQueue {
 	private _tasks: (() => boolean | void)[] = [];
 	private _idleCallback?: number;
 	private _i = 0;
-	protected readonly _logService: ILogService;
-
-	constructor(logService: ILogService) {
-		this._logService = logService;
-	}
 
 	protected abstract _requestCallback(callback: CallbackWithDeadline): number;
 	protected abstract _cancelCallback(identifier: number): void;
@@ -95,7 +88,7 @@ abstract class TaskQueue implements ITaskQueue {
 				// Warn when the time exceeding the deadline is over 20ms, if this happens in practice the
 				// task should be split into sub-tasks to ensure the UI remains responsive.
 				if (lastDeadlineRemaining - taskDuration < -20) {
-					this._logService.warn(
+					console.warn(
 						`task queue exceeded allotted deadline by ${Math.abs(Math.round(lastDeadlineRemaining - taskDuration))}ms`
 					);
 				}
@@ -161,8 +154,8 @@ export const IdleTaskQueue =
 export class DebouncedIdleTask {
 	private _queue: ITaskQueue;
 
-	constructor(logService: ILogService) {
-		this._queue = new IdleTaskQueue(logService);
+	constructor() {
+		this._queue = new IdleTaskQueue();
 	}
 
 	public set(task: () => boolean | void): void {

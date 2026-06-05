@@ -8,7 +8,7 @@ import { DecorationLineCache, DecorationService } from '$lib/common/services/Dec
 import type { IMarker } from '$lib/common/Types';
 import { Disposable } from '$lib/common/Lifecycle';
 import { Emitter } from '$lib/common/Event';
-import { MockLogService, MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
+import { MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 
@@ -25,7 +25,7 @@ function createFakeMarker(line: number): IMarker {
 
 function createDecorationService(): DecorationService {
 	const bufferService = new MockBufferService(80, 24, new MockOptionsService());
-	return new DecorationService(new MockLogService(), bufferService);
+	return new DecorationService(bufferService);
 }
 
 const fakeMarker: IMarker = createFakeMarker(1);
@@ -111,7 +111,7 @@ describe('DecorationService', () => {
 
 		it('should find multi-line decoration when single-line decorations exist on other lines', () => {
 			const bufferService = new MockBufferService(80, 24, new MockOptionsService());
-			const serviceWithBuffer = new DecorationService(new MockLogService(), bufferService);
+			const serviceWithBuffer = new DecorationService(bufferService);
 			const buffer = bufferService.buffer;
 			(buffer as Buffer).fillViewportRows();
 
@@ -161,7 +161,7 @@ describe('DecorationService', () => {
 	describe('line index maintenance', () => {
 		it('should keep lookups correct after buffer trim', () => {
 			const bufferService = new MockBufferService(80, 5, new MockOptionsService({ scrollback: 0 }));
-			const service = new DecorationService(new MockLogService(), bufferService);
+			const service = new DecorationService(bufferService);
 			const buffer = bufferService.buffer;
 			(buffer as Buffer).fillViewportRows();
 
@@ -178,7 +178,7 @@ describe('DecorationService', () => {
 
 		it('should remove decoration from line index when marker is trimmed off buffer', () => {
 			const bufferService = new MockBufferService(80, 5, new MockOptionsService({ scrollback: 0 }));
-			const service = new DecorationService(new MockLogService(), bufferService);
+			const service = new DecorationService(bufferService);
 			const buffer = bufferService.buffer;
 			(buffer as Buffer).fillViewportRows();
 
@@ -201,7 +201,7 @@ describe('DecorationService', () => {
 				10,
 				new MockOptionsService({ scrollback: 100 })
 			);
-			const service = new DecorationService(new MockLogService(), bufferService);
+			const service = new DecorationService(bufferService);
 			const buffer = bufferService.buffer;
 			(buffer as Buffer).fillViewportRows();
 

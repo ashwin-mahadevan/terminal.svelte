@@ -42,6 +42,9 @@ run = "pnpm exec vite build"
 depends = ["install"]
 run = "pnpm exec vite preview"
 
+[tasks.checks]
+depends = ["check:*"]
+
 [tasks."check:format"]
 depends = ["install"]
 run = "pnpm exec prettier --check ."
@@ -53,6 +56,9 @@ run = "pnpm exec eslint ."
 [tasks."check:types"]
 depends = ["install"]
 run = "pnpm exec svelte-kit sync && pnpm exec svelte-check --tsconfig ./tsconfig.json"
+
+[tasks.tests]
+depends = ["test:*"]
 
 [tasks."test:browser"]
 depends = ["install:playwright", "build"]

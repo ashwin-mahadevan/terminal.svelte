@@ -8,7 +8,6 @@ import {
 	IBufferService,
 	IMouseStateService,
 	ICoreService,
-	ILogService,
 	IOptionsService
 } from '$lib/common/services/Services';
 import type { ICoreMouseEvent, IDisposable } from '$lib/common/Types';
@@ -56,7 +55,6 @@ export class MouseService implements IMouseService {
 		@IBufferService private readonly _bufferService: IBufferService,
 		@IOptionsService private readonly _optionsService: IOptionsService,
 		@ISelectionService private readonly _selectionService: ISelectionService,
-		@ILogService private readonly _logService: ILogService,
 		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService
 	) {}
 
@@ -476,10 +474,10 @@ export class MouseService implements IMouseService {
 		// apply global changes on events
 		if (events) {
 			if (this._optionsService.rawOptions.logLevel === 'debug') {
-				this._logService.debug('Binding to mouse events:', this._explainEvents(events));
+				console.debug('Binding to mouse events:', this._explainEvents(events));
 			}
 		} else {
-			this._logService.debug('Unbinding from mouse events.');
+			console.debug('Unbinding from mouse events.');
 		}
 		this._syncMouseModeState(element);
 		this._altMouseCursor?.sync();

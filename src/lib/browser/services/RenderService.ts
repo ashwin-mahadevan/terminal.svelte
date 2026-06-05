@@ -18,7 +18,6 @@ import {
 	IBufferService,
 	ICoreService,
 	IDecorationService,
-	ILogService,
 	IOptionsService
 } from '$lib/common/services/Services';
 import { Emitter } from '$lib/common/Event';
@@ -76,7 +75,6 @@ export class RenderService extends Disposable implements IRenderService {
 		private _rowCount: number,
 		screenElement: HTMLElement,
 		@IOptionsService private readonly _optionsService: IOptionsService,
-		@ILogService private readonly _logService: ILogService,
 		@ICharSizeService private readonly _charSizeService: ICharSizeService,
 		@ICoreService private readonly _coreService: ICoreService,
 		@IDecorationService decorationService: IDecorationService,
@@ -86,7 +84,7 @@ export class RenderService extends Disposable implements IRenderService {
 	) {
 		super();
 
-		this._pausedResizeTask = this._register(new DebouncedIdleTask(this._logService));
+		this._pausedResizeTask = this._register(new DebouncedIdleTask());
 
 		this._renderDebouncer = new RenderDebouncer(
 			(start, end) => this._renderRows(start, end),
