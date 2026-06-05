@@ -66,7 +66,9 @@ function getOnlyIntervalCallback(window: FakeWindow): () => void {
 	const first = iterator.next();
 	expect(first.done).toBeFalsy();
 	expect(iterator.next().done).toBeTruthy();
-	return first.value;
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return first.value as any;
 }
 
 describe('TextBlinkStateManager', () => {

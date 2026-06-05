@@ -140,7 +140,9 @@ describe('MouseService _triggerMouseEvent', () => {
 		} as any;
 
 		mouseService = new MouseService(
-			new MockRenderService(),
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			new MockRenderService() as any,
 			{
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -157,9 +159,13 @@ describe('MouseService _triggerMouseEvent', () => {
 			coreService,
 			bufferService,
 			optionsService,
-			new MockSelectionService(),
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			new MockSelectionService() as any,
 			logService,
-			new MockCoreBrowserService()
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			new MockCoreBrowserService() as any
 		);
 	});
 
@@ -932,7 +938,9 @@ describe('MouseService mouseEventsRequireAlt', () => {
 		const optionsService = new OptionsService({});
 		const selectionService = new TestSelectionService();
 		const mouseService = new MouseService(
-			new MockRenderService(),
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			new MockRenderService() as any,
 			{
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -955,9 +963,13 @@ describe('MouseService mouseEventsRequireAlt', () => {
 			} as any,
 			bufferService,
 			optionsService,
-			selectionService,
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			selectionService as any,
 			logService,
-			new MockCoreBrowserService()
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			new MockCoreBrowserService() as any
 		);
 		const element = createTestMouseTargetElement();
 		const screenElement = createTestMouseTargetElement();
@@ -998,7 +1010,9 @@ describe('MouseService mouseEventsRequireAlt', () => {
 		const optionsService = new OptionsService({ mouseEventsRequireAlt: true });
 		const reports: string[] = [];
 		const mouseService = new MouseService(
-			new MockRenderService(),
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			new MockRenderService() as any,
 			{
 				getMouseReportCoords: () => ({ col: 0, row: 0, x: 0, y: 0 })
 				// TODO: Fix this upstream type error.
@@ -1014,9 +1028,13 @@ describe('MouseService mouseEventsRequireAlt', () => {
 			} as any,
 			bufferService,
 			optionsService,
-			new TestSelectionService(),
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			new TestSelectionService() as any,
 			logService,
-			new MockCoreBrowserService()
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			new MockCoreBrowserService() as any
 		);
 		const ctx = {
 			target: {

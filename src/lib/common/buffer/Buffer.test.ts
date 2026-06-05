@@ -1311,7 +1311,9 @@ describe('Buffer', () => {
 						handler();
 					}
 				});
-				return id as ReturnType<typeof setTimeout>;
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				return id as any as ReturnType<typeof setTimeout>;
 			}) as typeof setTimeout;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
