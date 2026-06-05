@@ -8,7 +8,7 @@ import type { IThemeService } from '$lib/browser/services/Services';
 import type { IColorContrastCache, IColorSet, ReadonlyColorSet } from '$lib/browser/Types';
 import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 import { color, css, NULL_COLOR } from '$lib/common/Color';
-import { Disposable } from '$lib/common/Lifecycle';
+import { DisposableStore } from '$lib/common/Lifecycle';
 import type { ITheme } from '$lib/common/services/Services';
 import { IOptionsService } from '$lib/common/services/Services';
 import type { AllColorIndex, IColor } from '$lib/common/Types';
@@ -32,7 +32,8 @@ const DEFAULT_SELECTION = {
 };
 const DEFAULT_OVERVIEW_RULER_BORDER = DEFAULT_FOREGROUND;
 
-export class ThemeService extends Disposable implements IThemeService {
+export class ThemeService implements IThemeService {
+	private readonly _store = new DisposableStore();
 	public serviceBrand: undefined;
 
 	private _colors: IColorSet;
@@ -44,12 +45,10 @@ export class ThemeService extends Disposable implements IThemeService {
 		return this._colors;
 	}
 
-	private readonly _onChangeColors = this._register(new Emitter<ReadonlyColorSet>());
+	private readonly _onChangeColors = this._store.add(new Emitter<ReadonlyColorSet>());
 	public readonly onChangeColors = this._onChangeColors.event;
 
 	constructor(@IOptionsService private readonly _optionsService: IOptionsService) {
-		super();
-
 		this._colors = {
 			foreground: DEFAULT_FOREGROUND,
 			background: DEFAULT_BACKGROUND,
@@ -71,16 +70,20 @@ export class ThemeService extends Disposable implements IThemeService {
 		this._updateRestoreColors();
 		this._setTheme(this._optionsService.rawOptions.theme);
 
-		this._register(
+		this._store.add(
 			this._optionsService.onSpecificOptionChange('minimumContrastRatio', () =>
 				this._contrastCache.clear()
 			)
 		);
-		this._register(
+		this._store.add(
 			this._optionsService.onSpecificOptionChange('theme', () =>
 				this._setTheme(this._optionsService.rawOptions.theme)
 			)
 		);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	/**
