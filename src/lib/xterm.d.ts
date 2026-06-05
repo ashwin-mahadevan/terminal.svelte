@@ -176,6 +176,24 @@ export interface ITerminalOptions {
 	linkHandler?: ILinkHandler | null;
 
 	/**
+	 * What log level to use, this will log for all levels below and including
+	 * what is set:
+	 *
+	 * 1. trace
+	 * 2. debug
+	 * 3. info (default)
+	 * 4. warn
+	 * 5. error
+	 * 6. off
+	 */
+	logLevel?: LogLevel;
+
+	/**
+	 * A logger to use instead of `console`.
+	 */
+	logger?: ILogger | null;
+
+	/**
 	 * Whether to treat option as the meta key.
 	 */
 	macOptionIsMeta?: boolean;
@@ -511,6 +529,47 @@ export interface IWindowsPty {
 	 * The Windows build version (eg. 19045)
 	 */
 	buildNumber?: number;
+}
+
+/**
+ * A replacement logger for `console`.
+ */
+export interface ILogger {
+	/**
+	 * Log a trace message, this will only be called if
+	 * {@link ITerminalOptions.logLevel} is set to trace.
+	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	trace(message: string, ...args: any[]): void;
+	/**
+	 * Log a debug message, this will only be called if
+	 * {@link ITerminalOptions.logLevel} is set to debug or below.
+	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	debug(message: string, ...args: any[]): void;
+	/**
+	 * Log a debug message, this will only be called if
+	 * {@link ITerminalOptions.logLevel} is set to info or below.
+	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	info(message: string, ...args: any[]): void;
+	/**
+	 * Log a debug message, this will only be called if
+	 * {@link ITerminalOptions.logLevel} is set to warn or below.
+	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	warn(message: string, ...args: any[]): void;
+	/**
+	 * Log a debug message, this will only be called if
+	 * {@link ITerminalOptions.logLevel} is set to error or below.
+	 */
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	error(message: string | Error, ...args: any[]): void;
 }
 
 /**

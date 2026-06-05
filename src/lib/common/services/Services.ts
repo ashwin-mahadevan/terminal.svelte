@@ -7,6 +7,7 @@ import type {
 	IDecoration,
 	IDecorationOptions,
 	ILinkHandler,
+	ILogger,
 	IWindowsPty,
 	IOverviewRulerOptions
 } from '$lib/xterm';
@@ -294,6 +295,7 @@ export interface ITerminalOptions {
 	lineHeight?: number;
 	linkHandler?: ILinkHandler | null;
 	logLevel?: LogLevel;
+	logger?: ILogger | null;
 	macOptionIsMeta?: boolean;
 	macOptionClickForcesSelection?: boolean;
 	minimumContrastRatio?: number;
