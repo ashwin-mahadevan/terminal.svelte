@@ -1,15 +1,19 @@
 import type { ILinkProvider, ILinkProviderService } from '$lib/browser/services/Services';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Types';
 
-export class LinkProviderService extends Disposable implements ILinkProviderService {
+export class LinkProviderService implements ILinkProviderService {
+	private readonly _store = new DisposableStore();
 	declare public serviceBrand: undefined;
 
 	public readonly linkProviders: ILinkProvider[] = [];
 
 	constructor() {
-		super();
-		this._register(toDisposable(() => (this.linkProviders.length = 0)));
+		this._store.add(toDisposable(() => (this.linkProviders.length = 0)));
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public registerLinkProvider(linkProvider: ILinkProvider): IDisposable {
