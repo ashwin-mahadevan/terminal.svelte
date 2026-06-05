@@ -22,17 +22,12 @@ describe('Emitter', () => {
 		expect(received).toBe(42);
 	});
 
-	it('should fire with 1 listener using thisArgs', () => {
+	it('should fire with 1 listener', () => {
 		const emitter = new Emitter<number>();
-		const obj = {
-			value: 0,
-			handler(e: number) {
-				this.value = e;
-			}
-		};
-		emitter.event(obj.handler, obj);
+		let value = 0;
+		emitter.event((e) => { value = e; });
 		emitter.fire(42);
-		expect(obj.value).toBe(42);
+		expect(value).toBe(42);
 	});
 
 	it('should fire with multiple listeners', () => {

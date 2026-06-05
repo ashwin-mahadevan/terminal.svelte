@@ -10,18 +10,11 @@ import type { IDisposable } from '$lib/common/Lifecycle';
 import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 
 export interface IEvent<T> {
-	(
-		listener: (e: T) => void,
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		thisArgs?: any
-	): IDisposable;
+	(listener: (e: T) => void): IDisposable;
 }
 
 export class Emitter<T> {
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private _listeners: { fn: (e: T) => void; thisArgs: any }[] = [];
+	private _listeners: ((e: T) => void)[] = [];
 	private _disposed = false;
 	private _event: IEvent<T> | undefined;
 
@@ -29,21 +22,15 @@ export class Emitter<T> {
 		if (this._event) {
 			return this._event;
 		}
-		this._event = (
-			listener: (e: T) => void,
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			thisArgs?: any
-		) => {
+		this._event = (listener: (e: T) => void) => {
 			if (this._disposed) {
 				return toDisposable(() => {});
 			}
 
-			const entry = { fn: listener, thisArgs };
-			this._listeners.push(entry);
+			this._listeners.push(listener);
 
 			return toDisposable(() => {
-				const idx = this._listeners.indexOf(entry);
+				const idx = this._listeners.indexOf(listener);
 				if (idx !== -1) {
 					this._listeners.splice(idx, 1);
 				}
@@ -59,16 +46,13 @@ export class Emitter<T> {
 		switch (this._listeners.length) {
 			case 0:
 				return;
-			case 1: {
-				const { fn, thisArgs } = this._listeners[0];
-				fn.call(thisArgs, event);
+			case 1:
+				this._listeners[0](event);
 				return;
-			}
 			default: {
 				// Snapshot listeners to allow modifications during iteration (2+ listeners)
-				const listeners = this._listeners.slice();
-				for (const { fn, thisArgs } of listeners) {
-					fn.call(thisArgs, event);
+				for (const listener of this._listeners.slice()) {
+					listener(event);
 				}
 			}
 		}
@@ -91,30 +75,17 @@ export namespace EventUtils {
 	}
 
 	export function map<I, O>(event: IEvent<I>, map: (i: I) => O): IEvent<O> {
-		return (
-			listener: (e: O) => void,
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			thisArgs?: any
-		) => {
-			return event((i) => listener.call(thisArgs, map(i)));
-		};
+		return (listener: (e: O) => void) => event((i) => listener(map(i)));
 	}
 
 	export function any<T>(...events: IEvent<T>[]): IEvent<T>;
-	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export function any(...events: IEvent<any>[]): IEvent<void>;
 	export function any<T>(...events: IEvent<T>[]): IEvent<T> {
-		return (
-			listener: (e: T) => void,
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			thisArgs?: any
-		) => {
+		return (listener: (e: T) => void) => {
 			const store = new DisposableStore();
 			for (const event of events) {
-				store.add(event((e) => listener.call(thisArgs, e)));
+				store.add(event((e) => listener(e)));
 			}
 			return store;
 		};
