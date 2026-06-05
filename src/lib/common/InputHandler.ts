@@ -17,7 +17,7 @@ import { ColorRequestType, SpecialColorIndex } from '$lib/common/Types';
 import { C0, C1 } from '$lib/common/data/EscapeSequences';
 import { CHARSETS, DEFAULT_CHARSET } from '$lib/common/data/Charsets';
 import { EscapeSequenceParser } from '$lib/common/parser/EscapeSequenceParser';
-import { Disposable } from '$lib/common/Lifecycle';
+import { DisposableStore } from '$lib/common/Lifecycle';
 import { StringToUtf32, stringFromCodePoint, Utf8ToUtf32 } from '$lib/common/input/TextDecoder';
 import { BufferLine, DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import type {
@@ -148,7 +148,8 @@ let $temp = 0;
  * Refer to http://invisible-island.net/xterm/ctlseqs/ctlseqs.html to understand
  * each function's header comment.
  */
-export class InputHandler extends Disposable implements IInputHandler {
+export class InputHandler implements IInputHandler {
+	private readonly _store = new DisposableStore();
 	private _parseBuffer: Uint32Array = new Uint32Array(4096);
 	private _stringDecoder: StringToUtf32 = new StringToUtf32();
 	private _utf8Decoder: Utf8ToUtf32 = new Utf8ToUtf32();
@@ -166,38 +167,38 @@ export class InputHandler extends Disposable implements IInputHandler {
 
 	private _activeBuffer: IBuffer;
 
-	private readonly _onRequestBell = this._register(new Emitter<void>());
+	private readonly _onRequestBell = this._store.add(new Emitter<void>());
 	public readonly onRequestBell = this._onRequestBell.event;
-	private readonly _onRequestRefreshRows = this._register(
+	private readonly _onRequestRefreshRows = this._store.add(
 		new Emitter<{ start: number; end: number } | undefined>()
 	);
 	public readonly onRequestRefreshRows = this._onRequestRefreshRows.event;
-	private readonly _onRequestReset = this._register(new Emitter<void>());
+	private readonly _onRequestReset = this._store.add(new Emitter<void>());
 	public readonly onRequestReset = this._onRequestReset.event;
-	private readonly _onRequestSendFocus = this._register(new Emitter<void>());
+	private readonly _onRequestSendFocus = this._store.add(new Emitter<void>());
 	public readonly onRequestSendFocus = this._onRequestSendFocus.event;
-	private readonly _onRequestSyncScrollBar = this._register(new Emitter<void>());
+	private readonly _onRequestSyncScrollBar = this._store.add(new Emitter<void>());
 	public readonly onRequestSyncScrollBar = this._onRequestSyncScrollBar.event;
-	private readonly _onRequestWindowsOptionsReport = this._register(
+	private readonly _onRequestWindowsOptionsReport = this._store.add(
 		new Emitter<WindowsOptionsReportType>()
 	);
 	public readonly onRequestWindowsOptionsReport = this._onRequestWindowsOptionsReport.event;
 
-	private readonly _onA11yChar = this._register(new Emitter<string>());
+	private readonly _onA11yChar = this._store.add(new Emitter<string>());
 	public readonly onA11yChar = this._onA11yChar.event;
-	private readonly _onA11yTab = this._register(new Emitter<number>());
+	private readonly _onA11yTab = this._store.add(new Emitter<number>());
 	public readonly onA11yTab = this._onA11yTab.event;
-	private readonly _onCursorMove = this._register(new Emitter<void>());
+	private readonly _onCursorMove = this._store.add(new Emitter<void>());
 	public readonly onCursorMove = this._onCursorMove.event;
-	private readonly _onLineFeed = this._register(new Emitter<void>());
+	private readonly _onLineFeed = this._store.add(new Emitter<void>());
 	public readonly onLineFeed = this._onLineFeed.event;
-	private readonly _onScroll = this._register(new Emitter<number>());
+	private readonly _onScroll = this._store.add(new Emitter<number>());
 	public readonly onScroll = this._onScroll.event;
-	private readonly _onTitleChange = this._register(new Emitter<string>());
+	private readonly _onTitleChange = this._store.add(new Emitter<string>());
 	public readonly onTitleChange = this._onTitleChange.event;
-	private readonly _onColor = this._register(new Emitter<IColorEvent>());
+	private readonly _onColor = this._store.add(new Emitter<IColorEvent>());
 	public readonly onColor = this._onColor.event;
-	private readonly _onRequestColorSchemeQuery = this._register(new Emitter<void>());
+	private readonly _onRequestColorSchemeQuery = this._store.add(new Emitter<void>());
 	public readonly onRequestColorSchemeQuery = this._onRequestColorSchemeQuery.event;
 
 	private _parseStack: IParseStack = {
@@ -218,13 +219,12 @@ export class InputHandler extends Disposable implements IInputHandler {
 		private readonly _unicodeService: IUnicodeService,
 		private readonly _parser: IEscapeSequenceParser = new EscapeSequenceParser()
 	) {
-		super();
-		this._register(this._parser);
+		this._store.add(this._parser);
 		this._dirtyRowTracker = new DirtyRowTracker(this._bufferService);
 
 		// Track properties used in performance critical code manually to avoid using slow getters
 		this._activeBuffer = this._bufferService.buffer;
-		this._register(
+		this._store.add(
 			this._bufferService.buffers.onBufferActivate((e) => (this._activeBuffer = e.activeBuffer))
 		);
 
@@ -525,6 +525,10 @@ export class InputHandler extends Disposable implements IInputHandler {
 			{ intermediates: '$', final: 'q' },
 			new DcsHandler((data, params) => this.requestStatusString(data, params))
 		);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	/**
