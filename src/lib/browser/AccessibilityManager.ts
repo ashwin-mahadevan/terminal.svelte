@@ -9,7 +9,6 @@ import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
 import { Disposable, toDisposable } from '$lib/common/Lifecycle';
 import { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
 import type { IBuffer } from '$lib/common/buffer/Types';
-import { IInstantiationService } from '$lib/common/services/Services';
 import { addDisposableListener } from '$lib/browser/Dom';
 
 const enum Constants {
@@ -55,7 +54,6 @@ export class AccessibilityManager extends Disposable {
 
 	constructor(
 		private readonly _terminal: ITerminal,
-		@IInstantiationService instantiationService: IInstantiationService,
 		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService,
 		@IRenderService private readonly _renderService: IRenderService
 	) {

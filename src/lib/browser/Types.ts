@@ -6,7 +6,6 @@
 import type { CharData, IColor, ICoreTerminal, ITerminalOptions } from '$lib/common/Types';
 import type { IBuffer } from '$lib/common/buffer/Types';
 import type {
-	IDisposable,
 	IRenderDimensions as IRenderDimensionsApi,
 	Terminal as ITerminalApi
 } from '$lib/xterm';
