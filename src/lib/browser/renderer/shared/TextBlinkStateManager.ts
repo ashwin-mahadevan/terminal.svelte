@@ -4,10 +4,11 @@
  */
 
 import type { ICoreBrowserService } from '$lib/browser/services/Services';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import type { IOptionsService } from '$lib/common/services/Services';
 
-export class TextBlinkStateManager extends Disposable {
+export class TextBlinkStateManager {
+	private readonly _store = new DisposableStore();
 	private _intervalDuration: number = 0;
 	private _interval: number | undefined;
 	private _blinkOn: boolean = true;
@@ -19,14 +20,17 @@ export class TextBlinkStateManager extends Disposable {
 		private readonly _coreBrowserService: ICoreBrowserService,
 		private readonly _optionsService: IOptionsService
 	) {
-		super();
-		this._register(
+		this._store.add(
 			this._optionsService.onSpecificOptionChange('blinkIntervalDuration', (duration) => {
 				this.setIntervalDuration(duration);
 			})
 		);
 		this.setIntervalDuration(this._optionsService.rawOptions.blinkIntervalDuration);
-		this._register(toDisposable(() => this._clearInterval()));
+		this._store.add(toDisposable(() => this._clearInterval()));
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public get isBlinkOn(): boolean {
