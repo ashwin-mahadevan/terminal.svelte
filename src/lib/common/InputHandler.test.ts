@@ -84,7 +84,7 @@ describe('InputHandler', () => {
 
 	beforeEach(() => {
 		optionsService = new MockOptionsService();
-		bufferService = new BufferService(optionsService, new MockLogService());
+		bufferService = new BufferService(optionsService);
 		bufferService.resize(80, 30);
 		coreService = new CoreService(bufferService, new MockLogService(), optionsService);
 		oscLinkService = new OscLinkService(bufferService);
@@ -2866,7 +2866,7 @@ describe('InputHandler', () => {
 
 		beforeEach(() => {
 			optionsService = new MockOptionsService({ vtExtensions: { kittyKeyboard: true } });
-			bufferService = new BufferService(optionsService, new MockLogService());
+			bufferService = new BufferService(optionsService);
 			bufferService.resize(80, 30);
 			coreService = new CoreService(bufferService, new MockLogService(), optionsService);
 			inputHandler = new TestInputHandler(
@@ -2924,7 +2924,7 @@ describe('InputHandler', () => {
 
 		beforeEach(() => {
 			optionsService = new MockOptionsService();
-			bufferService = new BufferService(optionsService, new MockLogService());
+			bufferService = new BufferService(optionsService);
 			bufferService.resize(80, 30);
 			coreService = new CoreService(bufferService, new MockLogService(), optionsService);
 			coreService.onData((data) => {

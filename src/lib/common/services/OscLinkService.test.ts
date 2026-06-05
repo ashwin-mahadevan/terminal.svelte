@@ -13,7 +13,6 @@ import type {
 	IOptionsService,
 	IOscLinkService
 } from '$lib/common/services/Services';
-import { MockLogService } from '$lib/common/TestUtils';
 
 describe('OscLinkService', () => {
 	describe('constructor', () => {
@@ -22,7 +21,7 @@ describe('OscLinkService', () => {
 		let oscLinkService: IOscLinkService;
 		beforeEach(() => {
 			optionsService = new OptionsService({ rows: 3, cols: 10 });
-			bufferService = new BufferService(optionsService, new MockLogService());
+			bufferService = new BufferService(optionsService);
 			oscLinkService = new OscLinkService(bufferService);
 		});
 

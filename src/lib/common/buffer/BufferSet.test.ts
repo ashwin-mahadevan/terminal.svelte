@@ -6,12 +6,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import { Buffer } from '$lib/common/buffer/Buffer';
-import {
-	MockOptionsService,
-	MockBufferService,
-	MockLogService,
-	createCellData
-} from '$lib/common/TestUtils';
+import { MockOptionsService, MockBufferService, createCellData } from '$lib/common/TestUtils';
 
 describe('BufferSet', () => {
 	let bufferSet: BufferSet;
@@ -19,8 +14,7 @@ describe('BufferSet', () => {
 	beforeEach(() => {
 		bufferSet = new BufferSet(
 			new MockOptionsService({ scrollback: 1000 }),
-			new MockBufferService(80, 24),
-			new MockLogService()
+			new MockBufferService(80, 24)
 		);
 	});
 
