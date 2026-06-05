@@ -33,10 +33,12 @@ export class BufferSet extends Disposable implements IBufferSet {
 	) {
 		super();
 		this.reset();
-		this._register(toDisposable(() => {
-			this._normal.dispose();
-			this._alt.dispose();
-		}));
+		this._register(
+			toDisposable(() => {
+				this._normal.dispose();
+				this._alt.dispose();
+			})
+		);
 		this._register(
 			this._optionsService.onSpecificOptionChange('scrollback', () =>
 				this.resize(this._bufferService.cols, this._bufferService.rows)
