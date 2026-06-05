@@ -37,7 +37,7 @@ export function disposableTimeout(
 	return disposable;
 }
 
-export class TimeoutTimer implements IDisposable {
+export class TimeoutTimer {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _token: any = -1;
@@ -85,7 +85,7 @@ export class TimeoutTimer implements IDisposable {
  * microtask cannot be unqueued; {@link cancel} prevents the runner from executing if it has not
  * run yet.
  */
-export class MicrotaskTimer implements IDisposable {
+export class MicrotaskTimer {
 	private _isScheduled = false;
 	private _isDisposed = false;
 
@@ -116,7 +116,7 @@ export class MicrotaskTimer implements IDisposable {
 	}
 }
 
-export class IntervalTimer implements IDisposable {
+export class IntervalTimer {
 	private _disposable: IDisposable | undefined;
 	private _isDisposed = false;
 

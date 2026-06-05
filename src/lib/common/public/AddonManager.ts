@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { ITerminalAddon, IDisposable, Terminal } from '$lib/xterm';
+import type { ITerminalAddon, Terminal } from '$lib/xterm';
 
 export interface ILoadedAddon {
 	instance: ITerminalAddon;
@@ -11,7 +11,7 @@ export interface ILoadedAddon {
 	isDisposed: boolean;
 }
 
-export class AddonManager implements IDisposable {
+export class AddonManager {
 	protected _addons: ILoadedAddon[] = [];
 
 	public dispose(): void {

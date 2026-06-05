@@ -16,7 +16,6 @@ import type {
 	IMouseStateService,
 	ICharsetService,
 	IUnicodeService,
-	IDecorationService,
 	IOscLinkService
 } from '$lib/common/services/Services';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
@@ -322,7 +321,7 @@ export class MockUnicodeService implements IUnicodeService {
 	}
 }
 
-export class MockDecorationService implements IDecorationService {
+export class MockDecorationService {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;

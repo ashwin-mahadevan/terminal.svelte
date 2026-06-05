@@ -35,7 +35,7 @@ export function combinedDisposable(...disposables: IDisposable[]): IDisposable {
 	return toDisposable(() => dispose(disposables));
 }
 
-export class DisposableStore implements IDisposable {
+export class DisposableStore {
 	private readonly _disposables = new Set<IDisposable>();
 	private _isDisposed = false;
 
@@ -71,7 +71,7 @@ export class DisposableStore implements IDisposable {
 	}
 }
 
-export abstract class Disposable implements IDisposable {
+export abstract class Disposable {
 	public static readonly None: IDisposable = Object.freeze({ dispose() {} });
 
 	protected readonly _store = new DisposableStore();
@@ -85,7 +85,7 @@ export abstract class Disposable implements IDisposable {
 	}
 }
 
-export class MutableDisposable<T extends IDisposable> implements IDisposable {
+export class MutableDisposable<T extends IDisposable> {
 	private _value: T | undefined;
 	private _isDisposed = false;
 

@@ -667,7 +667,7 @@ export class MouseService implements IMouseService {
  * Toggles MouseEventCssClasses.ENABLE_MOUSE_EVENTS on the terminal element while alt is held when
  * `mouseEventsRequireAlt` is active. DOM listeners are only registered while active.
  */
-export class AltMouseCursorController implements IDisposable {
+export class AltMouseCursorController {
 	private readonly _listeners = new MutableDisposable<IDisposable>();
 
 	constructor(

@@ -22,7 +22,7 @@ export function getWindow(e: Node | UIEvent | undefined | null): Window {
 	return window;
 }
 
-class DomListener implements IDisposable {
+class DomListener {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _handler: ((e: any) => void) | null;
@@ -133,7 +133,7 @@ export function getDomNodePagePosition(domNode: HTMLElement): {
 	};
 }
 
-class AnimationFrameQueueItem implements IDisposable {
+class AnimationFrameQueueItem {
 	private _canceled = false;
 
 	constructor(

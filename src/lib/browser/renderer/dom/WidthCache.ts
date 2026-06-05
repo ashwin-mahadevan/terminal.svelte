@@ -4,7 +4,6 @@
  */
 
 import { throwIfFalsy } from '$lib/browser/renderer/shared/RendererUtils';
-import type { IDisposable } from '$lib/common/Types';
 import type { FontWeight } from '$lib/common/services/Services';
 
 export const enum WidthCacheSettings {
@@ -28,7 +27,7 @@ export interface IWidthCacheFontVariantCanvas {
 	measure(c: string): number;
 }
 
-export class WidthCache implements IDisposable {
+export class WidthCache {
 	// flat cache for regular variant up to CacheSettings.FLAT_SIZE
 	// NOTE: ~4x faster access than holey (serving >>80% of terminal content)
 	//       It has a small memory footprint (only 1MB for full BMP caching),

@@ -12,7 +12,7 @@ import {
 	MutableDisposable,
 	toDisposable
 } from '$lib/common/Lifecycle';
-import type { IDecorationService, IInternalDecoration } from '$lib/common/services/Services';
+import type { IInternalDecoration } from '$lib/common/services/Services';
 import { IBufferService } from '$lib/common/services/Services';
 import { SortedList } from '$lib/common/SortedList';
 import type { IColor, ICircularList } from '$lib/common/Types';
@@ -23,7 +23,7 @@ import { Emitter } from '$lib/common/Event';
 let $xmin = 0;
 let $xmax = 0;
 
-export class DecorationService extends Disposable implements IDecorationService {
+export class DecorationService extends Disposable {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;

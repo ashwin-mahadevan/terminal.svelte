@@ -4,13 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as dom from '../Dom';
-import type { IDisposable } from '$lib/common/Lifecycle';
 import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 
 type PointerMoveCallback = (event: PointerEvent) => void;
 type OnStopCallback = () => void;
 
-export class GlobalPointerMoveMonitor implements IDisposable {
+export class GlobalPointerMoveMonitor {
 	private readonly _hooks = new DisposableStore();
 	private _pointerMoveCallback: PointerMoveCallback | null = null;
 	private _onStopCallback: OnStopCallback | null = null;
