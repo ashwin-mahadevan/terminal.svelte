@@ -147,7 +147,6 @@ export abstract class CoreTerminal extends Disposable implements ICoreTerminal {
 				this._bufferService,
 				this._charsetService,
 				this.coreService,
-				this._logService,
 				this.optionsService,
 				this._oscLinkService,
 				this.mouseStateService,

@@ -40,7 +40,6 @@ import { AttributeData } from '$lib/common/buffer/AttributeData';
 import type {
 	ICoreService,
 	IOptionsService,
-	ILogService,
 	IMouseStateService,
 	ICharsetService,
 	IUnicodeService,
@@ -213,7 +212,6 @@ export class InputHandler extends Disposable implements IInputHandler {
 		private readonly _bufferService: IBufferService,
 		private readonly _charsetService: ICharsetService,
 		private readonly _coreService: ICoreService,
-		private readonly _logService: ILogService,
 		private readonly _optionsService: IOptionsService,
 		private readonly _oscLinkService: IOscLinkService,
 		private readonly _mouseStateService: IMouseStateService,
