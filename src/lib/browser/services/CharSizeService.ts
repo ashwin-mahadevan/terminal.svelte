@@ -5,10 +5,11 @@
 
 import { IOptionsService } from '$lib/common/services/Services';
 import type { ICharSizeService } from '$lib/browser/services/Services';
-import { Disposable } from '$lib/common/Lifecycle';
+import { DisposableStore } from '$lib/common/Lifecycle';
 import { Emitter } from '$lib/common/Event';
 
-export class CharSizeService extends Disposable implements ICharSizeService {
+export class CharSizeService implements ICharSizeService {
+	private readonly _store = new DisposableStore();
 	public serviceBrand: undefined;
 
 	public width: number = 0;
@@ -19,7 +20,7 @@ export class CharSizeService extends Disposable implements ICharSizeService {
 		return this.width > 0 && this.height > 0;
 	}
 
-	private readonly _onCharSizeChange = this._register(new Emitter<void>());
+	private readonly _onCharSizeChange = this._store.add(new Emitter<void>());
 	public readonly onCharSizeChange = this._onCharSizeChange.event;
 
 	constructor(
@@ -27,17 +28,20 @@ export class CharSizeService extends Disposable implements ICharSizeService {
 		parentElement: HTMLElement,
 		@IOptionsService private readonly _optionsService: IOptionsService
 	) {
-		super();
 		try {
-			this._measureStrategy = this._register(new TextMetricsMeasureStrategy(this._optionsService));
+			this._measureStrategy = this._store.add(new TextMetricsMeasureStrategy(this._optionsService));
 		} catch {
-			this._measureStrategy = this._register(
+			this._measureStrategy = this._store.add(
 				new DomMeasureStrategy(document, parentElement, this._optionsService)
 			);
 		}
-		this._register(
+		this._store.add(
 			this._optionsService.onMultipleOptionChange(['fontFamily', 'fontSize'], () => this.measure())
 		);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public measure(): void {
@@ -63,8 +67,13 @@ const enum DomMeasureStrategyConstants {
 	REPEAT = 32
 }
 
-abstract class BaseMeasureStategy extends Disposable implements IMeasureStrategy {
+abstract class BaseMeasureStategy implements IMeasureStrategy {
+	private readonly _store = new DisposableStore();
 	protected _result: IMeasureResult = { width: 0, height: 0 };
+
+	public dispose(): void {
+		this._store.dispose();
+	}
 
 	protected _validateAndSet(width: number | undefined, height: number | undefined): void {
 		// If values are 0 then the element is likely currently display:none, in which case we should
