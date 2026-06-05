@@ -8,7 +8,6 @@ import {
 	IBufferService,
 	IMouseStateService,
 	ICoreService,
-	ILogService,
 	IOptionsService
 } from '$lib/common/services/Services';
 import type { ICoreMouseEvent, IDisposable } from '$lib/common/Types';
@@ -56,7 +55,6 @@ export class MouseService implements IMouseService {
 		@IBufferService private readonly _bufferService: IBufferService,
 		@IOptionsService private readonly _optionsService: IOptionsService,
 		@ISelectionService private readonly _selectionService: ISelectionService,
-		@ILogService private readonly _logService: ILogService,
 		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService
 	) {}
 

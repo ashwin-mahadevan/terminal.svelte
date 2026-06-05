@@ -10,12 +10,7 @@ import {
 } from '$lib/browser/services/MouseService';
 import { MouseStateService } from '$lib/common/services/MouseStateService';
 import { CoreMouseAction, CoreMouseButton } from '$lib/common/Types';
-import type {
-	IBufferService,
-	ICoreService,
-	ILogService,
-	IOptionsService
-} from '$lib/common/services/Services';
+import type { IBufferService, ICoreService, IOptionsService } from '$lib/common/services/Services';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
 
@@ -77,15 +72,6 @@ const optionsService: IOptionsService = {
 		fastScrollSensitivity: 1,
 		scrollSensitivity: 1
 	}
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any;
-
-const logService: ILogService = {
-	debug: () => {},
-	info: () => {},
-	warn: () => {},
-	error: () => {}
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
@@ -162,7 +148,6 @@ describe('MouseService _triggerMouseEvent', () => {
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			new MockSelectionService() as any,
-			logService,
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			new MockCoreBrowserService() as any
@@ -966,7 +951,6 @@ describe('MouseService mouseEventsRequireAlt', () => {
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			selectionService as any,
-			logService,
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			new MockCoreBrowserService() as any
@@ -1031,7 +1015,6 @@ describe('MouseService mouseEventsRequireAlt', () => {
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			new TestSelectionService() as any,
-			logService,
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			new MockCoreBrowserService() as any
