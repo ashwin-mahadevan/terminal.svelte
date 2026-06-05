@@ -12,7 +12,7 @@ import {
 	ICoreBrowserService,
 	IThemeService
 } from '$lib/browser/services/Services';
-import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
 import {
 	IBufferService,
@@ -32,13 +32,14 @@ const enum Constants {
 	SYNCHRONIZED_OUTPUT_TIMEOUT_MS = 1000
 }
 
-export class RenderService extends Disposable implements IRenderService {
+export class RenderService implements IRenderService {
+	private readonly _store = new DisposableStore();
 	public serviceBrand: undefined;
 
-	private _renderer: MutableDisposable<IRenderer> = this._register(new MutableDisposable());
+	private _renderer: MutableDisposable<IRenderer> = this._store.add(new MutableDisposable());
 	private _renderDebouncer: IRenderDebouncerWithCallback;
 	private _pausedResizeTask: DebouncedIdleTask;
-	private _observerDisposable = this._register(new MutableDisposable());
+	private _observerDisposable = this._store.add(new MutableDisposable());
 	private _intersectionObserver: IntersectionObserver | undefined;
 
 	private _isPaused: boolean = false;
@@ -54,15 +55,15 @@ export class RenderService extends Disposable implements IRenderService {
 		columnSelectMode: false
 	};
 
-	private readonly _onDimensionsChange = this._register(new Emitter<IRenderDimensions>());
+	private readonly _onDimensionsChange = this._store.add(new Emitter<IRenderDimensions>());
 	public readonly onDimensionsChange = this._onDimensionsChange.event;
-	private readonly _onRenderedViewportChange = this._register(
+	private readonly _onRenderedViewportChange = this._store.add(
 		new Emitter<{ start: number; end: number }>()
 	);
 	public readonly onRenderedViewportChange = this._onRenderedViewportChange.event;
-	private readonly _onRender = this._register(new Emitter<{ start: number; end: number }>());
+	private readonly _onRender = this._store.add(new Emitter<{ start: number; end: number }>());
 	public readonly onRender = this._onRender.event;
-	private readonly _onRefreshRequest = this._register(
+	private readonly _onRefreshRequest = this._store.add(
 		new Emitter<{ start: number; end: number }>()
 	);
 	public readonly onRefreshRequest = this._onRefreshRequest.event;
@@ -82,38 +83,38 @@ export class RenderService extends Disposable implements IRenderService {
 		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService,
 		@IThemeService themeService: IThemeService
 	) {
-		super();
-
-		this._pausedResizeTask = this._register(new DebouncedIdleTask());
+		this._pausedResizeTask = this._store.add(new DebouncedIdleTask());
 
 		this._renderDebouncer = new RenderDebouncer(
 			(start, end) => this._renderRows(start, end),
 			this._coreBrowserService
 		);
-		this._register(this._renderDebouncer);
+		this._store.add(this._renderDebouncer);
 
 		this._syncOutputHandler = new SynchronizedOutputHandler(
 			this._coreBrowserService,
 			this._coreService,
 			() => this._fullRefresh()
 		);
-		this._register(toDisposable(() => this._syncOutputHandler.dispose()));
+		this._store.add(toDisposable(() => this._syncOutputHandler.dispose()));
 
-		this._register(this._coreBrowserService.onDprChange(() => this.handleDevicePixelRatioChange()));
+		this._store.add(
+			this._coreBrowserService.onDprChange(() => this.handleDevicePixelRatioChange())
+		);
 
-		this._register(bufferService.onResize(() => this._fullRefresh()));
-		this._register(bufferService.buffers.onBufferActivate(() => this._renderer.value?.clear()));
-		this._register(this._optionsService.onOptionChange(() => this._handleOptionsChanged()));
-		this._register(this._charSizeService.onCharSizeChange(() => this.handleCharSizeChanged()));
+		this._store.add(bufferService.onResize(() => this._fullRefresh()));
+		this._store.add(bufferService.buffers.onBufferActivate(() => this._renderer.value?.clear()));
+		this._store.add(this._optionsService.onOptionChange(() => this._handleOptionsChanged()));
+		this._store.add(this._charSizeService.onCharSizeChange(() => this.handleCharSizeChanged()));
 
 		// Do a full refresh whenever any decoration is added or removed. This may not actually result
 		// in changes but since decorations should be used sparingly or added/removed all in the same
 		// frame this should have minimal performance impact.
-		this._register(decorationService.onDecorationRegistered(() => this._fullRefresh()));
-		this._register(decorationService.onDecorationRemoved(() => this._fullRefresh()));
+		this._store.add(decorationService.onDecorationRegistered(() => this._fullRefresh()));
+		this._store.add(decorationService.onDecorationRemoved(() => this._fullRefresh()));
 
 		// Clear the renderer when the a change that could affect glyphs occurs
-		this._register(
+		this._store.add(
 			this._optionsService.onMultipleOptionChange(
 				[
 					'drawBoldTextInBrightColors',
@@ -135,20 +136,24 @@ export class RenderService extends Disposable implements IRenderService {
 		);
 
 		// Refresh the cursor line when the cursor changes
-		this._register(
+		this._store.add(
 			this._optionsService.onMultipleOptionChange(['cursorBlink', 'cursorStyle'], () =>
 				this.refreshRows(bufferService.buffer.y, bufferService.buffer.y, undefined, true)
 			)
 		);
 
-		this._register(themeService.onChangeColors(() => this._fullRefresh()));
+		this._store.add(themeService.onChangeColors(() => this._fullRefresh()));
 
 		this._registerIntersectionObserver(this._coreBrowserService.window, screenElement);
-		this._register(
+		this._store.add(
 			this._coreBrowserService.onWindowChange((w) =>
 				this._registerIntersectionObserver(w, screenElement)
 			)
 		);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	private _registerIntersectionObserver(
