@@ -25,7 +25,9 @@ describe('Emitter', () => {
 	it('should fire with 1 listener', () => {
 		const emitter = new Emitter<number>();
 		let value = 0;
-		emitter.event((e) => { value = e; });
+		emitter.event((e) => {
+			value = e;
+		});
 		emitter.fire(42);
 		expect(value).toBe(42);
 	});
