@@ -5,7 +5,7 @@
 
 import * as DomUtils from '../Dom';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { Disposable, DISPOSABLE_NONE, toDisposable } from '$lib/common/Lifecycle';
 
 const mainWindow = (typeof window === 'object' ? window : globalThis) as Window & typeof globalThis;
 
@@ -245,7 +245,7 @@ export class Gesture extends Disposable {
 
 	public static addTarget(element: HTMLElement): IDisposable {
 		if (!Gesture.isTouchDevice()) {
-			return Disposable.None;
+			return DISPOSABLE_NONE;
 		}
 		if (!Gesture._instance) {
 			Gesture._instance = new Gesture();
@@ -257,7 +257,7 @@ export class Gesture extends Disposable {
 
 	public static ignoreTarget(element: HTMLElement): IDisposable {
 		if (!Gesture.isTouchDevice()) {
-			return Disposable.None;
+			return DISPOSABLE_NONE;
 		}
 		if (!Gesture._instance) {
 			Gesture._instance = new Gesture();

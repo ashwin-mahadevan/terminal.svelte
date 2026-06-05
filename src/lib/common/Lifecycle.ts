@@ -71,9 +71,9 @@ export class DisposableStore {
 	}
 }
 
-export abstract class Disposable {
-	public static readonly None: IDisposable = Object.freeze({ dispose() {} });
+export const DISPOSABLE_NONE: IDisposable = Object.freeze({ dispose() {} });
 
+export abstract class Disposable {
 	protected readonly _store = new DisposableStore();
 
 	public dispose(): void {
