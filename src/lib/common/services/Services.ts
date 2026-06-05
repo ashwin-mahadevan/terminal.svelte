@@ -180,38 +180,6 @@ export interface IInstantiationService {
 	): R;
 }
 
-export enum LogLevelEnum {
-	TRACE = 0,
-	DEBUG = 1,
-	INFO = 2,
-	WARN = 3,
-	ERROR = 4,
-	OFF = 5
-}
-
-export const ILogService = createDecorator<ILogService>('LogService');
-export interface ILogService {
-	serviceBrand: undefined;
-
-	readonly logLevel: LogLevelEnum;
-
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	trace(message: any, ...optionalParams: any[]): void;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	debug(message: any, ...optionalParams: any[]): void;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	info(message: any, ...optionalParams: any[]): void;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	warn(message: any, ...optionalParams: any[]): void;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	error(message: any, ...optionalParams: any[]): void;
-}
-
 export const IOptionsService = createDecorator<IOptionsService>('OptionsService');
 export interface IOptionsService {
 	serviceBrand: undefined;

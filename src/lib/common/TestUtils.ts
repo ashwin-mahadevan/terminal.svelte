@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import { LogLevelEnum } from '$lib/common/services/Services';
 import type {
 	ITerminalOptions,
 	UnicodeCharProperties,
@@ -13,7 +12,6 @@ import type {
 	IBufferResizeEvent,
 	IBufferService,
 	ICoreService,
-	ILogService,
 	IOptionsService,
 	IMouseStateService,
 	ICharsetService,
@@ -217,28 +215,6 @@ export class MockCoreService implements ICoreService {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public triggerBinaryEvent(data: string): void {}
-}
-
-export class MockLogService implements ILogService {
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
-	public logLevel = LogLevelEnum.DEBUG;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-	public trace(message: any, ...optionalParams: any[]): void {}
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-	public debug(message: any, ...optionalParams: any[]): void {}
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-	public info(message: any, ...optionalParams: any[]): void {}
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-	public warn(message: any, ...optionalParams: any[]): void {}
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-	public error(message: any, ...optionalParams: any[]): void {}
 }
 
 export class MockOptionsService implements IOptionsService {
