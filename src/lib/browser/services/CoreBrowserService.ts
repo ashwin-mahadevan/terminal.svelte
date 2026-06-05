@@ -6,18 +6,19 @@
 import type { ICoreBrowserService } from './Services';
 import { Emitter, EventUtils } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
-import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 
-export class CoreBrowserService extends Disposable implements ICoreBrowserService {
+export class CoreBrowserService implements ICoreBrowserService {
+	private readonly _store = new DisposableStore();
 	public serviceBrand: undefined;
 
 	private _isFocused = false;
 	private _cachedIsFocused: boolean | undefined = undefined;
 	private _screenDprMonitor: ScreenDprMonitor;
 
-	private readonly _onDprChange = this._register(new Emitter<number>());
+	private readonly _onDprChange = this._store.add(new Emitter<number>());
 	public readonly onDprChange = this._onDprChange.event;
-	private readonly _onWindowChange = this._register(new Emitter<Window & typeof globalThis>());
+	private readonly _onWindowChange = this._store.add(new Emitter<Window & typeof globalThis>());
 	public readonly onWindowChange = this._onWindowChange.event;
 
 	constructor(
@@ -25,16 +26,18 @@ export class CoreBrowserService extends Disposable implements ICoreBrowserServic
 		private _window: Window & typeof globalThis,
 		public readonly mainDocument: Document
 	) {
-		super();
-
-		this._screenDprMonitor = this._register(new ScreenDprMonitor(this._window));
+		this._screenDprMonitor = this._store.add(new ScreenDprMonitor(this._window));
 
 		// Monitor device pixel ratio
-		this._register(this.onWindowChange((w) => this._screenDprMonitor.setWindow(w)));
-		this._register(EventUtils.forward(this._screenDprMonitor.onDprChange, this._onDprChange));
+		this._store.add(this.onWindowChange((w) => this._screenDprMonitor.setWindow(w)));
+		this._store.add(EventUtils.forward(this._screenDprMonitor.onDprChange, this._onDprChange));
 
-		this._register(addDisposableListener(this._textarea, 'focus', () => (this._isFocused = true)));
-		this._register(addDisposableListener(this._textarea, 'blur', () => (this._isFocused = false)));
+		this._store.add(addDisposableListener(this._textarea, 'focus', () => (this._isFocused = true)));
+		this._store.add(addDisposableListener(this._textarea, 'blur', () => (this._isFocused = false)));
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public get window(): Window & typeof globalThis {
@@ -71,18 +74,17 @@ export class CoreBrowserService extends Disposable implements ICoreBrowserServic
  * The listener should fire on both window zoom changes and switching to a
  * monitor with a different DPI.
  */
-class ScreenDprMonitor extends Disposable {
+class ScreenDprMonitor {
+	private readonly _store = new DisposableStore();
 	private _currentDevicePixelRatio: number;
 	private _outerListener: ((this: MediaQueryList, ev: MediaQueryListEvent) => void) | undefined;
 	private _resolutionMediaMatchList: MediaQueryList | undefined;
-	private _windowResizeListener = this._register(new MutableDisposable());
+	private _windowResizeListener = this._store.add(new MutableDisposable());
 
-	private readonly _onDprChange = this._register(new Emitter<number>());
+	private readonly _onDprChange = this._store.add(new Emitter<number>());
 	public readonly onDprChange = this._onDprChange.event;
 
 	constructor(private _parentWindow: Window) {
-		super();
-
 		// Initialize listener and dpr value
 		this._outerListener = () => this._setDprAndFireIfDiffers();
 		this._currentDevicePixelRatio = this._parentWindow.devicePixelRatio;
@@ -92,7 +94,11 @@ class ScreenDprMonitor extends Disposable {
 		this._setWindowResizeListener();
 
 		// Setup additional disposables
-		this._register(toDisposable(() => this.clearListener()));
+		this._store.add(toDisposable(() => this.clearListener()));
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public setWindow(parentWindow: Window): void {
