@@ -592,7 +592,10 @@ export interface IEvent<T, U = void> {
  * is trimmed and lines are added or removed. This is a single line that may
  * be part of a larger wrapped line.
  */
-export interface IMarker extends IDisposableWithEvent {
+export interface IMarker {
+	dispose(): void;
+	onDispose: IEvent<void>;
+	readonly isDisposed: boolean;
 	/**
 	 * A unique identifier for this marker.
 	 */
@@ -608,7 +611,8 @@ export interface IMarker extends IDisposableWithEvent {
 /**
  * Represents a disposable that tracks is disposed state.
  */
-export interface IDisposableWithEvent extends IDisposable {
+export interface IDisposableWithEvent {
+	dispose(): void;
 	/**
 	 * Event listener to get notified when this gets disposed.
 	 */
@@ -624,7 +628,10 @@ export interface IDisposableWithEvent extends IDisposable {
  * Represents a decoration in the terminal that is associated with a
  * particular marker and DOM element.
  */
-export interface IDecoration extends IDisposableWithEvent {
+export interface IDecoration {
+	dispose(): void;
+	onDispose: IEvent<void>;
+	readonly isDisposed: boolean;
 	/*
 	 * The marker for the decoration in the terminal.
 	 */
@@ -1454,7 +1461,8 @@ export class Terminal implements IDisposable {
 /**
  * An addon that can provide additional functionality to the terminal.
  */
-export interface ITerminalAddon extends IDisposable {
+export interface ITerminalAddon {
+	dispose(): void;
 	/**
 	 * This is called when the addon is activated.
 	 */

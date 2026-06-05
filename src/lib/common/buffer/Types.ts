@@ -9,8 +9,7 @@ import type {
 	IBufferLine,
 	ICellData,
 	IMarker,
-	ICharset,
-	IDisposable
+	ICharset
 } from '$lib/common/Types';
 import type { IEvent } from '$lib/common/Event';
 
@@ -56,7 +55,8 @@ export interface IBuffer {
 	clearAllMarkers(): void;
 }
 
-export interface IBufferSet extends IDisposable {
+export interface IBufferSet {
+	dispose(): void;
 	alt: IBuffer;
 	normal: IBuffer;
 	active: IBuffer;

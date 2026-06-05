@@ -106,7 +106,8 @@ export interface IPartialColorSet {
 	ansi: IColor[];
 }
 
-export interface IViewport extends IDisposable {
+export interface IViewport {
+	dispose(): void;
 	scrollBarWidth: number;
 	readonly onRequestScrollLines: IEvent<{ amount: number; suppressScrollEvent: boolean }>;
 	syncScrollArea(immediate?: boolean, force?: boolean): void;
@@ -140,7 +141,8 @@ export interface ILinkWithState {
 	state?: ILinkState;
 }
 
-export interface ILinkifier2 extends IDisposable {
+export interface ILinkifier2 {
+	dispose(): void;
 	onShowLinkUnderline: IEvent<ILinkifierEvent>;
 	onHideLinkUnderline: IEvent<ILinkifierEvent>;
 	readonly currentLink: ILinkWithState | undefined;
@@ -178,7 +180,8 @@ export interface ICharacterJoiner {
 	handler: CharacterJoinerHandler;
 }
 
-export interface IRenderDebouncer extends IDisposable {
+export interface IRenderDebouncer {
+	dispose(): void;
 	refresh(rowStart: number | undefined, rowEnd: number | undefined, rowCount: number): void;
 }
 

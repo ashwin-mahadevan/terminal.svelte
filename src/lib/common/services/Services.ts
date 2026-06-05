@@ -414,7 +414,8 @@ export interface IUnicodeVersionProvider {
 }
 
 export const IDecorationService = createDecorator<IDecorationService>('DecorationService');
-export interface IDecorationService extends IDisposable {
+export interface IDecorationService {
+	dispose(): void;
 	serviceBrand: undefined;
 	readonly decorations: IterableIterator<IInternalDecoration>;
 	readonly onDecorationRegistered: IEvent<IInternalDecoration>;

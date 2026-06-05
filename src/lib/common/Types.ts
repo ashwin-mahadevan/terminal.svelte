@@ -288,7 +288,8 @@ export interface IBufferLine {
 	getString(index: number): string;
 }
 
-export interface IMarker extends IDisposable {
+export interface IMarker {
+	dispose(): void;
 	readonly id: number;
 	readonly isDisposed: boolean;
 	readonly line: number;

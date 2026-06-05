@@ -184,7 +184,8 @@ export type PrintFallbackHandlerType = PrintHandlerType;
 /**
  * EscapeSequenceParser interface.
  */
-export interface IEscapeSequenceParser extends IDisposable {
+export interface IEscapeSequenceParser {
+	dispose(): void;
 	/**
 	 * Preceding grapheme-join-state.
 	 * Used for joining grapheme clusters across calls to `print`.

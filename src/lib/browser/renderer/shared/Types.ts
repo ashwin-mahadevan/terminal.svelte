@@ -5,7 +5,6 @@
 
 import type { Terminal } from '$lib/xterm';
 import type { ITerminal } from '$lib/browser/Types';
-import type { IDisposable } from '$lib/common/Types';
 import type { IEvent } from '$lib/common/Event';
 
 export interface IDimensions {
@@ -50,7 +49,7 @@ export interface IRequestRedrawEvent {
  * Note that IRenderer implementations should emit the refresh event after
  * rendering rows to the screen.
  */
-export interface IRenderer extends IDisposable {
+export interface IRenderer {
 	readonly dimensions: IRenderDimensions;
 
 	/**

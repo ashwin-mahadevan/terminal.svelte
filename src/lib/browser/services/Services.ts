@@ -88,7 +88,8 @@ export interface IMouseServiceTarget {
 }
 
 export const IRenderService = createDecorator<IRenderService>('RenderService');
-export interface IRenderService extends IDisposable {
+export interface IRenderService {
+	dispose(): void;
 	serviceBrand: undefined;
 
 	onDimensionsChange: IEvent<IRenderDimensions>;
@@ -182,7 +183,8 @@ export interface IThemeService {
 }
 
 export const ILinkProviderService = createDecorator<ILinkProviderService>('LinkProviderService');
-export interface ILinkProviderService extends IDisposable {
+export interface ILinkProviderService {
+	dispose(): void;
 	serviceBrand: undefined;
 	readonly linkProviders: ReadonlyArray<ILinkProvider>;
 	registerLinkProvider(linkProvider: ILinkProvider): IDisposable;
