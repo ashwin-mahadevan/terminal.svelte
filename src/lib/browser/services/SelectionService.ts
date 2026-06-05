@@ -17,7 +17,7 @@ import {
 	IMouseCoordsService,
 	IRenderService
 } from '$lib/browser/services/Services';
-import { Disposable, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import * as Browser from '$lib/common/Platform';
 import type { IBufferLine, ICellData, IDisposable } from '$lib/common/Types';
 import { getRangeLength } from '$lib/common/buffer/BufferRange';
@@ -83,7 +83,8 @@ export const enum SelectionMode {
  * not handled by the SelectionService but the onRedrawRequest event is fired
  * when the selection is ready to be redrawn (on an animation frame).
  */
-export class SelectionService extends Disposable implements ISelectionService {
+export class SelectionService implements ISelectionService {
+	private readonly _store = new DisposableStore();
 	public serviceBrand: undefined;
 
 	protected _model: SelectionModel;
@@ -117,7 +118,7 @@ export class SelectionService extends Disposable implements ISelectionService {
 
 	private _mouseMoveListener: EventListener;
 	private _mouseUpListener: EventListener;
-	private readonly _trimListener = this._register(new MutableDisposable<IDisposable>());
+	private readonly _trimListener = this._store.add(new MutableDisposable<IDisposable>());
 	private _workCell: CellData = new CellData();
 
 	private _mouseDownTimeStamp: number = 0;
@@ -125,13 +126,13 @@ export class SelectionService extends Disposable implements ISelectionService {
 	private _oldSelectionStart: [number, number] | undefined = undefined;
 	private _oldSelectionEnd: [number, number] | undefined = undefined;
 
-	private readonly _onLinuxMouseSelection = this._register(new Emitter<string>());
+	private readonly _onLinuxMouseSelection = this._store.add(new Emitter<string>());
 	public readonly onLinuxMouseSelection = this._onLinuxMouseSelection.event;
-	private readonly _onRedrawRequest = this._register(new Emitter<ISelectionRedrawRequestEvent>());
+	private readonly _onRedrawRequest = this._store.add(new Emitter<ISelectionRedrawRequestEvent>());
 	public readonly onRequestRedraw = this._onRedrawRequest.event;
-	private readonly _onSelectionChange = this._register(new Emitter<void>());
+	private readonly _onSelectionChange = this._store.add(new Emitter<void>());
 	public readonly onSelectionChange = this._onSelectionChange.event;
-	private readonly _onRequestScrollLines = this._register(
+	private readonly _onRequestScrollLines = this._store.add(
 		new Emitter<ISelectionRequestScrollLinesEvent>()
 	);
 	public readonly onRequestScrollLines = this._onRequestScrollLines.event;
@@ -148,8 +149,6 @@ export class SelectionService extends Disposable implements ISelectionService {
 		@IRenderService private readonly _renderService: IRenderService,
 		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService
 	) {
-		super();
-
 		// Init listeners
 		this._mouseMoveListener = (event) => this._handleMouseMove(event as MouseEvent);
 		this._mouseUpListener = (event) => this._handleMouseUp(event as MouseEvent);
@@ -161,7 +160,7 @@ export class SelectionService extends Disposable implements ISelectionService {
 		this._trimListener.value = this._bufferService.buffer.lines.onTrim((amount) =>
 			this._handleTrim(amount)
 		);
-		this._register(
+		this._store.add(
 			this._bufferService.buffers.onBufferActivate((e) => this._handleBufferActivate(e))
 		);
 
@@ -170,7 +169,7 @@ export class SelectionService extends Disposable implements ISelectionService {
 		this._model = new SelectionModel(this._bufferService);
 		this._activeSelectionMode = SelectionMode.NORMAL;
 
-		this._register(
+		this._store.add(
 			toDisposable(() => {
 				this._removeMouseDownListeners();
 			})
@@ -178,13 +177,17 @@ export class SelectionService extends Disposable implements ISelectionService {
 
 		// Clear selection when resizing vertically. This experience could be improved, this is the
 		// simple option to fix the buggy behavior. https://github.com/xtermjs/xterm.js/issues/5300
-		this._register(
+		this._store.add(
 			this._bufferService.onResize((e) => {
 				if (e.rowsChanged) {
 					this.clearSelection();
 				}
 			})
 		);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public reset(): void {
