@@ -6,7 +6,7 @@
 import * as Strings from '$lib/browser/LocalizableStrings';
 import type { ITerminal, IRenderDebouncer } from '$lib/browser/Types';
 import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
 import type { IBuffer } from '$lib/common/buffer/Types';
 import { addDisposableListener } from '$lib/browser/Dom';
@@ -24,7 +24,8 @@ const enum BoundaryPosition {
 // (instead of overlapping with) the terminal.
 const DEBUG = false;
 
-export class AccessibilityManager extends Disposable {
+export class AccessibilityManager {
+	private readonly _store = new DisposableStore();
 	private _debugRootContainer: HTMLElement | undefined;
 	private _accessibilityContainer: HTMLElement;
 
@@ -57,7 +58,6 @@ export class AccessibilityManager extends Disposable {
 		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService,
 		@IRenderService private readonly _renderService: IRenderService
 	) {
-		super();
 		const doc = this._coreBrowserService.mainDocument;
 		this._accessibilityContainer = doc.createElement('div');
 		this._accessibilityContainer.classList.add('xterm-accessibility');
@@ -86,7 +86,9 @@ export class AccessibilityManager extends Disposable {
 		this._liveRegion.classList.add('live-region');
 		this._liveRegion.setAttribute('aria-live', 'assertive');
 		this._accessibilityContainer.appendChild(this._liveRegion);
-		this._liveRegionDebouncer = this._register(new TimeBasedDebouncer(this._renderRows.bind(this)));
+		this._liveRegionDebouncer = this._store.add(
+			new TimeBasedDebouncer(this._renderRows.bind(this))
+		);
 
 		if (!this._terminal.element) {
 			throw new Error('Cannot enable accessibility before Terminal.open');
@@ -109,24 +111,24 @@ export class AccessibilityManager extends Disposable {
 			this._terminal.element.insertAdjacentElement('afterbegin', this._accessibilityContainer);
 		}
 
-		this._register(this._terminal.onResize((e) => this._handleResize(e.rows)));
-		this._register(this._terminal.onRender((e) => this._refreshRows(e.start, e.end)));
-		this._register(this._terminal.onScroll(() => this._refreshRows()));
+		this._store.add(this._terminal.onResize((e) => this._handleResize(e.rows)));
+		this._store.add(this._terminal.onRender((e) => this._refreshRows(e.start, e.end)));
+		this._store.add(this._terminal.onScroll(() => this._refreshRows()));
 		// Line feed is an issue as the prompt won't be read out after a command is run
-		this._register(this._terminal.onA11yChar((char) => this._handleChar(char)));
-		this._register(this._terminal.onLineFeed(() => this._handleChar('\n')));
-		this._register(this._terminal.onA11yTab((spaceCount) => this._handleTab(spaceCount)));
-		this._register(this._terminal.onKey((e) => this._handleKey(e.key)));
-		this._register(this._terminal.onBlur(() => this._clearLiveRegion()));
-		this._register(this._renderService.onDimensionsChange(() => this._refreshRowsDimensions()));
-		this._register(
+		this._store.add(this._terminal.onA11yChar((char) => this._handleChar(char)));
+		this._store.add(this._terminal.onLineFeed(() => this._handleChar('\n')));
+		this._store.add(this._terminal.onA11yTab((spaceCount) => this._handleTab(spaceCount)));
+		this._store.add(this._terminal.onKey((e) => this._handleKey(e.key)));
+		this._store.add(this._terminal.onBlur(() => this._clearLiveRegion()));
+		this._store.add(this._renderService.onDimensionsChange(() => this._refreshRowsDimensions()));
+		this._store.add(
 			addDisposableListener(doc, 'selectionchange', () => this._handleSelectionChange())
 		);
-		this._register(this._coreBrowserService.onDprChange(() => this._refreshRowsDimensions()));
+		this._store.add(this._coreBrowserService.onDprChange(() => this._refreshRowsDimensions()));
 
 		this._refreshRowsDimensions();
 		this._refreshRows();
-		this._register(
+		this._store.add(
 			toDisposable(() => {
 				if (DEBUG) {
 					this._debugRootContainer!.remove();
@@ -136,6 +138,10 @@ export class AccessibilityManager extends Disposable {
 				this._rowElements.length = 0;
 			})
 		);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	private _handleTab(spaceCount: number): void {
