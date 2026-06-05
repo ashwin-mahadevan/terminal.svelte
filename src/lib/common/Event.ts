@@ -14,8 +14,7 @@ export interface IEvent<T> {
 		listener: (e: T) => void,
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		thisArgs?: any,
-		disposables?: IDisposable[] | DisposableStore
+		thisArgs?: any
 	): IDisposable;
 }
 
@@ -34,8 +33,7 @@ export class Emitter<T> {
 			listener: (e: T) => void,
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			thisArgs?: any,
-			disposables?: IDisposable[] | DisposableStore
+			thisArgs?: any
 		) => {
 			if (this._disposed) {
 				return toDisposable(() => {});
@@ -44,22 +42,12 @@ export class Emitter<T> {
 			const entry = { fn: listener, thisArgs };
 			this._listeners.push(entry);
 
-			const result = toDisposable(() => {
+			return toDisposable(() => {
 				const idx = this._listeners.indexOf(entry);
 				if (idx !== -1) {
 					this._listeners.splice(idx, 1);
 				}
 			});
-
-			if (disposables) {
-				if (Array.isArray(disposables)) {
-					disposables.push(result);
-				} else {
-					disposables.add(result);
-				}
-			}
-
-			return result;
 		};
 		return this._event;
 	}
@@ -107,10 +95,9 @@ export namespace EventUtils {
 			listener: (e: O) => void,
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			thisArgs?: any,
-			disposables?: IDisposable[] | DisposableStore
+			thisArgs?: any
 		) => {
-			return event((i) => listener.call(thisArgs, map(i)), undefined, disposables);
+			return event((i) => listener.call(thisArgs, map(i)));
 		};
 	}
 
@@ -123,19 +110,11 @@ export namespace EventUtils {
 			listener: (e: T) => void,
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			thisArgs?: any,
-			disposables?: IDisposable[] | DisposableStore
+			thisArgs?: any
 		) => {
 			const store = new DisposableStore();
 			for (const event of events) {
 				store.add(event((e) => listener.call(thisArgs, e)));
-			}
-			if (disposables) {
-				if (Array.isArray(disposables)) {
-					disposables.push(store);
-				} else {
-					disposables.add(store);
-				}
 			}
 			return store;
 		};
