@@ -25,7 +25,6 @@ import type { IInstantiationService, ITerminalOptions } from '$lib/common/servic
 import {
 	IOptionsService,
 	IBufferService,
-	ILogService,
 	ICharsetService,
 	ICoreService,
 	IMouseStateService,
@@ -33,7 +32,6 @@ import {
 	IOscLinkService
 } from '$lib/common/services/Services';
 import { InstantiationService } from '$lib/common/services/InstantiationService';
-import { LogService } from '$lib/common/services/LogService';
 import { BufferService, BufferServiceConstants } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import type { IDisposable, IAttributeData, ICoreTerminal, IScrollEvent } from '$lib/common/Types';
@@ -57,7 +55,6 @@ let hasWriteSyncWarnHappened = false;
 export abstract class CoreTerminal extends Disposable implements ICoreTerminal {
 	protected readonly _instantiationService: IInstantiationService;
 	protected readonly _bufferService: IBufferService;
-	protected readonly _logService: ILogService;
 	protected readonly _charsetService: ICharsetService;
 	protected readonly _oscLinkService: IOscLinkService;
 
@@ -124,8 +121,6 @@ export abstract class CoreTerminal extends Disposable implements ICoreTerminal {
 		this._instantiationService = new InstantiationService();
 		this.optionsService = this._register(new OptionsService(options));
 		this._instantiationService.setService(IOptionsService, this.optionsService);
-		this._logService = this._register(this._instantiationService.createInstance(LogService));
-		this._instantiationService.setService(ILogService, this._logService);
 		this._bufferService = this._register(this._instantiationService.createInstance(BufferService));
 		this._instantiationService.setService(IBufferService, this._bufferService);
 		this.coreService = this._register(this._instantiationService.createInstance(CoreService));

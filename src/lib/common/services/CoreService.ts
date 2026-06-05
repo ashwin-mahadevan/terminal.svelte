@@ -6,7 +6,7 @@
 import { Disposable } from '$lib/common/Lifecycle';
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
 import type { ICoreService } from '$lib/common/services/Services';
-import { IBufferService, ILogService, IOptionsService } from '$lib/common/services/Services';
+import { IBufferService, IOptionsService } from '$lib/common/services/Services';
 import { Emitter } from '$lib/common/Event';
 
 const DEFAULT_MODES: IModes = Object.freeze({
@@ -58,7 +58,6 @@ export class CoreService extends Disposable implements ICoreService {
 
 	constructor(
 		@IBufferService private readonly _bufferService: IBufferService,
-		@ILogService private readonly _logService: ILogService,
 		@IOptionsService private readonly _optionsService: IOptionsService
 	) {
 		super();

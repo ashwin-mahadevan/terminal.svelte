@@ -6,17 +6,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { ICoreService } from '$lib/common/services/Services';
 import { CoreService } from '$lib/common/services/CoreService';
-import { MockBufferService, MockLogService, MockOptionsService } from '$lib/common/TestUtils';
+import { MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
 
 describe('CoreService', () => {
 	let coreService: ICoreService;
 
 	beforeEach(() => {
-		coreService = new CoreService(
-			new MockBufferService(80, 30),
-			new MockLogService(),
-			new MockOptionsService()
-		);
+		coreService = new CoreService(new MockBufferService(80, 30), new MockOptionsService());
 	});
 
 	describe('isCursorInitialized', () => {
@@ -26,7 +22,6 @@ describe('CoreService', () => {
 		it('should be true when showCursorImmediately is true', () => {
 			const coreServiceWithOption = new CoreService(
 				new MockBufferService(80, 30),
-				new MockLogService(),
 				new MockOptionsService({ showCursorImmediately: true })
 			);
 			expect(coreServiceWithOption.isCursorInitialized).toBe(true);
