@@ -6,7 +6,7 @@
 import type { IColorZone, IColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
 import { ICoreBrowserService, IRenderService, IThemeService } from '$lib/browser/services/Services';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import { IBufferService, IDecorationService, IOptionsService } from '$lib/common/services/Services';
 
 const enum Constants {
@@ -34,7 +34,8 @@ const drawX = {
 	right: 0
 };
 
-export class OverviewRulerRenderer extends Disposable {
+export class OverviewRulerRenderer {
+	private readonly _store = new DisposableStore();
 	private readonly _canvas: HTMLCanvasElement;
 	private readonly _ctx: CanvasRenderingContext2D;
 	private readonly _colorZoneStore: IColorZoneStore = new ColorZoneStore();
@@ -62,12 +63,11 @@ export class OverviewRulerRenderer extends Disposable {
 		@IThemeService private readonly _themeService: IThemeService,
 		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService
 	) {
-		super();
 		this._canvas = this._coreBrowserService.mainDocument.createElement('canvas');
 		this._canvas.classList.add('xterm-decoration-overview-ruler');
 		this._refreshCanvasDimensions();
 		this._viewportElement.parentElement?.insertBefore(this._canvas, this._viewportElement);
-		this._register(toDisposable(() => this._canvas?.remove()));
+		this._store.add(toDisposable(() => this._canvas?.remove()));
 
 		const ctx = this._canvas.getContext('2d');
 		if (!ctx) {
@@ -76,21 +76,21 @@ export class OverviewRulerRenderer extends Disposable {
 			this._ctx = ctx;
 		}
 
-		this._register(
+		this._store.add(
 			this._decorationService.onDecorationRegistered(() => this._queueRefresh(undefined, true))
 		);
-		this._register(
+		this._store.add(
 			this._decorationService.onDecorationRemoved(() => this._queueRefresh(undefined, true))
 		);
 
-		this._register(this._renderService.onRenderedViewportChange(() => this._queueRefresh()));
-		this._register(
+		this._store.add(this._renderService.onRenderedViewportChange(() => this._queueRefresh()));
+		this._store.add(
 			this._bufferService.buffers.onBufferActivate(() => {
 				this._canvas!.style.display =
 					this._bufferService.buffer === this._bufferService.buffers.alt ? 'none' : 'block';
 			})
 		);
-		this._register(
+		this._store.add(
 			this._bufferService.onScroll(() => {
 				if (this._lastKnownBufferLength !== this._bufferService.buffers.normal.lines.length) {
 					this._refreshDrawHeightConstants();
@@ -99,14 +99,14 @@ export class OverviewRulerRenderer extends Disposable {
 			})
 		);
 
-		this._register(this._renderService.onDimensionsChange(() => this._queueRefresh(true)));
+		this._store.add(this._renderService.onDimensionsChange(() => this._queueRefresh(true)));
 
-		this._register(this._coreBrowserService.onDprChange(() => this._queueRefresh(true)));
-		this._register(
+		this._store.add(this._coreBrowserService.onDprChange(() => this._queueRefresh(true)));
+		this._store.add(
 			this._optionsService.onSpecificOptionChange('scrollbar', () => this._queueRefresh(true))
 		);
-		this._register(this._themeService.onChangeColors(() => this._queueRefresh()));
-		this._register(
+		this._store.add(this._themeService.onChangeColors(() => this._queueRefresh()));
+		this._store.add(
 			toDisposable(() => {
 				if (this._animationFrame !== undefined) {
 					this._coreBrowserService.window.cancelAnimationFrame(this._animationFrame);
@@ -115,6 +115,10 @@ export class OverviewRulerRenderer extends Disposable {
 			})
 		);
 		this._queueRefresh(true);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	private _refreshDrawConstants(): void {
