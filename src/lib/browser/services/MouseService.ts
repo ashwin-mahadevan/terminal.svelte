@@ -476,10 +476,10 @@ export class MouseService implements IMouseService {
 		// apply global changes on events
 		if (events) {
 			if (this._optionsService.rawOptions.logLevel === 'debug') {
-				this._logService.debug('Binding to mouse events:', this._explainEvents(events));
+				console.debug('Binding to mouse events:', this._explainEvents(events));
 			}
 		} else {
-			this._logService.debug('Unbinding from mouse events.');
+			console.debug('Unbinding from mouse events.');
 		}
 		this._syncMouseModeState(element);
 		this._altMouseCursor?.sync();

@@ -571,9 +571,7 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		}
 
 		if (!parent.isConnected) {
-			this._logService.debug(
-				'Terminal.open was called on an element that was not attached to the DOM'
-			);
+			console.debug('Terminal.open was called on an element that was not attached to the DOM');
 		}
 
 		// If the terminal is already opened
@@ -737,7 +735,7 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		try {
 			this._onWillOpen.fire(this.element);
 		} catch (e) {
-			this._logService.error('onWillOpen handler threw an exception', e);
+			console.error('onWillOpen handler threw an exception', e);
 		}
 		if (!this._renderService.hasRenderer()) {
 			this._renderService.setRenderer(this._createRenderer());

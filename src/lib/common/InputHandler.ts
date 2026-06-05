@@ -46,7 +46,7 @@ import type {
 	IUnicodeService,
 	IOscLinkService
 } from '$lib/common/services/Services';
-import { IBufferService, LogLevelEnum } from '$lib/common/services/Services';
+import { IBufferService } from '$lib/common/services/Services';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { OscHandler } from '$lib/common/parser/OscParser';
 import { DcsHandler } from '$lib/common/parser/DcsParser';
@@ -234,34 +234,34 @@ export class InputHandler extends Disposable implements IInputHandler {
 		 * custom fallback handlers
 		 */
 		this._parser.setCsiHandlerFallback((ident, params) => {
-			this._logService.debug('Unknown CSI code: ', {
+			console.debug('Unknown CSI code: ', {
 				identifier: this._parser.identToString(ident),
 				params: params.toArray()
 			});
 		});
 		this._parser.setEscHandlerFallback((ident) => {
-			this._logService.debug('Unknown ESC code: ', {
+			console.debug('Unknown ESC code: ', {
 				identifier: this._parser.identToString(ident)
 			});
 		});
 		this._parser.setExecuteHandlerFallback((code) => {
-			this._logService.debug('Unknown EXECUTE code: ', { code });
+			console.debug('Unknown EXECUTE code: ', { code });
 		});
 		this._parser.setOscHandlerFallback((identifier, action, data) => {
-			this._logService.debug('Unknown OSC code: ', { identifier, action, data });
+			console.debug('Unknown OSC code: ', { identifier, action, data });
 		});
 		this._parser.setDcsHandlerFallback((ident, action, payload) => {
 			if (action === 'HOOK') {
 				payload = payload.toArray();
 			}
-			this._logService.debug('Unknown DCS code: ', {
+			console.debug('Unknown DCS code: ', {
 				identifier: this._parser.identToString(ident),
 				action,
 				payload
 			});
 		});
 		this._parser.setApcHandlerFallback((ident, action, payload) => {
-			this._logService.debug('Unknown APC code: ', {
+			console.debug('Unknown APC code: ', {
 				identifier: this._parser.identToString(ident),
 				action,
 				payload
@@ -516,7 +516,7 @@ export class InputHandler extends Disposable implements IInputHandler {
 		 * error handler
 		 */
 		this._parser.setErrorHandler((state: IParsingState) => {
-			this._logService.error('Parsing error: ', state);
+			console.error('Parsing error: ', state);
 			return state;
 		});
 
@@ -546,29 +546,31 @@ export class InputHandler extends Disposable implements IInputHandler {
 	}
 
 	private _logSlowResolvingAsync(p: Promise<boolean>): void {
-		// log a limited warning about an async handler taking too long
-		if (this._logService.logLevel <= LogLevelEnum.WARN) {
-			let slowTimeout: ReturnType<typeof setTimeout> | undefined;
-			const slowPromise = new Promise<never>((_res, rej) => {
-				slowTimeout = setTimeout(() => rej('#SLOW_TIMEOUT'), Constants.SLOW_ASYNC_LIMIT);
-			});
-			Promise.race([p, slowPromise]).then(
-				() => {
-					if (slowTimeout !== undefined) {
-						clearTimeout(slowTimeout);
-					}
-				},
-				(err) => {
-					if (slowTimeout !== undefined) {
-						clearTimeout(slowTimeout);
-					}
-					if (err !== '#SLOW_TIMEOUT') {
-						throw err;
-					}
-					console.warn(`async parser handler taking longer than ${Constants.SLOW_ASYNC_LIMIT} ms`);
-				}
-			);
+		// log a limited warning about an async handler taking too long; gated so the bundler can
+		// strip the timeout/race machinery out of production builds
+		if (process.env.NODE_ENV !== 'development') {
+			return;
 		}
+		let slowTimeout: ReturnType<typeof setTimeout> | undefined;
+		const slowPromise = new Promise<never>((_res, rej) => {
+			slowTimeout = setTimeout(() => rej('#SLOW_TIMEOUT'), Constants.SLOW_ASYNC_LIMIT);
+		});
+		Promise.race([p, slowPromise]).then(
+			() => {
+				if (slowTimeout !== undefined) {
+					clearTimeout(slowTimeout);
+				}
+			},
+			(err) => {
+				if (slowTimeout !== undefined) {
+					clearTimeout(slowTimeout);
+				}
+				if (err !== '#SLOW_TIMEOUT') {
+					throw err;
+				}
+				console.warn(`async parser handler taking longer than ${Constants.SLOW_ASYNC_LIMIT} ms`);
+			}
+		);
 	}
 
 	private _getCurrentLinkId(): number {
@@ -615,14 +617,12 @@ export class InputHandler extends Disposable implements IInputHandler {
 			}
 		}
 
-		// Log debug data, the log level gate is to prevent extra work in this hot path
-		if (this._logService.logLevel <= LogLevelEnum.DEBUG) {
-			this._logService.debug(
+		// Log debug data, the env gate lets the bundler strip this from the hot path in production
+		if (process.env.NODE_ENV === 'development') {
+			console.debug(
 				`parsing data ${typeof data === 'string' ? ` "${data}"` : ` "${Array.prototype.map.call(data, (e) => String.fromCharCode(e)).join('')}"`}`
 			);
-		}
-		if (this._logService.logLevel === LogLevelEnum.TRACE) {
-			this._logService.trace(
+			console.debug(
 				`parsing data (codes)`,
 				typeof data === 'string' ? data.split('').map((e) => e.charCodeAt(0)) : data
 			);
@@ -2271,7 +2271,7 @@ export class InputHandler extends Disposable implements IInputHandler {
 					this._coreService.decPrivateModes.reverseWraparound = true;
 					break;
 				case 66:
-					this._logService.debug('Serial port requested application keypad.');
+					console.debug('Serial port requested application keypad.');
 					this._coreService.decPrivateModes.applicationKeypad = true;
 					this._onRequestSyncScrollBar.fire();
 					break;
@@ -2298,13 +2298,13 @@ export class InputHandler extends Disposable implements IInputHandler {
 					this._onRequestSendFocus.fire();
 					break;
 				case 1005: // utf8 ext mode mouse - removed in #2507
-					this._logService.debug('DECSET 1005 not supported (see #2507)');
+					console.debug('DECSET 1005 not supported (see #2507)');
 					break;
 				case 1006: // sgr ext mode mouse
 					this._mouseStateService.activeEncoding = 'SGR';
 					break;
 				case 1015: // urxvt ext mode mouse - removed in #2507
-					this._logService.debug('DECSET 1015 not supported (see #2507)');
+					console.debug('DECSET 1015 not supported (see #2507)');
 					break;
 				case 1016: // sgr pixels mode mouse
 					this._mouseStateService.activeEncoding = 'SGR_PIXELS';
@@ -2531,7 +2531,7 @@ export class InputHandler extends Disposable implements IInputHandler {
 					this._coreService.decPrivateModes.reverseWraparound = false;
 					break;
 				case 66:
-					this._logService.debug('Switching back to normal keypad.');
+					console.debug('Switching back to normal keypad.');
 					this._coreService.decPrivateModes.applicationKeypad = false;
 					this._onRequestSyncScrollBar.fire();
 					break;
@@ -2545,13 +2545,13 @@ export class InputHandler extends Disposable implements IInputHandler {
 					this._coreService.decPrivateModes.sendFocus = false;
 					break;
 				case 1005: // utf8 ext mode mouse - removed in #2507
-					this._logService.debug('DECRST 1005 not supported (see #2507)');
+					console.debug('DECRST 1005 not supported (see #2507)');
 					break;
 				case 1006: // sgr ext mode mouse
 					this._mouseStateService.activeEncoding = 'DEFAULT';
 					break;
 				case 1015: // urxvt ext mode mouse - removed in #2507
-					this._logService.debug('DECRST 1015 not supported (see #2507)');
+					console.debug('DECRST 1015 not supported (see #2507)');
 					break;
 				case 1016: // sgr pixels mode mouse
 					this._mouseStateService.activeEncoding = 'DEFAULT';
@@ -3048,7 +3048,7 @@ export class InputHandler extends Disposable implements IInputHandler {
 				attr.extended.underlineColor = -1;
 				attr.updateExtended();
 			} else {
-				this._logService.debug('Unknown SGR attribute: %d.', p);
+				console.debug('Unknown SGR attribute: %d.', p);
 			}
 		}
 		return true;
@@ -3665,7 +3665,7 @@ export class InputHandler extends Disposable implements IInputHandler {
 	 *   Enables the numeric keypad to send application sequences to the host.
 	 */
 	public keypadApplicationMode(): boolean {
-		this._logService.debug('Serial port requested application keypad.');
+		console.debug('Serial port requested application keypad.');
 		this._coreService.decPrivateModes.applicationKeypad = true;
 		this._onRequestSyncScrollBar.fire();
 		return true;
@@ -3677,7 +3677,7 @@ export class InputHandler extends Disposable implements IInputHandler {
 	 *   Enables the keypad to send numeric characters to the host.
 	 */
 	public keypadNumericMode(): boolean {
-		this._logService.debug('Switching back to normal keypad.');
+		console.debug('Switching back to normal keypad.');
 		this._coreService.decPrivateModes.applicationKeypad = false;
 		this._onRequestSyncScrollBar.fire();
 		return true;

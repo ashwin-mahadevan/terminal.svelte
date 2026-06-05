@@ -96,10 +96,13 @@ export class CoreService extends Disposable implements ICoreService {
 		}
 
 		// Fire onData API
-		this._logService.debug(`sending data "${data}"`);
-		this._logService.trace(`sending data (codes)`, () =>
-			data.split('').map((e) => e.charCodeAt(0))
-		);
+		if (process.env.NODE_ENV === 'development') {
+			console.debug(`sending data "${data}"`);
+			console.debug(
+				`sending data (codes)`,
+				data.split('').map((e) => e.charCodeAt(0))
+			);
+		}
 		this._onData.fire(data);
 	}
 
@@ -107,10 +110,13 @@ export class CoreService extends Disposable implements ICoreService {
 		if (this._optionsService.rawOptions.disableStdin) {
 			return;
 		}
-		this._logService.debug(`sending binary "${data}"`);
-		this._logService.trace(`sending binary (codes)`, () =>
-			data.split('').map((e) => e.charCodeAt(0))
-		);
+		if (process.env.NODE_ENV === 'development') {
+			console.debug(`sending binary "${data}"`);
+			console.debug(
+				`sending binary (codes)`,
+				data.split('').map((e) => e.charCodeAt(0))
+			);
+		}
 		this._onBinary.fire(data);
 	}
 }

@@ -30,7 +30,6 @@ import {
 	ICoreService,
 	IMouseStateService,
 	IUnicodeService,
-	LogLevelEnum,
 	IOscLinkService
 } from '$lib/common/services/Services';
 import { InstantiationService } from '$lib/common/services/InstantiationService';
@@ -198,8 +197,8 @@ export abstract class CoreTerminal extends Disposable implements ICoreTerminal {
 	 * @deprecated Unreliable, will be removed soon.
 	 */
 	public writeSync(data: string | Uint8Array, maxSubsequentCalls?: number): void {
-		if (this._logService.logLevel <= LogLevelEnum.WARN && !hasWriteSyncWarnHappened) {
-			this._logService.warn('writeSync is unreliable and will be removed soon.');
+		if (!hasWriteSyncWarnHappened) {
+			console.warn('writeSync is unreliable and will be removed soon.');
 			hasWriteSyncWarnHappened = true;
 		}
 		this._writeBuffer.writeSync(data, maxSubsequentCalls);

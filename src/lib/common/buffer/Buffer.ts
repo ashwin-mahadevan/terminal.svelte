@@ -91,7 +91,7 @@ export class Buffer extends Disposable implements IBuffer {
 		this.scrollTop = 0;
 		this.scrollBottom = this._rows - 1;
 		this.setupTabStops();
-		this._memoryCleanupQueue = new IdleTaskQueue(this._logService);
+		this._memoryCleanupQueue = new IdleTaskQueue();
 		this._register(toDisposable(() => this._memoryCleanupQueue.clear()));
 		this._register(toDisposable(() => this.clearAllMarkers()));
 		this._stringCache = this._register(new BufferLineStringCache());

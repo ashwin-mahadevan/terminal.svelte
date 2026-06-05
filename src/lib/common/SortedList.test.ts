@@ -5,26 +5,6 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SortedList } from '$lib/common/SortedList';
-import { LogLevelEnum } from '$lib/common/services/Services';
-import type { ILogService } from '$lib/common/services/Services';
-
-// NOTE: Upstream imports MockLogService from common/TestUtils.test. Our ported
-// $lib/common/TestUtils cannot be imported here because it pulls in a runtime
-// import of the type-only module '$lib/xterm' (a .d.ts), which fails to resolve
-// under vitest. SortedList only needs a no-op ILogService for its IdleTaskQueue,
-// so we provide an equivalent minimal mock inline rather than modify the vendored
-// helper.
-class MockLogService implements ILogService {
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
-	public logLevel = LogLevelEnum.DEBUG;
-	public trace(): void {}
-	public debug(): void {}
-	public info(): void {}
-	public warn(): void {}
-	public error(): void {}
-}
 
 describe('SortedList', () => {
 	let list: SortedList<number>;
@@ -33,7 +13,7 @@ describe('SortedList', () => {
 	}
 
 	beforeEach(() => {
-		list = new SortedList<number>((e) => e, new MockLogService());
+		list = new SortedList<number>((e) => e);
 	});
 
 	describe('insert', () => {
@@ -108,7 +88,7 @@ describe('SortedList', () => {
 		assertList([]);
 	});
 	it('custom key', () => {
-		const customList = new SortedList<{ key: number }>((e) => e.key, new MockLogService());
+		const customList = new SortedList<{ key: number }>((e) => e.key);
 		customList.insert({ key: 5 });
 		customList.insert({ key: 2 });
 		customList.insert({ key: 10 });

@@ -52,7 +52,7 @@ export class DecorationService extends Disposable implements IDecorationService 
 	) {
 		super();
 
-		this._decorations = new SortedList((e) => e?.marker.line, this._logService);
+		this._decorations = new SortedList((e) => e?.marker.line);
 
 		this._register(toDisposable(() => this.reset()));
 		this._register(
