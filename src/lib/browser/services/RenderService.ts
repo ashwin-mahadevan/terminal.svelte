@@ -85,12 +85,10 @@ export class RenderService extends Disposable implements IRenderService {
 	) {
 		super();
 
-		this._register(
-			toDisposable(() => {
-				this._renderer?.dispose();
-				this._observerDisposable?.dispose();
-			})
-		);
+		this._register(toDisposable(() => {
+			this._renderer?.dispose();
+			this._observerDisposable?.dispose();
+		}));
 
 		this._pausedResizeTask = this._register(new DebouncedIdleTask());
 

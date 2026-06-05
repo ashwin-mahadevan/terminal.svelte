@@ -84,3 +84,4 @@ export abstract class Disposable {
 		return this._store.add(o);
 	}
 }
+
