@@ -5,7 +5,7 @@
 
 import { ICoreBrowserService, IRenderService, IThemeService } from '$lib/browser/services/Services';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import {
 	IBufferService,
 	ICoreService,
@@ -20,8 +20,9 @@ import { Emitter } from '$lib/common/Event';
 import { Scrollable, ScrollbarVisibility } from '$lib/browser/scrollable/scrollable';
 import type { IScrollEvent } from '$lib/browser/scrollable/scrollable';
 
-export class Viewport extends Disposable {
-	protected _onRequestScrollLines = this._register(new Emitter<number>());
+export class Viewport {
+	private readonly _store = new DisposableStore();
+	protected _onRequestScrollLines = this._store.add(new Emitter<number>());
 	public readonly onRequestScrollLines = this._onRequestScrollLines.event;
 
 	private _scrollableElement: SmoothScrollableElement;
@@ -45,9 +46,7 @@ export class Viewport extends Disposable {
 		@IOptionsService private readonly _optionsService: IOptionsService,
 		@IRenderService private readonly _renderService: IRenderService
 	) {
-		super();
-
-		const scrollable = this._register(
+		const scrollable = this._store.add(
 			new Scrollable({
 				forceIntegerValues: false,
 				smoothScrollDuration: this._optionsService.rawOptions.smoothScrollDuration,
@@ -56,13 +55,13 @@ export class Viewport extends Disposable {
 					scheduleAtNextAnimationFrame(coreBrowserService.window, cb)
 			})
 		);
-		this._register(
+		this._store.add(
 			this._optionsService.onSpecificOptionChange('smoothScrollDuration', () => {
 				scrollable.setSmoothScrollDuration(this._optionsService.rawOptions.smoothScrollDuration);
 			})
 		);
 
-		this._scrollableElement = this._register(
+		this._scrollableElement = this._store.add(
 			new SmoothScrollableElement(
 				screenElement,
 				{
@@ -76,14 +75,14 @@ export class Viewport extends Disposable {
 				scrollable
 			)
 		);
-		this._register(
+		this._store.add(
 			this._optionsService.onMultipleOptionChange(
 				['scrollSensitivity', 'fastScrollSensitivity', 'scrollbar'],
 				() => this._scrollableElement.updateOptions(this._getChangeOptions())
 			)
 		);
 		// Don't handle mouse wheel if wheel events are supported by the current mouse prototcol
-		this._register(
+		this._store.add(
 			mouseStateService.onProtocolChange((type) => {
 				this._scrollableElement.updateOptions({
 					handleMouseWheel: !(type & CoreMouseEventType.WHEEL)
@@ -98,13 +97,13 @@ export class Viewport extends Disposable {
 				themeService.colors.background.css;
 		};
 		updateBackgroundColor();
-		this._register(themeService.onChangeColors(updateBackgroundColor));
+		this._store.add(themeService.onChangeColors(updateBackgroundColor));
 		element.appendChild(this._scrollableElement.getDomNode());
-		this._register(toDisposable(() => this._scrollableElement.getDomNode().remove()));
+		this._store.add(toDisposable(() => this._scrollableElement.getDomNode().remove()));
 
 		this._styleElement = coreBrowserService.mainDocument.createElement('style');
 		screenElement.appendChild(this._styleElement);
-		this._register(toDisposable(() => this._styleElement.remove()));
+		this._store.add(toDisposable(() => this._styleElement.remove()));
 		const updateScrollbarStyle = (): void => {
 			this._styleElement.textContent = [
 				`.xterm .xterm-scrollable-element > .xterm-scrollbar > .xterm-slider {`,
@@ -119,10 +118,10 @@ export class Viewport extends Disposable {
 			].join('\n');
 		};
 		updateScrollbarStyle();
-		this._register(themeService.onChangeColors(updateScrollbarStyle));
+		this._store.add(themeService.onChangeColors(updateScrollbarStyle));
 
-		this._register(this._bufferService.onResize(() => this.queueSync()));
-		this._register(
+		this._store.add(this._bufferService.onResize(() => this.queueSync()));
+		this._store.add(
 			this._bufferService.buffers.onBufferActivate(() => {
 				// Reset _latestYDisp when switching buffers to prevent stale scroll position
 				// from alt buffer contaminating normal buffer scroll position
@@ -130,12 +129,12 @@ export class Viewport extends Disposable {
 				this.queueSync();
 			})
 		);
-		this._register(this._bufferService.onScroll(() => this._sync()));
+		this._store.add(this._bufferService.onScroll(() => this._sync()));
 
 		// Flush deferred viewport sync after a render completes (e.g. after ESU ends
 		// synchronized output mode). This ensures DOM scroll position updates atomically
 		// with the canvas render.
-		this._register(
+		this._store.add(
 			this._renderService.onRender(() => {
 				if (this._needsSyncOnRender) {
 					this._needsSyncOnRender = false;
@@ -144,7 +143,11 @@ export class Viewport extends Disposable {
 			})
 		);
 
-		this._register(this._scrollableElement.onScroll((e) => this._handleScroll(e)));
+		this._store.add(this._scrollableElement.onScroll((e) => this._handleScroll(e)));
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public scrollLines(disp: number): void {
