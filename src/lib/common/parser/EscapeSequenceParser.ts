@@ -31,7 +31,7 @@ import type {
 } from '$lib/common/parser/Types';
 import { ParserStackType } from '$lib/common/parser/Types';
 import { ParserState, ParserAction } from '$lib/common/parser/Constants';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Types';
 import { Params } from '$lib/common/parser/Params';
 import { OscParser } from '$lib/common/parser/OscParser';
@@ -526,7 +526,8 @@ export const VT500_TRANSITION_TABLE = (function (): TransitionTable {
  *
  * TODO: implement error recovery hook via error handler return values
  */
-export class EscapeSequenceParser extends Disposable implements IEscapeSequenceParser {
+export class EscapeSequenceParser implements IEscapeSequenceParser {
+	private readonly _store = new DisposableStore();
 	public initialState: number;
 	public currentState: number;
 	public precedingJoinState: number; // UnicodeJoinProperties
@@ -564,8 +565,6 @@ export class EscapeSequenceParser extends Disposable implements IEscapeSequenceP
 	};
 
 	constructor(protected readonly _transitions: TransitionTable = VT500_TRANSITION_TABLE) {
-		super();
-
 		this.initialState = ParserState.GROUND;
 		this.currentState = this.initialState;
 		this._params = new Params(); // defaults to 32 storable params/subparams
@@ -592,7 +591,7 @@ export class EscapeSequenceParser extends Disposable implements IEscapeSequenceP
 		this._executeHandlersArr = new Array(0x18).fill(undefined);
 		this._csiHandlers = Object.create(null);
 		this._escHandlers = Object.create(null);
-		this._register(
+		this._store.add(
 			toDisposable(() => {
 				this._csiHandlers = Object.create(null);
 				this._executeHandlers = Object.create(null);
@@ -600,13 +599,17 @@ export class EscapeSequenceParser extends Disposable implements IEscapeSequenceP
 				this._escHandlers = Object.create(null);
 			})
 		);
-		this._oscParser = this._register(new OscParser());
-		this._dcsParser = this._register(new DcsParser());
-		this._apcParser = this._register(new ApcParser());
+		this._oscParser = this._store.add(new OscParser());
+		this._dcsParser = this._store.add(new DcsParser());
+		this._apcParser = this._store.add(new ApcParser());
 		this._errorHandler = this._errorHandlerFb;
 
 		// swallow 7bit ST (ESC+\)
 		this.registerEscHandler({ final: '\\' }, () => true);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	protected _identifier(id: IFunctionIdentifier, finalRange: number[] = [0x40, 0x7e]): number {
