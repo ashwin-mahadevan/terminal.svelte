@@ -3,7 +3,14 @@
  * @license MIT
  */
 
-import {
+import { LogLevelEnum } from '$lib/common/services/Services';
+import type {
+	ITerminalOptions,
+	UnicodeCharProperties,
+	UnicodeCharWidth,
+	IUnicodeVersionProvider,
+	IInternalDecoration,
+	IBufferResizeEvent,
 	IBufferService,
 	ICoreService,
 	ILogService,
@@ -11,23 +18,14 @@ import {
 	IMouseStateService,
 	ICharsetService,
 	IUnicodeService,
-	LogLevelEnum,
 	IDecorationService,
 	IOscLinkService
-} from '$lib/common/services/Services';
-import type {
-	ITerminalOptions,
-	UnicodeCharProperties,
-	UnicodeCharWidth,
-	IUnicodeVersionProvider,
-	IInternalDecoration,
-	IBufferResizeEvent
 } from '$lib/common/services/Services';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import type { IBufferSet, IBuffer } from '$lib/common/buffer/Types';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
-import { CoreMouseEventType } from '$lib/common/Types';
+import type { CoreMouseEventType } from '$lib/common/Types';
 import type {
 	IDecPrivateModes,
 	ICoreMouseEvent,

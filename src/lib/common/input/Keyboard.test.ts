@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { evaluateKeyboardEvent } from '$lib/common/input/Keyboard';
-import { IKeyboardResult, IKeyboardEvent } from '$lib/common/Types';
+import type { IKeyboardResult, IKeyboardEvent } from '$lib/common/Types';
 
 /**
  * A helper function for testing which allows passing in a partial event and defaults will be filled

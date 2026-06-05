@@ -5,13 +5,8 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { InputHandler } from '$lib/common/InputHandler';
-import {
-	IBufferLine,
-	IAttributeData,
-	IColorEvent,
-	ColorRequestType,
-	SpecialColorIndex
-} from '$lib/common/Types';
+import type { IBufferLine, IAttributeData, IColorEvent } from '$lib/common/Types';
+import { ColorRequestType, SpecialColorIndex } from '$lib/common/Types';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import { CellData } from '$lib/common/buffer/CellData';
 import { Attributes, BgFlags, UnderlineStyle } from '$lib/common/buffer/Constants';
@@ -28,7 +23,7 @@ import {
 	MockOscLinkService,
 	extendedAttributes
 } from '$lib/common/TestUtils';
-import { IBufferService, ICoreService } from '$lib/common/services/Services';
+import type { IBufferService, ICoreService } from '$lib/common/services/Services';
 import type { IOscLinkService } from '$lib/common/services/Services';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import { BufferService } from '$lib/common/services/BufferService';

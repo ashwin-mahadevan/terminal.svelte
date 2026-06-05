@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ApcParser, ApcHandler } from '$lib/common/parser/ApcParser';
 import { StringToUtf32, utf32ToString } from '$lib/common/input/TextDecoder';
-import { IApcHandler, IFunctionIdentifier } from '$lib/common/parser/Types';
+import type { IApcHandler, IFunctionIdentifier } from '$lib/common/parser/Types';
 
 function toUtf32(s: string): Uint32Array {
 	const utf32 = new Uint32Array(s.length);

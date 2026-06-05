@@ -9,7 +9,7 @@ import type { IMarker } from '$lib/common/Types';
 import { Disposable } from '$lib/common/Lifecycle';
 import { Emitter } from '$lib/common/Event';
 import { MockLogService, MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
-import { Buffer } from '$lib/common/buffer/Buffer';
+import type { Buffer } from '$lib/common/buffer/Buffer';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 
 function createFakeMarker(line: number): IMarker {

@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DcsParser, DcsHandler } from '$lib/common/parser/DcsParser';
-import { IDcsHandler, IParams, IFunctionIdentifier } from '$lib/common/parser/Types';
+import type { IDcsHandler, IParams, IFunctionIdentifier } from '$lib/common/parser/Types';
 import { utf32ToString, StringToUtf32 } from '$lib/common/input/TextDecoder';
 import { Params } from '$lib/common/parser/Params';
 

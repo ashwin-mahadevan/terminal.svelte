@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
+import type {
 	IParsingState,
 	IParams,
 	ParamsArray,
@@ -12,9 +12,9 @@ import {
 	IOscHandler,
 	OscFallbackHandlerType,
 	IFunctionIdentifier,
-	IParserStackState,
-	ParserStackType
+	IParserStackState
 } from '$lib/common/parser/Types';
+import { ParserStackType } from '$lib/common/parser/Types';
 import {
 	EscapeSequenceParser,
 	TransitionTable,
@@ -24,7 +24,7 @@ import { StringToUtf32, stringFromCodePoint, utf32ToString } from '$lib/common/i
 import { ParserState } from '$lib/common/parser/Constants';
 import { Params } from '$lib/common/parser/Params';
 import { OscHandler } from '$lib/common/parser/OscParser';
-import { IDisposable } from '$lib/common/Types';
+import type { IDisposable } from '$lib/common/Types';
 import { DcsHandler } from '$lib/common/parser/DcsParser';
 import { ApcHandler } from '$lib/common/parser/ApcParser';
 

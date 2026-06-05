@@ -11,7 +11,7 @@ import type {
 	IDecoration,
 	IRenderDimensions as IRenderDimensionsApi
 } from '$lib/xterm';
-import {
+import type {
 	ICharacterJoinerService,
 	ICharSizeService,
 	ICoreBrowserService,
@@ -51,7 +51,7 @@ import type {
 import { Buffer } from '$lib/common/buffer/Buffer';
 import * as Browser from '$lib/common/Platform';
 import { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
-import {
+import type {
 	IUnicodeService,
 	IOptionsService,
 	ICoreService,

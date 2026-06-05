@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { OscParser, OscHandler } from '$lib/common/parser/OscParser';
 import { StringToUtf32, utf32ToString } from '$lib/common/input/TextDecoder';
-import { IOscHandler } from '$lib/common/parser/Types';
+import type { IOscHandler } from '$lib/common/parser/Types';
 
 function toUtf32(s: string): Uint32Array {
 	const utf32 = new Uint32Array(s.length);

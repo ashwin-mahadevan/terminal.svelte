@@ -4,7 +4,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { Params } from '$lib/common/parser/Params';
-import { ParamsArray } from '$lib/common/parser/Types';
+import type { ParamsArray } from '$lib/common/parser/Types';
 
 class TestParams extends Params {
 	public get subParams(): Int32Array {

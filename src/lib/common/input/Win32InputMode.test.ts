@@ -5,7 +5,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { Win32InputMode, Win32ControlKeyState } from '$lib/common/input/Win32InputMode';
-import { IKeyboardEvent, KeyboardResultType } from '$lib/common/Types';
+import type { IKeyboardEvent } from '$lib/common/Types';
+import { KeyboardResultType } from '$lib/common/Types';
 
 type EventOpts = Partial<IKeyboardEvent>;
 const ev = (opts: EventOpts): IKeyboardEvent => ({
