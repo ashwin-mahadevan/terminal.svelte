@@ -42,6 +42,12 @@ export default defineConfig([
 	{
 		plugins: { 'import-x': importX },
 		rules: {
+			// Detect value imports that are only used as types and autofix them to `import type`,
+			// matching the `verbatimModuleSyntax` requirement enforced by svelte-check (TS1484).
+			'@typescript-eslint/consistent-type-imports': [
+				'error',
+				{ prefer: 'type-imports', fixStyle: 'separate-type-imports' }
+			],
 			// Ban inline `type` specifiers like `import { type Foo } from 'bar'`; autofix to a
 			// top-level `import type { Foo } from 'bar'`, splitting mixed value/type imports.
 			'import-x/consistent-type-specifier-style': ['error', 'prefer-top-level']
