@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { Disposable } from '$lib/common/Lifecycle';
+import { DisposableStore } from '$lib/common/Lifecycle';
 import type { IAttributeData, IBufferLine } from '$lib/common/Types';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
@@ -17,7 +17,8 @@ export const enum BufferServiceConstants {
 	MINIMUM_ROWS = 1
 }
 
-export class BufferService extends Disposable implements IBufferService {
+export class BufferService implements IBufferService {
+	private readonly _store = new DisposableStore();
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
@@ -28,9 +29,9 @@ export class BufferService extends Disposable implements IBufferService {
 	/** Whether the user is scrolling (locks the scroll position) */
 	public isUserScrolling: boolean = false;
 
-	private readonly _onResize = this._register(new Emitter<IBufferResizeEvent>());
+	private readonly _onResize = this._store.add(new Emitter<IBufferResizeEvent>());
 	public readonly onResize = this._onResize.event;
-	private readonly _onScroll = this._register(new Emitter<number>());
+	private readonly _onScroll = this._store.add(new Emitter<number>());
 	public readonly onScroll = this._onScroll.event;
 
 	public get buffer(): IBuffer {
@@ -41,15 +42,18 @@ export class BufferService extends Disposable implements IBufferService {
 	private _cachedBlankLine: IBufferLine | undefined;
 
 	constructor(@IOptionsService optionsService: IOptionsService) {
-		super();
 		this.cols = Math.max(optionsService.rawOptions.cols || 0, BufferServiceConstants.MINIMUM_COLS);
 		this.rows = Math.max(optionsService.rawOptions.rows || 0, BufferServiceConstants.MINIMUM_ROWS);
-		this.buffers = this._register(new BufferSet(optionsService, this));
-		this._register(
+		this.buffers = this._store.add(new BufferSet(optionsService, this));
+		this._store.add(
 			this.buffers.onBufferActivate((e) => {
 				this._onScroll.fire(e.activeBuffer.ydisp);
 			})
 		);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public resize(cols: number, rows: number): void {

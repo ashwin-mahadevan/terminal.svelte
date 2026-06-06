@@ -4,7 +4,7 @@
  */
 
 import { TimeoutTimer } from '$lib/common/Async';
-import { Disposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import { Emitter } from '$lib/common/Event';
 
 const enum Constants {
@@ -32,7 +32,8 @@ const enum Constants {
 	WRITE_BUFFER_LENGTH_THRESHOLD = 50
 }
 
-export class WriteBuffer extends Disposable {
+export class WriteBuffer {
+	private readonly _store = new DisposableStore();
 	private _writeBuffer: (string | Uint8Array)[] = [];
 	private _callbacks: ((() => void) | undefined)[] = [];
 	private _pendingData = 0;
@@ -41,15 +42,14 @@ export class WriteBuffer extends Disposable {
 	private _syncCalls = 0;
 	private _didUserInput = false;
 
-	private readonly _innerWriteTimer = this._register(new TimeoutTimer());
-	private readonly _onWriteParsed = this._register(new Emitter<void>());
+	private readonly _innerWriteTimer = this._store.add(new TimeoutTimer());
+	private readonly _onWriteParsed = this._store.add(new Emitter<void>());
 	public readonly onWriteParsed = this._onWriteParsed.event;
 
 	constructor(
 		private _action: (data: string | Uint8Array, promiseResult?: boolean) => void | Promise<boolean>
 	) {
-		super();
-		this._register(
+		this._store.add(
 			toDisposable(() => {
 				this._writeBuffer.length = 0;
 				this._callbacks.length = 0;
@@ -57,6 +57,10 @@ export class WriteBuffer extends Disposable {
 				this._bufferOffset = 0;
 			})
 		);
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public handleUserInput(): void {

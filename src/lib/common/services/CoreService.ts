@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { Disposable } from '$lib/common/Lifecycle';
+import { DisposableStore } from '$lib/common/Lifecycle';
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
 import type { ICoreService } from '$lib/common/services/Services';
 import { IBufferService, IOptionsService } from '$lib/common/services/Services';
@@ -36,7 +36,8 @@ const DEFAULT_KITTY_KEYBOARD_STATE = (): IKittyKeyboardState => ({
 	altStack: []
 });
 
-export class CoreService extends Disposable implements ICoreService {
+export class CoreService implements ICoreService {
+	private readonly _store = new DisposableStore();
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
@@ -47,24 +48,27 @@ export class CoreService extends Disposable implements ICoreService {
 	public decPrivateModes: IDecPrivateModes;
 	public kittyKeyboard: IKittyKeyboardState;
 
-	private readonly _onData = this._register(new Emitter<string>());
+	private readonly _onData = this._store.add(new Emitter<string>());
 	public readonly onData = this._onData.event;
-	private readonly _onUserInput = this._register(new Emitter<void>());
+	private readonly _onUserInput = this._store.add(new Emitter<void>());
 	public readonly onUserInput = this._onUserInput.event;
-	private readonly _onBinary = this._register(new Emitter<string>());
+	private readonly _onBinary = this._store.add(new Emitter<string>());
 	public readonly onBinary = this._onBinary.event;
-	private readonly _onRequestScrollToBottom = this._register(new Emitter<void>());
+	private readonly _onRequestScrollToBottom = this._store.add(new Emitter<void>());
 	public readonly onRequestScrollToBottom = this._onRequestScrollToBottom.event;
 
 	constructor(
 		@IBufferService private readonly _bufferService: IBufferService,
 		@IOptionsService private readonly _optionsService: IOptionsService
 	) {
-		super();
 		this.isCursorInitialized = _optionsService.rawOptions.showCursorImmediately ?? false;
 		this.modes = structuredClone(DEFAULT_MODES);
 		this.decPrivateModes = structuredClone(DEFAULT_DEC_PRIVATE_MODES);
 		this.kittyKeyboard = DEFAULT_KITTY_KEYBOARD_STATE();
+	}
+
+	public dispose(): void {
+		this._store.dispose();
 	}
 
 	public reset(): void {
