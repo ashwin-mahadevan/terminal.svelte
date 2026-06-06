@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import { isMac } from '$lib/common/Platform';
 import type { CursorStyle, IDisposable } from '$lib/common/Types';
 import type { FontWeight, IOptionsService, ITerminalOptions } from '$lib/common/services/Services';
@@ -75,7 +74,6 @@ const FONT_WEIGHT_OPTIONS: Extract<FontWeight, string>[] = [
 ];
 
 export class OptionsService implements IOptionsService {
-	private readonly _store = new DisposableStore();
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
@@ -83,7 +81,7 @@ export class OptionsService implements IOptionsService {
 	public readonly rawOptions: Required<ITerminalOptions>;
 	public options: Required<ITerminalOptions>;
 
-	private readonly _onOptionChange = this._store.add(new Emitter<keyof ITerminalOptions>());
+	private readonly _onOptionChange = new Emitter<keyof ITerminalOptions>();
 	public readonly onOptionChange = this._onOptionChange.event;
 
 	constructor(options: Partial<ITerminalOptions>) {
@@ -104,19 +102,14 @@ export class OptionsService implements IOptionsService {
 		this.rawOptions = defaultOptions;
 		this.options = { ...defaultOptions };
 		this._setupOptions();
-
-		// Clear out options that could link outside xterm.js as they could easily cause an embedder
-		// memory leak
-		this._store.add(
-			toDisposable(() => {
-				this.rawOptions.linkHandler = null;
-				this.rawOptions.documentOverride = null;
-			})
-		);
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._onOptionChange.dispose();
+		// Clear out options that could link outside xterm.js as they could easily cause an embedder
+		// memory leak
+		this.rawOptions.linkHandler = null;
+		this.rawOptions.documentOverride = null;
 	}
 
 	public onSpecificOptionChange<T extends keyof ITerminalOptions>(

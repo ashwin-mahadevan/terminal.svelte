@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import { DisposableStore } from '$lib/common/Lifecycle';
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
 import type { ICoreService } from '$lib/common/services/Services';
 import { IBufferService, IOptionsService } from '$lib/common/services/Services';
@@ -37,7 +36,6 @@ const DEFAULT_KITTY_KEYBOARD_STATE = (): IKittyKeyboardState => ({
 });
 
 export class CoreService implements ICoreService {
-	private readonly _store = new DisposableStore();
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
@@ -48,13 +46,13 @@ export class CoreService implements ICoreService {
 	public decPrivateModes: IDecPrivateModes;
 	public kittyKeyboard: IKittyKeyboardState;
 
-	private readonly _onData = this._store.add(new Emitter<string>());
+	private readonly _onData = new Emitter<string>();
 	public readonly onData = this._onData.event;
-	private readonly _onUserInput = this._store.add(new Emitter<void>());
+	private readonly _onUserInput = new Emitter<void>();
 	public readonly onUserInput = this._onUserInput.event;
-	private readonly _onBinary = this._store.add(new Emitter<string>());
+	private readonly _onBinary = new Emitter<string>();
 	public readonly onBinary = this._onBinary.event;
-	private readonly _onRequestScrollToBottom = this._store.add(new Emitter<void>());
+	private readonly _onRequestScrollToBottom = new Emitter<void>();
 	public readonly onRequestScrollToBottom = this._onRequestScrollToBottom.event;
 
 	constructor(
@@ -68,7 +66,10 @@ export class CoreService implements ICoreService {
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._onData.dispose();
+		this._onUserInput.dispose();
+		this._onBinary.dispose();
+		this._onRequestScrollToBottom.dispose();
 	}
 
 	public reset(): void {
