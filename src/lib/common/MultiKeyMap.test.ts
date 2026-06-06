@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { FourKeyMap, TwoKeyMap } from '$lib/common/MultiKeyMap';
+import { TwoKeyMap } from '$lib/common/MultiKeyMap';
 
 describe('TwoKeyMap', () => {
 	let map: TwoKeyMap<number | string, number | string, string>;
@@ -33,35 +33,5 @@ describe('TwoKeyMap', () => {
 		expect(map.get(1, 2)).toBe('foo');
 		map.clear();
 		expect(map.get(1, 2)).toBe(undefined);
-	});
-});
-
-describe('FourKeyMap', () => {
-	let map: FourKeyMap<number | string, number | string, number | string, number | string, string>;
-
-	beforeEach(() => {
-		map = new FourKeyMap();
-	});
-
-	it('set, get', () => {
-		expect(map.get(1, 2, 3, 4)).toBe(undefined);
-		map.set(1, 2, 3, 4, 'foo');
-		expect(map.get(1, 2, 3, 4)).toBe('foo');
-		map.set(1, 3, 3, 4, 'bar');
-		expect(map.get(1, 2, 3, 4)).toBe('foo');
-		expect(map.get(1, 3, 3, 4)).toBe('bar');
-		map.set(2, 2, 3, 4, 'foo2');
-		map.set(2, 3, 3, 4, 'bar2');
-		expect(map.get(1, 2, 3, 4)).toBe('foo');
-		expect(map.get(1, 3, 3, 4)).toBe('bar');
-		expect(map.get(2, 2, 3, 4)).toBe('foo2');
-		expect(map.get(2, 3, 3, 4)).toBe('bar2');
-	});
-	it('clear', () => {
-		expect(map.get(1, 2, 3, 4)).toBe(undefined);
-		map.set(1, 2, 3, 4, 'foo');
-		expect(map.get(1, 2, 3, 4)).toBe('foo');
-		map.clear();
-		expect(map.get(1, 2, 3, 4)).toBe(undefined);
 	});
 });
