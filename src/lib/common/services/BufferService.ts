@@ -10,7 +10,7 @@ import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
 import type { IBufferService } from '$lib/common/services/Services';
 import { IOptionsService } from '$lib/common/services/Services';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 export const enum BufferServiceConstants {
 	MINIMUM_COLS = 2, // Less than 2 can mess with wide chars
@@ -28,9 +28,9 @@ export class BufferService implements IBufferService {
 	/** Whether the user is scrolling (locks the scroll position) */
 	public isUserScrolling: boolean = false;
 
-	private readonly _onResize = new Emitter<IBufferResizeEvent>();
+	private readonly _onResize = new LegacyEmitter<IBufferResizeEvent>();
 	public readonly onResize = this._onResize.event;
-	private readonly _onScroll = new Emitter<number>();
+	private readonly _onScroll = new LegacyEmitter<number>();
 	public readonly onScroll = this._onScroll.event;
 
 	public get buffer(): IBuffer {

@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { DecorationLineCache, DecorationService } from '$lib/common/services/DecorationService';
 import type { IMarker } from '$lib/common/Types';
 import { Disposable } from '$lib/common/Lifecycle';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import { MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
@@ -18,7 +18,7 @@ function createFakeMarker(line: number): IMarker {
 			public readonly id = 1;
 			public readonly line = line;
 			public readonly isDisposed = false;
-			public readonly onDispose = new Emitter<void>().event;
+			public readonly onDispose = new LegacyEmitter<void>().event;
 		})()
 	);
 }

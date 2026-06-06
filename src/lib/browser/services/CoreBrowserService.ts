@@ -4,7 +4,7 @@
  */
 
 import type { ICoreBrowserService } from './Services';
-import { Emitter, EventUtils } from '$lib/common/Event';
+import { LegacyEmitter, EventUtils } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 import { MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -16,9 +16,9 @@ export class CoreBrowserService implements ICoreBrowserService {
 	private _cachedIsFocused: boolean | undefined = undefined;
 	private readonly _screenDprMonitor: ScreenDprMonitor;
 
-	private readonly _onDprChange = new Emitter<number>();
+	private readonly _onDprChange = new LegacyEmitter<number>();
 	public readonly onDprChange = this._onDprChange.event;
-	private readonly _onWindowChange = new Emitter<Window & typeof globalThis>();
+	private readonly _onWindowChange = new LegacyEmitter<Window & typeof globalThis>();
 	public readonly onWindowChange = this._onWindowChange.event;
 
 	private readonly _windowChangeListener: IDisposable;
@@ -102,7 +102,7 @@ class ScreenDprMonitor {
 	private _resolutionMediaMatchList: MediaQueryList | undefined;
 	private readonly _windowResizeListener = new MutableDisposable();
 
-	private readonly _onDprChange = new Emitter<number>();
+	private readonly _onDprChange = new LegacyEmitter<number>();
 	public readonly onDprChange = this._onDprChange.event;
 
 	constructor(private _parentWindow: Window) {

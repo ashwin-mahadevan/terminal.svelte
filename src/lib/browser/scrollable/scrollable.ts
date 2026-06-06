@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { IEvent } from '$lib/common/Event';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
 
 export const enum ScrollbarVisibility {
@@ -224,7 +224,7 @@ export class Scrollable {
 	private _state: ScrollState;
 	private _smoothScrolling: SmoothScrollingOperation | null;
 
-	private _onScroll = new Emitter<IScrollEvent>();
+	private _onScroll = new LegacyEmitter<IScrollEvent>();
 	public readonly onScroll: IEvent<IScrollEvent> = this._onScroll.event;
 
 	constructor(options: IScrollableOptions) {

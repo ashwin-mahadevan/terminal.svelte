@@ -4,7 +4,7 @@
  */
 
 import type { IDisposable, IMarker } from '$lib/common/Types';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import { dispose } from '$lib/common/Lifecycle';
 
 export class Marker implements IMarker {
@@ -18,7 +18,7 @@ export class Marker implements IMarker {
 		return this._id;
 	}
 
-	private readonly _onDispose = this.register(new Emitter<void>());
+	private readonly _onDispose = this.register(new LegacyEmitter<void>());
 	public readonly onDispose = this._onDispose.event;
 
 	constructor(public line: number) {}

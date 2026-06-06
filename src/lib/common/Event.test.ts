@@ -4,16 +4,16 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 describe('Emitter', () => {
 	it('should fire with 0 listeners without error', () => {
-		const emitter = new Emitter<number>();
+		const emitter = new LegacyEmitter<number>();
 		expect(() => emitter.fire(42)).not.toThrow();
 	});
 
 	it('should fire with 1 listener', () => {
-		const emitter = new Emitter<number>();
+		const emitter = new LegacyEmitter<number>();
 		let received: number | undefined;
 		emitter.event((e) => {
 			received = e;
@@ -23,7 +23,7 @@ describe('Emitter', () => {
 	});
 
 	it('should fire with 1 listener', () => {
-		const emitter = new Emitter<number>();
+		const emitter = new LegacyEmitter<number>();
 		let value = 0;
 		emitter.event((e) => {
 			value = e;
@@ -33,7 +33,7 @@ describe('Emitter', () => {
 	});
 
 	it('should fire with multiple listeners', () => {
-		const emitter = new Emitter<number>();
+		const emitter = new LegacyEmitter<number>();
 		const results: number[] = [];
 		emitter.event((e) => results.push(e * 1));
 		emitter.event((e) => results.push(e * 2));
@@ -43,7 +43,7 @@ describe('Emitter', () => {
 	});
 
 	it('should handle listener removal during fire', () => {
-		const emitter = new Emitter<number>();
+		const emitter = new LegacyEmitter<number>();
 		const results: string[] = [];
 		emitter.event(() => results.push('first'));
 		const disposable = emitter.event(() => {
@@ -56,7 +56,7 @@ describe('Emitter', () => {
 	});
 
 	it('should not fire after dispose', () => {
-		const emitter = new Emitter<number>();
+		const emitter = new LegacyEmitter<number>();
 		let called = false;
 		emitter.event(() => {
 			called = true;
@@ -67,7 +67,7 @@ describe('Emitter', () => {
 	});
 
 	it('should allow disposing a listener', () => {
-		const emitter = new Emitter<number>();
+		const emitter = new LegacyEmitter<number>();
 		let count = 0;
 		const disposable = emitter.event(() => {
 			count++;

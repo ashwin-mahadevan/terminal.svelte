@@ -4,7 +4,7 @@
  */
 
 import { TimeoutTimer } from '$lib/common/Async';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 const enum Constants {
 	/**
@@ -42,7 +42,7 @@ export class WriteBuffer {
 	private _didUserInput = false;
 
 	private readonly _innerWriteTimer = new TimeoutTimer();
-	private readonly _onWriteParsed = new Emitter<void>();
+	private readonly _onWriteParsed = new LegacyEmitter<void>();
 	public readonly onWriteParsed = this._onWriteParsed.event;
 
 	constructor(

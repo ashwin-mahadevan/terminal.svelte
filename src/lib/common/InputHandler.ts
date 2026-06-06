@@ -51,7 +51,7 @@ import { DcsHandler } from '$lib/common/parser/DcsParser';
 import { ApcHandler } from '$lib/common/parser/ApcParser';
 import type { IBuffer } from '$lib/common/buffer/Types';
 import { parseColor } from '$lib/common/input/XParseColor';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import { XTERM_VERSION } from '$lib/common/Version';
 
 /**
@@ -166,9 +166,9 @@ export class InputHandler implements IInputHandler {
 	private _activeBuffer: IBuffer;
 	private _bufferActivateListener!: IDisposable;
 
-	private readonly _onRequestBell = new Emitter<void>();
+	private readonly _onRequestBell = new LegacyEmitter<void>();
 	public readonly onRequestBell = this._onRequestBell.event;
-	private readonly _onRequestRefreshRows = new Emitter<
+	private readonly _onRequestRefreshRows = new LegacyEmitter<
 		| {
 				start: number;
 				end: number;
@@ -176,30 +176,30 @@ export class InputHandler implements IInputHandler {
 		| undefined
 	>();
 	public readonly onRequestRefreshRows = this._onRequestRefreshRows.event;
-	private readonly _onRequestReset = new Emitter<void>();
+	private readonly _onRequestReset = new LegacyEmitter<void>();
 	public readonly onRequestReset = this._onRequestReset.event;
-	private readonly _onRequestSendFocus = new Emitter<void>();
+	private readonly _onRequestSendFocus = new LegacyEmitter<void>();
 	public readonly onRequestSendFocus = this._onRequestSendFocus.event;
-	private readonly _onRequestSyncScrollBar = new Emitter<void>();
+	private readonly _onRequestSyncScrollBar = new LegacyEmitter<void>();
 	public readonly onRequestSyncScrollBar = this._onRequestSyncScrollBar.event;
-	private readonly _onRequestWindowsOptionsReport = new Emitter<WindowsOptionsReportType>();
+	private readonly _onRequestWindowsOptionsReport = new LegacyEmitter<WindowsOptionsReportType>();
 	public readonly onRequestWindowsOptionsReport = this._onRequestWindowsOptionsReport.event;
 
-	private readonly _onA11yChar = new Emitter<string>();
+	private readonly _onA11yChar = new LegacyEmitter<string>();
 	public readonly onA11yChar = this._onA11yChar.event;
-	private readonly _onA11yTab = new Emitter<number>();
+	private readonly _onA11yTab = new LegacyEmitter<number>();
 	public readonly onA11yTab = this._onA11yTab.event;
-	private readonly _onCursorMove = new Emitter<void>();
+	private readonly _onCursorMove = new LegacyEmitter<void>();
 	public readonly onCursorMove = this._onCursorMove.event;
-	private readonly _onLineFeed = new Emitter<void>();
+	private readonly _onLineFeed = new LegacyEmitter<void>();
 	public readonly onLineFeed = this._onLineFeed.event;
-	private readonly _onScroll = new Emitter<number>();
+	private readonly _onScroll = new LegacyEmitter<number>();
 	public readonly onScroll = this._onScroll.event;
-	private readonly _onTitleChange = new Emitter<string>();
+	private readonly _onTitleChange = new LegacyEmitter<string>();
 	public readonly onTitleChange = this._onTitleChange.event;
-	private readonly _onColor = new Emitter<IColorEvent>();
+	private readonly _onColor = new LegacyEmitter<IColorEvent>();
 	public readonly onColor = this._onColor.event;
-	private readonly _onRequestColorSchemeQuery = new Emitter<void>();
+	private readonly _onRequestColorSchemeQuery = new LegacyEmitter<void>();
 	public readonly onRequestColorSchemeQuery = this._onRequestColorSchemeQuery.event;
 
 	private _parseStack: IParseStack = {

@@ -4,7 +4,7 @@
  */
 
 import type { Terminal, ITerminalAddon, IDisposable } from '$lib/xterm';
-import type { Emitter, IEvent } from '$lib/common/Event';
+import type { LegacyEmitter, IEvent } from '$lib/common/Event';
 
 /**
  * Progress state tracked by the addon.
@@ -59,7 +59,7 @@ export class ProgressAddon implements ITerminalAddon {
 	private _st: ProgressType = ProgressType.REMOVE;
 	private _pr = 0;
 	// HACK: This uses ! to align with the API, this should be fixed when 5283 is resolved
-	private _onChange!: Emitter<IProgressState>;
+	private _onChange!: LegacyEmitter<IProgressState>;
 	public onChange!: IEvent<IProgressState>;
 
 	public dispose(): void {

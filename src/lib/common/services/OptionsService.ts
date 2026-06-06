@@ -6,7 +6,7 @@
 import { isMac } from '$lib/common/Platform';
 import type { CursorStyle, IDisposable } from '$lib/common/Types';
 import type { FontWeight, IOptionsService, ITerminalOptions } from '$lib/common/services/Services';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	cols: 80,
@@ -81,7 +81,7 @@ export class OptionsService implements IOptionsService {
 	public readonly rawOptions: Required<ITerminalOptions>;
 	public options: Required<ITerminalOptions>;
 
-	private readonly _onOptionChange = new Emitter<keyof ITerminalOptions>();
+	private readonly _onOptionChange = new LegacyEmitter<keyof ITerminalOptions>();
 	public readonly onOptionChange = this._onOptionChange.event;
 
 	constructor(options: Partial<ITerminalOptions>) {

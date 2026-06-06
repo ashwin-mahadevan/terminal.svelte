@@ -9,7 +9,7 @@ import type { IAttributeData } from '$lib/common/Types';
 import { Buffer } from '$lib/common/buffer/Buffer';
 import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
 import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 /**
  * The BufferSet represents the set of two buffers used by xterm terminals (normal and alt) and
@@ -22,7 +22,7 @@ export class BufferSet implements IBufferSet {
 	private readonly _normalBuffer = new MutableDisposable<Buffer>();
 	private readonly _altBuffer = new MutableDisposable<Buffer>();
 
-	private readonly _onBufferActivate = new Emitter<{
+	private readonly _onBufferActivate = new LegacyEmitter<{
 		activeBuffer: IBuffer;
 		inactiveBuffer: IBuffer;
 	}>();

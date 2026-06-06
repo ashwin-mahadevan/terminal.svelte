@@ -16,12 +16,12 @@ import { CoreMouseEventType } from '$lib/common/Types';
 import { scheduleAtNextAnimationFrame } from '$lib/browser/Dom';
 import { SmoothScrollableElement } from '$lib/browser/scrollable/scrollableElement';
 import type { IScrollableElementChangeOptions } from '$lib/browser/scrollable/scrollableElementOptions';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import { Scrollable, ScrollbarVisibility } from '$lib/browser/scrollable/scrollable';
 import type { IScrollEvent } from '$lib/browser/scrollable/scrollable';
 
 export class Viewport {
-	protected _onRequestScrollLines = new Emitter<number>();
+	protected _onRequestScrollLines = new LegacyEmitter<number>();
 	public readonly onRequestScrollLines = this._onRequestScrollLines.event;
 
 	private _scrollable!: Scrollable;

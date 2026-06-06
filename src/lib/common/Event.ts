@@ -1,11 +1,3 @@
-/**
- * Copyright (c) 2024-2026 The xterm.js authors. All rights reserved.
- * @license MIT
- *
- * Minimal event utilities for xterm.js core.
- * Simplified from VS Code's event.ts - no leak detection/profiling.
- */
-
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 
@@ -13,7 +5,7 @@ export interface IEvent<T> {
 	(listener: (e: T) => void): IDisposable;
 }
 
-export class Emitter<T> {
+export class LegacyEmitter<T> {
 	private _listeners: ((e: T) => void)[] = [];
 	private _disposed = false;
 	private _event: IEvent<T> | undefined;
@@ -70,7 +62,7 @@ export class Emitter<T> {
 // TODO: Fix this upstream type error.
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EventUtils {
-	export function forward<T>(from: IEvent<T>, to: Emitter<T>): IDisposable {
+	export function forward<T>(from: IEvent<T>, to: LegacyEmitter<T>): IDisposable {
 		return from((e) => to.fire(e));
 	}
 

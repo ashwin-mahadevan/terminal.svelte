@@ -36,7 +36,7 @@ import type {
 } from '$lib/common/Types';
 import { UnicodeV6 } from '$lib/common/input/UnicodeV6';
 import type { IDecorationOptions, IDecoration } from '$lib/xterm';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import { CellData } from '$lib/common/buffer/CellData';
 import { DEFAULT_ATTR, NULL_CELL_CHAR, NULL_CELL_WIDTH } from '$lib/common/buffer/Constants';
@@ -65,9 +65,9 @@ export class MockBufferService implements IBufferService {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public buffers: IBufferSet = {} as any;
-	public onResize: IEvent<IBufferResizeEvent> = new Emitter<IBufferResizeEvent>().event;
-	public onScroll: IEvent<number> = new Emitter<number>().event;
-	private readonly _onScroll = new Emitter<number>();
+	public onResize: IEvent<IBufferResizeEvent> = new LegacyEmitter<IBufferResizeEvent>().event;
+	public onScroll: IEvent<number> = new LegacyEmitter<number>().event;
+	private readonly _onScroll = new LegacyEmitter<number>();
 	public isUserScrolling: boolean = false;
 	constructor(
 		public cols: number,
@@ -129,7 +129,8 @@ export class MockMouseStateService implements IMouseStateService {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public addProtocol(name: string): void {}
 	public reset(): void {}
-	public onProtocolChange: IEvent<CoreMouseEventType> = new Emitter<CoreMouseEventType>().event;
+	public onProtocolChange: IEvent<CoreMouseEventType> = new LegacyEmitter<CoreMouseEventType>()
+		.event;
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public restrictMouseEvent(event: ICoreMouseEvent): boolean {
@@ -203,10 +204,10 @@ export class MockCoreService implements ICoreService {
 		mainStack: [] as number[],
 		altStack: [] as number[]
 	};
-	public onData: IEvent<string> = new Emitter<string>().event;
-	public onUserInput: IEvent<void> = new Emitter<void>().event;
-	public onBinary: IEvent<string> = new Emitter<string>().event;
-	public onRequestScrollToBottom: IEvent<void> = new Emitter<void>().event;
+	public onData: IEvent<string> = new LegacyEmitter<string>().event;
+	public onUserInput: IEvent<void> = new LegacyEmitter<void>().event;
+	public onBinary: IEvent<string> = new LegacyEmitter<string>().event;
+	public onRequestScrollToBottom: IEvent<void> = new LegacyEmitter<void>().event;
 	public reset(): void {}
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -222,8 +223,9 @@ export class MockOptionsService implements IOptionsService {
 	public serviceBrand: any;
 	public readonly rawOptions: Required<ITerminalOptions> = structuredClone(DEFAULT_OPTIONS);
 	public options: Required<ITerminalOptions> = this.rawOptions;
-	public onOptionChange: IEvent<keyof ITerminalOptions> = new Emitter<keyof ITerminalOptions>()
-		.event;
+	public onOptionChange: IEvent<keyof ITerminalOptions> = new LegacyEmitter<
+		keyof ITerminalOptions
+	>().event;
 	constructor(testOptions?: Partial<ITerminalOptions>) {
 		if (testOptions) {
 			for (const key of Object.keys(testOptions)) {
@@ -296,7 +298,7 @@ export class MockUnicodeService implements IUnicodeService {
 	}
 	public versions: string[] = [];
 	public activeVersion: string = '';
-	public onChange: IEvent<string> = new Emitter<string>().event;
+	public onChange: IEvent<string> = new LegacyEmitter<string>().event;
 	public wcwidth = (codepoint: number): UnicodeCharWidth => this._provider.wcwidth(codepoint);
 	public charProperties(
 		codepoint: number,
@@ -328,8 +330,8 @@ export class MockDecorationService {
 	public get decorations(): IterableIterator<IInternalDecoration> {
 		return [].values();
 	}
-	public onDecorationRegistered = new Emitter<IInternalDecoration>().event;
-	public onDecorationRemoved = new Emitter<IInternalDecoration>().event;
+	public onDecorationRegistered = new LegacyEmitter<IInternalDecoration>().event;
+	public onDecorationRemoved = new LegacyEmitter<IInternalDecoration>().event;
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public registerDecoration(decorationOptions: IDecorationOptions): IDecoration | undefined {

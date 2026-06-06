@@ -14,7 +14,7 @@ import type {
 	IUnicodeService
 } from '$lib/common/services/Services';
 import type { IFunctionIdentifier, ITerminalOptions as IPublicTerminalOptions } from '$lib/xterm';
-import type { Emitter, IEvent } from '$lib/common/Event';
+import type { LegacyEmitter, IEvent } from '$lib/common/Event';
 
 export interface ICoreTerminal {
 	mouseStateService: IMouseStateService;
@@ -91,11 +91,11 @@ export interface ICircularList<T> {
 	maxLength: number;
 	isFull: boolean;
 
-	onDeleteEmitter: Emitter<IDeleteEvent>;
+	onDeleteEmitter: LegacyEmitter<IDeleteEvent>;
 	onDelete: IEvent<IDeleteEvent>;
-	onInsertEmitter: Emitter<IInsertEvent>;
+	onInsertEmitter: LegacyEmitter<IInsertEvent>;
 	onInsert: IEvent<IInsertEvent>;
-	onTrimEmitter: Emitter<number>;
+	onTrimEmitter: LegacyEmitter<number>;
 	onTrim: IEvent<number>;
 
 	get(index: number): T | undefined;

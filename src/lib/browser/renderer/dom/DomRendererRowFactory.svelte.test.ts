@@ -25,7 +25,7 @@ import {
 } from '$lib/common/TestUtils';
 import { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
 import type { IWidthCacheFontVariantCanvas } from '$lib/browser/renderer/dom/WidthCache';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import { css } from '$lib/common/Color';
 
 // NOTE: These three mocks are normally provided by '$lib/browser/TestUtils', but
@@ -55,8 +55,8 @@ class MockCharacterJoinerService {
 }
 
 class MockCoreBrowserService {
-	public onDprChange = new Emitter<number>().event;
-	public onWindowChange = new Emitter<Window & typeof globalThis>().event;
+	public onDprChange = new LegacyEmitter<number>().event;
+	public onWindowChange = new LegacyEmitter<Window & typeof globalThis>().event;
 	public serviceBrand: undefined;
 	public isFocused: boolean = true;
 	public get window(): Window & typeof globalThis {
@@ -72,7 +72,7 @@ class MockThemeService {
 	public serviceBrand: undefined;
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public onChangeColors = new Emitter<any>().event;
+	public onChangeColors = new LegacyEmitter<any>().event;
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public restoreColor(_slot?: unknown): void {

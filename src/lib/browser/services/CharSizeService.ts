@@ -6,7 +6,7 @@
 import { IOptionsService } from '$lib/common/services/Services';
 import type { ICharSizeService } from '$lib/browser/services/Services';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 export class CharSizeService implements ICharSizeService {
 	public serviceBrand: undefined;
@@ -19,7 +19,7 @@ export class CharSizeService implements ICharSizeService {
 		return this.width > 0 && this.height > 0;
 	}
 
-	private readonly _onCharSizeChange = new Emitter<void>();
+	private readonly _onCharSizeChange = new LegacyEmitter<void>();
 	public readonly onCharSizeChange = this._onCharSizeChange.event;
 	private readonly _fontChangeListener: IDisposable;
 

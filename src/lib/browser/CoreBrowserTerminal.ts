@@ -90,7 +90,7 @@ import { IDecorationService } from '$lib/common/services/Services';
 import { WindowsOptionsReportType } from '../common/InputHandler';
 import { AccessibilityManager } from './AccessibilityManager';
 import { Linkifier } from './Linkifier';
-import { Emitter, EventUtils } from '$lib/common/Event';
+import { LegacyEmitter, EventUtils } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
@@ -167,38 +167,40 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		new MutableDisposable()
 	);
 
-	private readonly _onCursorMove = this._register(new Emitter<void>());
+	private readonly _onCursorMove = this._register(new LegacyEmitter<void>());
 	public readonly onCursorMove = this._onCursorMove.event;
-	private readonly _onKey = this._register(new Emitter<{ key: string; domEvent: KeyboardEvent }>());
+	private readonly _onKey = this._register(
+		new LegacyEmitter<{ key: string; domEvent: KeyboardEvent }>()
+	);
 	public readonly onKey = this._onKey.event;
-	private readonly _onSelectionChange = this._register(new Emitter<void>());
+	private readonly _onSelectionChange = this._register(new LegacyEmitter<void>());
 	public readonly onSelectionChange = this._onSelectionChange.event;
-	private readonly _onTitleChange = this._register(new Emitter<string>());
+	private readonly _onTitleChange = this._register(new LegacyEmitter<string>());
 	public readonly onTitleChange = this._onTitleChange.event;
-	private readonly _onBell = this._register(new Emitter<void>());
+	private readonly _onBell = this._register(new LegacyEmitter<void>());
 	public readonly onBell = this._onBell.event;
 
-	private _onFocus = this._register(new Emitter<void>());
+	private _onFocus = this._register(new LegacyEmitter<void>());
 	public get onFocus(): IEvent<void> {
 		return this._onFocus.event;
 	}
-	private _onBlur = this._register(new Emitter<void>());
+	private _onBlur = this._register(new LegacyEmitter<void>());
 	public get onBlur(): IEvent<void> {
 		return this._onBlur.event;
 	}
-	private _onA11yCharEmitter = this._register(new Emitter<string>());
+	private _onA11yCharEmitter = this._register(new LegacyEmitter<string>());
 	public get onA11yChar(): IEvent<string> {
 		return this._onA11yCharEmitter.event;
 	}
-	private _onA11yTabEmitter = this._register(new Emitter<number>());
+	private _onA11yTabEmitter = this._register(new LegacyEmitter<number>());
 	public get onA11yTab(): IEvent<number> {
 		return this._onA11yTabEmitter.event;
 	}
-	private _onWillOpen = this._register(new Emitter<HTMLElement>());
+	private _onWillOpen = this._register(new LegacyEmitter<HTMLElement>());
 	public get onWillOpen(): IEvent<HTMLElement> {
 		return this._onWillOpen.event;
 	}
-	private readonly _onDimensionsChange = this._register(new Emitter<IRenderDimensionsApi>());
+	private readonly _onDimensionsChange = this._register(new LegacyEmitter<IRenderDimensionsApi>());
 	public readonly onDimensionsChange = this._onDimensionsChange.event;
 
 	public get dimensions(): IRenderDimensionsApi | undefined {

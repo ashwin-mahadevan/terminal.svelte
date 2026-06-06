@@ -13,7 +13,7 @@ import type { ITheme } from '$lib/common/services/Services';
 import { IOptionsService } from '$lib/common/services/Services';
 import type { AllColorIndex, IColor } from '$lib/common/Types';
 import { SpecialColorIndex } from '$lib/common/Types';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 interface IRestoreColorSet {
 	foreground: IColor;
@@ -44,7 +44,7 @@ export class ThemeService implements IThemeService {
 		return this._colors;
 	}
 
-	private readonly _onChangeColors = new Emitter<ReadonlyColorSet>();
+	private readonly _onChangeColors = new LegacyEmitter<ReadonlyColorSet>();
 	public readonly onChangeColors = this._onChangeColors.event;
 
 	private readonly _minContrastListener: IDisposable;

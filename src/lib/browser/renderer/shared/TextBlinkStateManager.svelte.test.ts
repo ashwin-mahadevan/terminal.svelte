@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
 import { MockOptionsService } from '$lib/common/TestUtils';
 import type { ICoreBrowserService } from '$lib/browser/services/Services';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 class FakeWindow {
 	public nextId = 1;
@@ -37,8 +37,8 @@ function createManager(duration: number): {
 		serviceBrand: undefined,
 		isFocused: true,
 		dpr: 1,
-		onDprChange: new Emitter<number>().event,
-		onWindowChange: new Emitter<Window & typeof globalThis>().event,
+		onDprChange: new LegacyEmitter<number>().event,
+		onWindowChange: new LegacyEmitter<Window & typeof globalThis>().event,
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		window: fakeWindow as any,

@@ -7,14 +7,15 @@ import type { IBuffer as IBufferApi, IBufferNamespace as IBufferNamespaceApi } f
 import { BufferApiView } from '$lib/common/public/BufferApiView';
 import type { ICoreTerminal } from '$lib/common/Types';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 export class BufferNamespaceApi implements IBufferNamespaceApi {
 	private _normal: BufferApiView;
 	private _alternate: BufferApiView;
 
-	private readonly _onBufferChange = new Emitter<IBufferApi>();
+	private readonly _onBufferChange = new LegacyEmitter<IBufferApi>();
 	public readonly onBufferChange = this._onBufferChange.event;
+
 	private readonly _bufferActivateListener: IDisposable;
 
 	constructor(private _core: ICoreTerminal) {

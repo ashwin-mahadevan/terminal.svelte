@@ -5,7 +5,7 @@
 import type { IMouseStateService } from '$lib/common/services/Services';
 import type { ICoreMouseProtocol, ICoreMouseEvent, CoreMouseEncoding } from '$lib/common/Types';
 import { CoreMouseEventType, CoreMouseButton, CoreMouseAction } from '$lib/common/Types';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 /**
  * Supported default protocols.
@@ -187,7 +187,7 @@ export class MouseStateService implements IMouseStateService {
 	private _activeEncoding: string = '';
 	private _customWheelEventHandler: ((event: WheelEvent) => boolean) | undefined;
 
-	private readonly _onProtocolChange = new Emitter<CoreMouseEventType>();
+	private readonly _onProtocolChange = new LegacyEmitter<CoreMouseEventType>();
 	public readonly onProtocolChange = this._onProtocolChange.event;
 
 	constructor() {

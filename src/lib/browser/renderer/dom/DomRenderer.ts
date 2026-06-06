@@ -29,7 +29,7 @@ import {
 	IInstantiationService,
 	IOptionsService
 } from '$lib/common/services/Services';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 
 const enum Constants {
@@ -70,7 +70,7 @@ export class DomRenderer implements IRenderer {
 
 	public dimensions: IRenderDimensions;
 
-	private readonly _onRequestRedraw = new Emitter<IRequestRedrawEvent>();
+	private readonly _onRequestRedraw = new LegacyEmitter<IRequestRedrawEvent>();
 	public readonly onRequestRedraw = this._onRequestRedraw.event;
 
 	private _optionChangeListener!: IDisposable;

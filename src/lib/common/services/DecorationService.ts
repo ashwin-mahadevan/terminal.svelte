@@ -13,7 +13,7 @@ import { IBufferService } from '$lib/common/services/Services';
 import { SortedList } from '$lib/common/SortedList';
 import type { IColor, ICircularList } from '$lib/common/Types';
 import type { IDecoration, IDecorationOptions, IMarker } from '$lib/xterm';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 // Work variables to avoid garbage collection
 let $xmin = 0;
@@ -33,9 +33,9 @@ export class DecorationService {
 
 	private readonly _lineCache = new DecorationLineCache();
 
-	private readonly _onDecorationRegistered = new Emitter<IInternalDecoration>();
+	private readonly _onDecorationRegistered = new LegacyEmitter<IInternalDecoration>();
 	public readonly onDecorationRegistered = this._onDecorationRegistered.event;
-	private readonly _onDecorationRemoved = new Emitter<IInternalDecoration>();
+	private readonly _onDecorationRemoved = new LegacyEmitter<IInternalDecoration>();
 	public readonly onDecorationRemoved = this._onDecorationRemoved.event;
 
 	private readonly _bufferActivateListener: IDisposable;
@@ -366,9 +366,9 @@ class Decoration extends DisposableStore implements IInternalDecoration {
 	/** Start line used for line-index removal when marker.line is cleared on dispose. */
 	public _indexedStartLine: number;
 
-	public readonly onRenderEmitter = this.add(new Emitter<HTMLElement>());
+	public readonly onRenderEmitter = this.add(new LegacyEmitter<HTMLElement>());
 	public readonly onRender = this.onRenderEmitter.event;
-	private readonly _onDispose = this.add(new Emitter<void>());
+	private readonly _onDispose = this.add(new LegacyEmitter<void>());
 	public readonly onDispose = this._onDispose.event;
 
 	private _cachedBg: IColor | undefined | null = null;

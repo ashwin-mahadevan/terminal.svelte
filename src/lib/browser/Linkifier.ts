@@ -15,7 +15,7 @@ import { dispose } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Types';
 import { IBufferService } from '$lib/common/services/Services';
 import { ILinkProviderService, IMouseCoordsService, IRenderService } from './services/Services';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 
 export class Linkifier implements ILinkifier2 {
@@ -34,9 +34,9 @@ export class Linkifier implements ILinkifier2 {
 	private _activeProviderReplies: Map<Number, ILinkWithState[] | undefined> | undefined;
 	private _activeLine: number = -1;
 
-	private readonly _onShowLinkUnderline = new Emitter<ILinkifierEvent>();
+	private readonly _onShowLinkUnderline = new LegacyEmitter<ILinkifierEvent>();
 	public readonly onShowLinkUnderline = this._onShowLinkUnderline.event;
-	private readonly _onHideLinkUnderline = new Emitter<ILinkifierEvent>();
+	private readonly _onHideLinkUnderline = new LegacyEmitter<ILinkifierEvent>();
 	public readonly onHideLinkUnderline = this._onHideLinkUnderline.event;
 
 	private readonly _resizeListener: IDisposable;

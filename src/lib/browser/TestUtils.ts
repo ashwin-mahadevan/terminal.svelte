@@ -65,7 +65,7 @@ import type {
 } from '$lib/browser/selection/Types';
 import { css } from '$lib/common/Color';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 
 export class TestTerminal extends CoreBrowserTerminal {
@@ -529,7 +529,7 @@ export class MockRenderer implements IRenderer {
 }
 
 export class MockViewport implements IViewport {
-	private readonly _onRequestScrollLines = new Emitter<{
+	private readonly _onRequestScrollLines = new LegacyEmitter<{
 		amount: number;
 		suppressScrollEvent: boolean;
 	}>();
@@ -608,8 +608,8 @@ export class MockCompositionHelper implements ICompositionHelper {
 }
 
 export class MockCoreBrowserService implements ICoreBrowserService {
-	public onDprChange = new Emitter<number>().event;
-	public onWindowChange = new Emitter<Window & typeof globalThis>().event;
+	public onDprChange = new LegacyEmitter<number>().event;
+	public onWindowChange = new LegacyEmitter<Window & typeof globalThis>().event;
 	public serviceBrand: undefined;
 	public isFocused: boolean = true;
 	public get window(): Window & typeof globalThis {
@@ -626,7 +626,7 @@ export class MockCharSizeService implements ICharSizeService {
 	public get hasValidSize(): boolean {
 		return this.width > 0 && this.height > 0;
 	}
-	public onCharSizeChange: IEvent<void> = new Emitter<void>().event;
+	public onCharSizeChange: IEvent<void> = new LegacyEmitter<void>().event;
 	constructor(
 		public width: number,
 		public height: number
@@ -673,16 +673,17 @@ export class MockMouseService implements IMouseService {
 
 export class MockRenderService implements IRenderService {
 	public serviceBrand: undefined;
-	public onDimensionsChange: IEvent<IRenderDimensions> = new Emitter<IRenderDimensions>().event;
-	public onRenderedViewportChange: IEvent<{ start: number; end: number }> = new Emitter<{
+	public onDimensionsChange: IEvent<IRenderDimensions> = new LegacyEmitter<IRenderDimensions>()
+		.event;
+	public onRenderedViewportChange: IEvent<{ start: number; end: number }> = new LegacyEmitter<{
 		start: number;
 		end: number;
 	}>().event;
-	public onRender: IEvent<{ start: number; end: number }> = new Emitter<{
+	public onRender: IEvent<{ start: number; end: number }> = new LegacyEmitter<{
 		start: number;
 		end: number;
 	}>().event;
-	public onRefreshRequest: IEvent<{ start: number; end: number }> = new Emitter<{
+	public onRefreshRequest: IEvent<{ start: number; end: number }> = new LegacyEmitter<{
 		start: number;
 		end: number;
 	}>().event;
@@ -784,10 +785,10 @@ export class MockSelectionService implements ISelectionService {
 	public hasSelection: boolean = false;
 	public selectionStart: [number, number] | undefined;
 	public selectionEnd: [number, number] | undefined;
-	public onLinuxMouseSelection = new Emitter<string>().event;
-	public onRequestRedraw = new Emitter<ISelectionRedrawRequestEvent>().event;
-	public onRequestScrollLines = new Emitter<ISelectionRequestScrollLinesEvent>().event;
-	public onSelectionChange = new Emitter<void>().event;
+	public onLinuxMouseSelection = new LegacyEmitter<string>().event;
+	public onRequestRedraw = new LegacyEmitter<ISelectionRedrawRequestEvent>().event;
+	public onRequestScrollLines = new LegacyEmitter<ISelectionRequestScrollLinesEvent>().event;
+	public onSelectionChange = new LegacyEmitter<void>().event;
 	public disable(): void {
 		throw new Error('Method not implemented.');
 	}
@@ -847,7 +848,7 @@ export class MockSelectionService implements ISelectionService {
 
 export class MockThemeService implements IThemeService {
 	public serviceBrand: undefined;
-	public onChangeColors = new Emitter<ReadonlyColorSet>().event;
+	public onChangeColors = new LegacyEmitter<ReadonlyColorSet>().event;
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public restoreColor(slot?: ColorIndex | undefined): void {

@@ -6,7 +6,7 @@
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
 import type { ICoreService } from '$lib/common/services/Services';
 import { IBufferService, IOptionsService } from '$lib/common/services/Services';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 const DEFAULT_MODES: IModes = Object.freeze({
 	insertMode: false
@@ -46,13 +46,13 @@ export class CoreService implements ICoreService {
 	public decPrivateModes: IDecPrivateModes;
 	public kittyKeyboard: IKittyKeyboardState;
 
-	private readonly _onData = new Emitter<string>();
+	private readonly _onData = new LegacyEmitter<string>();
 	public readonly onData = this._onData.event;
-	private readonly _onUserInput = new Emitter<void>();
+	private readonly _onUserInput = new LegacyEmitter<void>();
 	public readonly onUserInput = this._onUserInput.event;
-	private readonly _onBinary = new Emitter<string>();
+	private readonly _onBinary = new LegacyEmitter<string>();
 	public readonly onBinary = this._onBinary.event;
-	private readonly _onRequestScrollToBottom = new Emitter<void>();
+	private readonly _onRequestScrollToBottom = new LegacyEmitter<void>();
 	public readonly onRequestScrollToBottom = this._onRequestScrollToBottom.event;
 
 	constructor(

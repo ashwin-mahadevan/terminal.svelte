@@ -18,7 +18,7 @@ import { VerticalScrollbar } from './verticalScrollbar';
 import { Widget } from './widget';
 import { TimeoutTimer } from '$lib/common/Async';
 import type { IEvent } from '$lib/common/Event';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { dispose } from '$lib/common/Lifecycle';
 import * as platform from '$lib/common/Platform';
@@ -188,7 +188,7 @@ export class SmoothScrollableElement extends Widget {
 
 	private _revealOnScroll: boolean;
 
-	private readonly _onScroll = this._register(new Emitter<IScrollEvent>());
+	private readonly _onScroll = this._register(new LegacyEmitter<IScrollEvent>());
 	public readonly onScroll: IEvent<IScrollEvent> = this._onScroll.event;
 
 	public get options(): Readonly<IScrollableElementResolvedOptions> {

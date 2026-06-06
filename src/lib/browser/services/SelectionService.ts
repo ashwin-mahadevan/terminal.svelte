@@ -29,7 +29,7 @@ import {
 	IMouseStateService,
 	IOptionsService
 } from '$lib/common/services/Services';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 const enum Constants {
 	/**
@@ -125,13 +125,13 @@ export class SelectionService implements ISelectionService {
 	private _oldSelectionStart: [number, number] | undefined = undefined;
 	private _oldSelectionEnd: [number, number] | undefined = undefined;
 
-	private readonly _onLinuxMouseSelection = new Emitter<string>();
+	private readonly _onLinuxMouseSelection = new LegacyEmitter<string>();
 	public readonly onLinuxMouseSelection = this._onLinuxMouseSelection.event;
-	private readonly _onRedrawRequest = new Emitter<ISelectionRedrawRequestEvent>();
+	private readonly _onRedrawRequest = new LegacyEmitter<ISelectionRedrawRequestEvent>();
 	public readonly onRequestRedraw = this._onRedrawRequest.event;
-	private readonly _onSelectionChange = new Emitter<void>();
+	private readonly _onSelectionChange = new LegacyEmitter<void>();
 	public readonly onSelectionChange = this._onSelectionChange.event;
-	private readonly _onRequestScrollLines = new Emitter<ISelectionRequestScrollLinesEvent>();
+	private readonly _onRequestScrollLines = new LegacyEmitter<ISelectionRequestScrollLinesEvent>();
 	public readonly onRequestScrollLines = this._onRequestScrollLines.event;
 
 	private _bufferActivateListener!: IDisposable;

@@ -30,7 +30,7 @@ import type {
 } from '$lib/common/Types';
 import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
 import { createDecorator } from '$lib/common/services/ServiceRegistry';
-import type { Emitter, IEvent } from '$lib/common/Event';
+import type { LegacyEmitter, IEvent } from '$lib/common/Event';
 
 export const IBufferService = createDecorator<IBufferService>('BufferService');
 export interface IBufferService {
@@ -437,7 +437,7 @@ export interface IInternalDecoration extends IDecoration {
 	readonly options: IDecorationOptions;
 	readonly backgroundColorRGB: IColor | undefined;
 	readonly foregroundColorRGB: IColor | undefined;
-	readonly onRenderEmitter: Emitter<HTMLElement>;
+	readonly onRenderEmitter: LegacyEmitter<HTMLElement>;
 	/** @internal Start line for line-index removal; kept in sync on buffer line shifts. */
 	_indexedStartLine: number;
 }

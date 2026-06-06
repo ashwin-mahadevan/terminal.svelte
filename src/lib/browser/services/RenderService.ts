@@ -21,7 +21,7 @@ import {
 	IDecorationService,
 	IOptionsService
 } from '$lib/common/services/Services';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 interface ISelectionState {
 	start: [number, number] | undefined;
@@ -55,13 +55,13 @@ export class RenderService implements IRenderService {
 		columnSelectMode: false
 	};
 
-	private readonly _onDimensionsChange = new Emitter<IRenderDimensions>();
+	private readonly _onDimensionsChange = new LegacyEmitter<IRenderDimensions>();
 	public readonly onDimensionsChange = this._onDimensionsChange.event;
-	private readonly _onRenderedViewportChange = new Emitter<{ start: number; end: number }>();
+	private readonly _onRenderedViewportChange = new LegacyEmitter<{ start: number; end: number }>();
 	public readonly onRenderedViewportChange = this._onRenderedViewportChange.event;
-	private readonly _onRender = new Emitter<{ start: number; end: number }>();
+	private readonly _onRender = new LegacyEmitter<{ start: number; end: number }>();
 	public readonly onRender = this._onRender.event;
-	private readonly _onRefreshRequest = new Emitter<{ start: number; end: number }>();
+	private readonly _onRefreshRequest = new LegacyEmitter<{ start: number; end: number }>();
 	public readonly onRefreshRequest = this._onRefreshRequest.event;
 
 	private _dprChangeListener!: IDisposable;

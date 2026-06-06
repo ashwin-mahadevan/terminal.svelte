@@ -10,7 +10,7 @@ import type {
 	UnicodeCharProperties,
 	UnicodeCharWidth
 } from '$lib/common/services/Services';
-import { Emitter } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 
 export class UnicodeService implements IUnicodeService {
 	// TODO: Fix this upstream type error.
@@ -21,7 +21,7 @@ export class UnicodeService implements IUnicodeService {
 	private _active: string = '';
 	private _activeProvider: IUnicodeVersionProvider;
 
-	private readonly _onChange = new Emitter<string>();
+	private readonly _onChange = new LegacyEmitter<string>();
 	public readonly onChange = this._onChange.event;
 
 	public static extractShouldJoin(value: UnicodeCharProperties): boolean {

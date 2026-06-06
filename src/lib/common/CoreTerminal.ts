@@ -45,7 +45,7 @@ import type { IBufferSet } from '$lib/common/buffer/Types';
 import { InputHandler } from '$lib/common/InputHandler';
 import { WriteBuffer } from '$lib/common/input/WriteBuffer';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
-import { Emitter, EventUtils } from '$lib/common/Event';
+import { LegacyEmitter, EventUtils } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 
@@ -68,28 +68,30 @@ export abstract class CoreTerminal implements ICoreTerminal {
 	private _writeBuffer: WriteBuffer;
 	private _windowsWrappingHeuristics = this._store.add(new MutableDisposable());
 
-	private readonly _onBinary = this._store.add(new Emitter<string>());
+	private readonly _onBinary = this._store.add(new LegacyEmitter<string>());
 	public readonly onBinary = this._onBinary.event;
-	private readonly _onData = this._store.add(new Emitter<string>());
+	private readonly _onData = this._store.add(new LegacyEmitter<string>());
 	public readonly onData = this._onData.event;
-	protected _onLineFeed = this._store.add(new Emitter<void>());
+	protected _onLineFeed = this._store.add(new LegacyEmitter<void>());
 	public readonly onLineFeed = this._onLineFeed.event;
-	protected readonly _onRender = this._store.add(new Emitter<{ start: number; end: number }>());
+	protected readonly _onRender = this._store.add(
+		new LegacyEmitter<{ start: number; end: number }>()
+	);
 	public readonly onRender = this._onRender.event;
-	private readonly _onResize = this._store.add(new Emitter<{ cols: number; rows: number }>());
+	private readonly _onResize = this._store.add(new LegacyEmitter<{ cols: number; rows: number }>());
 	public readonly onResize = this._onResize.event;
-	protected readonly _onWriteParsed = this._store.add(new Emitter<void>());
+	protected readonly _onWriteParsed = this._store.add(new LegacyEmitter<void>());
 	public readonly onWriteParsed = this._onWriteParsed.event;
 
 	/**
 	 * Internally we track the source of the scroll but this is meaningless outside the library so
 	 * it's filtered out.
 	 */
-	protected _onScrollApi?: Emitter<number>;
-	protected _onScroll = this._store.add(new Emitter<IScrollEvent>());
+	protected _onScrollApi?: LegacyEmitter<number>;
+	protected _onScroll = this._store.add(new LegacyEmitter<IScrollEvent>());
 	public get onScroll(): IEvent<number> {
 		if (!this._onScrollApi) {
-			this._onScrollApi = this._store.add(new Emitter<number>());
+			this._onScrollApi = this._store.add(new LegacyEmitter<number>());
 			this._onScroll.event((ev) => {
 				this._onScrollApi?.fire(ev.position);
 			});
