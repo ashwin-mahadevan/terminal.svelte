@@ -90,10 +90,10 @@ import { IDecorationService } from '$lib/common/services/Services';
 import { WindowsOptionsReportType } from '../common/InputHandler';
 import { AccessibilityManager } from './AccessibilityManager';
 import { Linkifier } from './Linkifier';
-import { LegacyEmitter } from '$lib/common/Event';
+import { LegacyEmitter, EventUtils } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
-import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 
 export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 	public textarea: HTMLTextAreaElement | undefined;
@@ -801,9 +801,11 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 			})
 		);
 		this._register(
-			((listener: (e: void) => void) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			((listener: (e: any) => void) => {
 				const store = new DisposableStore();
-				for (const event of [this._onScroll.event, this._inputHandler.onScroll]) {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				for (const event of [this._onScroll.event, this._inputHandler.onScroll] as IEvent<any>[]) {
 					store.add(event((e) => listener(e)));
 				}
 				return store;

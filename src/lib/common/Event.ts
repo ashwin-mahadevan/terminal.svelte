@@ -1,5 +1,5 @@
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
+import { toDisposable } from '$lib/common/Lifecycle';
 
 export interface IEvent<T> {
 	(listener: (e: T) => void): IDisposable;
@@ -65,5 +65,4 @@ export namespace EventUtils {
 	export function forward<T>(from: IEvent<T>, to: LegacyEmitter<T>): IDisposable {
 		return from((e) => to.fire(e));
 	}
-
 }
