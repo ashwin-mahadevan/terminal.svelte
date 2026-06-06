@@ -8,7 +8,6 @@ import { SelectionModel } from '$lib/browser/selection/SelectionModel';
 import { MockBufferService } from '$lib/common/TestUtils';
 
 describe('SelectionModel', () => {
-
 	describe('clearSelection', () => {
 		it('should clear the final selection', () => {
 			const model = new SelectionModel(new MockBufferService(80, 2));

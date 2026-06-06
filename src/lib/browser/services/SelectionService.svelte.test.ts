@@ -108,7 +108,6 @@ class TestSelectionService extends SelectionService {
 }
 
 describe('SelectionService', () => {
-
 	function stringToRow(text: string): IBufferLine {
 		const result = new BufferLine(TEST_STRING_CACHE, text.length);
 		for (let i = 0; i < text.length; i++) {

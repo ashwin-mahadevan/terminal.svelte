@@ -53,7 +53,6 @@ function getLinks(provider: OscLinkProvider, y: number): Promise<ILink[]> {
 }
 
 describe('OscLinkProvider', () => {
-
 	it('expands a wrapped link range backward to the previous line', async () => {
 		const optionsService = new MockOptionsService();
 		const bufferService = new MockBufferService(5, 5, optionsService);

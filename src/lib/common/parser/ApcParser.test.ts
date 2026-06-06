@@ -231,19 +231,19 @@ describe('ApcParser', () => {
 			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
 			try {
 				parser.registerHandler(
-				identifier({ intermediates: '+', final: 'p' }),
-				new ApcHandler((data) => {
-					reports.push(data);
-					return true;
-				})
-			);
-			parser.start(identifier({ intermediates: '+', final: 'p' }));
-			let data = toUtf32('Here comes');
-			parser.put(data, 0, data.length);
-			data = toUtf32(' the mouse!');
-			parser.put(data, 0, data.length);
-			parser.end(true);
-			expect(reports).toEqual(['Here comes the mouse!']);
+					identifier({ intermediates: '+', final: 'p' }),
+					new ApcHandler((data) => {
+						reports.push(data);
+						return true;
+					})
+				);
+				parser.start(identifier({ intermediates: '+', final: 'p' }));
+				let data = toUtf32('Here comes');
+				parser.put(data, 0, data.length);
+				data = toUtf32(' the mouse!');
+				parser.put(data, 0, data.length);
+				parser.end(true);
+				expect(reports).toEqual(['Here comes the mouse!']);
 			} finally {
 				handlerConstructor._payloadLimit = originalPayloadLimit;
 			}
@@ -259,19 +259,19 @@ describe('ApcParser', () => {
 			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
 			try {
 				parser.registerHandler(
-				identifier({ intermediates: '+', final: 'p' }),
-				new ApcHandler((data) => {
-					reports.push(data);
-					return true;
-				})
-			);
-			parser.start(identifier({ intermediates: '+', final: 'p' }));
-			let data = toUtf32('Here comes');
-			parser.put(data, 0, data.length);
-			data = toUtf32(' the mouse!');
-			parser.put(data, 0, data.length);
-			parser.end(false);
-			expect(reports).toEqual([]);
+					identifier({ intermediates: '+', final: 'p' }),
+					new ApcHandler((data) => {
+						reports.push(data);
+						return true;
+					})
+				);
+				parser.start(identifier({ intermediates: '+', final: 'p' }));
+				let data = toUtf32('Here comes');
+				parser.put(data, 0, data.length);
+				data = toUtf32(' the mouse!');
+				parser.put(data, 0, data.length);
+				parser.end(false);
+				expect(reports).toEqual([]);
 			} finally {
 				handlerConstructor._payloadLimit = originalPayloadLimit;
 			}
@@ -287,37 +287,37 @@ describe('ApcParser', () => {
 			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
 			try {
 				parser.registerHandler(
-				identifier({ intermediates: '+', final: 'p' }),
-				new ApcHandler((data) => {
-					reports.push(['one', data]);
-					return true;
-				})
-			);
-			const dispo = parser.registerHandler(
-				identifier({ intermediates: '+', final: 'p' }),
-				new ApcHandler((data) => {
-					reports.push(['two', data]);
-					return true;
-				})
-			);
-			parser.start(identifier({ intermediates: '+', final: 'p' }));
-			let data = toUtf32('Here comes');
-			parser.put(data, 0, data.length);
-			data = toUtf32(' the mouse!');
-			parser.put(data, 0, data.length);
-			parser.end(true);
-			expect(reports).toEqual([['two', 'Here comes the mouse!']]);
-			dispo.dispose();
-			parser.start(identifier({ intermediates: '+', final: 'p' }));
-			data = toUtf32('some other');
-			parser.put(data, 0, data.length);
-			data = toUtf32(' data');
-			parser.put(data, 0, data.length);
-			parser.end(true);
-			expect(reports).toEqual([
-				['two', 'Here comes the mouse!'],
-				['one', 'some other data']
-			]);
+					identifier({ intermediates: '+', final: 'p' }),
+					new ApcHandler((data) => {
+						reports.push(['one', data]);
+						return true;
+					})
+				);
+				const dispo = parser.registerHandler(
+					identifier({ intermediates: '+', final: 'p' }),
+					new ApcHandler((data) => {
+						reports.push(['two', data]);
+						return true;
+					})
+				);
+				parser.start(identifier({ intermediates: '+', final: 'p' }));
+				let data = toUtf32('Here comes');
+				parser.put(data, 0, data.length);
+				data = toUtf32(' the mouse!');
+				parser.put(data, 0, data.length);
+				parser.end(true);
+				expect(reports).toEqual([['two', 'Here comes the mouse!']]);
+				dispo.dispose();
+				parser.start(identifier({ intermediates: '+', final: 'p' }));
+				data = toUtf32('some other');
+				parser.put(data, 0, data.length);
+				data = toUtf32(' data');
+				parser.put(data, 0, data.length);
+				parser.end(true);
+				expect(reports).toEqual([
+					['two', 'Here comes the mouse!'],
+					['one', 'some other data']
+				]);
 			} finally {
 				handlerConstructor._payloadLimit = originalPayloadLimit;
 			}
@@ -333,29 +333,29 @@ describe('ApcParser', () => {
 			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
 			try {
 				parser.registerHandler(
-				identifier({ intermediates: '+', final: 'p' }),
-				new ApcHandler((data) => {
-					reports.push(['one', data]);
-					return true;
-				})
-			);
-			parser.registerHandler(
-				identifier({ intermediates: '+', final: 'p' }),
-				new ApcHandler((data) => {
-					reports.push(['two', data]);
-					return false;
-				})
-			);
-			parser.start(identifier({ intermediates: '+', final: 'p' }));
-			let data = toUtf32('Here comes');
-			parser.put(data, 0, data.length);
-			data = toUtf32(' the mouse!');
-			parser.put(data, 0, data.length);
-			parser.end(true);
-			expect(reports).toEqual([
-				['two', 'Here comes the mouse!'],
-				['one', 'Here comes the mouse!']
-			]);
+					identifier({ intermediates: '+', final: 'p' }),
+					new ApcHandler((data) => {
+						reports.push(['one', data]);
+						return true;
+					})
+				);
+				parser.registerHandler(
+					identifier({ intermediates: '+', final: 'p' }),
+					new ApcHandler((data) => {
+						reports.push(['two', data]);
+						return false;
+					})
+				);
+				parser.start(identifier({ intermediates: '+', final: 'p' }));
+				let data = toUtf32('Here comes');
+				parser.put(data, 0, data.length);
+				data = toUtf32(' the mouse!');
+				parser.put(data, 0, data.length);
+				parser.end(true);
+				expect(reports).toEqual([
+					['two', 'Here comes the mouse!'],
+					['one', 'Here comes the mouse!']
+				]);
 			} finally {
 				handlerConstructor._payloadLimit = originalPayloadLimit;
 			}
@@ -371,19 +371,19 @@ describe('ApcParser', () => {
 			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
 			try {
 				parser.registerHandler(
-				identifier({ intermediates: '+', final: 'p' }),
-				new ApcHandler((data) => {
-					reports.push(data);
-					return true;
-				})
-			);
-			parser.start(identifier({ intermediates: '+', final: 'p' }));
-			const data = toUtf32('A'.repeat(CHUNK_SIZE));
-			for (let i = 0; i < TEST_PAYLOAD_LIMIT; i += CHUNK_SIZE) {
-				parser.put(data, 0, data.length);
-			}
-			parser.end(true);
-			expect(reports).toEqual(['A'.repeat(TEST_PAYLOAD_LIMIT)]);
+					identifier({ intermediates: '+', final: 'p' }),
+					new ApcHandler((data) => {
+						reports.push(data);
+						return true;
+					})
+				);
+				parser.start(identifier({ intermediates: '+', final: 'p' }));
+				const data = toUtf32('A'.repeat(CHUNK_SIZE));
+				for (let i = 0; i < TEST_PAYLOAD_LIMIT; i += CHUNK_SIZE) {
+					parser.put(data, 0, data.length);
+				}
+				parser.end(true);
+				expect(reports).toEqual(['A'.repeat(TEST_PAYLOAD_LIMIT)]);
 			} finally {
 				handlerConstructor._payloadLimit = originalPayloadLimit;
 			}
@@ -399,21 +399,21 @@ describe('ApcParser', () => {
 			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
 			try {
 				parser.registerHandler(
-				identifier({ intermediates: '+', final: 'p' }),
-				new ApcHandler((data) => {
-					reports.push(data);
-					return true;
-				})
-			);
-			parser.start(identifier({ intermediates: '+', final: 'p' }));
-			let data = toUtf32('A'.repeat(CHUNK_SIZE));
-			for (let i = 0; i < TEST_PAYLOAD_LIMIT; i += CHUNK_SIZE) {
+					identifier({ intermediates: '+', final: 'p' }),
+					new ApcHandler((data) => {
+						reports.push(data);
+						return true;
+					})
+				);
+				parser.start(identifier({ intermediates: '+', final: 'p' }));
+				let data = toUtf32('A'.repeat(CHUNK_SIZE));
+				for (let i = 0; i < TEST_PAYLOAD_LIMIT; i += CHUNK_SIZE) {
+					parser.put(data, 0, data.length);
+				}
+				data = toUtf32('A');
 				parser.put(data, 0, data.length);
-			}
-			data = toUtf32('A');
-			parser.put(data, 0, data.length);
-			parser.end(true);
-			expect(reports).toEqual([]);
+				parser.end(true);
+				expect(reports).toEqual([]);
 			} finally {
 				handlerConstructor._payloadLimit = originalPayloadLimit;
 			}

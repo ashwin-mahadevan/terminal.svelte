@@ -74,7 +74,6 @@ function setupCompositionHelper() {
 }
 
 describe('CompositionHelper', () => {
-
 	describe('Input', () => {
 		it('Should insert simple characters', async () => {
 			const { compositionHelper, textarea, state } = setupCompositionHelper();

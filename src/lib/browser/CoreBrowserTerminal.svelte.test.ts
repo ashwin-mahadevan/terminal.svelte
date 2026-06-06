@@ -727,8 +727,8 @@ describe('CoreBrowserTerminal', () => {
 					type: 'keydown',
 					altKey: null,
 					keyCode: null
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any;
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 81;
@@ -749,8 +749,8 @@ describe('CoreBrowserTerminal', () => {
 					type: 'keydown',
 					altKey: null,
 					keyCode: null
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any;
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 81;
@@ -771,8 +771,8 @@ describe('CoreBrowserTerminal', () => {
 					type: 'keydown',
 					altKey: null,
 					keyCode: null
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any;
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 37;
@@ -794,8 +794,8 @@ describe('CoreBrowserTerminal', () => {
 						altKey: null,
 						charCode: null,
 						keyCode: null
-					// TODO: Fix this upstream type error.
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						// TODO: Fix this upstream type error.
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					} as any;
 					const keys = ['@', '@', '\\', '\\', '|', '|'];
 
@@ -849,8 +849,8 @@ describe('CoreBrowserTerminal', () => {
 					type: 'keydown',
 					altKey: null,
 					keyCode: null
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any;
 				const evKeyPress = {
 					preventDefault: () => {},
@@ -859,8 +859,8 @@ describe('CoreBrowserTerminal', () => {
 					altKey: null,
 					charCode: null,
 					keyCode: null
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any;
 				evKeyPress.altKey = true;
 				evKeyPress.ctrlKey = true;
@@ -883,8 +883,8 @@ describe('CoreBrowserTerminal', () => {
 					type: 'keydown',
 					altKey: null,
 					keyCode: null
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any;
 				evKeyDown.altKey = true;
 				evKeyDown.ctrlKey = true;
@@ -908,8 +908,8 @@ describe('CoreBrowserTerminal', () => {
 						altKey: null,
 						charCode: null,
 						keyCode: null
-					// TODO: Fix this upstream type error.
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						// TODO: Fix this upstream type error.
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					} as any;
 					const keys = ['@', '@', '\\', '\\', '|', '|'];
 

@@ -17,7 +17,10 @@ import { Terminal } from '$lib/browser/public/Terminal';
 import { FitAddon } from '$lib/FitAddon';
 
 describe('FitAddon', () => {
-	function open(element: HTMLDivElement, opts?: ConstructorParameters<typeof Terminal>[0]): { terminal: Terminal; fit: FitAddon } {
+	function open(
+		element: HTMLDivElement,
+		opts?: ConstructorParameters<typeof Terminal>[0]
+	): { terminal: Terminal; fit: FitAddon } {
 		const terminal = new Terminal(opts);
 		const fit = new FitAddon();
 		terminal.loadAddon(fit);
@@ -25,7 +28,12 @@ describe('FitAddon', () => {
 		return { terminal, fit };
 	}
 
-	async function setDimensions(element: HTMLDivElement, fit: FitAddon, width: number = 800, height: number = 450): Promise<void> {
+	async function setDimensions(
+		element: HTMLDivElement,
+		fit: FitAddon,
+		width: number = 800,
+		height: number = 450
+	): Promise<void> {
 		element.style.width = `${width}px`;
 		element.style.height = `${height}px`;
 		element.style.display = '';

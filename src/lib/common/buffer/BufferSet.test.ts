@@ -9,7 +9,6 @@ import { Buffer } from '$lib/common/buffer/Buffer';
 import { MockOptionsService, MockBufferService, createCellData } from '$lib/common/TestUtils';
 
 describe('BufferSet', () => {
-
 	describe('constructor', () => {
 		it('should create two different buffers: alt and normal', () => {
 			const bufferSet = new BufferSet(

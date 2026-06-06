@@ -19,7 +19,6 @@ function writeP(terminal: Terminal, data: string): Promise<void> {
 }
 
 describe('ProgressAddon', () => {
-
 	it('initial values should be 0;0', () => {
 		const element = document.createElement('div');
 		document.body.appendChild(element);
