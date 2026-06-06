@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
 import type { ILink } from '$lib/browser/Types';
 import { createCellData, MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
@@ -53,16 +53,11 @@ function getLinks(provider: OscLinkProvider, y: number): Promise<ILink[]> {
 }
 
 describe('OscLinkProvider', () => {
-	let bufferService: IBufferService;
-	let provider: OscLinkProvider;
-
-	beforeEach(() => {
-		const optionsService = new MockOptionsService();
-		bufferService = new MockBufferService(5, 5, optionsService);
-		provider = new OscLinkProvider(bufferService, optionsService, new TestOscLinkService());
-	});
 
 	it('expands a wrapped link range backward to the previous line', async () => {
+		const optionsService = new MockOptionsService();
+		const bufferService = new MockBufferService(5, 5, optionsService);
+		const provider = new OscLinkProvider(bufferService, optionsService, new TestOscLinkService());
 		const line1 = bufferService.buffer.lines.get(0);
 		const line2 = bufferService.buffer.lines.get(1);
 		setText(line1, 0, 'aa');
@@ -80,6 +75,9 @@ describe('OscLinkProvider', () => {
 	});
 
 	it('expands a wrapped link range forward when a link ends at line boundary', async () => {
+		const optionsService = new MockOptionsService();
+		const bufferService = new MockBufferService(5, 5, optionsService);
+		const provider = new OscLinkProvider(bufferService, optionsService, new TestOscLinkService());
 		const line1 = bufferService.buffer.lines.get(0);
 		const line2 = bufferService.buffer.lines.get(1);
 		setUrl(line1, 0, 'aaaaa', 1);
@@ -96,6 +94,9 @@ describe('OscLinkProvider', () => {
 	});
 
 	it('does not merge wrapped links with different url ids', async () => {
+		const optionsService = new MockOptionsService();
+		const bufferService = new MockBufferService(5, 5, optionsService);
+		const provider = new OscLinkProvider(bufferService, optionsService, new TestOscLinkService());
 		const line1 = bufferService.buffer.lines.get(0);
 		const line2 = bufferService.buffer.lines.get(1);
 		setUrl(line1, 0, 'aaaaa', 1);

@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { WriteBuffer } from '$lib/common/input/WriteBuffer';
 
 // TODO: Fix this upstream type error.
@@ -19,19 +19,14 @@ function fromBytes(bytes: Uint8Array): string {
 }
 
 describe('WriteBuffer', () => {
-	let wb: WriteBuffer;
-	let stack: (string | Uint8Array)[] = [];
-	let cbStack: string[] = [];
-	beforeEach(() => {
-		stack = [];
-		cbStack = [];
-		wb = new WriteBuffer((data) => {
-			stack.push(data);
-		});
-	});
 	describe('write input', () => {
 		it('string', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const cbStack: string[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				wb.write('a._');
 				wb.write('b.x', () => {
 					cbStack.push('b');
@@ -48,6 +43,11 @@ describe('WriteBuffer', () => {
 			}));
 		it('bytes', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const cbStack: string[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				wb.write(toBytes('a._'));
 				wb.write(toBytes('b.x'), () => {
 					cbStack.push('b');
@@ -70,6 +70,11 @@ describe('WriteBuffer', () => {
 			}));
 		it('string/bytes mixed', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const cbStack: string[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				wb.write('a._');
 				wb.write('b.x', () => {
 					cbStack.push('b');
@@ -92,6 +97,11 @@ describe('WriteBuffer', () => {
 			}));
 		it('write callback works for empty chunks', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const cbStack: string[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				wb.write('a', () => {
 					cbStack.push('a');
 				});
@@ -118,6 +128,11 @@ describe('WriteBuffer', () => {
 			}));
 		it('writeSync', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const cbStack: string[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				wb.write('a', () => {
 					cbStack.push('a');
 				});
@@ -140,7 +155,7 @@ describe('WriteBuffer', () => {
 				});
 			}));
 		it('writeSync called from action does not overflow callstack - issue #3265', () => {
-			wb = new WriteBuffer((data) => {
+			const wb = new WriteBuffer((data) => {
 				const num = parseInt(data as string);
 				if (num < 10000) {
 					wb.writeSync('' + (num + 1));
@@ -150,7 +165,7 @@ describe('WriteBuffer', () => {
 		});
 		it('writeSync maxSubsequentCalls argument', () => {
 			let last: string = '';
-			wb = new WriteBuffer((data) => {
+			const wb = new WriteBuffer((data) => {
 				last = data as string;
 				const num = parseInt(data as string);
 				if (num < 1000000) {
@@ -162,6 +177,11 @@ describe('WriteBuffer', () => {
 		});
 		it('flushSync processes all pending writes', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const cbStack: string[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				wb.write('a', () => {
 					cbStack.push('a');
 				});
@@ -184,11 +204,20 @@ describe('WriteBuffer', () => {
 				});
 			}));
 		it('flushSync with no pending writes is a no-op', () => {
+			const stack: (string | Uint8Array)[] = [];
+			const cbStack: string[] = [];
+			const wb = new WriteBuffer((data) => {
+				stack.push(data);
+			});
 			wb.flushSync();
 			expect(stack).toEqual([]);
 			expect(cbStack).toEqual([]);
 		});
 		it('flushSync fires onWriteParsed', () => {
+			const stack: (string | Uint8Array)[] = [];
+			const wb = new WriteBuffer((data) => {
+				stack.push(data);
+			});
 			let parsed = 0;
 			wb.onWriteParsed(() => parsed++);
 			wb.write('a');
@@ -198,6 +227,10 @@ describe('WriteBuffer', () => {
 			expect(parsed).toBe(1);
 		});
 		it('flushSync with no pending writes does not fire onWriteParsed', () => {
+			const stack: (string | Uint8Array)[] = [];
+			const wb = new WriteBuffer((data) => {
+				stack.push(data);
+			});
 			let parsed = 0;
 			wb.onWriteParsed(() => parsed++);
 			wb.flushSync();
@@ -205,6 +238,10 @@ describe('WriteBuffer', () => {
 		});
 		it('dispose cancels scheduled innerWrite', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				wb.write('a');
 				wb.dispose();
 				setTimeout(() => {
@@ -214,6 +251,10 @@ describe('WriteBuffer', () => {
 			}));
 		it('dispose does not fire onWriteParsed for pending writes', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				let parsed = 0;
 				wb.onWriteParsed(() => parsed++);
 				wb.write('a');
@@ -225,6 +266,10 @@ describe('WriteBuffer', () => {
 			}));
 		it('write after dispose is a no-op', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				wb.dispose();
 				wb.write('a');
 				setTimeout(() => {
@@ -234,6 +279,10 @@ describe('WriteBuffer', () => {
 			}));
 		it('dispose is idempotent', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				wb.write('a');
 				wb.dispose();
 				wb.dispose();
@@ -244,11 +293,12 @@ describe('WriteBuffer', () => {
 			}));
 		it('async handler continuation is skipped after dispose', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
 				let resolve!: (value: boolean) => void;
 				const pending = new Promise<boolean>((r) => {
 					resolve = r;
 				});
-				wb = new WriteBuffer(() => pending);
+				const wb = new WriteBuffer(() => pending);
 				wb.write('a');
 				wb.dispose();
 				resolve(true);
@@ -258,12 +308,20 @@ describe('WriteBuffer', () => {
 				}, 20);
 			}));
 		it('handleUserInput still processes first chunk synchronously', () => {
+			const stack: (string | Uint8Array)[] = [];
+			const wb = new WriteBuffer((data) => {
+				stack.push(data);
+			});
 			wb.handleUserInput();
 			wb.write('a');
 			expect(stack).toEqual(['a']);
 		});
 		it('flushSync after dispose is a no-op', () =>
 			new Promise<void>((done) => {
+				const stack: (string | Uint8Array)[] = [];
+				const wb = new WriteBuffer((data) => {
+					stack.push(data);
+				});
 				wb.write('a');
 				wb.dispose();
 				wb.flushSync();
@@ -273,6 +331,10 @@ describe('WriteBuffer', () => {
 				}, 20);
 			}));
 		it('writeSync after dispose is a no-op', () => {
+			const stack: (string | Uint8Array)[] = [];
+			const wb = new WriteBuffer((data) => {
+				stack.push(data);
+			});
 			wb.dispose();
 			wb.writeSync('a');
 			expect(stack).toEqual([]);

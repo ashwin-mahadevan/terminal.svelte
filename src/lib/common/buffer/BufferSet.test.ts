@@ -3,23 +3,19 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import { Buffer } from '$lib/common/buffer/Buffer';
 import { MockOptionsService, MockBufferService, createCellData } from '$lib/common/TestUtils';
 
 describe('BufferSet', () => {
-	let bufferSet: BufferSet;
-
-	beforeEach(() => {
-		bufferSet = new BufferSet(
-			new MockOptionsService({ scrollback: 1000 }),
-			new MockBufferService(80, 24)
-		);
-	});
 
 	describe('constructor', () => {
 		it('should create two different buffers: alt and normal', () => {
+			const bufferSet = new BufferSet(
+				new MockOptionsService({ scrollback: 1000 }),
+				new MockBufferService(80, 24)
+			);
 			expect(bufferSet.normal).toBeInstanceOf(Buffer);
 			expect(bufferSet.alt).toBeInstanceOf(Buffer);
 			expect(bufferSet.normal).not.toBe(bufferSet.alt);
@@ -27,34 +23,37 @@ describe('BufferSet', () => {
 	});
 
 	describe('activateNormalBuffer', () => {
-		beforeEach(() => {
-			bufferSet.activateNormalBuffer();
-		});
-
 		it('should set the normal buffer as the currently active buffer', () => {
+			const bufferSet = new BufferSet(
+				new MockOptionsService({ scrollback: 1000 }),
+				new MockBufferService(80, 24)
+			);
+			bufferSet.activateNormalBuffer();
 			expect(bufferSet.active).toBe(bufferSet.normal);
 		});
 	});
 
 	describe('activateAltBuffer', () => {
-		beforeEach(() => {
-			bufferSet.activateAltBuffer();
-		});
-
 		it('should set the alt buffer as the currently active buffer', () => {
+			const bufferSet = new BufferSet(
+				new MockOptionsService({ scrollback: 1000 }),
+				new MockBufferService(80, 24)
+			);
+			bufferSet.activateAltBuffer();
 			expect(bufferSet.active).toBe(bufferSet.alt);
 		});
 	});
 
 	describe('cursor handling when swapping buffers', () => {
-		beforeEach(() => {
+		it('should keep the cursor stationary when activating alt buffer', () => {
+			const bufferSet = new BufferSet(
+				new MockOptionsService({ scrollback: 1000 }),
+				new MockBufferService(80, 24)
+			);
 			bufferSet.normal.x = 0;
 			bufferSet.normal.y = 0;
 			bufferSet.alt.x = 0;
 			bufferSet.alt.y = 0;
-		});
-
-		it('should keep the cursor stationary when activating alt buffer', () => {
 			bufferSet.activateNormalBuffer();
 			bufferSet.active.x = 30;
 			bufferSet.active.y = 10;
@@ -63,6 +62,14 @@ describe('BufferSet', () => {
 			expect(bufferSet.active.y).toBe(10);
 		});
 		it('should keep the cursor stationary when activating normal buffer', () => {
+			const bufferSet = new BufferSet(
+				new MockOptionsService({ scrollback: 1000 }),
+				new MockBufferService(80, 24)
+			);
+			bufferSet.normal.x = 0;
+			bufferSet.normal.y = 0;
+			bufferSet.alt.x = 0;
+			bufferSet.alt.y = 0;
 			bufferSet.activateAltBuffer();
 			bufferSet.active.x = 30;
 			bufferSet.active.y = 10;
@@ -74,6 +81,10 @@ describe('BufferSet', () => {
 
 	describe('markers', () => {
 		it('should clear the markers when the buffer is switched', () => {
+			const bufferSet = new BufferSet(
+				new MockOptionsService({ scrollback: 1000 }),
+				new MockBufferService(80, 24)
+			);
 			bufferSet.activateAltBuffer();
 			bufferSet.alt.addMarker(1);
 			expect(bufferSet.alt.markers.length).toBe(1);
@@ -84,6 +95,10 @@ describe('BufferSet', () => {
 
 	describe('lifecycle', () => {
 		it('should dispose previous buffers on reset', () => {
+			const bufferSet = new BufferSet(
+				new MockOptionsService({ scrollback: 1000 }),
+				new MockBufferService(80, 24)
+			);
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const oldNormal = bufferSet.normal as any;
@@ -102,6 +117,10 @@ describe('BufferSet', () => {
 		});
 
 		it('should dispose both buffers when disposed', () => {
+			const bufferSet = new BufferSet(
+				new MockOptionsService({ scrollback: 1000 }),
+				new MockBufferService(80, 24)
+			);
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const normal = bufferSet.normal as any;

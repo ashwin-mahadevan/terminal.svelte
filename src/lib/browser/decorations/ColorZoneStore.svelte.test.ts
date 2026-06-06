@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
 
 const optionsRedFull = {
@@ -14,19 +14,14 @@ const optionsRedFull = {
 };
 
 describe('ColorZoneStore', () => {
-	let store: ColorZoneStore;
-
-	beforeEach(() => {
-		store = new ColorZoneStore();
+	it('should merge adjacent zones', () => {
+		const store = new ColorZoneStore();
 		store.setPadding({
 			full: 1,
 			left: 1,
 			center: 1,
 			right: 1
 		});
-	});
-
-	it('should merge adjacent zones', () => {
 		store.addDecoration({
 			marker: { line: 0 },
 			options: optionsRedFull
@@ -50,6 +45,13 @@ describe('ColorZoneStore', () => {
 	});
 
 	it('should not merge non-adjacent zones', () => {
+		const store = new ColorZoneStore();
+		store.setPadding({
+			full: 1,
+			left: 1,
+			center: 1,
+			right: 1
+		});
 		store.addDecoration({
 			marker: { line: 0 },
 			options: optionsRedFull
@@ -79,6 +81,13 @@ describe('ColorZoneStore', () => {
 	});
 
 	it('should reuse zone objects', () => {
+		const store = new ColorZoneStore();
+		store.setPadding({
+			full: 1,
+			left: 1,
+			center: 1,
+			right: 1
+		});
 		const obj = {
 			marker: { line: 0 },
 			options: optionsRedFull

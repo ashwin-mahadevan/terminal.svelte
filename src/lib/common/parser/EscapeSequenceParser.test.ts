@@ -1755,28 +1755,9 @@ describe('EscapeSequenceParser', () => {
 
 	describe('set/clear handler', () => {
 		const INPUT = '\x1b[1;31mhello \x1b%Gwor\x1bEld!\x1b[0m\r\n$>\x1b]1;foo=bar\x1b\\';
-		let parser2: TestEscapeSequenceParser;
-		let print = '';
-		const esc: string[] = [];
-		const csi: [string, ParamsArray, string][] = [];
-		const exe: string[] = [];
-		const osc: [number, string][] = [];
-		const dcs: ([string] | [string, string] | [string, string, ParamsArray, number])[] = [];
-		const apc: [string, string][] = [];
-		function clearAccu(): void {
-			print = '';
-			esc.length = 0;
-			csi.length = 0;
-			exe.length = 0;
-			osc.length = 0;
-			dcs.length = 0;
-			apc.length = 0;
-		}
-		beforeEach(() => {
-			parser2 = new TestEscapeSequenceParser();
-			clearAccu();
-		});
 		it('print handler', () => {
+			const parser2 = new TestEscapeSequenceParser();
+			let print = '';
 			parser2.setPrintHandler(function (data: Uint32Array, start: number, end: number): void {
 				for (let i = start; i < end; ++i) {
 					print += stringFromCodePoint(data[i]);
@@ -1786,11 +1767,13 @@ describe('EscapeSequenceParser', () => {
 			expect(print).toBe('hello world!$>');
 			parser2.clearPrintHandler();
 			parser2.clearPrintHandler(); // should not throw
-			clearAccu();
+			print = '';
 			parse(parser2, INPUT);
 			expect(print).toBe('');
 		});
 		it('ESC handler', () => {
+			const parser2 = new TestEscapeSequenceParser();
+			const esc: string[] = [];
 			parser2.registerEscHandler({ intermediates: '%', final: 'G' }, function (): boolean {
 				esc.push('%G');
 				return true;
@@ -1803,16 +1786,18 @@ describe('EscapeSequenceParser', () => {
 			expect(esc).toEqual(['%G', 'E']);
 			parser2.clearEscHandler({ intermediates: '%', final: 'G' });
 			parser2.clearEscHandler({ intermediates: '%', final: 'G' }); // should not throw
-			clearAccu();
+			esc.length = 0;
 			parse(parser2, INPUT);
 			expect(esc).toEqual(['E']);
 			parser2.clearEscHandler({ final: 'E' });
-			clearAccu();
+			esc.length = 0;
 			parse(parser2, INPUT);
 			expect(esc).toEqual([]);
 		});
 		describe('ESC custom handlers', () => {
 			it('prevent fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const esc: string[] = [];
 				parser2.registerEscHandler({ intermediates: '%', final: 'G' }, () => {
 					esc.push('default - %G');
 					return true;
@@ -1825,6 +1810,8 @@ describe('EscapeSequenceParser', () => {
 				expect(esc).toEqual(['custom - %G']);
 			});
 			it('allow fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const esc: string[] = [];
 				parser2.registerEscHandler({ intermediates: '%', final: 'G' }, () => {
 					esc.push('default - %G');
 					return true;
@@ -1837,6 +1824,8 @@ describe('EscapeSequenceParser', () => {
 				expect(esc).toEqual(['custom - %G', 'default - %G']);
 			});
 			it('Multiple custom handlers fallback once', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const esc: string[] = [];
 				parser2.registerEscHandler({ intermediates: '%', final: 'G' }, () => {
 					esc.push('default - %G');
 					return true;
@@ -1853,6 +1842,8 @@ describe('EscapeSequenceParser', () => {
 				expect(esc).toEqual(['custom2 - %G', 'custom - %G']);
 			});
 			it('Multiple custom handlers no fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const esc: string[] = [];
 				parser2.registerEscHandler({ intermediates: '%', final: 'G' }, () => {
 					esc.push('default - %G');
 					return true;
@@ -1869,6 +1860,7 @@ describe('EscapeSequenceParser', () => {
 				expect(esc).toEqual(['custom2 - %G']);
 			});
 			it('Execution order should go from latest handler down to the original', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const order: number[] = [];
 				parser2.registerEscHandler({ intermediates: '%', final: 'G' }, () => {
 					order.push(1);
@@ -1886,6 +1878,8 @@ describe('EscapeSequenceParser', () => {
 				expect(order).toEqual([3, 2, 1]);
 			});
 			it('Dispose should work', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const esc: string[] = [];
 				parser2.registerEscHandler({ intermediates: '%', final: 'G' }, () => {
 					esc.push('default - %G');
 					return true;
@@ -1899,6 +1893,8 @@ describe('EscapeSequenceParser', () => {
 				expect(esc).toEqual(['default - %G']);
 			});
 			it('Should not corrupt the parser when dispose is called twice', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const esc: string[] = [];
 				parser2.registerEscHandler({ intermediates: '%', final: 'G' }, () => {
 					esc.push('default - %G');
 					return true;
@@ -1914,6 +1910,8 @@ describe('EscapeSequenceParser', () => {
 			});
 		});
 		it('CSI handler', () => {
+			const parser2 = new TestEscapeSequenceParser();
+			const csi: [string, ParamsArray, string][] = [];
 			parser2.registerCsiHandler({ final: 'm' }, function (params: IParams): boolean {
 				csi.push(['m', params.toArray(), '']);
 				return true;
@@ -1925,12 +1923,14 @@ describe('EscapeSequenceParser', () => {
 			]);
 			parser2.clearCsiHandler({ final: 'm' });
 			parser2.clearCsiHandler({ final: 'm' }); // should not throw
-			clearAccu();
+			csi.length = 0;
 			parse(parser2, INPUT);
 			expect(csi).toEqual([]);
 		});
 		describe('CSI custom handlers', () => {
 			it('Prevent fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const csi: [string, ParamsArray, string][] = [];
 				const csiCustom: [string, ParamsArray, string][] = [];
 				parser2.registerCsiHandler({ final: 'm' }, (params) => {
 					csi.push(['m', params.toArray(), '']);
@@ -1948,6 +1948,8 @@ describe('EscapeSequenceParser', () => {
 				]);
 			});
 			it('Allow fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const csi: [string, ParamsArray, string][] = [];
 				const csiCustom: [string, ParamsArray, string][] = [];
 				parser2.registerCsiHandler({ final: 'm' }, (params) => {
 					csi.push(['m', params.toArray(), '']);
@@ -1968,6 +1970,8 @@ describe('EscapeSequenceParser', () => {
 				]);
 			});
 			it('Multiple custom handlers fallback once', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const csi: [string, ParamsArray, string][] = [];
 				const csiCustom: [string, ParamsArray, string][] = [];
 				const csiCustom2: [string, ParamsArray, string][] = [];
 				parser2.registerCsiHandler({ final: 'm' }, (params) => {
@@ -1994,6 +1998,8 @@ describe('EscapeSequenceParser', () => {
 				]);
 			});
 			it('Multiple custom handlers no fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const csi: [string, ParamsArray, string][] = [];
 				const csiCustom: [string, ParamsArray, string][] = [];
 				const csiCustom2: [string, ParamsArray, string][] = [];
 				parser2.registerCsiHandler({ final: 'm' }, (params) => {
@@ -2017,6 +2023,7 @@ describe('EscapeSequenceParser', () => {
 				]);
 			});
 			it('Execution order should go from latest handler down to the original', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const order: number[] = [];
 				parser2.registerCsiHandler({ final: 'm' }, () => {
 					order.push(1);
@@ -2034,6 +2041,8 @@ describe('EscapeSequenceParser', () => {
 				expect(order).toEqual([3, 2, 1]);
 			});
 			it('Dispose should work', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const csi: [string, ParamsArray, string][] = [];
 				const csiCustom: [string, ParamsArray, string][] = [];
 				parser2.registerCsiHandler({ final: 'm' }, (params) => {
 					csi.push(['m', params.toArray(), '']);
@@ -2052,6 +2061,8 @@ describe('EscapeSequenceParser', () => {
 				expect(csiCustom).toEqual([]); // Should not use custom handler as it was disposed
 			});
 			it('Should not corrupt the parser when dispose is called twice', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const csi: [string, ParamsArray, string][] = [];
 				const csiCustom: [string, ParamsArray, string][] = [];
 				parser2.registerCsiHandler({ final: 'm' }, (params) => {
 					csi.push(['m', params.toArray(), '']);
@@ -2072,6 +2083,8 @@ describe('EscapeSequenceParser', () => {
 			});
 		});
 		it('EXECUTE handler', () => {
+			const parser2 = new TestEscapeSequenceParser();
+			const exe: string[] = [];
 			parser2.setExecuteHandler('\n', function (): boolean {
 				exe.push('\n');
 				return true;
@@ -2084,11 +2097,13 @@ describe('EscapeSequenceParser', () => {
 			expect(exe).toEqual(['\r', '\n']);
 			parser2.clearExecuteHandler('\r');
 			parser2.clearExecuteHandler('\r'); // should not throw
-			clearAccu();
+			exe.length = 0;
 			parse(parser2, INPUT);
 			expect(exe).toEqual(['\n']);
 		});
 		it('OSC handler', () => {
+			const parser2 = new TestEscapeSequenceParser();
+			const osc: [number, string][] = [];
 			parser2.registerOscHandler(
 				1,
 				new OscHandler(function (data: string): boolean {
@@ -2100,12 +2115,14 @@ describe('EscapeSequenceParser', () => {
 			expect(osc).toEqual([[1, 'foo=bar']]);
 			parser2.clearOscHandler(1);
 			parser2.clearOscHandler(1); // should not throw
-			clearAccu();
+			osc.length = 0;
 			parse(parser2, INPUT);
 			expect(osc).toEqual([]);
 		});
 		describe('OSC custom handlers', () => {
 			it('Prevent fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const osc: [number, string][] = [];
 				const oscCustom: [number, string][] = [];
 				parser2.registerOscHandler(
 					1,
@@ -2126,6 +2143,8 @@ describe('EscapeSequenceParser', () => {
 				expect(oscCustom).toEqual([[1, 'foo=bar']]);
 			});
 			it('Allow fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const osc: [number, string][] = [];
 				const oscCustom: [number, string][] = [];
 				parser2.registerOscHandler(
 					1,
@@ -2146,6 +2165,8 @@ describe('EscapeSequenceParser', () => {
 				expect(oscCustom).toEqual([[1, 'foo=bar']]);
 			});
 			it('Multiple custom handlers fallback once', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const osc: [number, string][] = [];
 				const oscCustom: [number, string][] = [];
 				const oscCustom2: [number, string][] = [];
 				parser2.registerOscHandler(
@@ -2175,6 +2196,8 @@ describe('EscapeSequenceParser', () => {
 				expect(oscCustom2).toEqual([[1, 'foo=bar']]);
 			});
 			it('Multiple custom handlers no fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const osc: [number, string][] = [];
 				const oscCustom: [number, string][] = [];
 				const oscCustom2: [number, string][] = [];
 				parser2.registerOscHandler(
@@ -2204,6 +2227,7 @@ describe('EscapeSequenceParser', () => {
 				expect(oscCustom2).toEqual([[1, 'foo=bar']]);
 			});
 			it('Execution order should go from latest handler down to the original', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const order: number[] = [];
 				parser2.registerOscHandler(
 					1,
@@ -2230,6 +2254,8 @@ describe('EscapeSequenceParser', () => {
 				expect(order).toEqual([3, 2, 1]);
 			});
 			it('Dispose should work', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const osc: [number, string][] = [];
 				const oscCustom: [number, string][] = [];
 				parser2.registerOscHandler(
 					1,
@@ -2251,6 +2277,8 @@ describe('EscapeSequenceParser', () => {
 				expect(oscCustom).toEqual([]); // Should not use custom handler as it was disposed
 			});
 			it('Should not corrupt the parser when dispose is called twice', () => {
+				const parser2 = new TestEscapeSequenceParser();
+				const osc: [number, string][] = [];
 				const oscCustom: [number, string][] = [];
 				parser2.registerOscHandler(
 					1,
@@ -2274,6 +2302,8 @@ describe('EscapeSequenceParser', () => {
 			});
 		});
 		it('DCS handler', () => {
+			const parser2 = new TestEscapeSequenceParser();
+			const dcs: ([string] | [string, string] | [string, string, ParamsArray, number])[] = [];
 			parser2.registerDcsHandler(
 				{ intermediates: '+', final: 'p' },
 				{
@@ -2298,7 +2328,7 @@ describe('EscapeSequenceParser', () => {
 			expect(dcs).toEqual([['hook', '', [1, 2, 3], 0], ['put', 'abc'], ['put', ';de'], ['unhook']]);
 			parser2.clearDcsHandler({ intermediates: '+', final: 'p' });
 			parser2.clearDcsHandler({ intermediates: '+', final: 'p' }); // should not throw
-			clearAccu();
+			dcs.length = 0;
 			parse(parser2, '\x1bP1;2;3+pabc');
 			parse(parser2, ';de\x9c');
 			expect(dcs).toEqual([]);
@@ -2306,6 +2336,7 @@ describe('EscapeSequenceParser', () => {
 		describe('DCS custom handlers', () => {
 			const DCS_INPUT = '\x1bP1;2;3+pabc\x1b\\';
 			it('Prevent fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const dcsCustom: [string, (number | number[])[], string][] = [];
 				parser2.registerDcsHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2325,6 +2356,7 @@ describe('EscapeSequenceParser', () => {
 				expect(dcsCustom).toEqual([['B', [1, 2, 3], 'abc']]);
 			});
 			it('Allow fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const dcsCustom: [string, (number | number[])[], string][] = [];
 				parser2.registerDcsHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2347,6 +2379,7 @@ describe('EscapeSequenceParser', () => {
 				]);
 			});
 			it('Multiple custom handlers fallback once', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const dcsCustom: [string, (number | number[])[], string][] = [];
 				parser2.registerDcsHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2376,6 +2409,7 @@ describe('EscapeSequenceParser', () => {
 				]);
 			});
 			it('Multiple custom handlers no fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const dcsCustom: [string, (number | number[])[], string][] = [];
 				parser2.registerDcsHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2402,6 +2436,7 @@ describe('EscapeSequenceParser', () => {
 				expect(dcsCustom).toEqual([['C', [1, 2, 3], 'abc']]);
 			});
 			it('Execution order should go from latest handler down to the original', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const order: number[] = [];
 				parser2.registerDcsHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2428,6 +2463,7 @@ describe('EscapeSequenceParser', () => {
 				expect(order).toEqual([3, 2, 1]);
 			});
 			it('Dispose should work', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const dcsCustom: [string, (number | number[])[], string][] = [];
 				parser2.registerDcsHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2448,6 +2484,7 @@ describe('EscapeSequenceParser', () => {
 				expect(dcsCustom).toEqual([['A', [1, 2, 3], 'abc']]);
 			});
 			it('Should not corrupt the parser when dispose is called twice', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const dcsCustom: [string, (number | number[])[], string][] = [];
 				parser2.registerDcsHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2470,6 +2507,8 @@ describe('EscapeSequenceParser', () => {
 			});
 		});
 		it('APC handler', () => {
+			const parser2 = new TestEscapeSequenceParser();
+			const apc: [string, string][] = [];
 			parser2.registerApcHandler(
 				{ intermediates: '+', final: 'p' },
 				{
@@ -2499,7 +2538,7 @@ describe('EscapeSequenceParser', () => {
 			]);
 			parser2.clearApcHandler({ intermediates: '+', final: 'p' });
 			parser2.clearApcHandler({ intermediates: '+', final: 'p' }); // should not throw
-			clearAccu();
+			apc.length = 0;
 			parse(parser2, '\x1b_+pabc');
 			parse(parser2, ';de\x9c');
 			expect(apc).toEqual([]);
@@ -2507,6 +2546,7 @@ describe('EscapeSequenceParser', () => {
 		describe('APC custom handlers', () => {
 			const APC_INPUT = '\x1b_+pabc\x1b\\';
 			it('Prevent fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const apcCustom: [string, string][] = [];
 				parser2.registerApcHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2526,6 +2566,7 @@ describe('EscapeSequenceParser', () => {
 				expect(apcCustom).toEqual([['B', 'abc']]);
 			});
 			it('Allow fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const apcCustom: [string, string][] = [];
 				parser2.registerApcHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2548,6 +2589,7 @@ describe('EscapeSequenceParser', () => {
 				]);
 			});
 			it('Multiple custom handlers fallback once', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const apcCustom: [string, string][] = [];
 				parser2.registerApcHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2577,6 +2619,7 @@ describe('EscapeSequenceParser', () => {
 				]);
 			});
 			it('Multiple custom handlers no fallback', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const apcCustom: [string, string][] = [];
 				parser2.registerApcHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2603,6 +2646,7 @@ describe('EscapeSequenceParser', () => {
 				expect(apcCustom).toEqual([['C', 'abc']]);
 			});
 			it('Execution order should go from latest handler down to the original', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const order: number[] = [];
 				parser2.registerApcHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2629,6 +2673,7 @@ describe('EscapeSequenceParser', () => {
 				expect(order).toEqual([3, 2, 1]);
 			});
 			it('Dispose should work', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const apcCustom: [string, string][] = [];
 				parser2.registerApcHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2649,6 +2694,7 @@ describe('EscapeSequenceParser', () => {
 				expect(apcCustom).toEqual([['A', 'abc']]);
 			});
 			it('Should not corrupt the parser when dispose is called twice', () => {
+				const parser2 = new TestEscapeSequenceParser();
 				const apcCustom: [string, string][] = [];
 				parser2.registerApcHandler(
 					{ intermediates: '+', final: 'p' },
@@ -2671,6 +2717,7 @@ describe('EscapeSequenceParser', () => {
 			});
 		});
 		it('ERROR handler', () => {
+			const parser2 = new TestEscapeSequenceParser();
 			let errorState: IParsingState | null = null;
 			parser2.setErrorHandler(function (state: IParsingState): IParsingState {
 				errorState = state;

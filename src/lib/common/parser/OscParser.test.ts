@@ -39,25 +39,28 @@ class TestHandler implements IOscHandler {
 }
 
 describe('OscParser', () => {
-	let parser: OscParser;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let reports: any[] = [];
-	beforeEach(() => {
-		reports = [];
-		parser = new OscParser();
-		parser.setHandlerFallback((id, action, data) => {
-			reports.push([id, action, data]);
-		});
-	});
 	describe('identifier parsing', () => {
 		it('no report for illegal ids', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			const data = toUtf32('hello world!');
 			parser.put(data, 0, data.length);
 			parser.end(true);
 			expect(reports).toEqual([]);
 		});
 		it('no payload', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.start();
 			let data = toUtf32('12');
 			parser.put(data, 0, data.length);
@@ -70,6 +73,13 @@ describe('OscParser', () => {
 			]);
 		});
 		it('with payload', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.start();
 			let data = toUtf32('12');
 			parser.put(data, 0, data.length);
@@ -90,6 +100,13 @@ describe('OscParser', () => {
 	});
 	describe('handler registration', () => {
 		it('setOscHandler', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(1234, new TestHandler(1234, reports, 'th'));
 			parser.start();
 			let data = toUtf32('1234;Here comes');
@@ -106,6 +123,13 @@ describe('OscParser', () => {
 			]);
 		});
 		it('clearOscHandler', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(1234, new TestHandler(1234, reports, 'th'));
 			parser.clearHandler(1234);
 			parser.start();
@@ -123,6 +147,13 @@ describe('OscParser', () => {
 			]);
 		});
 		it('addOscHandler', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(1234, new TestHandler(1234, reports, 'th1'));
 			parser.registerHandler(1234, new TestHandler(1234, reports, 'th2'));
 			parser.start();
@@ -143,6 +174,13 @@ describe('OscParser', () => {
 			]);
 		});
 		it('addOscHandler with return false', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(1234, new TestHandler(1234, reports, 'th1'));
 			parser.registerHandler(1234, new TestHandler(1234, reports, 'th2', true));
 			parser.start();
@@ -163,6 +201,13 @@ describe('OscParser', () => {
 			]);
 		});
 		it('dispose handlers', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(1234, new TestHandler(1234, reports, 'th1'));
 			const dispo = parser.registerHandler(1234, new TestHandler(1234, reports, 'th2', true));
 			dispo.dispose();
@@ -197,6 +242,13 @@ describe('OscParser', () => {
 		});
 
 		it('should be called once on end(true)', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				1234,
 				new OscHandler((data) => {
@@ -213,6 +265,13 @@ describe('OscParser', () => {
 			expect(reports).toEqual([[1234, 'Here comes the mouse!']]);
 		});
 		it('should not be called on end(false)', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				1234,
 				new OscHandler((data) => {
@@ -229,6 +288,13 @@ describe('OscParser', () => {
 			expect(reports).toEqual([]);
 		});
 		it('should be disposable', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				1234,
 				new OscHandler((data) => {
@@ -263,6 +329,13 @@ describe('OscParser', () => {
 			]);
 		});
 		it('should respect return false', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				1234,
 				new OscHandler((data) => {
@@ -289,6 +362,13 @@ describe('OscParser', () => {
 			]);
 		});
 		it('should work up to payload limit', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				1234,
 				new OscHandler((data) => {
@@ -307,6 +387,13 @@ describe('OscParser', () => {
 			expect(reports).toEqual([[1234, 'A'.repeat(TEST_PAYLOAD_LIMIT)]]);
 		}, 30000);
 		it('should abort for payload limit +1', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new OscParser();
+			parser.setHandlerFallback((id, action, data) => {
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				1234,
 				new OscHandler((data) => {
@@ -362,20 +449,16 @@ async function endP(parser: OscParser, success: boolean): Promise<void> {
 }
 
 describe('OscParser - async tests', () => {
-	let parser: OscParser;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let reports: any[] = [];
-	beforeEach(() => {
-		reports = [];
-		parser = new OscParser();
-		parser.setHandlerFallback((id, action, data) => {
-			reports.push([id, action, data]);
-		});
-	});
 	describe('sync and async mixed', () => {
 		describe('sync | async | sync', () => {
 			it('first should run, cleanup action for others', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new OscParser();
+				parser.setHandlerFallback((id, action, data) => {
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(1234, new TestHandler(1234, reports, 's1'));
 				parser.registerHandler(1234, new TestHandlerAsync(1234, reports, 'a1'));
 				parser.registerHandler(1234, new TestHandler(1234, reports, 's2'));
@@ -402,6 +485,13 @@ describe('OscParser - async tests', () => {
 				]);
 			});
 			it('all should run', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new OscParser();
+				parser.setHandlerFallback((id, action, data) => {
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(1234, new TestHandler(1234, reports, 's1', true));
 				parser.registerHandler(1234, new TestHandlerAsync(1234, reports, 'a1', true));
 				parser.registerHandler(1234, new TestHandler(1234, reports, 's2', true));
@@ -430,6 +520,13 @@ describe('OscParser - async tests', () => {
 		});
 		describe('async | sync | async', () => {
 			it('first should run, cleanup action for others', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new OscParser();
+				parser.setHandlerFallback((id, action, data) => {
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(1234, new TestHandlerAsync(1234, reports, 's1'));
 				parser.registerHandler(1234, new TestHandler(1234, reports, 'a1'));
 				parser.registerHandler(1234, new TestHandlerAsync(1234, reports, 's2'));
@@ -456,6 +553,13 @@ describe('OscParser - async tests', () => {
 				]);
 			});
 			it('all should run', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new OscParser();
+				parser.setHandlerFallback((id, action, data) => {
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(1234, new TestHandlerAsync(1234, reports, 's1', true));
 				parser.registerHandler(1234, new TestHandler(1234, reports, 'a1', true));
 				parser.registerHandler(1234, new TestHandlerAsync(1234, reports, 's2', true));
@@ -484,6 +588,13 @@ describe('OscParser - async tests', () => {
 		});
 		describe('OscHandlerFactory', () => {
 			it('should be called once on end(true)', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new OscParser();
+				parser.setHandlerFallback((id, action, data) => {
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					1234,
 					new OscHandler(async (data) => {
@@ -501,6 +612,13 @@ describe('OscParser - async tests', () => {
 				expect(reports).toEqual([[1234, 'Here comes the mouse!']]);
 			});
 			it('should not be called on end(false)', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new OscParser();
+				parser.setHandlerFallback((id, action, data) => {
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					1234,
 					new OscHandler(async (data) => {
@@ -517,6 +635,13 @@ describe('OscParser - async tests', () => {
 				expect(reports).toEqual([]);
 			});
 			it('should be disposable', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new OscParser();
+				parser.setHandlerFallback((id, action, data) => {
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					1234,
 					new OscHandler(async (data) => {
@@ -551,6 +676,13 @@ describe('OscParser - async tests', () => {
 				]);
 			});
 			it('should respect return false', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new OscParser();
+				parser.setHandlerFallback((id, action, data) => {
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					1234,
 					new OscHandler(async (data) => {

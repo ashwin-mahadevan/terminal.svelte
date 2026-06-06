@@ -12,25 +12,20 @@
  * renderer to finish measuring before asserting.
  */
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { Terminal } from '$lib/browser/public/Terminal';
 import { FitAddon } from '$lib/FitAddon';
 
 describe('FitAddon', () => {
-	let element: HTMLDivElement;
-	let terminal: Terminal;
-	let fit: FitAddon;
-
-	function open(opts?: ConstructorParameters<typeof Terminal>[0]): void {
-		element = document.createElement('div');
-		document.body.appendChild(element);
-		terminal = new Terminal(opts);
-		fit = new FitAddon();
+	function open(element: HTMLDivElement, opts?: ConstructorParameters<typeof Terminal>[0]): { terminal: Terminal; fit: FitAddon } {
+		const terminal = new Terminal(opts);
+		const fit = new FitAddon();
 		terminal.loadAddon(fit);
 		terminal.open(element);
+		return { terminal, fit };
 	}
 
-	async function setDimensions(width: number = 800, height: number = 450): Promise<void> {
+	async function setDimensions(element: HTMLDivElement, fit: FitAddon, width: number = 800, height: number = 450): Promise<void> {
 		element.style.width = `${width}px`;
 		element.style.height = `${height}px`;
 		element.style.display = '';
@@ -39,43 +34,49 @@ describe('FitAddon', () => {
 		await expect.poll(() => fit.proposeDimensions() !== undefined).toBe(true);
 	}
 
-	beforeEach(() => {
-		open();
-	});
-
-	afterEach(() => {
-		terminal.dispose();
-		element.remove();
-	});
-
 	it('no terminal', () => {
-		const fit2 = new FitAddon();
-		expect(fit2.proposeDimensions()).toBe(undefined);
-		fit2.dispose();
+		const fit = new FitAddon();
+		expect(fit.proposeDimensions()).toBe(undefined);
+		fit.dispose();
 	});
 
 	describe('proposeDimensions', () => {
 		it('default', async () => {
-			await setDimensions();
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const { terminal, fit } = open(element);
+			await setDimensions(element, fit);
 			const dimensions = fit.proposeDimensions()!;
 			expect(dimensions.cols).toBeGreaterThan(85);
 			expect(dimensions.cols).toBeLessThan(88);
 			expect(dimensions.rows).toBeGreaterThan(24);
 			expect(dimensions.rows).toBeLessThan(29);
+			terminal.dispose();
+			element.remove();
 		});
 
 		it('width', async () => {
-			await setDimensions(1008);
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const { terminal, fit } = open(element);
+			await setDimensions(element, fit, 1008);
 			const dimensions = fit.proposeDimensions()!;
 			expect(dimensions.cols).toBeGreaterThan(108);
 			expect(dimensions.cols).toBeLessThan(111);
 			expect(dimensions.rows).toBeGreaterThan(24);
 			expect(dimensions.rows).toBeLessThan(29);
+			terminal.dispose();
+			element.remove();
 		});
 
 		it('small', async () => {
-			await setDimensions(1, 1);
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const { terminal, fit } = open(element);
+			await setDimensions(element, fit, 1, 1);
 			expect(fit.proposeDimensions()).toEqual({ cols: 2, rows: 1 });
+			terminal.dispose();
+			element.remove();
 		});
 
 		// FIXME: The upstream 'hidden' case re-opens a terminal inside a
@@ -87,38 +88,62 @@ describe('FitAddon', () => {
 		// conditional). Skipped because it cannot make a meaningful assertion
 		// without the upstream page harness.
 		it.skip('hidden', async () => {
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const { terminal, fit } = open(element);
+			await setDimensions(element, fit);
 			expect(true).toBe(true);
+			terminal.dispose();
+			element.remove();
 		});
 	});
 
 	describe('fit', () => {
 		it('default', async () => {
-			await setDimensions();
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const { terminal, fit } = open(element);
+			await setDimensions(element, fit);
 			fit.fit();
 			expect(terminal.cols).toBeGreaterThan(85);
 			expect(terminal.cols).toBeLessThan(88);
 			expect(terminal.rows).toBeGreaterThan(24);
 			expect(terminal.rows).toBeLessThan(29);
+			terminal.dispose();
+			element.remove();
 		});
 
 		it('width', async () => {
-			await setDimensions(1008);
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const { terminal, fit } = open(element);
+			await setDimensions(element, fit, 1008);
 			fit.fit();
 			expect(terminal.cols).toBeGreaterThan(108);
 			expect(terminal.cols).toBeLessThan(111);
 			expect(terminal.rows).toBeGreaterThan(24);
 			expect(terminal.rows).toBeLessThan(29);
+			terminal.dispose();
+			element.remove();
 		});
 
 		it('small', async () => {
-			await setDimensions(1, 1);
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const { terminal, fit } = open(element);
+			await setDimensions(element, fit, 1, 1);
 			fit.fit();
 			expect(terminal.cols).toBe(2);
 			expect(terminal.rows).toBe(1);
+			terminal.dispose();
+			element.remove();
 		});
 
 		it('same dimensions', async () => {
-			await setDimensions();
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const { terminal, fit } = open(element);
+			await setDimensions(element, fit);
 			fit.fit();
 			const cols = terminal.cols;
 			const rows = terminal.rows;
@@ -126,6 +151,8 @@ describe('FitAddon', () => {
 			fit.fit();
 			expect(terminal.cols).toBe(cols);
 			expect(terminal.rows).toBe(rows);
+			terminal.dispose();
+			element.remove();
 		});
 	});
 });

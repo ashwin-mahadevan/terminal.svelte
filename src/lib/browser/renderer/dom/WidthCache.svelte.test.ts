@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { WidthCache, WidthCacheSettings } from '$lib/browser/renderer/dom/WidthCache';
 import type { IWidthCacheFontVariantCanvas } from '$lib/browser/renderer/dom/WidthCache';
 
@@ -65,52 +65,71 @@ function castf32(v: number): number {
 }
 
 describe('WidthCache', () => {
-	let wc: TestWidthCache;
-	beforeEach(() => {
-		wc = new TestWidthCache();
-		wc.setFont('monospace', 15, 'normal', 'bold');
-	});
 	describe('cache invalidation', () => {
-		beforeEach(() => {
+		it('can cache values', () => {
+			const wc = new TestWidthCache();
+			wc.setFont('monospace', 15, 'normal', 'bold');
 			wc.flat.fill(1.23);
 			wc.holey?.set('a', 2.34);
-		});
-		it('can cache values', () => {
 			expect(wc.flat[0]).toEqual(castf32(1.23));
 			expect(wc.holey?.get('a')).toEqual(2.34);
 			expect(wc.holey?.size).toEqual(1);
 		});
 		it('clear resets cache entries', () => {
+			const wc = new TestWidthCache();
+			wc.setFont('monospace', 15, 'normal', 'bold');
+			wc.flat.fill(1.23);
+			wc.holey?.set('a', 2.34);
 			wc.clear();
 			expect(wc.flat[0]).toEqual(castf32(WidthCacheSettings.FLAT_UNSET));
 			expect(wc.holey?.get('a')).toEqual(undefined);
 			expect(wc.holey?.size).toEqual(0);
 		});
 		it('setFont with changed font name', () => {
+			const wc = new TestWidthCache();
+			wc.setFont('monospace', 15, 'normal', 'bold');
+			wc.flat.fill(1.23);
+			wc.holey?.set('a', 2.34);
 			wc.setFont('Arial', 15, 'normal', 'bold');
 			expect(wc.flat[0]).toEqual(castf32(WidthCacheSettings.FLAT_UNSET));
 			expect(wc.holey?.get('a')).toEqual(undefined);
 			expect(wc.holey?.size).toEqual(0);
 		});
 		it('setFont with changed font size', () => {
+			const wc = new TestWidthCache();
+			wc.setFont('monospace', 15, 'normal', 'bold');
+			wc.flat.fill(1.23);
+			wc.holey?.set('a', 2.34);
 			wc.setFont('monospace', 14, 'normal', 'bold');
 			expect(wc.flat[0]).toEqual(castf32(WidthCacheSettings.FLAT_UNSET));
 			expect(wc.holey?.get('a')).toEqual(undefined);
 			expect(wc.holey?.size).toEqual(0);
 		});
 		it('setFont with changed weight', () => {
+			const wc = new TestWidthCache();
+			wc.setFont('monospace', 15, 'normal', 'bold');
+			wc.flat.fill(1.23);
+			wc.holey?.set('a', 2.34);
 			wc.setFont('monospace', 15, '100', 'bold');
 			expect(wc.flat[0]).toEqual(castf32(WidthCacheSettings.FLAT_UNSET));
 			expect(wc.holey?.get('a')).toEqual(undefined);
 			expect(wc.holey?.size).toEqual(0);
 		});
 		it('setFont with changed weightBold', () => {
+			const wc = new TestWidthCache();
+			wc.setFont('monospace', 15, 'normal', 'bold');
+			wc.flat.fill(1.23);
+			wc.holey?.set('a', 2.34);
 			wc.setFont('monospace', 15, 'normal', '900');
 			expect(wc.flat[0]).toEqual(castf32(WidthCacheSettings.FLAT_UNSET));
 			expect(wc.holey?.get('a')).toEqual(undefined);
 			expect(wc.holey?.size).toEqual(0);
 		});
 		it('setFont with unchanged settings does not cache entries', () => {
+			const wc = new TestWidthCache();
+			wc.setFont('monospace', 15, 'normal', 'bold');
+			wc.flat.fill(1.23);
+			wc.holey?.set('a', 2.34);
 			wc.setFont('monospace', 15, 'normal', 'bold');
 			expect(wc.flat[0]).toEqual(castf32(1.23));
 			expect(wc.holey?.get('a')).toEqual(2.34);
@@ -119,6 +138,8 @@ describe('WidthCache', () => {
 	});
 	describe('get', () => {
 		it('store regular < WidthCacheSettings.FLAT_SIZE in flat', () => {
+			const wc = new TestWidthCache();
+			wc.setFont('monospace', 15, 'normal', 'bold');
 			for (let i = 0; i < WidthCacheSettings.FLAT_SIZE + 10; ++i) {
 				const width = wc.get(String.fromCharCode(i), false, false);
 				expect(width).toEqual(5);
@@ -131,6 +152,8 @@ describe('WidthCache', () => {
 			}
 		});
 		it('stores bold & italic in holey', () => {
+			const wc = new TestWidthCache();
+			wc.setFont('monospace', 15, 'normal', 'bold');
 			// bold
 			let width = wc.get('b', true, false);
 			expect(width).toEqual(5);
@@ -145,6 +168,8 @@ describe('WidthCache', () => {
 			expect(wc.holey?.get('xBI')).toEqual(5);
 		});
 		it('can store any string', () => {
+			const wc = new TestWidthCache();
+			wc.setFont('monospace', 15, 'normal', 'bold');
 			// regular
 			let width = wc.get('foo', false, false);
 			expect(width).toEqual(5);

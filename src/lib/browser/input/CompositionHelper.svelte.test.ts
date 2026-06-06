@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { CompositionHelper } from '$lib/browser/input/CompositionHelper';
 import { MockCoreService, MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
 
@@ -30,56 +30,54 @@ function nextTick(): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-describe('CompositionHelper', () => {
-	let compositionHelper: CompositionHelper;
-	let compositionView: HTMLElement;
-	let textarea: HTMLTextAreaElement;
-	let handledText: string;
+function setupCompositionHelper() {
+	const compositionView = {
+		classList: {
+			add: () => {},
+			remove: () => {}
+		},
+		getBoundingClientRect: () => {
+			return { width: 0 };
+		},
+		style: {
+			left: 0,
+			top: 0
+		},
+		textContent: ''
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	} as any;
+	const textarea = {
+		value: '',
+		style: {
+			left: 0,
+			top: 0
+		}
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	} as any;
+	const state = { handledText: '' };
+	const coreService = new MockCoreService();
+	coreService.triggerDataEvent = (text: string) => {
+		state.handledText += text;
+	};
+	const bufferService = new MockBufferService(10, 5);
+	const compositionHelper = new CompositionHelper(
+		textarea,
+		compositionView,
+		bufferService,
+		new MockOptionsService(),
+		coreService,
+		new MockRenderService()
+	);
+	return { compositionHelper, textarea, state };
+}
 
-	beforeEach(() => {
-		compositionView = {
-			classList: {
-				add: () => {},
-				remove: () => {}
-			},
-			getBoundingClientRect: () => {
-				return { width: 0 };
-			},
-			style: {
-				left: 0,
-				top: 0
-			},
-			textContent: ''
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} as any;
-		textarea = {
-			value: '',
-			style: {
-				left: 0,
-				top: 0
-			}
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} as any;
-		const coreService = new MockCoreService();
-		coreService.triggerDataEvent = (text: string) => {
-			handledText += text;
-		};
-		handledText = '';
-		const bufferService = new MockBufferService(10, 5);
-		compositionHelper = new CompositionHelper(
-			textarea,
-			compositionView,
-			bufferService,
-			new MockOptionsService(),
-			coreService,
-			new MockRenderService()
-		);
-	});
+describe('CompositionHelper', () => {
 
 	describe('Input', () => {
 		it('Should insert simple characters', async () => {
+			const { compositionHelper, textarea, state } = setupCompositionHelper();
 			// First character 'ㅇ'
 			compositionHelper.compositionstart();
 			compositionHelper.compositionupdate({ data: 'ㅇ' } as CompositionEvent);
@@ -87,7 +85,7 @@ describe('CompositionHelper', () => {
 			await nextTick();
 			compositionHelper.compositionend();
 			await nextTick();
-			expect(handledText).toBe('ㅇ');
+			expect(state.handledText).toBe('ㅇ');
 			// Second character 'ㅇ'
 			compositionHelper.compositionstart();
 			compositionHelper.compositionupdate({ data: 'ㅇ' } as CompositionEvent);
@@ -95,10 +93,11 @@ describe('CompositionHelper', () => {
 			await nextTick();
 			compositionHelper.compositionend();
 			await nextTick();
-			expect(handledText).toBe('ㅇㅇ');
+			expect(state.handledText).toBe('ㅇㅇ');
 		});
 
 		it('Should insert complex characters', async () => {
+			const { compositionHelper, textarea, state } = setupCompositionHelper();
 			// First character '앙'
 			compositionHelper.compositionstart();
 			compositionHelper.compositionupdate({ data: 'ㅇ' } as CompositionEvent);
@@ -112,7 +111,7 @@ describe('CompositionHelper', () => {
 			await nextTick();
 			compositionHelper.compositionend();
 			await nextTick();
-			expect(handledText).toBe('앙');
+			expect(state.handledText).toBe('앙');
 			// Second character '앙'
 			compositionHelper.compositionstart();
 			compositionHelper.compositionupdate({ data: 'ㅇ' } as CompositionEvent);
@@ -126,10 +125,11 @@ describe('CompositionHelper', () => {
 			await nextTick();
 			compositionHelper.compositionend();
 			await nextTick();
-			expect(handledText).toBe('앙앙');
+			expect(state.handledText).toBe('앙앙');
 		});
 
 		it('Should insert complex characters that change with following character', async () => {
+			const { compositionHelper, textarea, state } = setupCompositionHelper();
 			// First character '아'
 			compositionHelper.compositionstart();
 			compositionHelper.compositionupdate({ data: 'ㅇ' } as CompositionEvent);
@@ -149,10 +149,11 @@ describe('CompositionHelper', () => {
 			await nextTick();
 			compositionHelper.compositionend();
 			await nextTick();
-			expect(handledText).toBe('아아');
+			expect(state.handledText).toBe('아아');
 		});
 
 		it('Should insert multi-characters compositions', async () => {
+			const { compositionHelper, textarea, state } = setupCompositionHelper();
 			// First character 'だ'
 			compositionHelper.compositionstart();
 			compositionHelper.compositionupdate({ data: 'd' } as CompositionEvent);
@@ -167,10 +168,11 @@ describe('CompositionHelper', () => {
 			await nextTick();
 			compositionHelper.compositionend();
 			await nextTick();
-			expect(handledText).toBe('だあ');
+			expect(state.handledText).toBe('だあ');
 		});
 
 		it('Should insert multi-character compositions that are converted to other characters with the same length', async () => {
+			const { compositionHelper, textarea, state } = setupCompositionHelper();
 			// First character 'だ'
 			compositionHelper.compositionstart();
 			compositionHelper.compositionupdate({ data: 'd' } as CompositionEvent);
@@ -189,10 +191,11 @@ describe('CompositionHelper', () => {
 			await nextTick();
 			compositionHelper.compositionend();
 			await nextTick();
-			expect(handledText).toBe('ダー');
+			expect(state.handledText).toBe('ダー');
 		});
 
 		it('Should insert multi-character compositions that are converted to other characters with different lengths', async () => {
+			const { compositionHelper, textarea, state } = setupCompositionHelper();
 			// First character 'い'
 			compositionHelper.compositionstart();
 			compositionHelper.compositionupdate({ data: 'い' } as CompositionEvent);
@@ -211,10 +214,11 @@ describe('CompositionHelper', () => {
 			await nextTick();
 			compositionHelper.compositionend();
 			await nextTick();
-			expect(handledText).toBe('今');
+			expect(state.handledText).toBe('今');
 		});
 
 		it('Should insert non-composition characters input immediately after composition characters', async () => {
+			const { compositionHelper, textarea, state } = setupCompositionHelper();
 			// First character 'ㅇ'
 			compositionHelper.compositionstart();
 			compositionHelper.compositionupdate({ data: 'ㅇ' } as CompositionEvent);
@@ -224,10 +228,11 @@ describe('CompositionHelper', () => {
 			// Second character '1' (a non-composition character)
 			textarea.value = 'ㅇ1';
 			await nextTick();
-			expect(handledText).toBe('ㅇ1');
+			expect(state.handledText).toBe('ㅇ1');
 		});
 
 		it('Should insert middle composition and subsequent input without appending existing trailing text', async () => {
+			const { compositionHelper, textarea, state } = setupCompositionHelper();
 			textarea.value = '一二';
 			// screenReaderMode keeps textarea content/selection for assistive technologies (eg. screen
 			// readers), so the caret can be moved within the textarea (eg. via arrow keys) before
@@ -247,7 +252,7 @@ describe('CompositionHelper', () => {
 			// Second character '1' (a non-composition character)
 			textarea.value = '一一1二';
 			await nextTick();
-			expect(handledText).toBe('一1');
+			expect(state.handledText).toBe('一1');
 		});
 	});
 });

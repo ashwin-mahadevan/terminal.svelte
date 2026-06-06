@@ -2,7 +2,7 @@
  * Copyright (c) 2025 The xterm.js authors. All rights reserved.
  * @license MIT
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { ApcParser, ApcHandler } from '$lib/common/parser/ApcParser';
 import { StringToUtf32, utf32ToString } from '$lib/common/input/TextDecoder';
 import type { IApcHandler, IFunctionIdentifier } from '$lib/common/parser/Types';
@@ -75,17 +75,13 @@ class TestHandler implements IApcHandler {
 }
 
 describe('ApcParser', () => {
-	let parser: ApcParser;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let reports: any[] = [];
-	beforeEach(() => {
-		reports = [];
-		parser = new ApcParser();
-		parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
-	});
 	describe('handler registration', () => {
 		it('setApcHandler', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new TestHandler(reports, 'th')
@@ -105,6 +101,11 @@ describe('ApcParser', () => {
 			]);
 		});
 		it('clearApcHandler', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new TestHandler(reports, 'th')
@@ -125,6 +126,11 @@ describe('ApcParser', () => {
 			]);
 		});
 		it('addApcHandler', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new TestHandler(reports, 'th1')
@@ -151,6 +157,11 @@ describe('ApcParser', () => {
 			]);
 		});
 		it('addApcHandler with return false', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new TestHandler(reports, 'th1')
@@ -177,6 +188,11 @@ describe('ApcParser', () => {
 			]);
 		});
 		it('dispose handlers', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new TestHandler(reports, 'th1')
@@ -203,21 +219,18 @@ describe('ApcParser', () => {
 	describe('ApcHandlerFactory', () => {
 		const TEST_PAYLOAD_LIMIT = 100;
 		const CHUNK_SIZE = 10;
-		let originalPayloadLimit: number;
-
-		beforeEach(() => {
-			const handlerConstructor = ApcHandler as unknown as { _payloadLimit: number };
-			originalPayloadLimit = handlerConstructor._payloadLimit;
-			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
-		});
-
-		afterEach(() => {
-			const handlerConstructor = ApcHandler as unknown as { _payloadLimit: number };
-			handlerConstructor._payloadLimit = originalPayloadLimit;
-		});
 
 		it('should be called once on end(true)', () => {
-			parser.registerHandler(
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
+			const handlerConstructor = ApcHandler as unknown as { _payloadLimit: number };
+			const originalPayloadLimit = handlerConstructor._payloadLimit;
+			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
+			try {
+				parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new ApcHandler((data) => {
 					reports.push(data);
@@ -231,9 +244,21 @@ describe('ApcParser', () => {
 			parser.put(data, 0, data.length);
 			parser.end(true);
 			expect(reports).toEqual(['Here comes the mouse!']);
+			} finally {
+				handlerConstructor._payloadLimit = originalPayloadLimit;
+			}
 		});
 		it('should not be called on end(false)', () => {
-			parser.registerHandler(
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
+			const handlerConstructor = ApcHandler as unknown as { _payloadLimit: number };
+			const originalPayloadLimit = handlerConstructor._payloadLimit;
+			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
+			try {
+				parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new ApcHandler((data) => {
 					reports.push(data);
@@ -247,9 +272,21 @@ describe('ApcParser', () => {
 			parser.put(data, 0, data.length);
 			parser.end(false);
 			expect(reports).toEqual([]);
+			} finally {
+				handlerConstructor._payloadLimit = originalPayloadLimit;
+			}
 		});
 		it('should be disposable', () => {
-			parser.registerHandler(
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
+			const handlerConstructor = ApcHandler as unknown as { _payloadLimit: number };
+			const originalPayloadLimit = handlerConstructor._payloadLimit;
+			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
+			try {
+				parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new ApcHandler((data) => {
 					reports.push(['one', data]);
@@ -281,9 +318,21 @@ describe('ApcParser', () => {
 				['two', 'Here comes the mouse!'],
 				['one', 'some other data']
 			]);
+			} finally {
+				handlerConstructor._payloadLimit = originalPayloadLimit;
+			}
 		});
 		it('should respect return false', () => {
-			parser.registerHandler(
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
+			const handlerConstructor = ApcHandler as unknown as { _payloadLimit: number };
+			const originalPayloadLimit = handlerConstructor._payloadLimit;
+			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
+			try {
+				parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new ApcHandler((data) => {
 					reports.push(['one', data]);
@@ -307,9 +356,21 @@ describe('ApcParser', () => {
 				['two', 'Here comes the mouse!'],
 				['one', 'Here comes the mouse!']
 			]);
+			} finally {
+				handlerConstructor._payloadLimit = originalPayloadLimit;
+			}
 		});
 		it('should work up to payload limit', () => {
-			parser.registerHandler(
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
+			const handlerConstructor = ApcHandler as unknown as { _payloadLimit: number };
+			const originalPayloadLimit = handlerConstructor._payloadLimit;
+			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
+			try {
+				parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new ApcHandler((data) => {
 					reports.push(data);
@@ -323,9 +384,21 @@ describe('ApcParser', () => {
 			}
 			parser.end(true);
 			expect(reports).toEqual(['A'.repeat(TEST_PAYLOAD_LIMIT)]);
+			} finally {
+				handlerConstructor._payloadLimit = originalPayloadLimit;
+			}
 		}, 30000);
 		it('should abort for payload limit +1', () => {
-			parser.registerHandler(
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new ApcParser();
+			parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
+			const handlerConstructor = ApcHandler as unknown as { _payloadLimit: number };
+			const originalPayloadLimit = handlerConstructor._payloadLimit;
+			handlerConstructor._payloadLimit = TEST_PAYLOAD_LIMIT;
+			try {
+				parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new ApcHandler((data) => {
 					reports.push(data);
@@ -341,6 +414,9 @@ describe('ApcParser', () => {
 			parser.put(data, 0, data.length);
 			parser.end(true);
 			expect(reports).toEqual([]);
+			} finally {
+				handlerConstructor._payloadLimit = originalPayloadLimit;
+			}
 		}, 30000);
 	});
 });
@@ -378,18 +454,14 @@ async function unhookP(parser: ApcParser, success: boolean): Promise<void> {
 }
 
 describe('ApcParser - async tests', () => {
-	let parser: ApcParser;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let reports: any[] = [];
-	beforeEach(() => {
-		reports = [];
-		parser = new ApcParser();
-		parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
-	});
 	describe('sync and async mixed', () => {
 		describe('sync | async | sync', () => {
 			it('first should run, cleanup action for others', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new ApcParser();
+				parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new TestHandler(reports, 's1', false)
@@ -425,6 +497,11 @@ describe('ApcParser - async tests', () => {
 				]);
 			});
 			it('all should run', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new ApcParser();
+				parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new TestHandler(reports, 's1', true)
@@ -462,6 +539,11 @@ describe('ApcParser - async tests', () => {
 		});
 		describe('async | sync | async', () => {
 			it('first should run, cleanup action for others', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new ApcParser();
+				parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new TestHandlerAsync(reports, 'a1', false)
@@ -497,6 +579,11 @@ describe('ApcParser - async tests', () => {
 				]);
 			});
 			it('all should run', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new ApcParser();
+				parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new TestHandlerAsync(reports, 'a1', true)
@@ -534,6 +621,11 @@ describe('ApcParser - async tests', () => {
 		});
 		describe('ApcHandlerFactory', () => {
 			it('should be called once on end(true)', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new ApcParser();
+				parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new ApcHandler(async (data) => {
@@ -550,6 +642,11 @@ describe('ApcParser - async tests', () => {
 				expect(reports).toEqual(['Here comes the mouse!']);
 			});
 			it('should not be called on end(false)', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new ApcParser();
+				parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new ApcHandler(async (data) => {
@@ -566,6 +663,11 @@ describe('ApcParser - async tests', () => {
 				expect(reports).toEqual([]);
 			});
 			it('should be disposable', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new ApcParser();
+				parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new ApcHandler(async (data) => {
@@ -600,6 +702,11 @@ describe('ApcParser - async tests', () => {
 				]);
 			});
 			it('should respect return false', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new ApcParser();
+				parser.setHandlerFallback((id, action, data) => reports.push([id, action, data]));
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new ApcHandler(async (data) => {

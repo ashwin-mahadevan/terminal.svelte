@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { AddonManager } from '$lib/common/public/AddonManager';
 import type { ILoadedAddon } from '$lib/common/public/AddonManager';
 import type { ITerminalAddon } from '$lib/xterm';
@@ -15,14 +15,9 @@ class TestAddonManager extends AddonManager {
 }
 
 describe('AddonManager', () => {
-	let manager: TestAddonManager;
-
-	beforeEach(() => {
-		manager = new TestAddonManager();
-	});
-
 	describe('loadAddon', () => {
 		it('should call addon constructor', () => {
+			const manager = new TestAddonManager();
 			let called = false;
 			class Addon implements ITerminalAddon {
 				// TODO: Fix this upstream type error.
@@ -43,6 +38,7 @@ describe('AddonManager', () => {
 
 	describe('dispose', () => {
 		it('should dispose all loaded addons', () => {
+			const manager = new TestAddonManager();
 			let called = 0;
 			class Addon implements ITerminalAddon {
 				public activate(): void {}

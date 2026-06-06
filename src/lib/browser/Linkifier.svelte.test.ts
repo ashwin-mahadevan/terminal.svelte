@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import type { IBufferService } from '$lib/common/services/Services';
 import { Linkifier } from '$lib/browser/Linkifier';
 import { MockBufferService } from '$lib/common/TestUtils';
@@ -27,9 +27,6 @@ class TestLinkifier2 extends Linkifier {
 }
 
 describe('Linkifier2', () => {
-	let bufferService: IBufferService;
-	let linkifier: TestLinkifier2;
-
 	const link: ILink = {
 		text: 'foo',
 		range: {
@@ -59,29 +56,26 @@ describe('Linkifier2', () => {
 		activate: () => {}
 	};
 
-	beforeEach(() => {
-		bufferService = new MockBufferService(100, 10);
-		linkifier = new TestLinkifier2(
-			document.createElement('div'),
-			null!,
-			null!,
-			bufferService,
-			new LinkProviderService()
-		);
-		linkifier.currentLink = {
-			link,
-			state: {
-				decorations: {
-					underline: true,
-					pointerCursor: true
-				},
-				isHovered: true
-			}
-		};
-	});
-
 	it('onShowLinkUnderline event range is correct', () =>
 		new Promise<void>((done) => {
+			const bufferService = new MockBufferService(100, 10);
+			const linkifier = new TestLinkifier2(
+				document.createElement('div'),
+				null!,
+				null!,
+				bufferService,
+				new LinkProviderService()
+			);
+			linkifier.currentLink = {
+				link,
+				state: {
+					decorations: {
+						underline: true,
+						pointerCursor: true
+					},
+					isHovered: true
+				}
+			};
 			linkifier.onShowLinkUnderline((e) => {
 				expect(e.x1).toBe(link.range.start.x - 1);
 				expect(e.y1).toBe(link.range.start.y - 1);
@@ -98,6 +92,24 @@ describe('Linkifier2', () => {
 
 	it('onHideLinkUnderline event range is correct', () =>
 		new Promise<void>((done) => {
+			const bufferService = new MockBufferService(100, 10);
+			const linkifier = new TestLinkifier2(
+				document.createElement('div'),
+				null!,
+				null!,
+				bufferService,
+				new LinkProviderService()
+			);
+			linkifier.currentLink = {
+				link,
+				state: {
+					decorations: {
+						underline: true,
+						pointerCursor: true
+					},
+					isHovered: true
+				}
+			};
 			linkifier.onHideLinkUnderline((e) => {
 				expect(e.x1).toBe(link.range.start.x - 1);
 				expect(e.y1).toBe(link.range.start.y - 1);
@@ -114,6 +126,24 @@ describe('Linkifier2', () => {
 
 	it('onShowLinkUnderline event range is correct for wrapped links', () =>
 		new Promise<void>((done) => {
+			const bufferService = new MockBufferService(100, 10);
+			const linkifier = new TestLinkifier2(
+				document.createElement('div'),
+				null!,
+				null!,
+				bufferService,
+				new LinkProviderService()
+			);
+			linkifier.currentLink = {
+				link,
+				state: {
+					decorations: {
+						underline: true,
+						pointerCursor: true
+					},
+					isHovered: true
+				}
+			};
 			linkifier.onShowLinkUnderline((e) => {
 				expect(e.x1).toBe(multiLineLink.range.start.x - 1);
 				expect(e.y1).toBe(multiLineLink.range.start.y - 1);
@@ -130,6 +160,24 @@ describe('Linkifier2', () => {
 
 	it('onHideLinkUnderline event range is correct for wrapped links', () =>
 		new Promise<void>((done) => {
+			const bufferService = new MockBufferService(100, 10);
+			const linkifier = new TestLinkifier2(
+				document.createElement('div'),
+				null!,
+				null!,
+				bufferService,
+				new LinkProviderService()
+			);
+			linkifier.currentLink = {
+				link,
+				state: {
+					decorations: {
+						underline: true,
+						pointerCursor: true
+					},
+					isHovered: true
+				}
+			};
 			linkifier.onHideLinkUnderline((e) => {
 				expect(e.x1).toBe(multiLineLink.range.start.x - 1);
 				expect(e.y1).toBe(multiLineLink.range.start.y - 1);

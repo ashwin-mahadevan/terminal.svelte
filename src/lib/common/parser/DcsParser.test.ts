@@ -76,22 +76,18 @@ class TestHandler implements IDcsHandler {
 }
 
 describe('DcsParser', () => {
-	let parser: DcsParser;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let reports: any[] = [];
-	beforeEach(() => {
-		reports = [];
-		parser = new DcsParser();
-		parser.setHandlerFallback((id, action, data) => {
-			if (action === 'HOOK') {
-				data = data.toArray();
-			}
-			reports.push([id, action, data]);
-		});
-	});
 	describe('handler registration', () => {
 		it('setDcsHandler', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new TestHandler(reports, 'th')
@@ -111,6 +107,16 @@ describe('DcsParser', () => {
 			]);
 		});
 		it('clearDcsHandler', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new TestHandler(reports, 'th')
@@ -131,6 +137,16 @@ describe('DcsParser', () => {
 			]);
 		});
 		it('addDcsHandler', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new TestHandler(reports, 'th1')
@@ -157,6 +173,16 @@ describe('DcsParser', () => {
 			]);
 		});
 		it('addDcsHandler with return false', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new TestHandler(reports, 'th1')
@@ -183,6 +209,16 @@ describe('DcsParser', () => {
 			]);
 		});
 		it('dispose handlers', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new TestHandler(reports, 'th1')
@@ -223,6 +259,16 @@ describe('DcsParser', () => {
 		});
 
 		it('should be called once on end(true)', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new DcsHandler((data, params) => {
@@ -239,6 +285,16 @@ describe('DcsParser', () => {
 			expect(reports).toEqual([[[1, 2, 3], 'Here comes the mouse!']]);
 		});
 		it('should not be called on end(false)', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new DcsHandler((data, params) => {
@@ -255,6 +311,16 @@ describe('DcsParser', () => {
 			expect(reports).toEqual([]);
 		});
 		it('should be disposable', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new DcsHandler((data, params) => {
@@ -289,6 +355,16 @@ describe('DcsParser', () => {
 			]);
 		});
 		it('should respect return false', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new DcsHandler((data, params) => {
@@ -315,6 +391,16 @@ describe('DcsParser', () => {
 			]);
 		});
 		it('should work up to payload limit', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new DcsHandler((data, params) => {
@@ -331,6 +417,16 @@ describe('DcsParser', () => {
 			expect(reports).toEqual([[[1, 2, 3], 'A'.repeat(TEST_PAYLOAD_LIMIT)]]);
 		}, 30000);
 		it('should abort for payload limit +1', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const reports: any[] = [];
+			const parser = new DcsParser();
+			parser.setHandlerFallback((id, action, data) => {
+				if (action === 'HOOK') {
+					data = data.toArray();
+				}
+				reports.push([id, action, data]);
+			});
 			parser.registerHandler(
 				identifier({ intermediates: '+', final: 'p' }),
 				new DcsHandler((data, params) => {
@@ -384,23 +480,19 @@ async function unhookP(parser: DcsParser, success: boolean): Promise<void> {
 }
 
 describe('DcsParser - async tests', () => {
-	let parser: DcsParser;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let reports: any[] = [];
-	beforeEach(() => {
-		reports = [];
-		parser = new DcsParser();
-		parser.setHandlerFallback((id, action, data) => {
-			if (action === 'HOOK') {
-				data = data.toArray();
-			}
-			reports.push([id, action, data]);
-		});
-	});
 	describe('sync and async mixed', () => {
 		describe('sync | async | sync', () => {
 			it('first should run, cleanup action for others', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new DcsParser();
+				parser.setHandlerFallback((id, action, data) => {
+					if (action === 'HOOK') {
+						data = data.toArray();
+					}
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new TestHandler(reports, 's1', false)
@@ -436,6 +528,16 @@ describe('DcsParser - async tests', () => {
 				]);
 			});
 			it('all should run', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new DcsParser();
+				parser.setHandlerFallback((id, action, data) => {
+					if (action === 'HOOK') {
+						data = data.toArray();
+					}
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new TestHandler(reports, 's1', true)
@@ -473,6 +575,16 @@ describe('DcsParser - async tests', () => {
 		});
 		describe('async | sync | async', () => {
 			it('first should run, cleanup action for others', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new DcsParser();
+				parser.setHandlerFallback((id, action, data) => {
+					if (action === 'HOOK') {
+						data = data.toArray();
+					}
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new TestHandlerAsync(reports, 'a1', false)
@@ -508,6 +620,16 @@ describe('DcsParser - async tests', () => {
 				]);
 			});
 			it('all should run', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new DcsParser();
+				parser.setHandlerFallback((id, action, data) => {
+					if (action === 'HOOK') {
+						data = data.toArray();
+					}
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new TestHandlerAsync(reports, 'a1', true)
@@ -545,6 +667,16 @@ describe('DcsParser - async tests', () => {
 		});
 		describe('DcsHandlerFactory', () => {
 			it('should be called once on end(true)', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new DcsParser();
+				parser.setHandlerFallback((id, action, data) => {
+					if (action === 'HOOK') {
+						data = data.toArray();
+					}
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new DcsHandler(async (data, params) => {
@@ -561,6 +693,16 @@ describe('DcsParser - async tests', () => {
 				expect(reports).toEqual([[[1, 2, 3], 'Here comes the mouse!']]);
 			});
 			it('should not be called on end(false)', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new DcsParser();
+				parser.setHandlerFallback((id, action, data) => {
+					if (action === 'HOOK') {
+						data = data.toArray();
+					}
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new DcsHandler(async (data, params) => {
@@ -577,6 +719,16 @@ describe('DcsParser - async tests', () => {
 				expect(reports).toEqual([]);
 			});
 			it('should be disposable', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new DcsParser();
+				parser.setHandlerFallback((id, action, data) => {
+					if (action === 'HOOK') {
+						data = data.toArray();
+					}
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new DcsHandler(async (data, params) => {
@@ -611,6 +763,16 @@ describe('DcsParser - async tests', () => {
 				]);
 			});
 			it('should respect return false', async () => {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const reports: any[] = [];
+				const parser = new DcsParser();
+				parser.setHandlerFallback((id, action, data) => {
+					if (action === 'HOOK') {
+						data = data.toArray();
+					}
+					reports.push([id, action, data]);
+				});
 				parser.registerHandler(
 					identifier({ intermediates: '+', final: 'p' }),
 					new DcsHandler(async (data, params) => {

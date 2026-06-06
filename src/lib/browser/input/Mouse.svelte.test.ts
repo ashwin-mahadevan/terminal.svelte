@@ -3,17 +3,15 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { getCoords } from '$lib/browser/input/Mouse';
 
 const CHAR_WIDTH = 10;
 const CHAR_HEIGHT = 20;
 
 describe('Mouse getCoords', () => {
-	let windowOverride: Pick<Window, 'getComputedStyle'>;
-
-	beforeEach(() => {
-		windowOverride = {
+	it('should return the cell that was clicked', () => {
+		const windowOverride: Pick<Window, 'getComputedStyle'> = {
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			getComputedStyle(): any {
@@ -22,9 +20,6 @@ describe('Mouse getCoords', () => {
 				} as Pick<CSSStyleDeclaration, 'getPropertyValue'>;
 			}
 		} as Pick<Window, 'getComputedStyle'>;
-	});
-
-	it('should return the cell that was clicked', () => {
 		let coords: [number, number] | undefined;
 		coords = getCoords(
 			windowOverride,
@@ -73,6 +68,15 @@ describe('Mouse getCoords', () => {
 	});
 
 	it('should ensure the coordinates are returned within the terminal bounds', () => {
+		const windowOverride: Pick<Window, 'getComputedStyle'> = {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			getComputedStyle(): any {
+				return {
+					getPropertyValue: () => '0px'
+				} as Pick<CSSStyleDeclaration, 'getPropertyValue'>;
+			}
+		} as Pick<Window, 'getComputedStyle'>;
 		let coords: [number, number] | undefined;
 		coords = getCoords(
 			windowOverride,

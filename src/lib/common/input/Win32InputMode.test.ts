@@ -28,9 +28,8 @@ const parse = (seq: string) => {
 	return m ? { vk: +m[1], sc: +m[2], uc: +m[3], kd: +m[4], cs: +m[5], rc: +m[6] } : null;
 };
 
-const win32 = new Win32InputMode();
-
 const test = (
+	win32: Win32InputMode,
 	opts: EventOpts,
 	isDown: boolean,
 	check: (p: ReturnType<typeof parse>) => void
@@ -45,6 +44,7 @@ describe('Win32InputMode', () => {
 	describe('evaluateKeyboardEvent', () => {
 		describe('basic key encoding', () => {
 			it('letter key press', () => {
+				const win32 = new Win32InputMode();
 				const result = win32.evaluateKeyboardEvent(
 					ev({ code: 'KeyA', key: 'a', keyCode: 65 }),
 					true
@@ -56,50 +56,51 @@ describe('Win32InputMode', () => {
 				expect([p!.vk, p!.uc, p!.kd, p!.rc]).toEqual([0x41, 97, 1, 1]);
 			});
 			it('letter key release', () =>
-				test({ code: 'KeyA', key: 'a', keyCode: 65 }, false, (p) => expect(p!.kd).toBe(0)));
+				test(new Win32InputMode(), { code: 'KeyA', key: 'a', keyCode: 65 }, false, (p) => expect(p!.kd).toBe(0)));
 			it('digit key', () =>
-				test({ code: 'Digit1', key: '1', keyCode: 49 }, true, (p) =>
+				test(new Win32InputMode(), { code: 'Digit1', key: '1', keyCode: 49 }, true, (p) =>
 					expect([p!.vk, p!.uc]).toEqual([0x31, 49])
 				));
 			it('Enter key', () =>
-				test({ code: 'Enter', key: 'Enter', keyCode: 13 }, true, (p) =>
+				test(new Win32InputMode(), { code: 'Enter', key: 'Enter', keyCode: 13 }, true, (p) =>
 					expect([p!.vk, p!.uc]).toEqual([0x0d, 13])
 				));
 			it('Escape key', () =>
-				test({ code: 'Escape', key: 'Escape', keyCode: 27 }, true, (p) =>
+				test(new Win32InputMode(), { code: 'Escape', key: 'Escape', keyCode: 27 }, true, (p) =>
 					expect([p!.vk, p!.uc]).toEqual([0x1b, 27])
 				));
 			it('Space key', () =>
-				test({ code: 'Space', key: ' ', keyCode: 32 }, true, (p) =>
+				test(new Win32InputMode(), { code: 'Space', key: ' ', keyCode: 32 }, true, (p) =>
 					expect([p!.vk, p!.uc]).toEqual([0x20, 32])
 				));
 		});
 
 		describe('modifier encoding', () => {
 			it('shift', () =>
-				test({ code: 'KeyA', key: 'A', keyCode: 65, shiftKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'KeyA', key: 'A', keyCode: 65, shiftKey: true }, true, (p) =>
 					expect(p!.cs & Win32ControlKeyState.SHIFT_PRESSED).toBeTruthy()
 				));
 			it('ctrl left', () =>
-				test({ code: 'KeyA', key: 'a', keyCode: 65, ctrlKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'KeyA', key: 'a', keyCode: 65, ctrlKey: true }, true, (p) =>
 					expect(p!.cs & Win32ControlKeyState.LEFT_CTRL_PRESSED).toBeTruthy()
 				));
 			it('ctrl right', () =>
-				test({ code: 'ControlRight', key: 'Control', keyCode: 17, ctrlKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'ControlRight', key: 'Control', keyCode: 17, ctrlKey: true }, true, (p) => {
 					expect(p!.cs & Win32ControlKeyState.RIGHT_CTRL_PRESSED).toBeTruthy();
 					expect(p!.cs & Win32ControlKeyState.ENHANCED_KEY).toBeTruthy();
 				}));
 			it('alt left', () =>
-				test({ code: 'KeyA', key: 'a', keyCode: 65, altKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'KeyA', key: 'a', keyCode: 65, altKey: true }, true, (p) =>
 					expect(p!.cs & Win32ControlKeyState.LEFT_ALT_PRESSED).toBeTruthy()
 				));
 			it('alt right', () =>
-				test({ code: 'AltRight', key: 'Alt', keyCode: 18, altKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'AltRight', key: 'Alt', keyCode: 18, altKey: true }, true, (p) => {
 					expect(p!.cs & Win32ControlKeyState.RIGHT_ALT_PRESSED).toBeTruthy();
 					expect(p!.cs & Win32ControlKeyState.ENHANCED_KEY).toBeTruthy();
 				}));
 			it('multiple modifiers', () =>
 				test(
+					new Win32InputMode(),
 					{ code: 'KeyA', key: 'A', keyCode: 65, shiftKey: true, ctrlKey: true, altKey: true },
 					true,
 					(p) => {
@@ -112,13 +113,13 @@ describe('Win32InputMode', () => {
 
 		describe('function keys', () => {
 			it('F1', () =>
-				test({ code: 'F1', key: 'F1', keyCode: 112 }, true, (p) => expect(p!.vk).toBe(0x70)));
+				test(new Win32InputMode(), { code: 'F1', key: 'F1', keyCode: 112 }, true, (p) => expect(p!.vk).toBe(0x70)));
 			it('F5', () =>
-				test({ code: 'F5', key: 'F5', keyCode: 116 }, true, (p) => expect(p!.vk).toBe(0x74)));
+				test(new Win32InputMode(), { code: 'F5', key: 'F5', keyCode: 116 }, true, (p) => expect(p!.vk).toBe(0x74)));
 			it('F12', () =>
-				test({ code: 'F12', key: 'F12', keyCode: 123 }, true, (p) => expect(p!.vk).toBe(0x7b)));
+				test(new Win32InputMode(), { code: 'F12', key: 'F12', keyCode: 123 }, true, (p) => expect(p!.vk).toBe(0x7b)));
 			it('Ctrl+F1', () =>
-				test({ code: 'F1', key: 'F1', keyCode: 112, ctrlKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'F1', key: 'F1', keyCode: 112, ctrlKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x70);
 					expect(p!.cs & Win32ControlKeyState.LEFT_CTRL_PRESSED).toBeTruthy();
 				}));
@@ -139,106 +140,107 @@ describe('Win32InputMode', () => {
 			];
 			navKeys.forEach(([code, key, keyCode, vk]) => {
 				it(code, () =>
-					test({ code, key, keyCode }, true, (p) => {
+					test(new Win32InputMode(), { code, key, keyCode }, true, (p) => {
 						expect(p!.vk).toBe(vk);
 						expect(p!.cs & Win32ControlKeyState.ENHANCED_KEY).toBeTruthy();
 					})
 				);
 			});
 			it('Tab', () =>
-				test({ code: 'Tab', key: 'Tab', keyCode: 9 }, true, (p) =>
+				test(new Win32InputMode(), { code: 'Tab', key: 'Tab', keyCode: 9 }, true, (p) =>
 					expect([p!.vk, p!.uc]).toEqual([0x09, 9])
 				));
 			it('Backspace', () =>
-				test({ code: 'Backspace', key: 'Backspace', keyCode: 8 }, true, (p) =>
+				test(new Win32InputMode(), { code: 'Backspace', key: 'Backspace', keyCode: 8 }, true, (p) =>
 					expect([p!.vk, p!.uc]).toEqual([0x08, 8])
 				));
 		});
 
 		describe('numpad keys', () => {
 			it('Numpad0', () =>
-				test({ code: 'Numpad0', key: '0', keyCode: 96 }, true, (p) => expect(p!.vk).toBe(0x60)));
+				test(new Win32InputMode(), { code: 'Numpad0', key: '0', keyCode: 96 }, true, (p) => expect(p!.vk).toBe(0x60)));
 			it('NumpadEnter (ENHANCED)', () =>
-				test({ code: 'NumpadEnter', key: 'Enter', keyCode: 13 }, true, (p) => {
+				test(new Win32InputMode(), { code: 'NumpadEnter', key: 'Enter', keyCode: 13 }, true, (p) => {
 					expect(p!.vk).toBe(0x0d);
 					expect(p!.cs & Win32ControlKeyState.ENHANCED_KEY).toBeTruthy();
 				}));
 			it('NumpadAdd', () =>
-				test({ code: 'NumpadAdd', key: '+', keyCode: 107 }, true, (p) => expect(p!.vk).toBe(0x6b)));
+				test(new Win32InputMode(), { code: 'NumpadAdd', key: '+', keyCode: 107 }, true, (p) => expect(p!.vk).toBe(0x6b)));
 			it('NumpadSubtract', () =>
-				test({ code: 'NumpadSubtract', key: '-', keyCode: 109 }, true, (p) =>
+				test(new Win32InputMode(), { code: 'NumpadSubtract', key: '-', keyCode: 109 }, true, (p) =>
 					expect(p!.vk).toBe(0x6d)
 				));
 			it('NumpadMultiply', () =>
-				test({ code: 'NumpadMultiply', key: '*', keyCode: 106 }, true, (p) =>
+				test(new Win32InputMode(), { code: 'NumpadMultiply', key: '*', keyCode: 106 }, true, (p) =>
 					expect(p!.vk).toBe(0x6a)
 				));
 			it('NumpadDivide (ENHANCED)', () =>
-				test({ code: 'NumpadDivide', key: '/', keyCode: 111 }, true, (p) => {
+				test(new Win32InputMode(), { code: 'NumpadDivide', key: '/', keyCode: 111 }, true, (p) => {
 					expect(p!.vk).toBe(0x6f);
 					expect(p!.cs & Win32ControlKeyState.ENHANCED_KEY).toBeTruthy();
 				}));
 			it('NumpadDecimal', () =>
-				test({ code: 'NumpadDecimal', key: '.', keyCode: 110 }, true, (p) =>
+				test(new Win32InputMode(), { code: 'NumpadDecimal', key: '.', keyCode: 110 }, true, (p) =>
 					expect(p!.vk).toBe(0x6e)
 				));
 		});
 
 		describe('unicode character', () => {
 			it('printable', () =>
-				test({ code: 'KeyA', key: 'a', keyCode: 65 }, true, (p) => expect(p!.uc).toBe(97)));
+				test(new Win32InputMode(), { code: 'KeyA', key: 'a', keyCode: 65 }, true, (p) => expect(p!.uc).toBe(97)));
 			it('shifted', () =>
-				test({ code: 'KeyA', key: 'A', keyCode: 65, shiftKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'KeyA', key: 'A', keyCode: 65, shiftKey: true }, true, (p) =>
 					expect(p!.uc).toBe(65)
 				));
 			it('non-printable is 0', () =>
-				test({ code: 'ArrowUp', key: 'ArrowUp', keyCode: 38 }, true, (p) => expect(p!.uc).toBe(0)));
+				test(new Win32InputMode(), { code: 'ArrowUp', key: 'ArrowUp', keyCode: 38 }, true, (p) => expect(p!.uc).toBe(0)));
 			it('extended ASCII', () =>
-				test({ code: 'KeyE', key: 'é', keyCode: 69 }, true, (p) => expect(p!.uc).toBe(233)));
+				test(new Win32InputMode(), { code: 'KeyE', key: 'é', keyCode: 69 }, true, (p) => expect(p!.uc).toBe(233)));
 			it('symbol', () =>
-				test({ code: 'Digit4', key: '$', keyCode: 52, shiftKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'Digit4', key: '$', keyCode: 52, shiftKey: true }, true, (p) =>
 					expect(p!.uc).toBe(36)
 				));
 		});
 
 		describe('ctrl+letter control characters', () => {
 			it('Ctrl+A produces 0x01', () =>
-				test({ code: 'KeyA', key: 'a', keyCode: 65, ctrlKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'KeyA', key: 'a', keyCode: 65, ctrlKey: true }, true, (p) =>
 					expect(p!.uc).toBe(0x01)
 				));
 			it('Ctrl+C produces 0x03 (ETX)', () =>
-				test({ code: 'KeyC', key: 'c', keyCode: 67, ctrlKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'KeyC', key: 'c', keyCode: 67, ctrlKey: true }, true, (p) =>
 					expect(p!.uc).toBe(0x03)
 				));
 			it('Ctrl+Z produces 0x1A', () =>
-				test({ code: 'KeyZ', key: 'z', keyCode: 90, ctrlKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'KeyZ', key: 'z', keyCode: 90, ctrlKey: true }, true, (p) =>
 					expect(p!.uc).toBe(0x1a)
 				));
 			it('Ctrl+Shift+A (uppercase) produces 0x01', () =>
-				test({ code: 'KeyA', key: 'A', keyCode: 65, ctrlKey: true, shiftKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'KeyA', key: 'A', keyCode: 65, ctrlKey: true, shiftKey: true }, true, (p) =>
 					expect(p!.uc).toBe(0x01)
 				));
 			it('Ctrl+Shift+C (uppercase) produces 0x03', () =>
-				test({ code: 'KeyC', key: 'C', keyCode: 67, ctrlKey: true, shiftKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'KeyC', key: 'C', keyCode: 67, ctrlKey: true, shiftKey: true }, true, (p) =>
 					expect(p!.uc).toBe(0x03)
 				));
 			it('Ctrl+Alt+C does not produce control char', () =>
-				test({ code: 'KeyC', key: 'c', keyCode: 67, ctrlKey: true, altKey: true }, true, (p) =>
+				test(new Win32InputMode(), { code: 'KeyC', key: 'c', keyCode: 67, ctrlKey: true, altKey: true }, true, (p) =>
 					expect(p!.uc).toBe(99)
 				));
 		});
 
 		describe('scan codes', () => {
 			it('letter A', () =>
-				test({ code: 'KeyA', key: 'a', keyCode: 65 }, true, (p) => expect(p!.sc).toBe(0x1e)));
+				test(new Win32InputMode(), { code: 'KeyA', key: 'a', keyCode: 65 }, true, (p) => expect(p!.sc).toBe(0x1e)));
 			it('Escape', () =>
-				test({ code: 'Escape', key: 'Escape', keyCode: 27 }, true, (p) =>
+				test(new Win32InputMode(), { code: 'Escape', key: 'Escape', keyCode: 27 }, true, (p) =>
 					expect(p!.sc).toBe(0x01)
 				));
 		});
 
 		describe('sequence format', () => {
 			it('valid CSI format', () => {
+				const win32 = new Win32InputMode();
 				const result = win32.evaluateKeyboardEvent(
 					ev({ code: 'KeyA', key: 'a', keyCode: 65 }),
 					true
@@ -250,72 +252,72 @@ describe('Win32InputMode', () => {
 
 		describe('standalone modifier keys', () => {
 			it('ShiftLeft', () =>
-				test({ code: 'ShiftLeft', key: 'Shift', keyCode: 16, shiftKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'ShiftLeft', key: 'Shift', keyCode: 16, shiftKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x10);
 					expect(p!.cs & Win32ControlKeyState.SHIFT_PRESSED).toBeTruthy();
 				}));
 			it('ShiftRight', () =>
-				test({ code: 'ShiftRight', key: 'Shift', keyCode: 16, shiftKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'ShiftRight', key: 'Shift', keyCode: 16, shiftKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x10);
 					expect(p!.cs & Win32ControlKeyState.SHIFT_PRESSED).toBeTruthy();
 				}));
 			it('ControlLeft', () =>
-				test({ code: 'ControlLeft', key: 'Control', keyCode: 17, ctrlKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'ControlLeft', key: 'Control', keyCode: 17, ctrlKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x11);
 					expect(p!.cs & Win32ControlKeyState.LEFT_CTRL_PRESSED).toBeTruthy();
 				}));
 			it('ControlRight', () =>
-				test({ code: 'ControlRight', key: 'Control', keyCode: 17, ctrlKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'ControlRight', key: 'Control', keyCode: 17, ctrlKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x11);
 					expect(p!.cs & Win32ControlKeyState.RIGHT_CTRL_PRESSED).toBeTruthy();
 					expect(p!.cs & Win32ControlKeyState.ENHANCED_KEY).toBeTruthy();
 				}));
 			it('AltLeft', () =>
-				test({ code: 'AltLeft', key: 'Alt', keyCode: 18, altKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'AltLeft', key: 'Alt', keyCode: 18, altKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x12);
 					expect(p!.cs & Win32ControlKeyState.LEFT_ALT_PRESSED).toBeTruthy();
 				}));
 			it('AltRight', () =>
-				test({ code: 'AltRight', key: 'Alt', keyCode: 18, altKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'AltRight', key: 'Alt', keyCode: 18, altKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x12);
 					expect(p!.cs & Win32ControlKeyState.RIGHT_ALT_PRESSED).toBeTruthy();
 					expect(p!.cs & Win32ControlKeyState.ENHANCED_KEY).toBeTruthy();
 				}));
 			it('modifier release', () =>
-				test({ code: 'ShiftLeft', key: 'Shift', keyCode: 16 }, false, (p) =>
+				test(new Win32InputMode(), { code: 'ShiftLeft', key: 'Shift', keyCode: 16 }, false, (p) =>
 					expect(p!.kd).toBe(0)
 				));
 		});
 
 		describe('problem keys from spec', () => {
 			it('Ctrl+Space', () =>
-				test({ code: 'Space', key: ' ', keyCode: 32, ctrlKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'Space', key: ' ', keyCode: 32, ctrlKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x20);
 					expect(p!.cs & Win32ControlKeyState.LEFT_CTRL_PRESSED).toBeTruthy();
 				}));
 			it('Shift+Enter', () =>
-				test({ code: 'Enter', key: 'Enter', keyCode: 13, shiftKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'Enter', key: 'Enter', keyCode: 13, shiftKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x0d);
 					expect(p!.cs & Win32ControlKeyState.SHIFT_PRESSED).toBeTruthy();
 				}));
 			it('Ctrl+Break', () =>
-				test({ code: 'Pause', key: 'Pause', keyCode: 19, ctrlKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'Pause', key: 'Pause', keyCode: 19, ctrlKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x13);
 					expect(p!.cs & Win32ControlKeyState.LEFT_CTRL_PRESSED).toBeTruthy();
 				}));
 			it('Ctrl+Alt+/', () =>
-				test({ code: 'Slash', key: '/', keyCode: 191, ctrlKey: true, altKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'Slash', key: '/', keyCode: 191, ctrlKey: true, altKey: true }, true, (p) => {
 					expect(p!.cs & Win32ControlKeyState.LEFT_CTRL_PRESSED).toBeTruthy();
 					expect(p!.cs & Win32ControlKeyState.LEFT_ALT_PRESSED).toBeTruthy();
 				}));
 			it('Ctrl+Enter produces LF (0x0A)', () =>
-				test({ code: 'Enter', key: 'Enter', keyCode: 13, ctrlKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'Enter', key: 'Enter', keyCode: 13, ctrlKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x0d);
 					expect(p!.uc).toBe(0x0a);
 					expect(p!.cs & Win32ControlKeyState.LEFT_CTRL_PRESSED).toBeTruthy();
 				}));
 			it('Ctrl+Backspace produces DEL (0x7F)', () =>
-				test({ code: 'Backspace', key: 'Backspace', keyCode: 8, ctrlKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'Backspace', key: 'Backspace', keyCode: 8, ctrlKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x08);
 					expect(p!.uc).toBe(0x7f);
 					expect(p!.cs & Win32ControlKeyState.LEFT_CTRL_PRESSED).toBeTruthy();
@@ -324,12 +326,12 @@ describe('Win32InputMode', () => {
 
 		describe('meta key', () => {
 			it('MetaLeft', () =>
-				test({ code: 'MetaLeft', key: 'Meta', keyCode: 91, metaKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'MetaLeft', key: 'Meta', keyCode: 91, metaKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x5b);
 					expect(p!.cs & Win32ControlKeyState.ENHANCED_KEY).toBeTruthy();
 				}));
 			it('MetaRight', () =>
-				test({ code: 'MetaRight', key: 'Meta', keyCode: 92, metaKey: true }, true, (p) => {
+				test(new Win32InputMode(), { code: 'MetaRight', key: 'Meta', keyCode: 92, metaKey: true }, true, (p) => {
 					expect(p!.vk).toBe(0x5c);
 					expect(p!.cs & Win32ControlKeyState.ENHANCED_KEY).toBeTruthy();
 				}));

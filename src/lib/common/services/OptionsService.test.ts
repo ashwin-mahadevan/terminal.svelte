@@ -37,11 +37,8 @@ describe('OptionsService', () => {
 		});
 	});
 	describe('setOption', () => {
-		let service: OptionsService;
-		beforeEach(() => {
-			service = new OptionsService({});
-		});
 		it('applies valid fontWeight option values', () => {
+			const service = new OptionsService({});
 			service.options.fontWeight = 'bold';
 			// "bold" keyword value should be applied
 			expect(service.options.fontWeight).toBe('bold');
@@ -67,6 +64,7 @@ describe('OptionsService', () => {
 			expect(service.options.fontWeight).toBe(1000);
 		});
 		it('normalizes invalid fontWeight option values', () => {
+			const service = new OptionsService({});
 			service.options.fontWeight = 350;
 			// fontWeight should be normalized instead of throwing
 			expect(() => (service.options.fontWeight = 10000)).not.toThrow();
@@ -87,11 +85,8 @@ describe('OptionsService', () => {
 		});
 	});
 	describe('onOptionChange', () => {
-		let service: OptionsService;
-		beforeEach(() => {
-			service = new OptionsService({});
-		});
 		it('should fire on any option change', async () => {
+			const service = new OptionsService({});
 			let disposable: IDisposable;
 			await new Promise<void>((r) => {
 				disposable = service.onOptionChange((e) => {
@@ -111,11 +106,8 @@ describe('OptionsService', () => {
 		});
 	});
 	describe('onSpecificOptionChange', () => {
-		let service: OptionsService;
-		beforeEach(() => {
-			service = new OptionsService({});
-		});
 		it('should fire only on a specific option change', async () => {
+			const service = new OptionsService({});
 			await new Promise<void>((r) => {
 				service.onSpecificOptionChange('scrollback', (e) => {
 					expect(e).toBe(20);
@@ -127,11 +119,8 @@ describe('OptionsService', () => {
 		});
 	});
 	describe('onSpecificOptionChange', () => {
-		let service: OptionsService;
-		beforeEach(() => {
-			service = new OptionsService({});
-		});
 		it('should fire only on a specific option change', async () => {
+			const service = new OptionsService({});
 			await new Promise<void>((r) => {
 				service.onSpecificOptionChange('scrollback', (e) => {
 					expect(e).toBe(20);
@@ -143,11 +132,8 @@ describe('OptionsService', () => {
 		});
 	});
 	describe('onMultipleOptionChange', () => {
-		let service: OptionsService;
-		beforeEach(() => {
-			service = new OptionsService({});
-		});
 		it('should fire only for specific options', async () => {
+			const service = new OptionsService({});
 			await new Promise<void>((r) => {
 				let called = false;
 				service.onMultipleOptionChange(['scrollback'], () => {

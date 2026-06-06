@@ -3,20 +3,15 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import type { ICoreService } from '$lib/common/services/Services';
 import { CoreService } from '$lib/common/services/CoreService';
 import { MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
 
 describe('CoreService', () => {
-	let coreService: ICoreService;
-
-	beforeEach(() => {
-		coreService = new CoreService(new MockBufferService(80, 30), new MockOptionsService());
-	});
-
 	describe('isCursorInitialized', () => {
 		it('should be false by default', () => {
+			const coreService = new CoreService(new MockBufferService(80, 30), new MockOptionsService());
 			expect(coreService.isCursorInitialized).toBe(false);
 		});
 		it('should be true when showCursorImmediately is true', () => {
@@ -30,6 +25,7 @@ describe('CoreService', () => {
 
 	describe('reset', () => {
 		it('should not affect isCursorInitialized', () => {
+			const coreService = new CoreService(new MockBufferService(80, 30), new MockOptionsService());
 			coreService.isCursorInitialized = true;
 			coreService.reset();
 			expect(coreService.isCursorInitialized).toBe(true);

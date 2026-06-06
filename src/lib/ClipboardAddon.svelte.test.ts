@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { Terminal } from '$lib/browser/public/Terminal';
 import { Base64, ClipboardAddon } from '$lib/ClipboardAddon';
 
@@ -26,79 +26,173 @@ class StubClipboardProvider {
 }
 
 describe('ClipboardAddon', () => {
-	let term: Terminal;
-	let element: HTMLElement;
-	let provider: StubClipboardProvider;
-	let clipboard: ClipboardAddon;
-
-	beforeEach(() => {
-		element = document.createElement('div');
-		document.body.appendChild(element);
-		term = new Terminal();
-		term.open(element);
-		provider = new StubClipboardProvider();
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		clipboard = new ClipboardAddon(new Base64(), provider as any);
-		term.loadAddon(clipboard);
-	});
-
-	afterEach(() => {
-		clipboard.dispose();
-		term.dispose();
-		element.remove();
-	});
-
-	function write(data: string): Promise<void> {
+	function write(term: Terminal, data: string): Promise<void> {
 		return new Promise((resolve) => term.write(data, resolve));
 	}
 
 	describe('write data', () => {
 		it('simple string', async () => {
-			await write(`\x1b]52;c;${testDataEncoded}\x07`);
-			expect(provider.readText('c')).toEqual(testDataDecoded);
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const term = new Terminal();
+			term.open(element);
+			const provider = new StubClipboardProvider();
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const clipboard = new ClipboardAddon(new Base64(), provider as any);
+			term.loadAddon(clipboard);
+			try {
+				await write(term, `\x1b]52;c;${testDataEncoded}\x07`);
+				expect(provider.readText('c')).toEqual(testDataDecoded);
+			} finally {
+				clipboard.dispose();
+				term.dispose();
+				element.remove();
+			}
 		});
 		it('primary selection', async () => {
-			await write(`\x1b]52;p;${testDataEncoded}\x07`);
-			expect(provider.readText('p')).toEqual(testDataDecoded);
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const term = new Terminal();
+			term.open(element);
+			const provider = new StubClipboardProvider();
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const clipboard = new ClipboardAddon(new Base64(), provider as any);
+			term.loadAddon(clipboard);
+			try {
+				await write(term, `\x1b]52;p;${testDataEncoded}\x07`);
+				expect(provider.readText('p')).toEqual(testDataDecoded);
+			} finally {
+				clipboard.dispose();
+				term.dispose();
+				element.remove();
+			}
 		});
 		it('empty selection (default)', async () => {
-			await write(`\x1b]52;;${testDataEncoded}\x07`);
-			expect(provider.readText('')).toEqual(testDataDecoded);
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const term = new Terminal();
+			term.open(element);
+			const provider = new StubClipboardProvider();
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const clipboard = new ClipboardAddon(new Base64(), provider as any);
+			term.loadAddon(clipboard);
+			try {
+				await write(term, `\x1b]52;;${testDataEncoded}\x07`);
+				expect(provider.readText('')).toEqual(testDataDecoded);
+			} finally {
+				clipboard.dispose();
+				term.dispose();
+				element.remove();
+			}
 		});
 		it('invalid base64 string', async () => {
-			await write(`\x1b]52;c;${testDataEncoded}invalid\x07`);
-			expect(provider.readText('c')).toEqual('');
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const term = new Terminal();
+			term.open(element);
+			const provider = new StubClipboardProvider();
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const clipboard = new ClipboardAddon(new Base64(), provider as any);
+			term.loadAddon(clipboard);
+			try {
+				await write(term, `\x1b]52;c;${testDataEncoded}invalid\x07`);
+				expect(provider.readText('c')).toEqual('');
+			} finally {
+				clipboard.dispose();
+				term.dispose();
+				element.remove();
+			}
 		});
 		it('empty string', async () => {
-			await write(`\x1b]52;c;${testDataEncoded}\x07`);
-			await write(`\x1b]52;c;\x07`);
-			expect(provider.readText('c')).toEqual('');
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const term = new Terminal();
+			term.open(element);
+			const provider = new StubClipboardProvider();
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const clipboard = new ClipboardAddon(new Base64(), provider as any);
+			term.loadAddon(clipboard);
+			try {
+				await write(term, `\x1b]52;c;${testDataEncoded}\x07`);
+				await write(term, `\x1b]52;c;\x07`);
+				expect(provider.readText('c')).toEqual('');
+			} finally {
+				clipboard.dispose();
+				term.dispose();
+				element.remove();
+			}
 		});
 	});
 
 	describe('read data', () => {
-		let data: string[];
-
-		beforeEach(() => {
-			data = [];
-			term.onData((e) => data.push(e));
-		});
-
 		it('simple string', async () => {
-			provider.store['c'] = 'hello world';
-			await write(`\x1b]52;c;?\x07`);
-			await expect.poll(() => data).toEqual([`\x1b]52;c;${testDataEncoded}\x07`]);
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const term = new Terminal();
+			term.open(element);
+			const provider = new StubClipboardProvider();
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const clipboard = new ClipboardAddon(new Base64(), provider as any);
+			term.loadAddon(clipboard);
+			const data: string[] = [];
+			term.onData((e) => data.push(e));
+			try {
+				provider.store['c'] = 'hello world';
+				await write(term, `\x1b]52;c;?\x07`);
+				await expect.poll(() => data).toEqual([`\x1b]52;c;${testDataEncoded}\x07`]);
+			} finally {
+				clipboard.dispose();
+				term.dispose();
+				element.remove();
+			}
 		});
 		it('primary selection', async () => {
-			provider.store['p'] = 'hello world';
-			await write(`\x1b]52;p;?\x07`);
-			await expect.poll(() => data).toEqual([`\x1b]52;p;${testDataEncoded}\x07`]);
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const term = new Terminal();
+			term.open(element);
+			const provider = new StubClipboardProvider();
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const clipboard = new ClipboardAddon(new Base64(), provider as any);
+			term.loadAddon(clipboard);
+			const data: string[] = [];
+			term.onData((e) => data.push(e));
+			try {
+				provider.store['p'] = 'hello world';
+				await write(term, `\x1b]52;p;?\x07`);
+				await expect.poll(() => data).toEqual([`\x1b]52;p;${testDataEncoded}\x07`]);
+			} finally {
+				clipboard.dispose();
+				term.dispose();
+				element.remove();
+			}
 		});
 		it('clear clipboard', async () => {
-			await write(`\x1b]52;c;!\x07`);
-			await write(`\x1b]52;c;?\x07`);
-			expect(provider.readText('c')).toEqual('');
+			const element = document.createElement('div');
+			document.body.appendChild(element);
+			const term = new Terminal();
+			term.open(element);
+			const provider = new StubClipboardProvider();
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const clipboard = new ClipboardAddon(new Base64(), provider as any);
+			term.loadAddon(clipboard);
+			try {
+				await write(term, `\x1b]52;c;!\x07`);
+				await write(term, `\x1b]52;c;?\x07`);
+				expect(provider.readText('c')).toEqual('');
+			} finally {
+				clipboard.dispose();
+				term.dispose();
+				element.remove();
+			}
 		});
 	});
 });

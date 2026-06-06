@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import type { IUnicodeVersionProvider } from '$lib/common/services/Services';
 
@@ -20,11 +20,8 @@ class DummyProvider implements IUnicodeVersionProvider {
 }
 
 describe('unicode provider', () => {
-	let us: UnicodeService;
-	beforeEach(() => {
-		us = new UnicodeService();
-	});
 	it('default to V6', () => {
+		const us = new UnicodeService();
 		expect(us.activeVersion).toBe('6');
 		expect(us.versions).toEqual(['6']);
 		expect(() => {
@@ -33,11 +30,13 @@ describe('unicode provider', () => {
 		expect(us.getStringCellWidth('hello')).toBe(5);
 	});
 	it('activate should throw for unknown version', () => {
+		const us = new UnicodeService();
 		expect(() => {
 			us.activeVersion = '55';
 		}).toThrow('unknown Unicode version "55"');
 	});
 	it('should notify about version change', () => {
+		const us = new UnicodeService();
 		const notes: string[] = [];
 		us.onChange((version) => notes.push(version));
 		const dummyProvider = new DummyProvider();
@@ -46,6 +45,7 @@ describe('unicode provider', () => {
 		expect(notes).toEqual([dummyProvider.version]);
 	});
 	it('correctly changes provider impl', () => {
+		const us = new UnicodeService();
 		expect(us.getStringCellWidth('hello')).toBe(5);
 		const dummyProvider = new DummyProvider();
 		us.register(dummyProvider);
@@ -53,6 +53,7 @@ describe('unicode provider', () => {
 		expect(us.getStringCellWidth('hello')).toBe(2 * 5);
 	});
 	it('wcwidth V6 emoji test', () => {
+		const us = new UnicodeService();
 		const widthV6 = us.getStringCellWidth('🤣🤣🤣🤣🤣🤣🤣🤣🤣🤣');
 		expect(widthV6).toBe(10);
 	});

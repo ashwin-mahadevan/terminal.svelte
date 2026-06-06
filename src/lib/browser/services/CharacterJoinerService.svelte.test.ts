@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import type { ICharacterJoinerService } from '$lib/browser/services/Services';
 import { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { BufferLine } from '$lib/common/buffer/BufferLine';
@@ -15,9 +15,7 @@ import { MockBufferService, createCellData } from '$lib/common/TestUtils';
 const TEST_STRING_CACHE = new BufferLineStringCache();
 
 describe('CharacterJoinerService', () => {
-	let service: ICharacterJoinerService;
-
-	beforeEach(() => {
+	function createService(): ICharacterJoinerService {
 		const bufferService = new MockBufferService(16, 10);
 		const lines = bufferService.buffer.lines;
 		lines.set(0, lineData([['a -> b -> c -> d']]));
@@ -50,14 +48,16 @@ describe('CharacterJoinerService', () => {
 			line6.setCell(i + oldSize, sub.loadCell(i, new CellData()));
 		lines.set(6, line6);
 
-		service = new CharacterJoinerService(bufferService);
-	});
+		return new CharacterJoinerService(bufferService);
+	}
 
 	it('has no joiners upon creation', () => {
+		const service = createService();
 		expect(service.getJoinedCharacters(0)).toEqual([]);
 	});
 
 	it('returns ranges matched by the registered joiners', () => {
+		const service = createService();
 		service.register(substringJoiner('->'));
 		expect(service.getJoinedCharacters(0)).toEqual([
 			[2, 4],
@@ -67,6 +67,7 @@ describe('CharacterJoinerService', () => {
 	});
 
 	it('processes the input using all provided joiners', () => {
+		const service = createService();
 		service.register(substringJoiner('->'));
 		expect(service.getJoinedCharacters(1)).toEqual([
 			[2, 4],
@@ -82,6 +83,7 @@ describe('CharacterJoinerService', () => {
 	});
 
 	it('removes deregistered joiners from future calls', () => {
+		const service = createService();
 		const joiner1 = service.register(substringJoiner('->'));
 		const joiner2 = service.register(substringJoiner('=>'));
 		expect(service.getJoinedCharacters(1)).toEqual([
@@ -98,6 +100,7 @@ describe('CharacterJoinerService', () => {
 	});
 
 	it("doesn't process joins on differently-styled characters", () => {
+		const service = createService();
 		service.register(substringJoiner('->'));
 		expect(service.getJoinedCharacters(2)).toEqual([
 			[2, 4],
@@ -106,16 +109,19 @@ describe('CharacterJoinerService', () => {
 	});
 
 	it('returns an empty list of ranges if there is nothing to be joined', () => {
+		const service = createService();
 		service.register(substringJoiner('->'));
 		expect(service.getJoinedCharacters(3)).toEqual([]);
 	});
 
 	it('returns an empty list of ranges if the line is empty', () => {
+		const service = createService();
 		service.register(substringJoiner('->'));
 		expect(service.getJoinedCharacters(4)).toEqual([]);
 	});
 
 	it('returns false when trying to deregister a joiner that does not exist', () => {
+		const service = createService();
 		service.register(substringJoiner('->'));
 		expect(service.deregister(123)).toEqual(false);
 		expect(service.getJoinedCharacters(0)).toEqual([
@@ -126,6 +132,7 @@ describe('CharacterJoinerService', () => {
 	});
 
 	it("doesn't process same-styled ranges that only have one character", () => {
+		const service = createService();
 		service.register(substringJoiner('a'));
 		service.register(substringJoiner('b'));
 		service.register(substringJoiner('d'));
@@ -133,11 +140,13 @@ describe('CharacterJoinerService', () => {
 	});
 
 	it('handles ranges that extend all the way to the end of the line', () => {
+		const service = createService();
 		service.register(substringJoiner('-> d'));
 		expect(service.getJoinedCharacters(2)).toEqual([[12, 16]]);
 	});
 
 	it('handles adjacent ranges', () => {
+		const service = createService();
 		service.register(substringJoiner('->'));
 		service.register(substringJoiner('> c '));
 		expect(service.getJoinedCharacters(2)).toEqual([
@@ -148,32 +157,38 @@ describe('CharacterJoinerService', () => {
 	});
 
 	it('handles fullwidth characters in the middle of ranges', () => {
+		const service = createService();
 		service.register(substringJoiner('wi￥de'));
 		expect(service.getJoinedCharacters(6)).toEqual([[0, 6]]);
 	});
 
 	it('handles fullwidth characters at the end of ranges', () => {
+		const service = createService();
 		service.register(substringJoiner('wi￥'));
 		expect(service.getJoinedCharacters(6)).toEqual([[0, 4]]);
 	});
 
 	it('handles emojis in the middle of ranges', () => {
+		const service = createService();
 		service.register(substringJoiner('emo\xf0\x9f\x98\x81 ji'));
 		expect(service.getJoinedCharacters(6)).toEqual([[6, 13]]);
 	});
 
 	it('handles emojis at the end of ranges', () => {
+		const service = createService();
 		service.register(substringJoiner('emo\xf0\x9f\x98\x81 '));
 		expect(service.getJoinedCharacters(6)).toEqual([[6, 11]]);
 	});
 
 	it('handles ranges after wide and emoji characters', () => {
+		const service = createService();
 		service.register(substringJoiner('abc'));
 		expect(service.getJoinedCharacters(6)).toEqual([[13, 16]]);
 	});
 
 	describe('range merging', () => {
 		it('inserts a new range before the existing ones', () => {
+			const service = createService();
 			service.register(() => [
 				[1, 2],
 				[2, 3]
@@ -187,6 +202,7 @@ describe('CharacterJoinerService', () => {
 		});
 
 		it('inserts in between two ranges', () => {
+			const service = createService();
 			service.register(() => [
 				[0, 2],
 				[4, 6]
@@ -200,6 +216,7 @@ describe('CharacterJoinerService', () => {
 		});
 
 		it('inserts after the last range', () => {
+			const service = createService();
 			service.register(() => [
 				[0, 2],
 				[4, 6]
@@ -213,6 +230,7 @@ describe('CharacterJoinerService', () => {
 		});
 
 		it('extends the beginning of a range', () => {
+			const service = createService();
 			service.register(() => [
 				[0, 2],
 				[4, 6]
@@ -225,6 +243,7 @@ describe('CharacterJoinerService', () => {
 		});
 
 		it('extends the end of a range', () => {
+			const service = createService();
 			service.register(() => [
 				[0, 2],
 				[4, 6]
@@ -237,6 +256,7 @@ describe('CharacterJoinerService', () => {
 		});
 
 		it('extends the last range', () => {
+			const service = createService();
 			service.register(() => [
 				[0, 2],
 				[4, 6]
@@ -249,6 +269,7 @@ describe('CharacterJoinerService', () => {
 		});
 
 		it('connects two ranges', () => {
+			const service = createService();
 			service.register(() => [
 				[0, 2],
 				[4, 6]
@@ -258,6 +279,7 @@ describe('CharacterJoinerService', () => {
 		});
 
 		it('connects more than two ranges', () => {
+			const service = createService();
 			service.register(() => [
 				[0, 2],
 				[4, 6],

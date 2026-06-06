@@ -45,41 +45,42 @@ const INIT_ROWS = 24;
 // grab wcwidth from mock unicode service (hardcoded to V6)
 const wcwidth = new MockUnicodeService().wcwidth;
 
+function createTestTerminal(options?: any): TestTerminal {
+	const term = new TestTerminal(options || { cols: INIT_COLS, rows: INIT_ROWS });
+	term.refresh = () => {};
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	(term as any).renderer = {};
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	(term as any).viewport = {};
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	(term as any)._compositionHelper = {
+		get isComposing() {
+			return false;
+		},
+		keydown: () => true
+	};
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	(term as any).element = {
+		classList: {
+			toggle: () => {},
+			remove: () => {}
+		}
+	};
+	return term;
+}
+
 describe('CoreBrowserTerminal', () => {
-	let term: TestTerminal;
 	const termOptions = {
 		cols: INIT_COLS,
 		rows: INIT_ROWS
 	};
 
-	beforeEach(() => {
-		term = new TestTerminal(termOptions);
-		term.refresh = () => {};
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(term as any).renderer = {};
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(term as any).viewport = {};
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(term as any)._compositionHelper = {
-			get isComposing() {
-				return false;
-			},
-			keydown: () => true
-		};
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(term as any).element = {
-			classList: {
-				toggle: () => {},
-				remove: () => {}
-			}
-		};
-	});
-
 	it('should not mutate the options parameter', () => {
+		const term = createTestTerminal(termOptions);
 		term.options.cols = 1000;
 
 		expect(termOptions).toEqual({
@@ -89,6 +90,10 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('events', () => {
+		let term: TestTerminal;
+		beforeEach(() => {
+			term = createTestTerminal();
+		});
 		it('should fire the onData evnet', () =>
 			new Promise<void>((done) => {
 				term.onData((e) => {
@@ -217,6 +222,11 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('attachCustomKeyEventHandler', () => {
+		let term: TestTerminal;
+		beforeEach(() => {
+			term = createTestTerminal();
+			term.clearSelection = () => {};
+		});
 		const evKeyDown = {
 			preventDefault: () => {},
 			stopPropagation: () => {},
@@ -229,10 +239,6 @@ describe('CoreBrowserTerminal', () => {
 			type: 'keypress',
 			keyCode: 77
 		} as KeyboardEvent;
-
-		beforeEach(() => {
-			term.clearSelection = () => {};
-		});
 
 		it('should process the keydown/keypress event based on what the handler returns', () => {
 			expect(term.keyDown(evKeyDown)).toBe(true);
@@ -256,6 +262,10 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('clear', () => {
+		let term: TestTerminal;
+		beforeEach(() => {
+			term = createTestTerminal();
+		});
 		it('should clear a buffer equal to rows', () => {
 			const promptLine = term.buffer.lines.get(term.buffer.ybase + term.buffer.y);
 			term.clear();
@@ -299,9 +309,11 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('paste', () => {
+		let term: TestTerminal;
 		// `paste()` writes back to `term.textarea.value` after firing onData; provide
 		// a stub textarea so the write target exists (upstream relied on it too).
 		beforeEach(() => {
+			term = createTestTerminal();
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(term as any).textarea = { value: '' };
@@ -337,29 +349,38 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('scroll', () => {
+		let term: TestTerminal;
+		beforeEach(() => {
+			term = createTestTerminal();
+		});
 		describe('scrollLines', () => {
-			let startYDisp: number;
-			beforeEach(async () => {
+			it('should scroll a single line', async () => {
 				for (let i = 0; i < INIT_ROWS * 2; i++) {
 					await term.writeP('test\r\n');
 				}
-				startYDisp = INIT_ROWS + 1;
-			});
-			it('should scroll a single line', () => {
+				const startYDisp = INIT_ROWS + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollLines(-1);
 				expect(term.buffer.ydisp).toBe(startYDisp - 1);
 				term.scrollLines(1);
 				expect(term.buffer.ydisp).toBe(startYDisp);
 			});
-			it('should scroll multiple lines', () => {
+			it('should scroll multiple lines', async () => {
+				for (let i = 0; i < INIT_ROWS * 2; i++) {
+					await term.writeP('test\r\n');
+				}
+				const startYDisp = INIT_ROWS + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollLines(-5);
 				expect(term.buffer.ydisp).toBe(startYDisp - 5);
 				term.scrollLines(5);
 				expect(term.buffer.ydisp).toBe(startYDisp);
 			});
-			it('should not scroll beyond the bounds of the buffer', () => {
+			it('should not scroll beyond the bounds of the buffer', async () => {
+				for (let i = 0; i < INIT_ROWS * 2; i++) {
+					await term.writeP('test\r\n');
+				}
+				const startYDisp = INIT_ROWS + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollLines(1);
 				expect(term.buffer.ydisp).toBe(startYDisp);
@@ -373,21 +394,22 @@ describe('CoreBrowserTerminal', () => {
 		});
 
 		describe('scrollPages', () => {
-			let startYDisp: number;
-			beforeEach(async () => {
+			it('should scroll a single page', async () => {
 				for (let i = 0; i < term.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				startYDisp = term.rows * 2 + 1;
-			});
-			it('should scroll a single page', () => {
+				const startYDisp = term.rows * 2 + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollPages(-1);
 				expect(term.buffer.ydisp).toBe(startYDisp - (term.rows - 1));
 				term.scrollPages(1);
 				expect(term.buffer.ydisp).toBe(startYDisp);
 			});
-			it('should scroll a multiple pages', () => {
+			it('should scroll a multiple pages', async () => {
+				for (let i = 0; i < term.rows * 3; i++) {
+					await term.writeP('test\r\n');
+				}
+				const startYDisp = term.rows * 2 + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollPages(-2);
 				expect(term.buffer.ydisp).toBe(startYDisp - (term.rows - 1) * 2);
@@ -410,14 +432,11 @@ describe('CoreBrowserTerminal', () => {
 		});
 
 		describe('scrollToBottom', () => {
-			let startYDisp: number;
-			beforeEach(async () => {
+			it('should scroll to the bottom', async () => {
 				for (let i = 0; i < term.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				startYDisp = term.rows * 2 + 1;
-			});
-			it('should scroll to the bottom', () => {
+				const startYDisp = term.rows * 2 + 1;
 				term.scrollLines(-1);
 				term.scrollToBottom();
 				expect(term.buffer.ydisp).toBe(startYDisp);
@@ -431,14 +450,11 @@ describe('CoreBrowserTerminal', () => {
 		});
 
 		describe('scrollToLine', () => {
-			let startYDisp: number;
-			beforeEach(async () => {
+			it('should scroll to requested line', async () => {
 				for (let i = 0; i < term.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				startYDisp = term.rows * 2 + 1;
-			});
-			it('should scroll to requested line', () => {
+				const startYDisp = term.rows * 2 + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollToLine(0);
 				expect(term.buffer.ydisp).toBe(0);
@@ -449,7 +465,11 @@ describe('CoreBrowserTerminal', () => {
 				term.scrollToLine(20);
 				expect(term.buffer.ydisp).toBe(20);
 			});
-			it('should not scroll beyond boundary lines', () => {
+			it('should not scroll beyond boundary lines', async () => {
+				for (let i = 0; i < term.rows * 3; i++) {
+					await term.writeP('test\r\n');
+				}
+				const startYDisp = term.rows * 2 + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollToLine(-1);
 				expect(term.buffer.ydisp).toBe(0);
@@ -688,30 +708,10 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('Third level shift', () => {
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		let evKeyDown: any;
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		let evKeyPress: any;
-
+		let term: TestTerminal;
 		beforeEach(() => {
+			term = createTestTerminal();
 			term.clearSelection = () => {};
-			evKeyDown = {
-				preventDefault: () => {},
-				stopPropagation: () => {},
-				type: 'keydown',
-				altKey: null,
-				keyCode: null
-			};
-			evKeyPress = {
-				preventDefault: () => {},
-				stopPropagation: () => {},
-				type: 'keypress',
-				altKey: null,
-				charCode: null,
-				keyCode: null
-			};
 		});
 
 		describe('with macOptionIsMeta', () => {
@@ -720,6 +720,13 @@ describe('CoreBrowserTerminal', () => {
 			});
 
 			it('should interfere with the alt key on keyDown', () => {
+				const evKeyDown = {
+					preventDefault: () => {},
+					stopPropagation: () => {},
+					type: 'keydown',
+					altKey: null,
+					keyCode: null
+				};
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 81;
 				expect(term.keyDown(evKeyDown)).toBe(false);
@@ -730,14 +737,16 @@ describe('CoreBrowserTerminal', () => {
 		});
 
 		describe('On Mac OS', () => {
-			let originalBrowser: IBrowser;
-			beforeEach(() => {
-				originalBrowser = term.browser;
-				term.browser = { ...originalBrowser, isMac: true };
-			});
-			afterEach(() => (term.browser = originalBrowser));
-
 			it('should not interfere with the alt key on keyDown', () => {
+				const originalBrowser = term.browser;
+				term.browser = { ...originalBrowser, isMac: true };
+				const evKeyDown = {
+					preventDefault: () => {},
+					stopPropagation: () => {},
+					type: 'keydown',
+					altKey: null,
+					keyCode: null
+				} as any;
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 81;
 				expect(term.keyDown(evKeyDown)).toBe(true);
@@ -745,19 +754,40 @@ describe('CoreBrowserTerminal', () => {
 				evKeyDown.keyCode = 192;
 				term.keyDown(evKeyDown);
 				expect(term.keyDown(evKeyDown)).toBe(true);
+				term.browser = originalBrowser;
 			});
 
 			it('should interfere with the alt + arrow keys', () => {
+				const originalBrowser = term.browser;
+				term.browser = { ...originalBrowser, isMac: true };
+				const evKeyDown = {
+					preventDefault: () => {},
+					stopPropagation: () => {},
+					type: 'keydown',
+					altKey: null,
+					keyCode: null
+				} as any;
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 37;
 				expect(term.keyDown(evKeyDown)).toBe(false);
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 39;
 				expect(term.keyDown(evKeyDown)).toBe(false);
+				term.browser = originalBrowser;
 			});
 
 			it('should emit key with alt + key on keyPress', () =>
 				new Promise<void>((done) => {
+					const originalBrowser = term.browser;
+					term.browser = { ...originalBrowser, isMac: true };
+					const evKeyPress = {
+						preventDefault: () => {},
+						stopPropagation: () => {},
+						type: 'keypress',
+						altKey: null,
+						charCode: null,
+						keyCode: null
+					} as any;
 					const keys = ['@', '@', '\\', '\\', '|', '|'];
 
 					term.onKey((e) => {
@@ -766,7 +796,10 @@ describe('CoreBrowserTerminal', () => {
 							expect(index).not.toBe(-1);
 							keys.splice(index, 1);
 						}
-						if (keys.length === 0) done();
+						if (keys.length === 0) {
+							term.browser = originalBrowser;
+							done();
+						}
 					});
 
 					evKeyPress.altKey = true;
@@ -798,14 +831,24 @@ describe('CoreBrowserTerminal', () => {
 		});
 
 		describe('On MS Windows', () => {
-			let originalBrowser: IBrowser;
-			beforeEach(() => {
-				originalBrowser = term.browser;
-				term.browser = { ...originalBrowser, isWindows: true };
-			});
-			afterEach(() => (term.browser = originalBrowser));
-
 			it('should not interfere with the alt + ctrl key on keyDown', () => {
+				const originalBrowser = term.browser;
+				term.browser = { ...originalBrowser, isWindows: true };
+				const evKeyDown = {
+					preventDefault: () => {},
+					stopPropagation: () => {},
+					type: 'keydown',
+					altKey: null,
+					keyCode: null
+				} as any;
+				const evKeyPress = {
+					preventDefault: () => {},
+					stopPropagation: () => {},
+					type: 'keypress',
+					altKey: null,
+					charCode: null,
+					keyCode: null
+				} as any;
 				evKeyPress.altKey = true;
 				evKeyPress.ctrlKey = true;
 				evKeyPress.keyCode = 81;
@@ -815,9 +858,19 @@ describe('CoreBrowserTerminal', () => {
 				evKeyDown.keyCode = 81;
 				term.keyDown(evKeyDown);
 				expect(term.keyDown(evKeyPress)).toBe(true);
+				term.browser = originalBrowser;
 			});
 
 			it('should interfere with the alt + ctrl + arrow keys', () => {
+				const originalBrowser = term.browser;
+				term.browser = { ...originalBrowser, isWindows: true };
+				const evKeyDown = {
+					preventDefault: () => {},
+					stopPropagation: () => {},
+					type: 'keydown',
+					altKey: null,
+					keyCode: null
+				} as any;
 				evKeyDown.altKey = true;
 				evKeyDown.ctrlKey = true;
 
@@ -826,10 +879,21 @@ describe('CoreBrowserTerminal', () => {
 				evKeyDown.keyCode = 39;
 				term.keyDown(evKeyDown);
 				expect(term.keyDown(evKeyDown)).toBe(false);
+				term.browser = originalBrowser;
 			});
 
 			it('should emit key with alt + ctrl + key on keyPress', () =>
 				new Promise<void>((done) => {
+					const originalBrowser = term.browser;
+					term.browser = { ...originalBrowser, isWindows: true };
+					const evKeyPress = {
+						preventDefault: () => {},
+						stopPropagation: () => {},
+						type: 'keypress',
+						altKey: null,
+						charCode: null,
+						keyCode: null
+					} as any;
 					const keys = ['@', '@', '\\', '\\', '|', '|'];
 
 					term.onKey((e) => {
@@ -838,7 +902,10 @@ describe('CoreBrowserTerminal', () => {
 							expect(index).not.toBe(-1);
 							keys.splice(index, 1);
 						}
-						if (keys.length === 0) done();
+						if (keys.length === 0) {
+							term.browser = originalBrowser;
+							done();
+						}
 					});
 
 					evKeyPress.altKey = true;
@@ -873,6 +940,10 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('unicode - surrogates', () => {
+		let term: TestTerminal;
+		beforeEach(() => {
+			term = createTestTerminal();
+		});
 		for (let i = 0xdc00; i <= 0xdcf0; i += 0x10) {
 			const range = `0x${i.toString(16).toUpperCase()}-0x${(i + 0xf).toString(16).toUpperCase()}`;
 			it(`${range}: 2 characters per cell`, async (): Promise<void> => {
@@ -1022,6 +1093,10 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('unicode - combining characters', () => {
+		let term: TestTerminal;
+		beforeEach(() => {
+			term = createTestTerminal();
+		});
 		const cell = new CellData();
 		it('café', async () => {
 			await term.writeP('café');
@@ -1071,6 +1146,10 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('unicode - fullwidth characters', () => {
+		let term: TestTerminal;
+		beforeEach(() => {
+			term = createTestTerminal();
+		});
 		const cell = new CellData();
 		it('cursor movement even', async () => {
 			expect(term.buffer.x).toBe(0);
@@ -1215,6 +1294,10 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('insert mode', () => {
+		let term: TestTerminal;
+		beforeEach(() => {
+			term = createTestTerminal();
+		});
 		const cell = new CellData();
 		it('halfwidth - all', async () => {
 			await term.writeP('0123456789'.repeat(8).slice(-80));
@@ -1260,6 +1343,10 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('Windows Pty', () => {
+		let term: TestTerminal;
+		beforeEach(() => {
+			term = createTestTerminal();
+		});
 		it('should mark lines as wrapped when the line ends in a non-null character after a LF', async () => {
 			const data = [
 				'aaaaaaaaaa\n\r', // cannot wrap as it's the first
@@ -1313,7 +1400,7 @@ describe('CoreBrowserTerminal', () => {
 
 	it('convertEol setting', async () => {
 		// not converting
-		const termNotConverting = new TestTerminal({ cols: 15, rows: 10 });
+		const termNotConverting = createTestTerminal({ cols: 15, rows: 10 });
 		await termNotConverting.writeP('Hello\nWorld');
 		expect(termNotConverting.buffer.lines.get(0)!.translateToString(false)).toBe('Hello          ');
 		expect(termNotConverting.buffer.lines.get(1)!.translateToString(false)).toBe('     World     ');
@@ -1321,7 +1408,7 @@ describe('CoreBrowserTerminal', () => {
 		expect(termNotConverting.buffer.lines.get(1)!.translateToString(true)).toBe('     World');
 
 		// converting
-		const termConverting = new TestTerminal({ cols: 15, rows: 10, convertEol: true });
+		const termConverting = createTestTerminal({ cols: 15, rows: 10, convertEol: true });
 		await termConverting.writeP('Hello\nWorld');
 		expect(termConverting.buffer.lines.get(0)!.translateToString(false)).toBe('Hello          ');
 		expect(termConverting.buffer.lines.get(1)!.translateToString(false)).toBe('World          ');
@@ -1333,13 +1420,10 @@ describe('CoreBrowserTerminal', () => {
 	describe('marker lifecycle', () => {
 		// create a 10x5 terminal with markers on every line
 		// to test marker lifecycle under various terminal actions
-		let markers: IMarker[];
-		let disposeStack: IMarker[];
-		let term: TestTerminal;
-		beforeEach(async () => {
-			term = new TestTerminal({});
-			markers = [];
-			disposeStack = [];
+		it('initial', async () => {
+			const term = createTestTerminal();
+			const markers: IMarker[] = [];
+			const disposeStack: IMarker[] = [];
 			term.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
 			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
@@ -1356,11 +1440,28 @@ describe('CoreBrowserTerminal', () => {
 				const marker = markers[i];
 				marker.onDispose(() => disposeStack.push(marker));
 			}
-		});
-		it('initial', () => {
 			expect(markers.map((m) => m.line)).toEqual([0, 1, 2, 3, 4]);
 		});
 		it('should dispose on normal trim off the top', async () => {
+			const term = createTestTerminal();
+			const markers: IMarker[] = [];
+			const disposeStack: IMarker[] = [];
+			term.optionsService.options.scrollback = 1;
+			term.resize(10, 5);
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('\x1b[r0\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('1\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('2\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('3\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('4');
+			for (let i = 0; i < markers.length; ++i) {
+				const marker = markers[i];
+				marker.onDispose(() => disposeStack.push(marker));
+			}
 			// moves top line into scrollback
 			await term.writeP('\n');
 			expect(disposeStack).toEqual([]);
@@ -1376,17 +1477,74 @@ describe('CoreBrowserTerminal', () => {
 			expect(disposeStack.map((el) => el.line)).toEqual([-1, -1]);
 		});
 		it('should dispose on DL', async () => {
+			const term = createTestTerminal();
+			const markers: IMarker[] = [];
+			const disposeStack: IMarker[] = [];
+			term.optionsService.options.scrollback = 1;
+			term.resize(10, 5);
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('\x1b[r0\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('1\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('2\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('3\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('4');
+			for (let i = 0; i < markers.length; ++i) {
+				const marker = markers[i];
+				marker.onDispose(() => disposeStack.push(marker));
+			}
 			await term.writeP('\x1b[3;1H'); // move cursor to 0, 2
 			await term.writeP('\x1b[2M'); // delete 2 lines
 			expect(disposeStack).toEqual([markers[2], markers[3]]);
 		});
 		it('should dispose on IL', async () => {
+			const term = createTestTerminal();
+			const markers: IMarker[] = [];
+			const disposeStack: IMarker[] = [];
+			term.optionsService.options.scrollback = 1;
+			term.resize(10, 5);
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('\x1b[r0\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('1\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('2\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('3\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('4');
+			for (let i = 0; i < markers.length; ++i) {
+				const marker = markers[i];
+				marker.onDispose(() => disposeStack.push(marker));
+			}
 			await term.writeP('\x1b[3;1H'); // move cursor to 0, 2
 			await term.writeP('\x1b[2L'); // insert 2 lines
 			expect(disposeStack).toEqual([markers[4], markers[3]]);
 			expect(markers.map((el) => el.line)).toEqual([0, 1, 4, -1, -1]);
 		});
-		it('should dispose on resize', () => {
+		it('should dispose on resize', async () => {
+			const term = createTestTerminal();
+			const markers: IMarker[] = [];
+			const disposeStack: IMarker[] = [];
+			term.optionsService.options.scrollback = 1;
+			term.resize(10, 5);
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('\x1b[r0\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('1\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('2\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('3\r\n');
+			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			await term.writeP('4');
+			for (let i = 0; i < markers.length; ++i) {
+				const marker = markers[i];
+				marker.onDispose(() => disposeStack.push(marker));
+			}
 			term.resize(10, 2);
 			expect(disposeStack).toEqual([markers[0], markers[1]]);
 			expect(markers.map((el) => el.line)).toEqual([-1, -1, 0, 1, 2]);
@@ -1394,8 +1552,9 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('options', () => {
-		beforeEach(async () => {
-			term = new TestTerminal({});
+		let term: TestTerminal;
+		beforeEach(() => {
+			term = createTestTerminal();
 		});
 		it('get options', () => {
 			expect(term.options.cols).toBe(80);

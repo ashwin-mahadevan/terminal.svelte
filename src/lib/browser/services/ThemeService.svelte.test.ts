@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { ThemeService } from '$lib/browser/services/ThemeService';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
@@ -13,16 +13,10 @@ import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 // or DOM, and this runs in real Chromium, so that setup is dropped entirely.
 
 describe('ThemeService', () => {
-	let themeService: ThemeService;
-	let optionsService: OptionsService;
-
-	beforeEach(() => {
-		optionsService = new OptionsService({});
-		themeService = new ThemeService(optionsService);
-	});
-
 	describe('constructor', () => {
 		it('should fill all colors with values', () => {
+			const optionsService = new OptionsService({});
+			const themeService = new ThemeService(optionsService);
 			for (const key of Object.keys(themeService.colors)) {
 				if (!['ansi', 'contrastCache', 'halfContrastCache', 'selectionForeground'].includes(key)) {
 					// A #rrggbb or rgba(...)
@@ -35,6 +29,8 @@ describe('ThemeService', () => {
 		});
 
 		it('should fill 240 colors with expected values', () => {
+			const optionsService = new OptionsService({});
+			const themeService = new ThemeService(optionsService);
 			expect(themeService.colors.ansi[16].css).toBe('#000000');
 			expect(themeService.colors.ansi[17].css).toBe('#00005f');
 			expect(themeService.colors.ansi[18].css).toBe('#000087');
@@ -280,12 +276,15 @@ describe('ThemeService', () => {
 
 	describe('setTheme', () => {
 		it('should not throw when not setting all colors', () => {
+			const optionsService = new OptionsService({});
 			expect(() => {
 				optionsService.options.theme = {};
 			}).not.toThrow();
 		});
 
 		it('should set a partial set of colors, using the default if not present', () => {
+			const optionsService = new OptionsService({});
+			const themeService = new ThemeService(optionsService);
 			expect(themeService.colors.background.css).toBe('#000000');
 			expect(themeService.colors.foreground.css).toBe('#ffffff');
 			optionsService.options.theme = {
@@ -303,6 +302,8 @@ describe('ThemeService', () => {
 		});
 
 		it('should set all extended ansi colors in reverse order', () => {
+			const optionsService = new OptionsService({});
+			const themeService = new ThemeService(optionsService);
 			optionsService.options.theme = {
 				extendedAnsi: DEFAULT_ANSI_COLORS.map((a) => a.css)
 					.slice()
@@ -317,6 +318,8 @@ describe('ThemeService', () => {
 		});
 
 		it('should set one extended ansi color and keep the other default', () => {
+			const optionsService = new OptionsService({});
+			const themeService = new ThemeService(optionsService);
 			optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
 			};
@@ -326,6 +329,8 @@ describe('ThemeService', () => {
 		});
 
 		it('should set extended ansi colors to the default when they are unset', () => {
+			const optionsService = new OptionsService({});
+			const themeService = new ThemeService(optionsService);
 			optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
 			};
@@ -346,6 +351,8 @@ describe('ThemeService', () => {
 		});
 
 		it('should set extended ansi colors to the default when they are partially unset', () => {
+			const optionsService = new OptionsService({});
+			const themeService = new ThemeService(optionsService);
 			optionsService.options.theme = {
 				extendedAnsi: ['#ffffff', '#000000']
 			};

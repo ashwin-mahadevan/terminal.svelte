@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { SelectionService, SelectionMode } from '$lib/browser/services/SelectionService';
 import type { SelectionModel } from '$lib/browser/selection/SelectionModel';
 import type { IBufferLine } from '$lib/common/Types';
@@ -109,29 +109,6 @@ class TestSelectionService extends SelectionService {
 }
 
 describe('SelectionService', () => {
-	let buffer: IBuffer;
-	let bufferService: IBufferService;
-	let optionsService: IOptionsService;
-	let mouseStateService: MockMouseStateService;
-	let selectionService: TestSelectionService;
-
-	beforeEach(() => {
-		optionsService = new MockOptionsService();
-		mouseStateService = new MockMouseStateService();
-		bufferService = new MockBufferService(20, 20, optionsService);
-		buffer = bufferService.buffer;
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const renderService = new MockRenderService() as any;
-		renderService.dimensions.css.canvas.height = 10 * 20;
-		renderService.dimensions.css.canvas.width = 10 * 20;
-		selectionService = new TestSelectionService(
-			bufferService,
-			optionsService,
-			renderService,
-			mouseStateService
-		);
-	});
 
 	function stringToRow(text: string): IBufferLine {
 		const result = new BufferLine(TEST_STRING_CACHE, text.length);
@@ -149,6 +126,21 @@ describe('SelectionService', () => {
 
 	describe('_selectWordAt', () => {
 		it('should expand selection for normal width chars', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.set(0, stringToRow('foo bar'));
 			selectionService.selectWordAt([0, 0]);
 			expect(selectionService.selectionText).toBe('foo');
@@ -166,6 +158,21 @@ describe('SelectionService', () => {
 			expect(selectionService.selectionText).toBe('bar');
 		});
 		it('should expand selection for whitespace', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.set(0, stringToRow('a   b'));
 			selectionService.selectWordAt([0, 0]);
 			expect(selectionService.selectionText).toBe('a');
@@ -179,6 +186,21 @@ describe('SelectionService', () => {
 			expect(selectionService.selectionText).toBe('b');
 		});
 		it('should expand selection for wide characters', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			// Wide characters use a special format
 			const data: [number, string, number, number][] = [
 				[0, '中', 2, '中'.charCodeAt(0)],
@@ -235,6 +257,21 @@ describe('SelectionService', () => {
 			expect(selectionService.selectionText).toBe('foo');
 		});
 		it('should select up to non-path characters that are commonly adjacent to paths', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.set(0, stringToRow('(cd)[ef]{gh}\'ij"'));
 			selectionService.selectWordAt([0, 0]);
 			expect(selectionService.selectionText).toBe('(cd');
@@ -270,6 +307,21 @@ describe('SelectionService', () => {
 			expect(selectionService.selectionText).toBe('ij"');
 		});
 		it('should expand upwards or downards for wrapped lines', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.set(0, stringToRow('                 foo'));
 			buffer.lines.set(1, stringToRow('bar                 '));
 			buffer.lines.get(1)!.isWrapped = true;
@@ -280,6 +332,21 @@ describe('SelectionService', () => {
 			expect(selectionService.selectionText).toBe('foobar');
 		});
 		it('should expand both upwards and downwards for word wrapped over many lines', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			const expectedText = 'fooaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbccccccccccccccccccccbar';
 			buffer.lines.set(0, stringToRow('                 foo'));
 			buffer.lines.set(1, stringToRow('aaaaaaaaaaaaaaaaaaaa'));
@@ -307,6 +374,21 @@ describe('SelectionService', () => {
 		});
 		describe('emoji', () => {
 			it('should treat a single emoji as a word when wrapped in spaces', () => {
+				const optionsService = new MockOptionsService();
+				const mouseStateService = new MockMouseStateService();
+				const bufferService = new MockBufferService(20, 20, optionsService);
+				const buffer = bufferService.buffer;
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const renderService = new MockRenderService() as any;
+				renderService.dimensions.css.canvas.height = 10 * 20;
+				renderService.dimensions.css.canvas.width = 10 * 20;
+				const selectionService = new TestSelectionService(
+					bufferService,
+					optionsService,
+					renderService,
+					mouseStateService
+				);
 				buffer.lines.set(0, stringToRow(' ⚽ a')); // The a is here to prevent the space being trimmed in selectionText
 				selectionService.selectWordAt([0, 0]);
 				expect(selectionService.selectionText).toBe(' ');
@@ -316,6 +398,21 @@ describe('SelectionService', () => {
 				expect(selectionService.selectionText).toBe(' ');
 			});
 			it('should treat multiple emojis as a word when wrapped in spaces', () => {
+				const optionsService = new MockOptionsService();
+				const mouseStateService = new MockMouseStateService();
+				const bufferService = new MockBufferService(20, 20, optionsService);
+				const buffer = bufferService.buffer;
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const renderService = new MockRenderService() as any;
+				renderService.dimensions.css.canvas.height = 10 * 20;
+				renderService.dimensions.css.canvas.width = 10 * 20;
+				const selectionService = new TestSelectionService(
+					bufferService,
+					optionsService,
+					renderService,
+					mouseStateService
+				);
 				buffer.lines.set(0, stringToRow(' ⚽⚽ a')); // The a is here to prevent the space being trimmed in selectionText
 				selectionService.selectWordAt([0, 0]);
 				expect(selectionService.selectionText).toBe(' ');
@@ -327,6 +424,21 @@ describe('SelectionService', () => {
 				expect(selectionService.selectionText).toBe(' ');
 			});
 			it('should treat emojis using the zero-width-joiner as a single word', () => {
+				const optionsService = new MockOptionsService();
+				const mouseStateService = new MockMouseStateService();
+				const bufferService = new MockBufferService(20, 20, optionsService);
+				const buffer = bufferService.buffer;
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const renderService = new MockRenderService() as any;
+				renderService.dimensions.css.canvas.height = 10 * 20;
+				renderService.dimensions.css.canvas.width = 10 * 20;
+				const selectionService = new TestSelectionService(
+					bufferService,
+					optionsService,
+					renderService,
+					mouseStateService
+				);
 				// Note that the first 3 emojis include the invisible ZWJ char
 				buffer.lines.set(0, stringArrayToRow([' ', '👨‍', '👩‍', '👧‍', '👦', ' ', 'a'])); // The a is here to prevent the space being trimmed in selectionText
 				selectionService.selectWordAt([0, 0]);
@@ -345,6 +457,21 @@ describe('SelectionService', () => {
 				expect(selectionService.selectionText).toBe(' ');
 			});
 			it('should treat emojis and characters joined together as a word', () => {
+				const optionsService = new MockOptionsService();
+				const mouseStateService = new MockMouseStateService();
+				const bufferService = new MockBufferService(20, 20, optionsService);
+				const buffer = bufferService.buffer;
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const renderService = new MockRenderService() as any;
+				renderService.dimensions.css.canvas.height = 10 * 20;
+				renderService.dimensions.css.canvas.width = 10 * 20;
+				const selectionService = new TestSelectionService(
+					bufferService,
+					optionsService,
+					renderService,
+					mouseStateService
+				);
 				buffer.lines.set(0, stringToRow(' ⚽ab cd⚽ ef⚽gh')); // The a is here to prevent the space being trimmed in selectionText
 				selectionService.selectWordAt([0, 0]);
 				expect(selectionService.selectionText).toBe(' ');
@@ -376,6 +503,21 @@ describe('SelectionService', () => {
 				expect(selectionService.selectionText).toBe('ef⚽gh');
 			});
 			it('should treat complex emojis and characters joined together as a word', () => {
+				const optionsService = new MockOptionsService();
+				const mouseStateService = new MockMouseStateService();
+				const bufferService = new MockBufferService(20, 20, optionsService);
+				const buffer = bufferService.buffer;
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const renderService = new MockRenderService() as any;
+				renderService.dimensions.css.canvas.height = 10 * 20;
+				renderService.dimensions.css.canvas.width = 10 * 20;
+				const selectionService = new TestSelectionService(
+					bufferService,
+					optionsService,
+					renderService,
+					mouseStateService
+				);
 				// This emoji is the flag for England and is made up of: 1F3F4 E0067 E0062 E0065 E006E E0067 E007F
 				buffer.lines.set(
 					0,
@@ -432,6 +574,21 @@ describe('SelectionService', () => {
 
 	describe('_selectLineAt', () => {
 		it('should select the entire line', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.set(0, stringToRow('foo bar'));
 			selectionService.selectLineAt(0);
 			expect(selectionService.selectionText).toBe('foo bar');
@@ -442,6 +599,21 @@ describe('SelectionService', () => {
 			expect(selectionService.model.finalSelectionEnd).toEqual([bufferService.cols, 0]);
 		});
 		it('should select the entire wrapped line', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.set(0, stringToRow('foo'));
 			const line2 = stringToRow('bar');
 			line2.isWrapped = true;
@@ -458,6 +630,21 @@ describe('SelectionService', () => {
 
 	describe('selectAll', () => {
 		it('should select the entire buffer, beyond the viewport', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			bufferService.resize(20, 5);
 			buffer.lines.set(0, stringToRow('1'));
 			buffer.lines.set(1, stringToRow('2'));
@@ -471,6 +658,21 @@ describe('SelectionService', () => {
 
 	describe('selectLines', () => {
 		it('should select a single line', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.length = 3;
 			buffer.lines.set(0, stringToRow('1'));
 			buffer.lines.set(1, stringToRow('2'));
@@ -480,6 +682,21 @@ describe('SelectionService', () => {
 			expect(selectionService.model.finalSelectionEnd).toEqual([bufferService.cols, 1]);
 		});
 		it('should select multiple lines', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.length = 5;
 			buffer.lines.set(0, stringToRow('1'));
 			buffer.lines.set(1, stringToRow('2'));
@@ -491,6 +708,21 @@ describe('SelectionService', () => {
 			expect(selectionService.model.finalSelectionEnd).toEqual([bufferService.cols, 3]);
 		});
 		it('should select the to the start when requesting a negative row', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.length = 2;
 			buffer.lines.set(0, stringToRow('1'));
 			buffer.lines.set(1, stringToRow('2'));
@@ -499,6 +731,21 @@ describe('SelectionService', () => {
 			expect(selectionService.model.finalSelectionEnd).toEqual([bufferService.cols, 0]);
 		});
 		it('should select the to the end when requesting beyond the final row', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.length = 2;
 			buffer.lines.set(0, stringToRow('1'));
 			buffer.lines.set(1, stringToRow('2'));
@@ -510,6 +757,20 @@ describe('SelectionService', () => {
 
 	describe('hasSelection', () => {
 		it('should return whether there is a selection', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			selectionService.model.selectionStart = [0, 0];
 			selectionService.model.selectionStartLength = 0;
 			expect(selectionService.hasSelection).toBe(false);
@@ -526,6 +787,21 @@ describe('SelectionService', () => {
 
 	describe('column selection', () => {
 		it('should select a column of text', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.length = 3;
 			buffer.lines.set(0, stringToRow('abcdefghij'));
 			buffer.lines.set(1, stringToRow('klmnopqrst'));
@@ -539,6 +815,21 @@ describe('SelectionService', () => {
 		});
 
 		it('should select a column of text without chopping up double width characters', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.length = 3;
 			buffer.lines.set(0, stringToRow('a'));
 			buffer.lines.set(1, stringToRow('語'));
@@ -552,6 +843,21 @@ describe('SelectionService', () => {
 		});
 
 		it('should select a column of text with single character emojis', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			buffer.lines.length = 3;
 			buffer.lines.set(0, stringToRow('a'));
 			buffer.lines.set(1, stringToRow('☃'));
@@ -565,6 +871,21 @@ describe('SelectionService', () => {
 		});
 
 		it('should select a column of text with double character emojis', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			const buffer = bufferService.buffer;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			// TODO the case this is testing works for me in the demo webapp,
 			// but doing it programmatically fails.
 			buffer.lines.length = 3;
@@ -582,6 +903,20 @@ describe('SelectionService', () => {
 
 	describe('_areCoordsInSelection', () => {
 		it('should return whether coords are in the selection', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			expect(selectionService.areCoordsInSelection([0, 0], [2, 0], [2, 1])).toBe(false);
 			expect(selectionService.areCoordsInSelection([1, 0], [2, 0], [2, 1])).toBe(false);
 			expect(selectionService.areCoordsInSelection([2, 0], [2, 0], [2, 1])).toBe(true);
@@ -594,6 +929,20 @@ describe('SelectionService', () => {
 
 	describe('shouldForceSelection', () => {
 		it('should force selection without alt when mouseEventsRequireAlt is enabled', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			optionsService.options.mouseEventsRequireAlt = true;
 			mouseStateService.areMouseEventsActive = true;
 			expect(selectionService.shouldForceSelection({ altKey: false } as MouseEvent)).toBe(true);
@@ -601,6 +950,20 @@ describe('SelectionService', () => {
 		});
 
 		it('should take precedence over macOptionClickForcesSelection', () => {
+			const optionsService = new MockOptionsService();
+			const mouseStateService = new MockMouseStateService();
+			const bufferService = new MockBufferService(20, 20, optionsService);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const renderService = new MockRenderService() as any;
+			renderService.dimensions.css.canvas.height = 10 * 20;
+			renderService.dimensions.css.canvas.width = 10 * 20;
+			const selectionService = new TestSelectionService(
+				bufferService,
+				optionsService,
+				renderService,
+				mouseStateService
+			);
 			optionsService.options.mouseEventsRequireAlt = true;
 			optionsService.options.macOptionClickForcesSelection = true;
 			mouseStateService.areMouseEventsActive = true;
