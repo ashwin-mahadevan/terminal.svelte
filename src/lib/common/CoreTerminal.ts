@@ -45,7 +45,7 @@ import type { IBufferSet } from '$lib/common/buffer/Types';
 import { InputHandler } from '$lib/common/InputHandler';
 import { WriteBuffer } from '$lib/common/input/WriteBuffer';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
-import { LegacyEmitter, EventUtils } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 
@@ -151,12 +151,12 @@ export abstract class CoreTerminal implements ICoreTerminal {
 				this.unicodeService
 			)
 		);
-		this._store.add(EventUtils.forward(this._inputHandler.onLineFeed, this._onLineFeed));
+		this._store.add(this._inputHandler.onLineFeed((e) => this._onLineFeed.fire(e)));
 
 		// Setup listeners
-		this._store.add(EventUtils.forward(this._bufferService.onResize, this._onResize));
-		this._store.add(EventUtils.forward(this.coreService.onData, this._onData));
-		this._store.add(EventUtils.forward(this.coreService.onBinary, this._onBinary));
+		this._store.add(this._bufferService.onResize((e) => this._onResize.fire(e)));
+		this._store.add(this.coreService.onData((e) => this._onData.fire(e)));
+		this._store.add(this.coreService.onBinary((e) => this._onBinary.fire(e)));
 		this._store.add(this.coreService.onRequestScrollToBottom(() => this.scrollToBottom(true)));
 		this._store.add(this.coreService.onUserInput(() => this._writeBuffer.handleUserInput()));
 		this._store.add(
@@ -177,7 +177,7 @@ export abstract class CoreTerminal implements ICoreTerminal {
 		this._writeBuffer = this._store.add(
 			new WriteBuffer((data, promiseResult) => this._inputHandler.parse(data, promiseResult))
 		);
-		this._store.add(EventUtils.forward(this._writeBuffer.onWriteParsed, this._onWriteParsed));
+		this._store.add(this._writeBuffer.onWriteParsed((e) => this._onWriteParsed.fire(e)));
 	}
 
 	public dispose(): void {
