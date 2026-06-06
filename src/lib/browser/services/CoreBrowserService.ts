@@ -4,7 +4,7 @@
  */
 
 import type { ICoreBrowserService } from './Services';
-import { LegacyEmitter, EventUtils } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 import { MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -35,10 +35,7 @@ export class CoreBrowserService implements ICoreBrowserService {
 
 		// Monitor device pixel ratio
 		this._windowChangeListener = this.onWindowChange((w) => this._screenDprMonitor.setWindow(w));
-		this._dprForwardListener = EventUtils.forward(
-			this._screenDprMonitor.onDprChange,
-			this._onDprChange
-		);
+		this._dprForwardListener = this._screenDprMonitor.onDprChange((e) => this._onDprChange.fire(e));
 
 		this._focusListener = addDisposableListener(
 			this._textarea,

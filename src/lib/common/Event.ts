@@ -58,11 +58,3 @@ export class LegacyEmitter<T> {
 		this._listeners.length = 0;
 	}
 }
-
-// TODO: Fix this upstream type error.
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace EventUtils {
-	export function forward<T>(from: IEvent<T>, to: LegacyEmitter<T>): IDisposable {
-		return from((e) => to.fire(e));
-	}
-}
