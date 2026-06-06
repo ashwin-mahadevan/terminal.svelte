@@ -4,25 +4,23 @@
  */
 
 export class TwoKeyMap<TFirst extends string | number, TSecond extends string | number, TValue> {
-	private _data: {
-		[bg: string | number]: { [fg: string | number]: TValue | undefined } | undefined;
-	} = {};
+	private _data: Map<TFirst, Map<TSecond, TValue>> = new Map();
 
 	public set(first: TFirst, second: TSecond, value: TValue): void {
-		if (!this._data[first]) {
-			this._data[first] = {};
+		let inner = this._data.get(first);
+		if (!inner) {
+			inner = new Map();
+			this._data.set(first, inner);
 		}
-		this._data[first as string | number]![second] = value;
+		inner.set(second, value);
 	}
 
 	public get(first: TFirst, second: TSecond): TValue | undefined {
-		return this._data[first as string | number]
-			? this._data[first as string | number]![second]
-			: undefined;
+		return this._data.get(first)?.get(second);
 	}
 
 	public clear(): void {
-		this._data = {};
+		this._data.clear();
 	}
 }
 
