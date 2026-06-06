@@ -6,7 +6,6 @@
 import type { IEvent } from '$lib/common/Event';
 import { Emitter } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { DisposableStore } from '$lib/common/Lifecycle';
 
 export const enum ScrollbarVisibility {
 	AUTO = 1,
@@ -218,7 +217,6 @@ export interface IScrollableOptions {
 }
 
 export class Scrollable {
-	private readonly _store = new DisposableStore();
 	private _scrollableBrand: void = undefined;
 
 	private _smoothScrollDuration: number;
@@ -226,7 +224,7 @@ export class Scrollable {
 	private _state: ScrollState;
 	private _smoothScrolling: SmoothScrollingOperation | null;
 
-	private _onScroll = this._store.add(new Emitter<IScrollEvent>());
+	private _onScroll = new Emitter<IScrollEvent>();
 	public readonly onScroll: IEvent<IScrollEvent> = this._onScroll.event;
 
 	constructor(options: IScrollableOptions) {
@@ -241,7 +239,7 @@ export class Scrollable {
 			this._smoothScrolling.dispose();
 			this._smoothScrolling = null;
 		}
-		this._store.dispose();
+		this._onScroll.dispose();
 	}
 
 	public setSmoothScrollDuration(smoothScrollDuration: number): void {

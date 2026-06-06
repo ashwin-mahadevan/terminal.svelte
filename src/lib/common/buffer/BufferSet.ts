@@ -3,7 +3,8 @@
  * @license MIT
  */
 
-import { DisposableStore, MutableDisposable } from '$lib/common/Lifecycle';
+import { MutableDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IAttributeData } from '$lib/common/Types';
 import { Buffer } from '$lib/common/buffer/Buffer';
 import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
@@ -15,17 +16,20 @@ import { Emitter } from '$lib/common/Event';
  * provides also utilities for working with them.
  */
 export class BufferSet implements IBufferSet {
-	private readonly _store = new DisposableStore();
 	private _normal!: Buffer;
 	private _alt!: Buffer;
 	private _activeBuffer!: Buffer;
-	private readonly _normalBuffer = this._store.add(new MutableDisposable<Buffer>());
-	private readonly _altBuffer = this._store.add(new MutableDisposable<Buffer>());
+	private readonly _normalBuffer = new MutableDisposable<Buffer>();
+	private readonly _altBuffer = new MutableDisposable<Buffer>();
 
-	private readonly _onBufferActivate = this._store.add(
-		new Emitter<{ activeBuffer: IBuffer; inactiveBuffer: IBuffer }>()
-	);
+	private readonly _onBufferActivate = new Emitter<{
+		activeBuffer: IBuffer;
+		inactiveBuffer: IBuffer;
+	}>();
 	public readonly onBufferActivate = this._onBufferActivate.event;
+
+	private readonly _scrollbackListener: IDisposable;
+	private readonly _tabStopListener: IDisposable;
 
 	/**
 	 * Create a new BufferSet for the given terminal.
@@ -35,18 +39,20 @@ export class BufferSet implements IBufferSet {
 		private readonly _bufferService: IBufferService
 	) {
 		this.reset();
-		this._store.add(
-			this._optionsService.onSpecificOptionChange('scrollback', () =>
-				this.resize(this._bufferService.cols, this._bufferService.rows)
-			)
+		this._scrollbackListener = this._optionsService.onSpecificOptionChange('scrollback', () =>
+			this.resize(this._bufferService.cols, this._bufferService.rows)
 		);
-		this._store.add(
-			this._optionsService.onSpecificOptionChange('tabStopWidth', () => this.setupTabStops())
+		this._tabStopListener = this._optionsService.onSpecificOptionChange('tabStopWidth', () =>
+			this.setupTabStops()
 		);
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._normalBuffer.dispose();
+		this._altBuffer.dispose();
+		this._onBufferActivate.dispose();
+		this._scrollbackListener.dispose();
+		this._tabStopListener.dispose();
 	}
 
 	public reset(): void {

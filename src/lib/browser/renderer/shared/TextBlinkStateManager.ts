@@ -4,33 +4,34 @@
  */
 
 import type { ICoreBrowserService } from '$lib/browser/services/Services';
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IOptionsService } from '$lib/common/services/Services';
 
 export class TextBlinkStateManager {
-	private readonly _store = new DisposableStore();
 	private _intervalDuration: number = 0;
 	private _interval: number | undefined;
 	private _blinkOn: boolean = true;
 	private _needsBlinkInViewport: boolean = false;
 	private _isViewportVisible: boolean = true;
+	private readonly _blinkIntervalListener: IDisposable;
 
 	constructor(
 		private readonly _renderCallback: () => void,
 		private readonly _coreBrowserService: ICoreBrowserService,
 		private readonly _optionsService: IOptionsService
 	) {
-		this._store.add(
-			this._optionsService.onSpecificOptionChange('blinkIntervalDuration', (duration) => {
+		this._blinkIntervalListener = this._optionsService.onSpecificOptionChange(
+			'blinkIntervalDuration',
+			(duration) => {
 				this.setIntervalDuration(duration);
-			})
+			}
 		);
 		this.setIntervalDuration(this._optionsService.rawOptions.blinkIntervalDuration);
-		this._store.add(toDisposable(() => this._clearInterval()));
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._blinkIntervalListener.dispose();
+		this._clearInterval();
 	}
 
 	public get isBlinkOn(): boolean {

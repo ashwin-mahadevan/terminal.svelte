@@ -6,38 +6,60 @@
 import type { ICoreBrowserService } from './Services';
 import { Emitter, EventUtils } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
-import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { MutableDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 
 export class CoreBrowserService implements ICoreBrowserService {
-	private readonly _store = new DisposableStore();
 	public serviceBrand: undefined;
 
 	private _isFocused = false;
 	private _cachedIsFocused: boolean | undefined = undefined;
-	private _screenDprMonitor: ScreenDprMonitor;
+	private readonly _screenDprMonitor: ScreenDprMonitor;
 
-	private readonly _onDprChange = this._store.add(new Emitter<number>());
+	private readonly _onDprChange = new Emitter<number>();
 	public readonly onDprChange = this._onDprChange.event;
-	private readonly _onWindowChange = this._store.add(new Emitter<Window & typeof globalThis>());
+	private readonly _onWindowChange = new Emitter<Window & typeof globalThis>();
 	public readonly onWindowChange = this._onWindowChange.event;
+
+	private readonly _windowChangeListener: IDisposable;
+	private readonly _dprForwardListener: IDisposable;
+	private readonly _focusListener: IDisposable;
+	private readonly _blurListener: IDisposable;
 
 	constructor(
 		private _textarea: HTMLTextAreaElement,
 		private _window: Window & typeof globalThis,
 		public readonly mainDocument: Document
 	) {
-		this._screenDprMonitor = this._store.add(new ScreenDprMonitor(this._window));
+		this._screenDprMonitor = new ScreenDprMonitor(this._window);
 
 		// Monitor device pixel ratio
-		this._store.add(this.onWindowChange((w) => this._screenDprMonitor.setWindow(w)));
-		this._store.add(EventUtils.forward(this._screenDprMonitor.onDprChange, this._onDprChange));
+		this._windowChangeListener = this.onWindowChange((w) => this._screenDprMonitor.setWindow(w));
+		this._dprForwardListener = EventUtils.forward(
+			this._screenDprMonitor.onDprChange,
+			this._onDprChange
+		);
 
-		this._store.add(addDisposableListener(this._textarea, 'focus', () => (this._isFocused = true)));
-		this._store.add(addDisposableListener(this._textarea, 'blur', () => (this._isFocused = false)));
+		this._focusListener = addDisposableListener(
+			this._textarea,
+			'focus',
+			() => (this._isFocused = true)
+		);
+		this._blurListener = addDisposableListener(
+			this._textarea,
+			'blur',
+			() => (this._isFocused = false)
+		);
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._onDprChange.dispose();
+		this._onWindowChange.dispose();
+		this._screenDprMonitor.dispose();
+		this._windowChangeListener.dispose();
+		this._dprForwardListener.dispose();
+		this._focusListener.dispose();
+		this._blurListener.dispose();
 	}
 
 	public get window(): Window & typeof globalThis {
@@ -75,13 +97,12 @@ export class CoreBrowserService implements ICoreBrowserService {
  * monitor with a different DPI.
  */
 class ScreenDprMonitor {
-	private readonly _store = new DisposableStore();
 	private _currentDevicePixelRatio: number;
 	private _outerListener: ((this: MediaQueryList, ev: MediaQueryListEvent) => void) | undefined;
 	private _resolutionMediaMatchList: MediaQueryList | undefined;
-	private _windowResizeListener = this._store.add(new MutableDisposable());
+	private readonly _windowResizeListener = new MutableDisposable();
 
-	private readonly _onDprChange = this._store.add(new Emitter<number>());
+	private readonly _onDprChange = new Emitter<number>();
 	public readonly onDprChange = this._onDprChange.event;
 
 	constructor(private _parentWindow: Window) {
@@ -92,13 +113,12 @@ class ScreenDprMonitor {
 
 		// Monitor active window resize
 		this._setWindowResizeListener();
-
-		// Setup additional disposables
-		this._store.add(toDisposable(() => this.clearListener()));
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._windowResizeListener.dispose();
+		this._onDprChange.dispose();
+		this.clearListener();
 	}
 
 	public setWindow(parentWindow: Window): void {

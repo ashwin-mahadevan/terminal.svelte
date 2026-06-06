@@ -8,7 +8,7 @@ import type { IThemeService } from '$lib/browser/services/Services';
 import type { IColorContrastCache, IColorSet, ReadonlyColorSet } from '$lib/browser/Types';
 import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 import { color, css, NULL_COLOR } from '$lib/common/Color';
-import { DisposableStore } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type { ITheme } from '$lib/common/services/Services';
 import { IOptionsService } from '$lib/common/services/Services';
 import type { AllColorIndex, IColor } from '$lib/common/Types';
@@ -33,7 +33,6 @@ const DEFAULT_SELECTION = {
 const DEFAULT_OVERVIEW_RULER_BORDER = DEFAULT_FOREGROUND;
 
 export class ThemeService implements IThemeService {
-	private readonly _store = new DisposableStore();
 	public serviceBrand: undefined;
 
 	private _colors: IColorSet;
@@ -45,8 +44,11 @@ export class ThemeService implements IThemeService {
 		return this._colors;
 	}
 
-	private readonly _onChangeColors = this._store.add(new Emitter<ReadonlyColorSet>());
+	private readonly _onChangeColors = new Emitter<ReadonlyColorSet>();
 	public readonly onChangeColors = this._onChangeColors.event;
+
+	private readonly _minContrastListener: IDisposable;
+	private readonly _themeListener: IDisposable;
 
 	constructor(@IOptionsService private readonly _optionsService: IOptionsService) {
 		this._colors = {
@@ -70,20 +72,19 @@ export class ThemeService implements IThemeService {
 		this._updateRestoreColors();
 		this._setTheme(this._optionsService.rawOptions.theme);
 
-		this._store.add(
-			this._optionsService.onSpecificOptionChange('minimumContrastRatio', () =>
-				this._contrastCache.clear()
-			)
+		this._minContrastListener = this._optionsService.onSpecificOptionChange(
+			'minimumContrastRatio',
+			() => this._contrastCache.clear()
 		);
-		this._store.add(
-			this._optionsService.onSpecificOptionChange('theme', () =>
-				this._setTheme(this._optionsService.rawOptions.theme)
-			)
+		this._themeListener = this._optionsService.onSpecificOptionChange('theme', () =>
+			this._setTheme(this._optionsService.rawOptions.theme)
 		);
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._onChangeColors.dispose();
+		this._minContrastListener.dispose();
+		this._themeListener.dispose();
 	}
 
 	/**

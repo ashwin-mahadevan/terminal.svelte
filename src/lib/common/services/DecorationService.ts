@@ -6,7 +6,8 @@
 import type { IDeleteEvent, IInsertEvent } from '$lib/common/CircularList';
 import { MicrotaskTimer } from '$lib/common/Async';
 import { css } from '$lib/common/Color';
-import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, MutableDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
 import { IBufferService } from '$lib/common/services/Services';
 import { SortedList } from '$lib/common/SortedList';
@@ -19,7 +20,6 @@ let $xmin = 0;
 let $xmax = 0;
 
 export class DecorationService {
-	private readonly _store = new DisposableStore();
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
@@ -31,12 +31,14 @@ export class DecorationService {
 	 */
 	private readonly _decorations: SortedList<IInternalDecoration>;
 
-	private readonly _lineCache = this._store.add(new DecorationLineCache());
+	private readonly _lineCache = new DecorationLineCache();
 
-	private readonly _onDecorationRegistered = this._store.add(new Emitter<IInternalDecoration>());
+	private readonly _onDecorationRegistered = new Emitter<IInternalDecoration>();
 	public readonly onDecorationRegistered = this._onDecorationRegistered.event;
-	private readonly _onDecorationRemoved = this._store.add(new Emitter<IInternalDecoration>());
+	private readonly _onDecorationRemoved = new Emitter<IInternalDecoration>();
 	public readonly onDecorationRemoved = this._onDecorationRemoved.event;
+
+	private readonly _bufferActivateListener: IDisposable;
 
 	public get decorations(): IterableIterator<IInternalDecoration> {
 		return this._decorations.values();
@@ -45,17 +47,18 @@ export class DecorationService {
 	constructor(@IBufferService private readonly _bufferService: IBufferService) {
 		this._decorations = new SortedList((e) => e?.marker.line);
 
-		this._store.add(toDisposable(() => this.reset()));
-		this._store.add(
-			this._bufferService.buffers.onBufferActivate(() => {
-				this._lineCache.attachToBufferLines(this._bufferService.buffer.lines);
-			})
-		);
+		this._bufferActivateListener = this._bufferService.buffers.onBufferActivate(() => {
+			this._lineCache.attachToBufferLines(this._bufferService.buffer.lines);
+		});
 		this._lineCache.attachToBufferLines(this._bufferService.buffer.lines);
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this.reset();
+		this._lineCache.dispose();
+		this._onDecorationRegistered.dispose();
+		this._onDecorationRemoved.dispose();
+		this._bufferActivateListener.dispose();
 	}
 
 	public registerDecoration(options: IDecorationOptions): IDecoration | undefined {
@@ -136,15 +139,15 @@ export class DecorationService {
  * with marker.line updates via buffer line trim/insert/delete events.
  */
 export class DecorationLineCache {
-	private readonly _store = new DisposableStore();
 	private readonly _decorationsByLine: Map<number, IInternalDecoration[]> = new Map();
 	private readonly _decorations = new Set<IInternalDecoration>();
-	private readonly _bufferLineListeners = this._store.add(new MutableDisposable<DisposableStore>());
-	private readonly _lineIndexSyncTimer = this._store.add(new MicrotaskTimer());
+	private readonly _bufferLineListeners = new MutableDisposable<DisposableStore>();
+	private readonly _lineIndexSyncTimer = new MicrotaskTimer();
 	private _lineIndexSyncCallbacks: (() => void)[] = [];
 
 	public dispose(): void {
-		this._store.dispose();
+		this._bufferLineListeners.dispose();
+		this._lineIndexSyncTimer.dispose();
 	}
 
 	public clear(): void {

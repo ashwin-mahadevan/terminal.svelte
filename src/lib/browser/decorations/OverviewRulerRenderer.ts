@@ -6,7 +6,7 @@
 import type { IColorZone, IColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
 import { ICoreBrowserService, IRenderService, IThemeService } from '$lib/browser/services/Services';
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { IBufferService, IDecorationService, IOptionsService } from '$lib/common/services/Services';
 
 const enum Constants {
@@ -35,7 +35,7 @@ const drawX = {
 };
 
 export class OverviewRulerRenderer {
-	private readonly _store = new DisposableStore();
+	private _isDisposed = false;
 	private readonly _canvas: HTMLCanvasElement;
 	private readonly _ctx: CanvasRenderingContext2D;
 	private readonly _colorZoneStore: IColorZoneStore = new ColorZoneStore();
@@ -48,6 +48,16 @@ export class OverviewRulerRenderer {
 		return scrollbar?.width ?? 0;
 	}
 	private _animationFrame: number | undefined;
+
+	private _decorationRegisteredListener!: IDisposable;
+	private _decorationRemovedListener!: IDisposable;
+	private _renderedViewportChangeListener!: IDisposable;
+	private _bufferActivateListener!: IDisposable;
+	private _bufferScrollListener!: IDisposable;
+	private _dimensionsChangeListener!: IDisposable;
+	private _dprChangeListener!: IDisposable;
+	private _scrollbarOptionListener!: IDisposable;
+	private _themeChangeListener!: IDisposable;
 
 	private _shouldUpdateDimensions: boolean | undefined = true;
 	private _shouldUpdateAnchor: boolean | undefined = true;
@@ -67,7 +77,6 @@ export class OverviewRulerRenderer {
 		this._canvas.classList.add('xterm-decoration-overview-ruler');
 		this._refreshCanvasDimensions();
 		this._viewportElement.parentElement?.insertBefore(this._canvas, this._viewportElement);
-		this._store.add(toDisposable(() => this._canvas?.remove()));
 
 		const ctx = this._canvas.getContext('2d');
 		if (!ctx) {
@@ -76,49 +85,55 @@ export class OverviewRulerRenderer {
 			this._ctx = ctx;
 		}
 
-		this._store.add(
-			this._decorationService.onDecorationRegistered(() => this._queueRefresh(undefined, true))
+		this._decorationRegisteredListener = this._decorationService.onDecorationRegistered(() =>
+			this._queueRefresh(undefined, true)
 		);
-		this._store.add(
-			this._decorationService.onDecorationRemoved(() => this._queueRefresh(undefined, true))
-		);
-
-		this._store.add(this._renderService.onRenderedViewportChange(() => this._queueRefresh()));
-		this._store.add(
-			this._bufferService.buffers.onBufferActivate(() => {
-				this._canvas!.style.display =
-					this._bufferService.buffer === this._bufferService.buffers.alt ? 'none' : 'block';
-			})
-		);
-		this._store.add(
-			this._bufferService.onScroll(() => {
-				if (this._lastKnownBufferLength !== this._bufferService.buffers.normal.lines.length) {
-					this._refreshDrawHeightConstants();
-					this._refreshColorZonePadding();
-				}
-			})
+		this._decorationRemovedListener = this._decorationService.onDecorationRemoved(() =>
+			this._queueRefresh(undefined, true)
 		);
 
-		this._store.add(this._renderService.onDimensionsChange(() => this._queueRefresh(true)));
+		this._renderedViewportChangeListener = this._renderService.onRenderedViewportChange(() =>
+			this._queueRefresh()
+		);
+		this._bufferActivateListener = this._bufferService.buffers.onBufferActivate(() => {
+			this._canvas!.style.display =
+				this._bufferService.buffer === this._bufferService.buffers.alt ? 'none' : 'block';
+		});
+		this._bufferScrollListener = this._bufferService.onScroll(() => {
+			if (this._lastKnownBufferLength !== this._bufferService.buffers.normal.lines.length) {
+				this._refreshDrawHeightConstants();
+				this._refreshColorZonePadding();
+			}
+		});
 
-		this._store.add(this._coreBrowserService.onDprChange(() => this._queueRefresh(true)));
-		this._store.add(
-			this._optionsService.onSpecificOptionChange('scrollbar', () => this._queueRefresh(true))
+		this._dimensionsChangeListener = this._renderService.onDimensionsChange(() =>
+			this._queueRefresh(true)
 		);
-		this._store.add(this._themeService.onChangeColors(() => this._queueRefresh()));
-		this._store.add(
-			toDisposable(() => {
-				if (this._animationFrame !== undefined) {
-					this._coreBrowserService.window.cancelAnimationFrame(this._animationFrame);
-					this._animationFrame = undefined;
-				}
-			})
+
+		this._dprChangeListener = this._coreBrowserService.onDprChange(() => this._queueRefresh(true));
+		this._scrollbarOptionListener = this._optionsService.onSpecificOptionChange('scrollbar', () =>
+			this._queueRefresh(true)
 		);
+		this._themeChangeListener = this._themeService.onChangeColors(() => this._queueRefresh());
 		this._queueRefresh(true);
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._isDisposed = true;
+		if (this._animationFrame !== undefined) {
+			this._coreBrowserService.window.cancelAnimationFrame(this._animationFrame);
+			this._animationFrame = undefined;
+		}
+		this._canvas?.remove();
+		this._decorationRegisteredListener.dispose();
+		this._decorationRemovedListener.dispose();
+		this._renderedViewportChangeListener.dispose();
+		this._bufferActivateListener.dispose();
+		this._bufferScrollListener.dispose();
+		this._dimensionsChangeListener.dispose();
+		this._dprChangeListener.dispose();
+		this._scrollbarOptionListener.dispose();
+		this._themeChangeListener.dispose();
 	}
 
 	private _refreshDrawConstants(): void {
@@ -174,7 +189,7 @@ export class OverviewRulerRenderer {
 	}
 
 	private _refreshCanvasDimensions(): void {
-		if (this._store.isDisposed || !this._renderService.hasRenderer()) {
+		if (this._isDisposed || !this._renderService.hasRenderer()) {
 			return;
 		}
 		const cssCanvasHeight = this._renderService.dimensions.css.canvas.height;
@@ -188,7 +203,7 @@ export class OverviewRulerRenderer {
 	}
 
 	private _refreshDecorations(): void {
-		if (this._store.isDisposed || !this._renderService.hasRenderer()) {
+		if (this._isDisposed || !this._renderService.hasRenderer()) {
 			return;
 		}
 		if (this._shouldUpdateDimensions) {
@@ -257,7 +272,7 @@ export class OverviewRulerRenderer {
 	}
 
 	private _queueRefresh(updateCanvasDimensions?: boolean, updateAnchor?: boolean): void {
-		if (this._store.isDisposed) {
+		if (this._isDisposed) {
 			return;
 		}
 		this._shouldUpdateDimensions = updateCanvasDimensions || this._shouldUpdateDimensions;
@@ -266,7 +281,7 @@ export class OverviewRulerRenderer {
 			return;
 		}
 		this._animationFrame = this._coreBrowserService.window.requestAnimationFrame(() => {
-			if (!this._store.isDisposed) {
+			if (!this._isDisposed) {
 				this._refreshDecorations();
 			}
 			this._animationFrame = undefined;

@@ -6,7 +6,7 @@
 import * as Strings from '$lib/browser/LocalizableStrings';
 import type { ITerminal, IRenderDebouncer } from '$lib/browser/Types';
 import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
 import type { IBuffer } from '$lib/common/buffer/Types';
 import { addDisposableListener } from '$lib/browser/Dom';
@@ -25,7 +25,6 @@ const enum BoundaryPosition {
 const DEBUG = false;
 
 export class AccessibilityManager {
-	private readonly _store = new DisposableStore();
 	private _debugRootContainer: HTMLElement | undefined;
 	private _accessibilityContainer: HTMLElement;
 
@@ -35,7 +34,19 @@ export class AccessibilityManager {
 
 	private _liveRegion: HTMLElement;
 	private _liveRegionLineCount: number = 0;
-	private _liveRegionDebouncer: IRenderDebouncer;
+	private _liveRegionDebouncer!: IRenderDebouncer;
+
+	private _resizeListener!: IDisposable;
+	private _renderListener!: IDisposable;
+	private _scrollListener!: IDisposable;
+	private _a11yCharListener!: IDisposable;
+	private _lineFeedListener!: IDisposable;
+	private _a11yTabListener!: IDisposable;
+	private _keyListener!: IDisposable;
+	private _blurListener!: IDisposable;
+	private _dimensionsChangeListener!: IDisposable;
+	private _selectionChangeListener!: IDisposable;
+	private _dprChangeListener!: IDisposable;
 
 	private _topBoundaryFocusListener: (e: FocusEvent) => void;
 	private _bottomBoundaryFocusListener: (e: FocusEvent) => void;
@@ -86,9 +97,7 @@ export class AccessibilityManager {
 		this._liveRegion.classList.add('live-region');
 		this._liveRegion.setAttribute('aria-live', 'assertive');
 		this._accessibilityContainer.appendChild(this._liveRegion);
-		this._liveRegionDebouncer = this._store.add(
-			new TimeBasedDebouncer(this._renderRows.bind(this))
-		);
+		this._liveRegionDebouncer = new TimeBasedDebouncer(this._renderRows.bind(this));
 
 		if (!this._terminal.element) {
 			throw new Error('Cannot enable accessibility before Terminal.open');
@@ -111,37 +120,48 @@ export class AccessibilityManager {
 			this._terminal.element.insertAdjacentElement('afterbegin', this._accessibilityContainer);
 		}
 
-		this._store.add(this._terminal.onResize((e) => this._handleResize(e.rows)));
-		this._store.add(this._terminal.onRender((e) => this._refreshRows(e.start, e.end)));
-		this._store.add(this._terminal.onScroll(() => this._refreshRows()));
+		this._resizeListener = this._terminal.onResize((e) => this._handleResize(e.rows));
+		this._renderListener = this._terminal.onRender((e) => this._refreshRows(e.start, e.end));
+		this._scrollListener = this._terminal.onScroll(() => this._refreshRows());
 		// Line feed is an issue as the prompt won't be read out after a command is run
-		this._store.add(this._terminal.onA11yChar((char) => this._handleChar(char)));
-		this._store.add(this._terminal.onLineFeed(() => this._handleChar('\n')));
-		this._store.add(this._terminal.onA11yTab((spaceCount) => this._handleTab(spaceCount)));
-		this._store.add(this._terminal.onKey((e) => this._handleKey(e.key)));
-		this._store.add(this._terminal.onBlur(() => this._clearLiveRegion()));
-		this._store.add(this._renderService.onDimensionsChange(() => this._refreshRowsDimensions()));
-		this._store.add(
-			addDisposableListener(doc, 'selectionchange', () => this._handleSelectionChange())
+		this._a11yCharListener = this._terminal.onA11yChar((char) => this._handleChar(char));
+		this._lineFeedListener = this._terminal.onLineFeed(() => this._handleChar('\n'));
+		this._a11yTabListener = this._terminal.onA11yTab((spaceCount) => this._handleTab(spaceCount));
+		this._keyListener = this._terminal.onKey((e) => this._handleKey(e.key));
+		this._blurListener = this._terminal.onBlur(() => this._clearLiveRegion());
+		this._dimensionsChangeListener = this._renderService.onDimensionsChange(() =>
+			this._refreshRowsDimensions()
 		);
-		this._store.add(this._coreBrowserService.onDprChange(() => this._refreshRowsDimensions()));
+		this._selectionChangeListener = addDisposableListener(doc, 'selectionchange', () =>
+			this._handleSelectionChange()
+		);
+		this._dprChangeListener = this._coreBrowserService.onDprChange(() =>
+			this._refreshRowsDimensions()
+		);
 
 		this._refreshRowsDimensions();
 		this._refreshRows();
-		this._store.add(
-			toDisposable(() => {
-				if (DEBUG) {
-					this._debugRootContainer!.remove();
-				} else {
-					this._accessibilityContainer.remove();
-				}
-				this._rowElements.length = 0;
-			})
-		);
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._liveRegionDebouncer.dispose();
+		this._resizeListener.dispose();
+		this._renderListener.dispose();
+		this._scrollListener.dispose();
+		this._a11yCharListener.dispose();
+		this._lineFeedListener.dispose();
+		this._a11yTabListener.dispose();
+		this._keyListener.dispose();
+		this._blurListener.dispose();
+		this._dimensionsChangeListener.dispose();
+		this._selectionChangeListener.dispose();
+		this._dprChangeListener.dispose();
+		if (DEBUG) {
+			this._debugRootContainer!.remove();
+		} else {
+			this._accessibilityContainer.remove();
+		}
+		this._rowElements.length = 0;
 	}
 
 	private _handleTab(spaceCount: number): void {

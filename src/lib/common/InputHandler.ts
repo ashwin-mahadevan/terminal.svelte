@@ -17,7 +17,6 @@ import { ColorRequestType, SpecialColorIndex } from '$lib/common/Types';
 import { C0, C1 } from '$lib/common/data/EscapeSequences';
 import { CHARSETS, DEFAULT_CHARSET } from '$lib/common/data/Charsets';
 import { EscapeSequenceParser } from '$lib/common/parser/EscapeSequenceParser';
-import { DisposableStore } from '$lib/common/Lifecycle';
 import { StringToUtf32, stringFromCodePoint, Utf8ToUtf32 } from '$lib/common/input/TextDecoder';
 import { BufferLine, DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import type {
@@ -149,7 +148,6 @@ let $temp = 0;
  * each function's header comment.
  */
 export class InputHandler implements IInputHandler {
-	private readonly _store = new DisposableStore();
 	private _parseBuffer: Uint32Array = new Uint32Array(4096);
 	private _stringDecoder: StringToUtf32 = new StringToUtf32();
 	private _utf8Decoder: Utf8ToUtf32 = new Utf8ToUtf32();
@@ -166,39 +164,42 @@ export class InputHandler implements IInputHandler {
 	private _eraseAttrDataInternal: IAttributeData = DEFAULT_ATTR_DATA.clone();
 
 	private _activeBuffer: IBuffer;
+	private _bufferActivateListener!: IDisposable;
 
-	private readonly _onRequestBell = this._store.add(new Emitter<void>());
+	private readonly _onRequestBell = new Emitter<void>();
 	public readonly onRequestBell = this._onRequestBell.event;
-	private readonly _onRequestRefreshRows = this._store.add(
-		new Emitter<{ start: number; end: number } | undefined>()
-	);
+	private readonly _onRequestRefreshRows = new Emitter<
+		| {
+				start: number;
+				end: number;
+		  }
+		| undefined
+	>();
 	public readonly onRequestRefreshRows = this._onRequestRefreshRows.event;
-	private readonly _onRequestReset = this._store.add(new Emitter<void>());
+	private readonly _onRequestReset = new Emitter<void>();
 	public readonly onRequestReset = this._onRequestReset.event;
-	private readonly _onRequestSendFocus = this._store.add(new Emitter<void>());
+	private readonly _onRequestSendFocus = new Emitter<void>();
 	public readonly onRequestSendFocus = this._onRequestSendFocus.event;
-	private readonly _onRequestSyncScrollBar = this._store.add(new Emitter<void>());
+	private readonly _onRequestSyncScrollBar = new Emitter<void>();
 	public readonly onRequestSyncScrollBar = this._onRequestSyncScrollBar.event;
-	private readonly _onRequestWindowsOptionsReport = this._store.add(
-		new Emitter<WindowsOptionsReportType>()
-	);
+	private readonly _onRequestWindowsOptionsReport = new Emitter<WindowsOptionsReportType>();
 	public readonly onRequestWindowsOptionsReport = this._onRequestWindowsOptionsReport.event;
 
-	private readonly _onA11yChar = this._store.add(new Emitter<string>());
+	private readonly _onA11yChar = new Emitter<string>();
 	public readonly onA11yChar = this._onA11yChar.event;
-	private readonly _onA11yTab = this._store.add(new Emitter<number>());
+	private readonly _onA11yTab = new Emitter<number>();
 	public readonly onA11yTab = this._onA11yTab.event;
-	private readonly _onCursorMove = this._store.add(new Emitter<void>());
+	private readonly _onCursorMove = new Emitter<void>();
 	public readonly onCursorMove = this._onCursorMove.event;
-	private readonly _onLineFeed = this._store.add(new Emitter<void>());
+	private readonly _onLineFeed = new Emitter<void>();
 	public readonly onLineFeed = this._onLineFeed.event;
-	private readonly _onScroll = this._store.add(new Emitter<number>());
+	private readonly _onScroll = new Emitter<number>();
 	public readonly onScroll = this._onScroll.event;
-	private readonly _onTitleChange = this._store.add(new Emitter<string>());
+	private readonly _onTitleChange = new Emitter<string>();
 	public readonly onTitleChange = this._onTitleChange.event;
-	private readonly _onColor = this._store.add(new Emitter<IColorEvent>());
+	private readonly _onColor = new Emitter<IColorEvent>();
 	public readonly onColor = this._onColor.event;
-	private readonly _onRequestColorSchemeQuery = this._store.add(new Emitter<void>());
+	private readonly _onRequestColorSchemeQuery = new Emitter<void>();
 	public readonly onRequestColorSchemeQuery = this._onRequestColorSchemeQuery.event;
 
 	private _parseStack: IParseStack = {
@@ -219,13 +220,12 @@ export class InputHandler implements IInputHandler {
 		private readonly _unicodeService: IUnicodeService,
 		private readonly _parser: IEscapeSequenceParser = new EscapeSequenceParser()
 	) {
-		this._store.add(this._parser);
 		this._dirtyRowTracker = new DirtyRowTracker(this._bufferService);
 
 		// Track properties used in performance critical code manually to avoid using slow getters
 		this._activeBuffer = this._bufferService.buffer;
-		this._store.add(
-			this._bufferService.buffers.onBufferActivate((e) => (this._activeBuffer = e.activeBuffer))
+		this._bufferActivateListener = this._bufferService.buffers.onBufferActivate(
+			(e) => (this._activeBuffer = e.activeBuffer)
 		);
 
 		/**
@@ -528,7 +528,22 @@ export class InputHandler implements IInputHandler {
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._parser.dispose();
+		this._bufferActivateListener.dispose();
+		this._onRequestBell.dispose();
+		this._onRequestRefreshRows.dispose();
+		this._onRequestReset.dispose();
+		this._onRequestSendFocus.dispose();
+		this._onRequestSyncScrollBar.dispose();
+		this._onRequestWindowsOptionsReport.dispose();
+		this._onA11yChar.dispose();
+		this._onA11yTab.dispose();
+		this._onCursorMove.dispose();
+		this._onLineFeed.dispose();
+		this._onScroll.dispose();
+		this._onTitleChange.dispose();
+		this._onColor.dispose();
+		this._onRequestColorSchemeQuery.dispose();
 	}
 
 	/**

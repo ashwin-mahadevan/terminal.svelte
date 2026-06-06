@@ -5,11 +5,9 @@
 
 import type { FastDomNode } from './fastDomNode';
 import { TimeoutTimer } from '$lib/common/Async';
-import { DisposableStore } from '$lib/common/Lifecycle';
 import { ScrollbarVisibility } from './scrollable';
 
 export class ScrollbarVisibilityController {
-	private readonly _store = new DisposableStore();
 	private _visibility: ScrollbarVisibility;
 	private _visibleClassName: string;
 	private _invisibleClassName: string;
@@ -18,7 +16,7 @@ export class ScrollbarVisibilityController {
 	private _shouldBeVisible: boolean;
 	private _isNeeded: boolean;
 	private _isVisible: boolean;
-	private _revealTimer: TimeoutTimer;
+	private readonly _revealTimer = new TimeoutTimer();
 
 	constructor(
 		visibility: ScrollbarVisibility,
@@ -33,11 +31,10 @@ export class ScrollbarVisibilityController {
 		this._isNeeded = false;
 		this._rawShouldBeVisible = false;
 		this._shouldBeVisible = false;
-		this._revealTimer = this._store.add(new TimeoutTimer());
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._revealTimer.dispose();
 	}
 
 	public setVisibility(visibility: ScrollbarVisibility): void {

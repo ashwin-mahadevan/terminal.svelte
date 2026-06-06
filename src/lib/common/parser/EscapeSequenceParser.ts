@@ -31,7 +31,6 @@ import type {
 } from '$lib/common/parser/Types';
 import { ParserStackType } from '$lib/common/parser/Types';
 import { ParserState, ParserAction } from '$lib/common/parser/Constants';
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Types';
 import { Params } from '$lib/common/parser/Params';
 import { OscParser } from '$lib/common/parser/OscParser';
@@ -527,7 +526,6 @@ export const VT500_TRANSITION_TABLE = (function (): TransitionTable {
  * TODO: implement error recovery hook via error handler return values
  */
 export class EscapeSequenceParser implements IEscapeSequenceParser {
-	private readonly _store = new DisposableStore();
 	public initialState: number;
 	public currentState: number;
 	public precedingJoinState: number; // UnicodeJoinProperties
@@ -591,17 +589,9 @@ export class EscapeSequenceParser implements IEscapeSequenceParser {
 		this._executeHandlersArr = new Array(0x18).fill(undefined);
 		this._csiHandlers = Object.create(null);
 		this._escHandlers = Object.create(null);
-		this._store.add(
-			toDisposable(() => {
-				this._csiHandlers = Object.create(null);
-				this._executeHandlers = Object.create(null);
-				this._executeHandlersArr = new Array(0x18).fill(undefined);
-				this._escHandlers = Object.create(null);
-			})
-		);
-		this._oscParser = this._store.add(new OscParser());
-		this._dcsParser = this._store.add(new DcsParser());
-		this._apcParser = this._store.add(new ApcParser());
+		this._oscParser = new OscParser();
+		this._dcsParser = new DcsParser();
+		this._apcParser = new ApcParser();
 		this._errorHandler = this._errorHandlerFb;
 
 		// swallow 7bit ST (ESC+\)
@@ -609,7 +599,13 @@ export class EscapeSequenceParser implements IEscapeSequenceParser {
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._oscParser.dispose();
+		this._dcsParser.dispose();
+		this._apcParser.dispose();
+		this._csiHandlers = Object.create(null);
+		this._executeHandlers = Object.create(null);
+		this._executeHandlersArr = new Array(0x18).fill(undefined);
+		this._escHandlers = Object.create(null);
 	}
 
 	protected _identifier(id: IFunctionIdentifier, finalRange: number[] = [0x40, 0x7e]): number {

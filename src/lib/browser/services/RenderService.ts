@@ -12,7 +12,8 @@ import {
 	ICoreBrowserService,
 	IThemeService
 } from '$lib/browser/services/Services';
-import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
 import {
 	IBufferService,
@@ -33,13 +34,12 @@ const enum Constants {
 }
 
 export class RenderService implements IRenderService {
-	private readonly _store = new DisposableStore();
 	public serviceBrand: undefined;
 
-	private _renderer: MutableDisposable<IRenderer> = this._store.add(new MutableDisposable());
-	private _renderDebouncer: IRenderDebouncerWithCallback;
-	private _pausedResizeTask: DebouncedIdleTask;
-	private _observerDisposable = this._store.add(new MutableDisposable());
+	private readonly _renderer = new MutableDisposable<IRenderer>();
+	private _renderDebouncer!: IRenderDebouncerWithCallback;
+	private _pausedResizeTask!: DebouncedIdleTask;
+	private readonly _observerDisposable = new MutableDisposable();
 	private _intersectionObserver: IntersectionObserver | undefined;
 
 	private _isPaused: boolean = false;
@@ -48,25 +48,33 @@ export class RenderService implements IRenderService {
 	private _needsSelectionRefresh: boolean = false;
 	private _canvasWidth: number = 0;
 	private _canvasHeight: number = 0;
-	private _syncOutputHandler: SynchronizedOutputHandler;
+	private _syncOutputHandler!: SynchronizedOutputHandler;
 	private _selectionState: ISelectionState = {
 		start: undefined,
 		end: undefined,
 		columnSelectMode: false
 	};
 
-	private readonly _onDimensionsChange = this._store.add(new Emitter<IRenderDimensions>());
+	private readonly _onDimensionsChange = new Emitter<IRenderDimensions>();
 	public readonly onDimensionsChange = this._onDimensionsChange.event;
-	private readonly _onRenderedViewportChange = this._store.add(
-		new Emitter<{ start: number; end: number }>()
-	);
+	private readonly _onRenderedViewportChange = new Emitter<{ start: number; end: number }>();
 	public readonly onRenderedViewportChange = this._onRenderedViewportChange.event;
-	private readonly _onRender = this._store.add(new Emitter<{ start: number; end: number }>());
+	private readonly _onRender = new Emitter<{ start: number; end: number }>();
 	public readonly onRender = this._onRender.event;
-	private readonly _onRefreshRequest = this._store.add(
-		new Emitter<{ start: number; end: number }>()
-	);
+	private readonly _onRefreshRequest = new Emitter<{ start: number; end: number }>();
 	public readonly onRefreshRequest = this._onRefreshRequest.event;
+
+	private _dprChangeListener!: IDisposable;
+	private _bufferResizeListener!: IDisposable;
+	private _bufferActivateListener!: IDisposable;
+	private _optionChangeListener!: IDisposable;
+	private _charSizeChangeListener!: IDisposable;
+	private _decorationRegisteredListener!: IDisposable;
+	private _decorationRemovedListener!: IDisposable;
+	private _glyphOptionChangeListener!: IDisposable;
+	private _cursorOptionChangeListener!: IDisposable;
+	private _themeChangeListener!: IDisposable;
+	private _windowChangeListener!: IDisposable;
 
 	public get dimensions(): IRenderDimensions {
 		return this._renderer.value!.dimensions;
@@ -83,77 +91,99 @@ export class RenderService implements IRenderService {
 		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService,
 		@IThemeService themeService: IThemeService
 	) {
-		this._pausedResizeTask = this._store.add(new DebouncedIdleTask());
+		this._pausedResizeTask = new DebouncedIdleTask();
 
 		this._renderDebouncer = new RenderDebouncer(
 			(start, end) => this._renderRows(start, end),
 			this._coreBrowserService
 		);
-		this._store.add(this._renderDebouncer);
 
 		this._syncOutputHandler = new SynchronizedOutputHandler(
 			this._coreBrowserService,
 			this._coreService,
 			() => this._fullRefresh()
 		);
-		this._store.add(toDisposable(() => this._syncOutputHandler.dispose()));
 
-		this._store.add(
-			this._coreBrowserService.onDprChange(() => this.handleDevicePixelRatioChange())
+		this._dprChangeListener = this._coreBrowserService.onDprChange(() =>
+			this.handleDevicePixelRatioChange()
 		);
 
-		this._store.add(bufferService.onResize(() => this._fullRefresh()));
-		this._store.add(bufferService.buffers.onBufferActivate(() => this._renderer.value?.clear()));
-		this._store.add(this._optionsService.onOptionChange(() => this._handleOptionsChanged()));
-		this._store.add(this._charSizeService.onCharSizeChange(() => this.handleCharSizeChanged()));
+		this._bufferResizeListener = bufferService.onResize(() => this._fullRefresh());
+		this._bufferActivateListener = bufferService.buffers.onBufferActivate(() =>
+			this._renderer.value?.clear()
+		);
+		this._optionChangeListener = this._optionsService.onOptionChange(() =>
+			this._handleOptionsChanged()
+		);
+		this._charSizeChangeListener = this._charSizeService.onCharSizeChange(() =>
+			this.handleCharSizeChanged()
+		);
 
 		// Do a full refresh whenever any decoration is added or removed. This may not actually result
 		// in changes but since decorations should be used sparingly or added/removed all in the same
 		// frame this should have minimal performance impact.
-		this._store.add(decorationService.onDecorationRegistered(() => this._fullRefresh()));
-		this._store.add(decorationService.onDecorationRemoved(() => this._fullRefresh()));
+		this._decorationRegisteredListener = decorationService.onDecorationRegistered(() =>
+			this._fullRefresh()
+		);
+		this._decorationRemovedListener = decorationService.onDecorationRemoved(() =>
+			this._fullRefresh()
+		);
 
 		// Clear the renderer when the a change that could affect glyphs occurs
-		this._store.add(
-			this._optionsService.onMultipleOptionChange(
-				[
-					'drawBoldTextInBrightColors',
-					'letterSpacing',
-					'lineHeight',
-					'fontFamily',
-					'fontSize',
-					'fontWeight',
-					'fontWeightBold',
-					'minimumContrastRatio',
-					'rescaleOverlappingGlyphs'
-				],
-				() => {
-					this.clear();
-					this.handleResize(bufferService.cols, bufferService.rows);
-					this._fullRefresh();
-				}
-			)
+		this._glyphOptionChangeListener = this._optionsService.onMultipleOptionChange(
+			[
+				'drawBoldTextInBrightColors',
+				'letterSpacing',
+				'lineHeight',
+				'fontFamily',
+				'fontSize',
+				'fontWeight',
+				'fontWeightBold',
+				'minimumContrastRatio',
+				'rescaleOverlappingGlyphs'
+			],
+			() => {
+				this.clear();
+				this.handleResize(bufferService.cols, bufferService.rows);
+				this._fullRefresh();
+			}
 		);
 
 		// Refresh the cursor line when the cursor changes
-		this._store.add(
-			this._optionsService.onMultipleOptionChange(['cursorBlink', 'cursorStyle'], () =>
-				this.refreshRows(bufferService.buffer.y, bufferService.buffer.y, undefined, true)
-			)
+		this._cursorOptionChangeListener = this._optionsService.onMultipleOptionChange(
+			['cursorBlink', 'cursorStyle'],
+			() => this.refreshRows(bufferService.buffer.y, bufferService.buffer.y, undefined, true)
 		);
 
-		this._store.add(themeService.onChangeColors(() => this._fullRefresh()));
+		this._themeChangeListener = themeService.onChangeColors(() => this._fullRefresh());
 
 		this._registerIntersectionObserver(this._coreBrowserService.window, screenElement);
-		this._store.add(
-			this._coreBrowserService.onWindowChange((w) =>
-				this._registerIntersectionObserver(w, screenElement)
-			)
+		this._windowChangeListener = this._coreBrowserService.onWindowChange((w) =>
+			this._registerIntersectionObserver(w, screenElement)
 		);
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._renderer.dispose();
+		this._observerDisposable.dispose();
+		this._pausedResizeTask.dispose();
+		this._renderDebouncer.dispose();
+		this._syncOutputHandler.dispose();
+		this._onDimensionsChange.dispose();
+		this._onRenderedViewportChange.dispose();
+		this._onRender.dispose();
+		this._onRefreshRequest.dispose();
+		this._dprChangeListener.dispose();
+		this._bufferResizeListener.dispose();
+		this._bufferActivateListener.dispose();
+		this._optionChangeListener.dispose();
+		this._charSizeChangeListener.dispose();
+		this._decorationRegisteredListener.dispose();
+		this._decorationRemovedListener.dispose();
+		this._glyphOptionChangeListener.dispose();
+		this._cursorOptionChangeListener.dispose();
+		this._themeChangeListener.dispose();
+		this._windowChangeListener.dispose();
 	}
 
 	private _registerIntersectionObserver(

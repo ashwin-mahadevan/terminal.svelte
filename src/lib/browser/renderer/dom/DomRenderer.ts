@@ -22,7 +22,7 @@ import {
 } from '$lib/browser/services/Services';
 import type { ILinkifier2, ILinkifierEvent, ITerminal, ReadonlyColorSet } from '$lib/browser/Types';
 import { color } from '$lib/common/Color';
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import {
 	IBufferService,
 	ICoreService,
@@ -50,7 +50,6 @@ let nextTerminalId = 1;
  * reliable as webgl may not work on some machines.
  */
 export class DomRenderer implements IRenderer {
-	private readonly _store = new DisposableStore();
 	private _rowFactory: DomRendererRowFactory;
 	private _terminalClass: number = nextTerminalId++;
 
@@ -71,8 +70,14 @@ export class DomRenderer implements IRenderer {
 
 	public dimensions: IRenderDimensions;
 
-	private readonly _onRequestRedraw = this._store.add(new Emitter<IRequestRedrawEvent>());
+	private readonly _onRequestRedraw = new Emitter<IRequestRedrawEvent>();
 	public readonly onRequestRedraw = this._onRequestRedraw.event;
+
+	private _optionChangeListener!: IDisposable;
+	private _themeChangeListener!: IDisposable;
+	private _showLinkUnderlineListener!: IDisposable;
+	private _hideLinkUnderlineListener!: IDisposable;
+	private _mouseDownListener!: IDisposable;
 
 	constructor(
 		private readonly _terminal: ITerminal,
@@ -101,9 +106,11 @@ export class DomRenderer implements IRenderer {
 
 		this.dimensions = createRenderDimensions();
 		this._updateDimensions();
-		this._store.add(this._optionsService.onOptionChange(() => this._handleOptionsChanged()));
+		this._optionChangeListener = this._optionsService.onOptionChange(() =>
+			this._handleOptionsChanged()
+		);
 
-		this._store.add(this._themeService.onChangeColors((e) => this._injectCss(e)));
+		this._themeChangeListener = this._themeService.onChangeColors((e) => this._injectCss(e));
 		this._injectCss(this._themeService.colors);
 
 		this._rowFactory = instantiationService.createInstance(DomRendererRowFactory, document);
@@ -112,39 +119,24 @@ export class DomRenderer implements IRenderer {
 		this._screenElement.appendChild(this._rowContainer);
 		this._screenElement.appendChild(this._selectionContainer);
 
-		this._store.add(this._linkifier2.onShowLinkUnderline((e) => this._handleLinkHover(e)));
-		this._store.add(this._linkifier2.onHideLinkUnderline((e) => this._handleLinkLeave(e)));
+		this._showLinkUnderlineListener = this._linkifier2.onShowLinkUnderline((e) =>
+			this._handleLinkHover(e)
+		);
+		this._hideLinkUnderlineListener = this._linkifier2.onHideLinkUnderline((e) =>
+			this._handleLinkLeave(e)
+		);
 
 		this._cursorBlinkStateManager = new CursorBlinkStateManager(
 			this._rowContainer,
 			this._coreBrowserService
 		);
-		this._store.add(
-			addDisposableListener(this._document, 'mousedown', () =>
-				this._cursorBlinkStateManager.restartBlinkAnimation()
-			)
+		this._mouseDownListener = addDisposableListener(this._document, 'mousedown', () =>
+			this._cursorBlinkStateManager.restartBlinkAnimation()
 		);
-		this._store.add(toDisposable(() => this._cursorBlinkStateManager.dispose()));
-		this._textBlinkStateManager = this._store.add(
-			new TextBlinkStateManager(
-				() => this._onRequestRedraw.fire({ start: 0, end: this._bufferService.rows - 1 }),
-				this._coreBrowserService,
-				this._optionsService
-			)
-		);
-
-		this._store.add(
-			toDisposable(() => {
-				this._element.classList.remove(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
-
-				// Outside influences such as React unmounts may manipulate the DOM before our disposal.
-				// https://github.com/xtermjs/xterm.js/issues/2960
-				this._rowContainer.remove();
-				this._selectionContainer.remove();
-				this._widthCache.dispose();
-				this._themeStyleElement.remove();
-				this._dimensionsStyleElement.remove();
-			})
+		this._textBlinkStateManager = new TextBlinkStateManager(
+			() => this._onRequestRedraw.fire({ start: 0, end: this._bufferService.rows - 1 }),
+			this._coreBrowserService,
+			this._optionsService
 		);
 
 		this._widthCache = new WidthCache();
@@ -158,7 +150,22 @@ export class DomRenderer implements IRenderer {
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._element.classList.remove(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
+		// Outside influences such as React unmounts may manipulate the DOM before our disposal.
+		// https://github.com/xtermjs/xterm.js/issues/2960
+		this._rowContainer.remove();
+		this._selectionContainer.remove();
+		this._widthCache.dispose();
+		this._themeStyleElement.remove();
+		this._dimensionsStyleElement.remove();
+		this._cursorBlinkStateManager.dispose();
+		this._textBlinkStateManager.dispose();
+		this._onRequestRedraw.dispose();
+		this._optionChangeListener.dispose();
+		this._themeChangeListener.dispose();
+		this._showLinkUnderlineListener.dispose();
+		this._hideLinkUnderlineListener.dispose();
+		this._mouseDownListener.dispose();
 	}
 
 	private _updateDimensions(): void {

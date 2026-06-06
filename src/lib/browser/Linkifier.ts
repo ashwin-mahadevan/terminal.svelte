@@ -11,7 +11,7 @@ import type {
 	ILinkifier2,
 	ILinkifierEvent
 } from '$lib/browser/Types';
-import { DisposableStore, dispose, toDisposable } from '$lib/common/Lifecycle';
+import { dispose } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Types';
 import { IBufferService } from '$lib/common/services/Services';
 import { ILinkProviderService, IMouseCoordsService, IRenderService } from './services/Services';
@@ -19,7 +19,6 @@ import { Emitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 
 export class Linkifier implements ILinkifier2 {
-	private readonly _store = new DisposableStore();
 	public get currentLink(): ILinkWithState | undefined {
 		return this._currentLink;
 	}
@@ -35,10 +34,16 @@ export class Linkifier implements ILinkifier2 {
 	private _activeProviderReplies: Map<Number, ILinkWithState[] | undefined> | undefined;
 	private _activeLine: number = -1;
 
-	private readonly _onShowLinkUnderline = this._store.add(new Emitter<ILinkifierEvent>());
+	private readonly _onShowLinkUnderline = new Emitter<ILinkifierEvent>();
 	public readonly onShowLinkUnderline = this._onShowLinkUnderline.event;
-	private readonly _onHideLinkUnderline = this._store.add(new Emitter<ILinkifierEvent>());
+	private readonly _onHideLinkUnderline = new Emitter<ILinkifierEvent>();
 	public readonly onHideLinkUnderline = this._onHideLinkUnderline.event;
+
+	private readonly _resizeListener: IDisposable;
+	private readonly _mouseLeaveListener: IDisposable;
+	private readonly _mouseMoveListener: IDisposable;
+	private readonly _mouseDownListener: IDisposable;
+	private readonly _mouseUpListener: IDisposable;
 
 	constructor(
 		private readonly _element: HTMLElement,
@@ -47,41 +52,45 @@ export class Linkifier implements ILinkifier2 {
 		@IBufferService private readonly _bufferService: IBufferService,
 		@ILinkProviderService private readonly _linkProviderService: ILinkProviderService
 	) {
-		this._store.add(
-			toDisposable(() => {
-				dispose(this._linkCacheDisposables);
-				this._linkCacheDisposables.length = 0;
-				this._lastMouseEvent = undefined;
-				// Clear out link providers as they could easily cause an embedder memory leak
-				this._activeProviderReplies?.clear();
-			})
-		);
 		// Listen to resize to catch the case where it's resized and the cursor is out of the viewport.
-		this._store.add(
-			this._bufferService.onResize(() => {
-				this._clearCurrentLink();
-				this._wasResized = true;
-			})
+		this._resizeListener = this._bufferService.onResize(() => {
+			this._clearCurrentLink();
+			this._wasResized = true;
+		});
+		this._mouseLeaveListener = addDisposableListener(this._element, 'mouseleave', () => {
+			this._isMouseOut = true;
+			this._clearCurrentLink();
+		});
+		this._mouseMoveListener = addDisposableListener(
+			this._element,
+			'mousemove',
+			this._handleMouseMove.bind(this)
 		);
-		this._store.add(
-			addDisposableListener(this._element, 'mouseleave', () => {
-				this._isMouseOut = true;
-				this._clearCurrentLink();
-			})
+		this._mouseDownListener = addDisposableListener(
+			this._element,
+			'mousedown',
+			this._handleMouseDown.bind(this)
 		);
-		this._store.add(
-			addDisposableListener(this._element, 'mousemove', this._handleMouseMove.bind(this))
-		);
-		this._store.add(
-			addDisposableListener(this._element, 'mousedown', this._handleMouseDown.bind(this))
-		);
-		this._store.add(
-			addDisposableListener(this._element, 'mouseup', this._handleMouseUp.bind(this))
+		this._mouseUpListener = addDisposableListener(
+			this._element,
+			'mouseup',
+			this._handleMouseUp.bind(this)
 		);
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		dispose(this._linkCacheDisposables);
+		this._linkCacheDisposables.length = 0;
+		this._lastMouseEvent = undefined;
+		// Clear out link providers as they could easily cause an embedder memory leak
+		this._activeProviderReplies?.clear();
+		this._onShowLinkUnderline.dispose();
+		this._onHideLinkUnderline.dispose();
+		this._resizeListener.dispose();
+		this._mouseLeaveListener.dispose();
+		this._mouseMoveListener.dispose();
+		this._mouseDownListener.dispose();
+		this._mouseUpListener.dispose();
 	}
 
 	private _handleMouseMove(event: MouseEvent): void {

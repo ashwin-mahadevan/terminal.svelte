@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { DisposableStore } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IAttributeData, IBufferLine } from '$lib/common/Types';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
@@ -18,20 +18,19 @@ export const enum BufferServiceConstants {
 }
 
 export class BufferService implements IBufferService {
-	private readonly _store = new DisposableStore();
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
 
 	public cols: number;
 	public rows: number;
-	public buffers: IBufferSet;
+	public readonly buffers: IBufferSet;
 	/** Whether the user is scrolling (locks the scroll position) */
 	public isUserScrolling: boolean = false;
 
-	private readonly _onResize = this._store.add(new Emitter<IBufferResizeEvent>());
+	private readonly _onResize = new Emitter<IBufferResizeEvent>();
 	public readonly onResize = this._onResize.event;
-	private readonly _onScroll = this._store.add(new Emitter<number>());
+	private readonly _onScroll = new Emitter<number>();
 	public readonly onScroll = this._onScroll.event;
 
 	public get buffer(): IBuffer {
@@ -40,20 +39,22 @@ export class BufferService implements IBufferService {
 
 	/** An IBufferline to clone/copy from for new blank lines */
 	private _cachedBlankLine: IBufferLine | undefined;
+	private readonly _bufferActivateListener: IDisposable;
 
 	constructor(@IOptionsService optionsService: IOptionsService) {
 		this.cols = Math.max(optionsService.rawOptions.cols || 0, BufferServiceConstants.MINIMUM_COLS);
 		this.rows = Math.max(optionsService.rawOptions.rows || 0, BufferServiceConstants.MINIMUM_ROWS);
-		this.buffers = this._store.add(new BufferSet(optionsService, this));
-		this._store.add(
-			this.buffers.onBufferActivate((e) => {
-				this._onScroll.fire(e.activeBuffer.ydisp);
-			})
-		);
+		this.buffers = new BufferSet(optionsService, this);
+		this._bufferActivateListener = this.buffers.onBufferActivate((e) => {
+			this._onScroll.fire(e.activeBuffer.ydisp);
+		});
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._onResize.dispose();
+		this._onScroll.dispose();
+		this.buffers.dispose();
+		this._bufferActivateListener.dispose();
 	}
 
 	public resize(cols: number, rows: number): void {

@@ -4,7 +4,6 @@
  */
 
 import { TimeoutTimer } from '$lib/common/Async';
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
 import { Emitter } from '$lib/common/Event';
 
 const enum Constants {
@@ -33,7 +32,7 @@ const enum Constants {
 }
 
 export class WriteBuffer {
-	private readonly _store = new DisposableStore();
+	private _isDisposed = false;
 	private _writeBuffer: (string | Uint8Array)[] = [];
 	private _callbacks: ((() => void) | undefined)[] = [];
 	private _pendingData = 0;
@@ -42,25 +41,22 @@ export class WriteBuffer {
 	private _syncCalls = 0;
 	private _didUserInput = false;
 
-	private readonly _innerWriteTimer = this._store.add(new TimeoutTimer());
-	private readonly _onWriteParsed = this._store.add(new Emitter<void>());
+	private readonly _innerWriteTimer = new TimeoutTimer();
+	private readonly _onWriteParsed = new Emitter<void>();
 	public readonly onWriteParsed = this._onWriteParsed.event;
 
 	constructor(
 		private _action: (data: string | Uint8Array, promiseResult?: boolean) => void | Promise<boolean>
-	) {
-		this._store.add(
-			toDisposable(() => {
-				this._writeBuffer.length = 0;
-				this._callbacks.length = 0;
-				this._pendingData = 0;
-				this._bufferOffset = 0;
-			})
-		);
-	}
+	) {}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._isDisposed = true;
+		this._innerWriteTimer.dispose();
+		this._onWriteParsed.dispose();
+		this._writeBuffer.length = 0;
+		this._callbacks.length = 0;
+		this._pendingData = 0;
+		this._bufferOffset = 0;
 	}
 
 	public handleUserInput(): void {
@@ -76,7 +72,7 @@ export class WriteBuffer {
 	 * promises to resolve.
 	 */
 	public flushSync(): void {
-		if (this._store.isDisposed) {
+		if (this._isDisposed) {
 			return;
 		}
 		// exit early if another sync write loop is active
@@ -111,7 +107,7 @@ export class WriteBuffer {
 	 * @deprecated Unreliable, to be removed soon.
 	 */
 	public writeSync(data: string | Uint8Array, maxSubsequentCalls?: number): void {
-		if (this._store.isDisposed) {
+		if (this._isDisposed) {
 			return;
 		}
 		// stop writeSync recursions with maxSubsequentCalls argument
@@ -157,7 +153,7 @@ export class WriteBuffer {
 	}
 
 	public write(data: string | Uint8Array, callback?: () => void): void {
-		if (this._store.isDisposed) {
+		if (this._isDisposed) {
 			return;
 		}
 		if (this._pendingData > Constants.DISCARD_WATERMARK) {
@@ -217,14 +213,14 @@ export class WriteBuffer {
 	 * Note, for pure sync code `lastTime` and `promiseResult` have no meaning.
 	 */
 	private _scheduleInnerWrite(lastTime: number = 0, promiseResult: boolean = true): void {
-		if (this._store.isDisposed) {
+		if (this._isDisposed) {
 			return;
 		}
 		this._innerWriteTimer.cancelAndSet(() => this._innerWrite(lastTime, promiseResult), 0);
 	}
 
 	protected _innerWrite(lastTime: number = 0, promiseResult: boolean = true): void {
-		if (this._store.isDisposed) {
+		if (this._isDisposed) {
 			return;
 		}
 		const startTime = lastTime || performance.now();
@@ -256,7 +252,7 @@ export class WriteBuffer {
 				 * gain control.
 				 */
 				const continuation: (r: boolean) => void = (r: boolean) => {
-					if (this._store.isDisposed) {
+					if (this._isDisposed) {
 						return;
 					}
 					if (performance.now() - startTime >= Constants.WRITE_TIMEOUT_MS) {

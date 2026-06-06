@@ -17,7 +17,7 @@ import {
 	IMouseCoordsService,
 	IRenderService
 } from '$lib/browser/services/Services';
-import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { MutableDisposable } from '$lib/common/Lifecycle';
 import * as Browser from '$lib/common/Platform';
 import type { IBufferLine, ICellData, IDisposable } from '$lib/common/Types';
 import { getRangeLength } from '$lib/common/buffer/BufferRange';
@@ -84,7 +84,6 @@ export const enum SelectionMode {
  * when the selection is ready to be redrawn (on an animation frame).
  */
 export class SelectionService implements ISelectionService {
-	private readonly _store = new DisposableStore();
 	public serviceBrand: undefined;
 
 	protected _model: SelectionModel;
@@ -118,7 +117,7 @@ export class SelectionService implements ISelectionService {
 
 	private _mouseMoveListener: EventListener;
 	private _mouseUpListener: EventListener;
-	private readonly _trimListener = this._store.add(new MutableDisposable<IDisposable>());
+	private readonly _trimListener = new MutableDisposable<IDisposable>();
 	private _workCell: CellData = new CellData();
 
 	private _mouseDownTimeStamp: number = 0;
@@ -126,16 +125,17 @@ export class SelectionService implements ISelectionService {
 	private _oldSelectionStart: [number, number] | undefined = undefined;
 	private _oldSelectionEnd: [number, number] | undefined = undefined;
 
-	private readonly _onLinuxMouseSelection = this._store.add(new Emitter<string>());
+	private readonly _onLinuxMouseSelection = new Emitter<string>();
 	public readonly onLinuxMouseSelection = this._onLinuxMouseSelection.event;
-	private readonly _onRedrawRequest = this._store.add(new Emitter<ISelectionRedrawRequestEvent>());
+	private readonly _onRedrawRequest = new Emitter<ISelectionRedrawRequestEvent>();
 	public readonly onRequestRedraw = this._onRedrawRequest.event;
-	private readonly _onSelectionChange = this._store.add(new Emitter<void>());
+	private readonly _onSelectionChange = new Emitter<void>();
 	public readonly onSelectionChange = this._onSelectionChange.event;
-	private readonly _onRequestScrollLines = this._store.add(
-		new Emitter<ISelectionRequestScrollLinesEvent>()
-	);
+	private readonly _onRequestScrollLines = new Emitter<ISelectionRequestScrollLinesEvent>();
 	public readonly onRequestScrollLines = this._onRequestScrollLines.event;
+
+	private _bufferActivateListener!: IDisposable;
+	private _bufferResizeListener!: IDisposable;
 
 	constructor(
 		private readonly _element: HTMLElement,
@@ -160,8 +160,8 @@ export class SelectionService implements ISelectionService {
 		this._trimListener.value = this._bufferService.buffer.lines.onTrim((amount) =>
 			this._handleTrim(amount)
 		);
-		this._store.add(
-			this._bufferService.buffers.onBufferActivate((e) => this._handleBufferActivate(e))
+		this._bufferActivateListener = this._bufferService.buffers.onBufferActivate((e) =>
+			this._handleBufferActivate(e)
 		);
 
 		this.enable();
@@ -169,25 +169,24 @@ export class SelectionService implements ISelectionService {
 		this._model = new SelectionModel(this._bufferService);
 		this._activeSelectionMode = SelectionMode.NORMAL;
 
-		this._store.add(
-			toDisposable(() => {
-				this._removeMouseDownListeners();
-			})
-		);
-
 		// Clear selection when resizing vertically. This experience could be improved, this is the
 		// simple option to fix the buggy behavior. https://github.com/xtermjs/xterm.js/issues/5300
-		this._store.add(
-			this._bufferService.onResize((e) => {
-				if (e.rowsChanged) {
-					this.clearSelection();
-				}
-			})
-		);
+		this._bufferResizeListener = this._bufferService.onResize((e) => {
+			if (e.rowsChanged) {
+				this.clearSelection();
+			}
+		});
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._trimListener.dispose();
+		this._onLinuxMouseSelection.dispose();
+		this._onRedrawRequest.dispose();
+		this._onSelectionChange.dispose();
+		this._onRequestScrollLines.dispose();
+		this._bufferActivateListener.dispose();
+		this._bufferResizeListener.dispose();
+		this._removeMouseDownListeners();
 	}
 
 	public reset(): void {

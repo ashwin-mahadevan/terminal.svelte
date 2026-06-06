@@ -5,7 +5,6 @@
 import type { IMouseStateService } from '$lib/common/services/Services';
 import type { ICoreMouseProtocol, ICoreMouseEvent, CoreMouseEncoding } from '$lib/common/Types';
 import { CoreMouseEventType, CoreMouseButton, CoreMouseAction } from '$lib/common/Types';
-import { DisposableStore } from '$lib/common/Lifecycle';
 import { Emitter } from '$lib/common/Event';
 
 /**
@@ -178,7 +177,6 @@ const DEFAULT_ENCODINGS: { [key: string]: CoreMouseEncoding } = {
  * To send a mouse event call `triggerMouseEvent`.
  */
 export class MouseStateService implements IMouseStateService {
-	private readonly _store = new DisposableStore();
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public serviceBrand: any;
@@ -189,7 +187,7 @@ export class MouseStateService implements IMouseStateService {
 	private _activeEncoding: string = '';
 	private _customWheelEventHandler: ((event: WheelEvent) => boolean) | undefined;
 
-	private readonly _onProtocolChange = this._store.add(new Emitter<CoreMouseEventType>());
+	private readonly _onProtocolChange = new Emitter<CoreMouseEventType>();
 	public readonly onProtocolChange = this._onProtocolChange.event;
 
 	constructor() {
@@ -203,7 +201,7 @@ export class MouseStateService implements IMouseStateService {
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._onProtocolChange.dispose();
 	}
 
 	public addProtocol(name: string, protocol: ICoreMouseProtocol): void {

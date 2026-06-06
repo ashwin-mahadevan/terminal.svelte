@@ -4,18 +4,24 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
 import { IBufferService, IDecorationService } from '$lib/common/services/Services';
 
 export class BufferDecorationRenderer {
-	private readonly _store = new DisposableStore();
 	private readonly _container: HTMLElement;
 	private readonly _decorationElements: Map<IInternalDecoration, HTMLElement> = new Map();
 
 	private _animationFrame: number | undefined;
 	private _altBufferIsActive: boolean = false;
 	private _dimensionsChanged: boolean = false;
+
+	private _renderedViewportChangeListener!: IDisposable;
+	private _dimensionsChangeListener!: IDisposable;
+	private _dprChangeListener!: IDisposable;
+	private _bufferActivateListener!: IDisposable;
+	private _decorationRegisteredListener!: IDisposable;
+	private _decorationRemovedListener!: IDisposable;
 
 	constructor(
 		private readonly _screenElement: HTMLElement,
@@ -28,37 +34,34 @@ export class BufferDecorationRenderer {
 		this._container.classList.add('xterm-decoration-container');
 		this._screenElement.appendChild(this._container);
 
-		this._store.add(
-			this._renderService.onRenderedViewportChange(() => this._doRefreshDecorations())
+		this._renderedViewportChangeListener = this._renderService.onRenderedViewportChange(() =>
+			this._doRefreshDecorations()
 		);
-		this._store.add(
-			this._renderService.onDimensionsChange(() => {
-				this._dimensionsChanged = true;
-				this._queueRefresh();
-			})
+		this._dimensionsChangeListener = this._renderService.onDimensionsChange(() => {
+			this._dimensionsChanged = true;
+			this._queueRefresh();
+		});
+		this._dprChangeListener = this._coreBrowserService.onDprChange(() => this._queueRefresh());
+		this._bufferActivateListener = this._bufferService.buffers.onBufferActivate(() => {
+			this._altBufferIsActive = this._bufferService.buffer === this._bufferService.buffers.alt;
+		});
+		this._decorationRegisteredListener = this._decorationService.onDecorationRegistered(() =>
+			this._queueRefresh()
 		);
-		this._store.add(this._coreBrowserService.onDprChange(() => this._queueRefresh()));
-		this._store.add(
-			this._bufferService.buffers.onBufferActivate(() => {
-				this._altBufferIsActive = this._bufferService.buffer === this._bufferService.buffers.alt;
-			})
-		);
-		this._store.add(this._decorationService.onDecorationRegistered(() => this._queueRefresh()));
-		this._store.add(
-			this._decorationService.onDecorationRemoved((decoration) =>
-				this._removeDecoration(decoration)
-			)
-		);
-		this._store.add(
-			toDisposable(() => {
-				this._container.remove();
-				this._decorationElements.clear();
-			})
+		this._decorationRemovedListener = this._decorationService.onDecorationRemoved((decoration) =>
+			this._removeDecoration(decoration)
 		);
 	}
 
 	public dispose(): void {
-		this._store.dispose();
+		this._container.remove();
+		this._decorationElements.clear();
+		this._renderedViewportChangeListener.dispose();
+		this._dimensionsChangeListener.dispose();
+		this._dprChangeListener.dispose();
+		this._bufferActivateListener.dispose();
+		this._decorationRegisteredListener.dispose();
+		this._decorationRemovedListener.dispose();
 	}
 
 	private _queueRefresh(): void {

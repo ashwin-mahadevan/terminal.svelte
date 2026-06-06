@@ -5,7 +5,7 @@
 
 import * as DomUtils from '../Dom';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { DisposableStore, DISPOSABLE_NONE, toDisposable } from '$lib/common/Lifecycle';
+import { DISPOSABLE_NONE, toDisposable } from '$lib/common/Lifecycle';
 
 const mainWindow = (typeof window === 'object' ? window : globalThis) as Window & typeof globalThis;
 
@@ -197,7 +197,6 @@ interface ITouchEvent extends Event {
 }
 
 export class Gesture {
-	private readonly _store = new DisposableStore();
 	private static readonly _scrollFriction = -0.005;
 	private static _instance: Gesture;
 	private static readonly _holdDelay = 700;
@@ -213,32 +212,32 @@ export class Gesture {
 
 	private static readonly _clearTapCountTime = 400; // ms
 
+	private readonly _touchStartListener: IDisposable;
+	private readonly _touchEndListener: IDisposable;
+	private readonly _touchMoveListener: IDisposable;
+
 	private constructor() {
 		this._activeTouches = {};
 		this._handle = null;
 		this._lastSetTapCountTime = 0;
 
 		const targetWindow = mainWindow;
-		this._store.add(
-			DomUtils.addDisposableListener(
-				targetWindow.document,
-				'touchstart',
-				(e: ITouchEvent) => this._handleTouchStart(e),
-				{ passive: false }
-			)
+		this._touchStartListener = DomUtils.addDisposableListener(
+			targetWindow.document,
+			'touchstart',
+			(e: ITouchEvent) => this._handleTouchStart(e),
+			{ passive: false }
 		);
-		this._store.add(
-			DomUtils.addDisposableListener(targetWindow.document, 'touchend', (e: ITouchEvent) =>
-				this._handleTouchEnd(targetWindow, e)
-			)
+		this._touchEndListener = DomUtils.addDisposableListener(
+			targetWindow.document,
+			'touchend',
+			(e: ITouchEvent) => this._handleTouchEnd(targetWindow, e)
 		);
-		this._store.add(
-			DomUtils.addDisposableListener(
-				targetWindow.document,
-				'touchmove',
-				(e: ITouchEvent) => this._handleTouchMove(e),
-				{ passive: false }
-			)
+		this._touchMoveListener = DomUtils.addDisposableListener(
+			targetWindow.document,
+			'touchmove',
+			(e: ITouchEvent) => this._handleTouchMove(e),
+			{ passive: false }
 		);
 	}
 
@@ -276,7 +275,9 @@ export class Gesture {
 			this._handle.dispose();
 			this._handle = null;
 		}
-		this._store.dispose();
+		this._touchStartListener.dispose();
+		this._touchEndListener.dispose();
+		this._touchMoveListener.dispose();
 	}
 
 	private _handleTouchStart(e: ITouchEvent): void {

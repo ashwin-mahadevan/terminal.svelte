@@ -8,7 +8,7 @@ import type {
 	IBufferLineStringCacheEntry
 } from '$lib/common/buffer/BufferLine';
 import { disposableTimeout } from '$lib/common/Async';
-import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 
 const enum Constants {
@@ -16,18 +16,14 @@ const enum Constants {
 }
 
 export class BufferLineStringCache implements IBufferLineStringCache {
-	private readonly _store = new DisposableStore();
 	public generation: number = 0;
 	public readonly entries: Set<IBufferLineStringCacheEntry> = new Set();
-	private readonly _clearTimeout = this._store.add(new MutableDisposable<IDisposable>());
+	private readonly _clearTimeout = new MutableDisposable<IDisposable>();
 	private _lastAccessTimestamp: number = 0;
 
-	constructor() {
-		this._store.add(toDisposable(() => this.entries.clear()));
-	}
-
 	public dispose(): void {
-		this._store.dispose();
+		this._clearTimeout.dispose();
+		this.entries.clear();
 	}
 
 	public touch(): void {
