@@ -27,11 +27,6 @@ export type FontWeight =
 	| number;
 
 /**
- * A string representing log level.
- */
-export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off';
-
-/**
  * An object containing options for the terminal.
  */
 export interface ITerminalOptions {

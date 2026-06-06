@@ -473,9 +473,7 @@ export class MouseService implements IMouseService {
 		const { requestedEvents } = ctx;
 		// apply global changes on events
 		if (events) {
-			if (this._optionsService.rawOptions.logLevel === 'debug') {
-				console.debug('Binding to mouse events:', this._explainEvents(events));
-			}
+			console.debug('Binding to mouse events:', this._explainEvents(events));
 		} else {
 			console.debug('Unbinding from mouse events.');
 		}

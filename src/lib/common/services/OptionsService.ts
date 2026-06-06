@@ -28,8 +28,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	lineHeight: 1.0,
 	letterSpacing: 0,
 	linkHandler: null,
-	logLevel: 'info',
-	logger: null,
 	scrollback: 1000,
 	scrollbar: { showScrollbar: true },
 	scrollOnEraseInDisplay: false,

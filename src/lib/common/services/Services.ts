@@ -234,7 +234,6 @@ export type FontWeight =
 	| '800'
 	| '900'
 	| number;
-export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off';
 
 export interface ITerminalOptions {
 	allowProposedApi?: boolean;
@@ -261,7 +260,6 @@ export interface ITerminalOptions {
 	letterSpacing?: number;
 	lineHeight?: number;
 	linkHandler?: ILinkHandler | null;
-	logLevel?: LogLevel;
 	macOptionIsMeta?: boolean;
 	macOptionClickForcesSelection?: boolean;
 	minimumContrastRatio?: number;

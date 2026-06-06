@@ -68,7 +68,6 @@ const bufferService: IBufferService = {
 
 const optionsService: IOptionsService = {
 	rawOptions: {
-		logLevel: 'info',
 		fastScrollSensitivity: 1,
 		scrollSensitivity: 1
 	}
