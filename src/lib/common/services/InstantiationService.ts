@@ -13,48 +13,12 @@ import type { IServiceIdentifier } from '$lib/common/services/Services';
 import { IInstantiationService } from '$lib/common/services/Services';
 import { getServiceDependencies } from '$lib/common/services/ServiceRegistry';
 
-export class ServiceCollection {
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private _entries = new Map<IServiceIdentifier<any>, any>();
-
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	constructor(...entries: [IServiceIdentifier<any>, any][]) {
-		for (const [id, service] of entries) {
-			this.set(id, service);
-		}
-	}
-
-	public set<T>(id: IServiceIdentifier<T>, instance: T): T {
-		const result = this._entries.get(id);
-		this._entries.set(id, instance);
-		return result;
-	}
-
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public forEach(callback: (id: IServiceIdentifier<any>, instance: any) => void): void {
-		for (const [key, value] of this._entries.entries()) {
-			callback(key, value);
-		}
-	}
-
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public has(id: IServiceIdentifier<any>): boolean {
-		return this._entries.has(id);
-	}
-
-	public get<T>(id: IServiceIdentifier<T>): T | undefined {
-		return this._entries.get(id);
-	}
-}
-
 export class InstantiationService implements IInstantiationService {
 	public serviceBrand: undefined;
 
-	private readonly _services: ServiceCollection = new ServiceCollection();
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	private readonly _services = new Map<IServiceIdentifier<any>, any>();
 
 	constructor() {
 		this._services.set(IInstantiationService, this);
