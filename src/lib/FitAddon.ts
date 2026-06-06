@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { Terminal, ITerminalAddon, IRenderDimensions } from '$lib/xterm';
+import type { IRenderDimensions, ITerminalOptions } from '$lib/xterm';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
 
 interface ITerminalDimensions {
@@ -34,63 +34,41 @@ function _getComputedStyle(el: HTMLElement): CSSStyleDeclaration {
 	return getWindow(el).getComputedStyle(el, null);
 }
 
-export class FitAddon implements ITerminalAddon {
-	private _terminal: Terminal | undefined;
-
-	public activate(terminal: Terminal): void {
-		this._terminal = terminal;
+export function proposeDimensions(
+	element: HTMLElement,
+	dimensions: IRenderDimensions | undefined,
+	options: Pick<ITerminalOptions, 'scrollback' | 'scrollbar'>
+): ITerminalDimensions | undefined {
+	if (!element.parentElement) {
+		return undefined;
 	}
 
-	public dispose(): void {}
-
-	public fit(): void {
-		const dims = this.proposeDimensions();
-		if (!dims || !this._terminal || isNaN(dims.cols) || isNaN(dims.rows)) {
-			return;
-		}
-
-		this._terminal.resize(dims.cols, dims.rows);
+	if (!dimensions || dimensions.css.cell.width === 0 || dimensions.css.cell.height === 0) {
+		return undefined;
 	}
 
-	public proposeDimensions(): ITerminalDimensions | undefined {
-		if (!this._terminal) {
-			return undefined;
-		}
+	const showScrollbar = options.scrollbar?.showScrollbar ?? true;
+	const scrollbarWidth =
+		options.scrollback === 0 || !showScrollbar
+			? 0
+			: (options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
 
-		if (!this._terminal.element || !this._terminal.element.parentElement) {
-			return undefined;
-		}
-
-		const dims: IRenderDimensions | undefined = this._terminal.dimensions;
-
-		if (!dims || dims.css.cell.width === 0 || dims.css.cell.height === 0) {
-			return undefined;
-		}
-
-		const showScrollbar = this._terminal.options.scrollbar?.showScrollbar ?? true;
-		const scrollbarWidth =
-			this._terminal.options.scrollback === 0 || !showScrollbar
-				? 0
-				: (this._terminal.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
-
-		const parentElementStyle = _getComputedStyle(this._terminal.element.parentElement);
-		const parentElementHeight = parseInt(parentElementStyle.getPropertyValue('height'));
-		const parentElementWidth = Math.max(0, parseInt(parentElementStyle.getPropertyValue('width')));
-		const elementStyle = _getComputedStyle(this._terminal.element);
-		const elementPadding = {
-			top: parseInt(elementStyle.getPropertyValue('padding-top')),
-			bottom: parseInt(elementStyle.getPropertyValue('padding-bottom')),
-			right: parseInt(elementStyle.getPropertyValue('padding-right')),
-			left: parseInt(elementStyle.getPropertyValue('padding-left'))
-		};
-		const elementPaddingVer = elementPadding.top + elementPadding.bottom;
-		const elementPaddingHor = elementPadding.right + elementPadding.left;
-		const availableHeight = parentElementHeight - elementPaddingVer;
-		const availableWidth = parentElementWidth - elementPaddingHor - scrollbarWidth;
-		const geometry = {
-			cols: Math.max(Constants.MINIMUM_COLS, Math.floor(availableWidth / dims.css.cell.width)),
-			rows: Math.max(Constants.MINIMUM_ROWS, Math.floor(availableHeight / dims.css.cell.height))
-		};
-		return geometry;
-	}
+	const parentElementStyle = _getComputedStyle(element.parentElement);
+	const parentElementHeight = parseInt(parentElementStyle.getPropertyValue('height'));
+	const parentElementWidth = Math.max(0, parseInt(parentElementStyle.getPropertyValue('width')));
+	const elementStyle = _getComputedStyle(element);
+	const elementPadding = {
+		top: parseInt(elementStyle.getPropertyValue('padding-top')),
+		bottom: parseInt(elementStyle.getPropertyValue('padding-bottom')),
+		right: parseInt(elementStyle.getPropertyValue('padding-right')),
+		left: parseInt(elementStyle.getPropertyValue('padding-left'))
+	};
+	const elementPaddingVer = elementPadding.top + elementPadding.bottom;
+	const elementPaddingHor = elementPadding.right + elementPadding.left;
+	const availableHeight = parentElementHeight - elementPaddingVer;
+	const availableWidth = parentElementWidth - elementPaddingHor - scrollbarWidth;
+	return {
+		cols: Math.max(Constants.MINIMUM_COLS, Math.floor(availableWidth / dimensions.css.cell.width)),
+		rows: Math.max(Constants.MINIMUM_ROWS, Math.floor(availableHeight / dimensions.css.cell.height))
+	};
 }

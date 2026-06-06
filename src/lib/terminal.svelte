@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Terminal } from '$lib/browser/public/Terminal';
-	import { FitAddon } from '$lib/FitAddon';
+	import { proposeDimensions } from '$lib/FitAddon';
 	import { ClipboardAddon } from '$lib/ClipboardAddon';
 	import { WebFontsAddon } from '$lib/WebFontsAddon';
 	import { ProgressAddon } from '$lib/ProgressAddon';
@@ -28,8 +28,6 @@
 		console.error('terminal.svelte: mounted (console.error)');
 
 		terminal = new Terminal();
-		const fitAddon = new FitAddon();
-		terminal.loadAddon(fitAddon);
 		terminal.loadAddon(new ClipboardAddon());
 		terminal.loadAddon(new WebFontsAddon());
 		terminal.loadAddon(new ProgressAddon());
@@ -38,7 +36,12 @@
 		terminal.loadAddon(serializeAddon);
 		terminal.open(element);
 
-		const observer = new ResizeObserver(() => fitAddon.fit());
+		const observer = new ResizeObserver(() => {
+			const dims = proposeDimensions(element, terminal.dimensions, terminal.options);
+			if (dims && !isNaN(dims.cols) && !isNaN(dims.rows)) {
+				terminal.resize(dims.cols, dims.rows);
+			}
+		});
 		observer.observe(element);
 
 		return () => {
