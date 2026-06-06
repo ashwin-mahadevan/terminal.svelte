@@ -249,10 +249,10 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 			this._inputHandler.onRequestWindowsOptionsReport((type) => this._reportWindowsOptions(type))
 		);
 		this._register(this._inputHandler.onColor((event) => this._handleColorEvent(event)));
-		this._register(this._inputHandler.onCursorMove((e) => this._onCursorMove.fire(e)));
-		this._register(this._inputHandler.onTitleChange((e) => this._onTitleChange.fire(e)));
-		this._register(this._inputHandler.onA11yChar((e) => this._onA11yCharEmitter.fire(e)));
-		this._register(this._inputHandler.onA11yTab((e) => this._onA11yTabEmitter.fire(e)));
+		this._register(EventUtils.forward(this._inputHandler.onCursorMove, this._onCursorMove));
+		this._register(EventUtils.forward(this._inputHandler.onTitleChange, this._onTitleChange));
+		this._register(EventUtils.forward(this._inputHandler.onA11yChar, this._onA11yCharEmitter));
+		this._register(EventUtils.forward(this._inputHandler.onA11yTab, this._onA11yTabEmitter));
 
 		// Setup listeners
 		this._register(this._bufferService.onResize((e) => this._afterResize(e.cols, e.rows)));
