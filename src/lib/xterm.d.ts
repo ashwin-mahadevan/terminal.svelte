@@ -9,6 +9,8 @@
 
 /// <reference lib="dom"/>
 
+import type { IEvent } from './common/Event';
+
 /**
  * A string or number representing text font weight.
  */
@@ -513,14 +515,6 @@ export interface IWindowsPty {
  */
 export interface IDisposable {
 	dispose(): void;
-}
-
-/**
- * An event that can be listened to.
- * @returns an `IDisposable` to stop listening.
- */
-export interface IEvent<T, U = void> {
-	(listener: (arg1: T, arg2: U) => void): IDisposable;
 }
 
 /**
