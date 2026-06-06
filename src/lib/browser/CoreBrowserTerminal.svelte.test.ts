@@ -3,9 +3,8 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
-import type { IBrowser } from '$lib/browser/Types';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import { CellData } from '$lib/common/buffer/CellData';
 import { MockUnicodeService, createCellData } from '$lib/common/TestUtils';
@@ -1343,10 +1342,6 @@ describe('CoreBrowserTerminal', () => {
 	});
 
 	describe('Windows Pty', () => {
-		let term: TestTerminal;
-		beforeEach(() => {
-			term = createTestTerminal();
-		});
 		it('should mark lines as wrapped when the line ends in a non-null character after a LF', async () => {
 			const data = [
 				'aaaaaaaaaa\n\r', // cannot wrap as it's the first

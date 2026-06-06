@@ -4,7 +4,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { ICoreService } from '$lib/common/services/Services';
 import { CoreService } from '$lib/common/services/CoreService';
 import { MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
 

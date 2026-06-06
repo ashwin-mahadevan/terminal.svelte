@@ -18,7 +18,6 @@ import { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
 import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { IBuffer } from '$lib/common/buffer/Types';
 import type { IRenderService } from '$lib/browser/services/Services';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
 

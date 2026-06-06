@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
 import type { ILink } from '$lib/browser/Types';
 import { createCellData, MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
-import type { IBufferService, IOscLinkService } from '$lib/common/services/Services';
+import type { IOscLinkService } from '$lib/common/services/Services';
 import type { IBufferLine, IOscLinkData } from '$lib/common/Types';
 
 class TestOscLinkService implements IOscLinkService {

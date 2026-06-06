@@ -4,7 +4,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { IBufferService } from '$lib/common/services/Services';
 import { Linkifier } from '$lib/browser/Linkifier';
 import { MockBufferService } from '$lib/common/TestUtils';
 import type { ILink } from '$lib/browser/Types';

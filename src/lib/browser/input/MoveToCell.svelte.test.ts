@@ -4,7 +4,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { IBufferService } from '$lib/common/services/Services';
 import { MockBufferService } from '$lib/common/TestUtils';
 import { moveToCellSequence } from '$lib/browser/input/MoveToCell';
 
