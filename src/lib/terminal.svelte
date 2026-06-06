@@ -21,12 +21,6 @@
 	let serializeAddon: SerializeAddon;
 
 	onMount(() => {
-		// Demo: these are visible in `vite dev` but stripped from `vite build` output.
-		console.log('terminal.svelte: mounted (console.log)');
-		console.info('terminal.svelte: mounted (console.info)');
-		console.warn('terminal.svelte: mounted (console.warn)');
-		console.error('terminal.svelte: mounted (console.error)');
-
 		terminal = new Terminal();
 		terminal.loadAddon(new ClipboardAddon());
 		terminal.loadAddon(new WebFontsAddon());
