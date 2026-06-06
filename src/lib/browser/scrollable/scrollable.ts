@@ -6,7 +6,7 @@
 import type { IEvent } from '$lib/common/Event';
 import { Emitter } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { Disposable } from '$lib/common/Lifecycle';
+import { DisposableStore } from '$lib/common/Lifecycle';
 
 export const enum ScrollbarVisibility {
 	AUTO = 1,
@@ -217,7 +217,8 @@ export interface IScrollableOptions {
 	scheduleAtNextAnimationFrame: (callback: () => void) => IDisposable;
 }
 
-export class Scrollable extends Disposable {
+export class Scrollable {
+	private readonly _store = new DisposableStore();
 	private _scrollableBrand: void = undefined;
 
 	private _smoothScrollDuration: number;
@@ -225,24 +226,22 @@ export class Scrollable extends Disposable {
 	private _state: ScrollState;
 	private _smoothScrolling: SmoothScrollingOperation | null;
 
-	private _onScroll = this._register(new Emitter<IScrollEvent>());
+	private _onScroll = this._store.add(new Emitter<IScrollEvent>());
 	public readonly onScroll: IEvent<IScrollEvent> = this._onScroll.event;
 
 	constructor(options: IScrollableOptions) {
-		super();
-
 		this._smoothScrollDuration = options.smoothScrollDuration;
 		this._scheduleAtNextAnimationFrame = options.scheduleAtNextAnimationFrame;
 		this._state = new ScrollState(options.forceIntegerValues, 0, 0, 0, 0, 0, 0);
 		this._smoothScrolling = null;
 	}
 
-	public override dispose(): void {
+	public dispose(): void {
 		if (this._smoothScrolling) {
 			this._smoothScrolling.dispose();
 			this._smoothScrolling = null;
 		}
-		super.dispose();
+		this._store.dispose();
 	}
 
 	public setSmoothScrollDuration(smoothScrollDuration: number): void {

@@ -6,11 +6,22 @@
 import * as dom from '../Dom';
 import type { IMouseEvent } from './mouseEvent';
 import { StandardMouseEvent } from './mouseEvent';
-import { Disposable } from '$lib/common/Lifecycle';
+import { DisposableStore } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
 
-export abstract class Widget extends Disposable {
+export abstract class Widget {
+	protected readonly _store = new DisposableStore();
+
+	public dispose(): void {
+		this._store.dispose();
+	}
+
+	protected _register<T extends IDisposable>(o: T): T {
+		return this._store.add(o);
+	}
+
 	protected _onclick(domNode: HTMLElement, listener: (e: IMouseEvent) => void): void {
-		this._register(
+		this._store.add(
 			dom.addDisposableListener(domNode, dom.eventType.CLICK, (e: MouseEvent) =>
 				listener(new StandardMouseEvent(dom.getWindow(domNode), e))
 			)
@@ -18,7 +29,7 @@ export abstract class Widget extends Disposable {
 	}
 
 	protected _onmouseover(domNode: HTMLElement, listener: (e: IMouseEvent) => void): void {
-		this._register(
+		this._store.add(
 			dom.addDisposableListener(domNode, dom.eventType.MOUSE_OVER, (e: MouseEvent) =>
 				listener(new StandardMouseEvent(dom.getWindow(domNode), e))
 			)
@@ -26,7 +37,7 @@ export abstract class Widget extends Disposable {
 	}
 
 	protected _onmouseleave(domNode: HTMLElement, listener: (e: IMouseEvent) => void): void {
-		this._register(
+		this._store.add(
 			dom.addDisposableListener(domNode, dom.eventType.MOUSE_LEAVE, (e: MouseEvent) =>
 				listener(new StandardMouseEvent(dom.getWindow(domNode), e))
 			)

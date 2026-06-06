@@ -5,7 +5,7 @@
 
 import * as DomUtils from '../Dom';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { Disposable, DISPOSABLE_NONE, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, DISPOSABLE_NONE, toDisposable } from '$lib/common/Lifecycle';
 
 const mainWindow = (typeof window === 'object' ? window : globalThis) as Window & typeof globalThis;
 
@@ -196,7 +196,8 @@ interface ITouchEvent extends Event {
 	changedTouches: ITouchList;
 }
 
-export class Gesture extends Disposable {
+export class Gesture {
+	private readonly _store = new DisposableStore();
 	private static readonly _scrollFriction = -0.005;
 	private static _instance: Gesture;
 	private static readonly _holdDelay = 700;
@@ -213,14 +214,12 @@ export class Gesture extends Disposable {
 	private static readonly _clearTapCountTime = 400; // ms
 
 	private constructor() {
-		super();
-
 		this._activeTouches = {};
 		this._handle = null;
 		this._lastSetTapCountTime = 0;
 
 		const targetWindow = mainWindow;
-		this._register(
+		this._store.add(
 			DomUtils.addDisposableListener(
 				targetWindow.document,
 				'touchstart',
@@ -228,12 +227,12 @@ export class Gesture extends Disposable {
 				{ passive: false }
 			)
 		);
-		this._register(
+		this._store.add(
 			DomUtils.addDisposableListener(targetWindow.document, 'touchend', (e: ITouchEvent) =>
 				this._handleTouchEnd(targetWindow, e)
 			)
 		);
-		this._register(
+		this._store.add(
 			DomUtils.addDisposableListener(
 				targetWindow.document,
 				'touchmove',
@@ -272,13 +271,12 @@ export class Gesture extends Disposable {
 		return 'ontouchstart' in mainWindow || navigator.maxTouchPoints > 0;
 	}
 
-	public override dispose(): void {
+	public dispose(): void {
 		if (this._handle) {
 			this._handle.dispose();
 			this._handle = null;
 		}
-
-		super.dispose();
+		this._store.dispose();
 	}
 
 	private _handleTouchStart(e: ITouchEvent): void {
