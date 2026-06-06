@@ -31,7 +31,7 @@ export type FontWeight =
 /**
  * An object containing options for the terminal.
  */
-export interface ITerminalOptions {
+export type ITerminalOptions = {
 	/**
 	 * Whether to allow the use of proposed API. When false, any usage of APIs
 	 * marked as experimental/proposed will throw an error. The default is
@@ -333,13 +333,13 @@ export interface ITerminalOptions {
 	 * All features are disabled by default for security reasons.
 	 */
 	windowOptions?: IWindowOptions;
-}
+};
 
 /**
  * An object containing additional options for the terminal that can only be
  * set on start up.
  */
-export interface ITerminalInitOnlyOptions {
+export type ITerminalInitOnlyOptions = {
 	/**
 	 * The number of columns in the terminal.
 	 */
@@ -356,12 +356,12 @@ export interface ITerminalInitOnlyOptions {
 	 * is focused for the first time.
 	 */
 	showCursorImmediately?: boolean;
-}
+};
 
 /**
  * Contains colors to theme the terminal with.
  */
-export interface ITheme {
+export type ITheme = {
 	/** The default foreground color */
 	foreground?: string;
 	/** The default background color */
@@ -434,13 +434,13 @@ export interface ITheme {
 	brightWhite?: string;
 	/** ANSI extended colors (16-255) */
 	extendedAnsi?: string[];
-}
+};
 
 /**
  * Control various quirks features that are either non-standard or standard
  * in but generally rejected in modern terminals.
  */
-export interface ITerminalQuirks {
+export type ITerminalQuirks = {
 	/**
 	 * Enables support for DECSET 12 and DECRST 12 which controls cursor blink.
 	 * Programs such as `vim` may use this to set the cursor blink state but may
@@ -449,12 +449,12 @@ export interface ITerminalQuirks {
 	 * modern terminals. Note that DECRQM works regardless of this option.
 	 */
 	allowSetCursorBlink?: boolean;
-}
+};
 
 /**
  * Enable certain optional VT extensions.
  */
-export interface IVtExtensions {
+export type IVtExtensions = {
 	/**
 	 * Whether the [kitty keyboard protocol][0] (`CSI =|?|>|< u`) is enabled.
 	 * When enabled, the terminal will respond to keyboard protocol queries and
@@ -494,12 +494,12 @@ export interface IVtExtensions {
 	 * [0]: https://contour-terminal.org/vt-extensions/color-palette-update-notifications/
 	 */
 	colorSchemeQuery?: boolean;
-}
+};
 
 /**
  * Pty information for Windows.
  */
-export interface IWindowsPty {
+export type IWindowsPty = {
 	/**
 	 * What pty emulation backend is being used.
 	 */
@@ -508,7 +508,7 @@ export interface IWindowsPty {
 	 * The Windows build version (eg. 19045)
 	 */
 	buildNumber?: number;
-}
+};
 
 /**
  * An object that can be disposed via a dispose function.
@@ -541,7 +541,7 @@ export interface IMarker {
 /**
  * Represents a disposable that tracks is disposed state.
  */
-export interface IDisposableWithEvent {
+export type IDisposableWithEvent = {
 	dispose(): void;
 	/**
 	 * Event listener to get notified when this gets disposed.
@@ -552,7 +552,7 @@ export interface IDisposableWithEvent {
 	 * Whether this is disposed.
 	 */
 	readonly isDisposed: boolean;
-}
+};
 
 /**
  * Represents a decoration in the terminal that is associated with a
@@ -600,7 +600,7 @@ interface IDecorationOverviewRulerOptions {
 /*
  * Options that define the presentation of the decoration.
  */
-export interface IDecorationOptions {
+export type IDecorationOptions = {
 	/**
 	 * The line in the terminal where
 	 * the decoration will be displayed
@@ -657,12 +657,12 @@ export interface IDecorationOptions {
 	 * @param position The position of the decoration.
 	 */
 	overviewRulerOptions?: IDecorationOverviewRulerOptions;
-}
+};
 
 /**
  * The set of localizable strings.
  */
-export interface ILocalizableStrings {
+export type ILocalizableStrings = {
 	/**
 	 * The aria label for the underlying input textarea for the terminal.
 	 */
@@ -673,12 +673,12 @@ export interface ILocalizableStrings {
 	 * being printed to the terminal when `screenReaderMode` is enabled.
 	 */
 	tooMuchOutput: string;
-}
+};
 
 /**
  * Options for configuring the overview ruler rendered beside the scrollbar.
  */
-export interface IOverviewRulerOptions {
+export type IOverviewRulerOptions = {
 	/**
 	 * Whether to show the top border of the overview ruler, which uses the
 	 * {@link ITheme.overviewRulerBorder} color.
@@ -690,12 +690,12 @@ export interface IOverviewRulerOptions {
 	 * {@link ITheme.overviewRulerBorder} color.
 	 */
 	showBottomBorder?: boolean;
-}
+};
 
 /**
  * Options for configuring the scrollbar.
  */
-export interface IScrollbarOptions {
+export type IScrollbarOptions = {
 	/**
 	 * Whether to show the scrollbar. When false, this supersedes
 	 * {@link IScrollbarOptions.width}. Defaults to true.
@@ -718,7 +718,7 @@ export interface IScrollbarOptions {
 	 * decorations underneath the scroll bar.
 	 */
 	overviewRuler?: IOverviewRulerOptions;
-}
+};
 
 /**
  * Enable various window manipulation and report features
@@ -747,7 +747,7 @@ export interface IScrollbarOptions {
  * Therefore all options (even those without a default implementation) are
  * guarded by the boolean flag and disabled by default.
  */
-export interface IWindowOptions {
+export type IWindowOptions = {
 	/**
 	 * Ps=1    De-iconify window.
 	 * No default implementation.
@@ -875,7 +875,7 @@ export interface IWindowOptions {
 	 * enable / disable DECCOLM (earlier variant of DECSLPP).
 	 */
 	setWinLines?: boolean;
-}
+};
 
 /**
  * The class that represents an xterm.js terminal.
@@ -1402,7 +1402,7 @@ export interface ITerminalAddon {
 /**
  * An object representing a range within the viewport of the terminal.
  */
-export interface IViewportRange {
+export type IViewportRange = {
 	/**
 	 * The start of the range.
 	 */
@@ -1412,7 +1412,7 @@ export interface IViewportRange {
 	 * The end of the range.
 	 */
 	end: IViewportRangePosition;
-}
+};
 
 /**
  * An object representing a cell position within the viewport of the terminal.
@@ -1557,7 +1557,7 @@ interface ILinkDecorations {
 /**
  * A range within a buffer.
  */
-export interface IBufferRange {
+export type IBufferRange = {
 	/**
 	 * The start position of the range.
 	 */
@@ -1567,7 +1567,7 @@ export interface IBufferRange {
 	 * The end position of the range.
 	 */
 	end: IBufferCellPosition;
-}
+};
 
 /**
  * A position within a buffer.
@@ -1642,13 +1642,13 @@ export interface IBuffer {
 	getNullCell(): IBufferCell;
 }
 
-export interface IBufferElementProvider {
+export type IBufferElementProvider = {
 	/**
 	 * Provides a document fragment or HTMLElement containing the buffer
 	 * elements.
 	 */
 	provideBufferElements(): DocumentFragment | HTMLElement;
-}
+};
 
 /**
  * Represents the terminal's set of buffers.
@@ -1722,7 +1722,7 @@ interface IBufferLine {
 /**
  * Represents a single cell in the terminal's buffer.
  */
-export interface IBufferCell {
+export type IBufferCell = {
 	/**
 	 * The width of the character. Some examples:
 	 *
@@ -1843,7 +1843,7 @@ export interface IBufferCell {
 	 * underline variant offsets.
 	 */
 	attributesEquals(other: IBufferCell): boolean;
-}
+};
 
 /**
  * Data type to register a CSI, DCS or ESC callback in the parser
@@ -1871,7 +1871,7 @@ export interface IBufferCell {
  * Notes: OSC command registration is handled differently (see addOscHandler)
  *        APC, PM or SOS is currently not supported.
  */
-export interface IFunctionIdentifier {
+export type IFunctionIdentifier = {
 	/**
 	 * Optional prefix byte, must be in range \x3c .. \x3f.
 	 * Usable in CSI and DCS.
@@ -1887,7 +1887,7 @@ export interface IFunctionIdentifier {
 	 * \x30 .. \x7e for ESC and APC.
 	 */
 	final: string;
-}
+};
 
 /**
  * Allows hooking into the parser for custom handling of escape sequences.
@@ -2044,7 +2044,7 @@ export interface IUnicodeHandling {
 /**
  * Terminal modes as set by SM/DECSET.
  */
-export interface IModes {
+export type IModes = {
 	/**
 	 * Application Cursor Keys (DECCKM): `CSI ? 1 h`
 	 */
@@ -2104,83 +2104,29 @@ export interface IModes {
 	 * Auto-Wrap Mode (DECAWM): `CSI ? 7 h`
 	 */
 	readonly wraparoundMode: boolean;
-}
+};
 
 /**
  * An object containing a width and height in pixels.
  */
-export interface IDimensions {
+export type IDimensions = {
 	width: number;
 	height: number;
-}
+};
 
 /**
  * An object containing a top and left offset.
  */
-export interface IOffset {
+export type IOffset = {
 	top: number;
 	left: number;
-}
-
-/**
- * The dimensions of the terminal.
- */
-export interface IRenderDimensions {
-	/**
-	 * Dimensions measured in CSS pixels (ie. device pixels / device pixel
-	 * ratio).
-	 */
-	css: {
-		/**
-		 * The dimensions of the canvas.
-		 */
-		canvas: IDimensions;
-		/**
-		 * The dimensions of a single cell.
-		 */
-		cell: IDimensions;
-	};
-	/**
-	 * Dimensions measured in actual pixels as rendered to the device.
-	 */
-	device: {
-		/**
-		 * The dimensions of the canvas.
-		 */
-		canvas: IDimensions;
-		/**
-		 * The dimensions of a single cell.
-		 */
-		cell: IDimensions;
-		/**
-		 * The dimensions of a single character within a cell, including its
-		 * offset within the cell.
-		 */
-		char: IDimensions & IOffset;
-	};
-}
-
-/**
- * An object containing a width and height in pixels.
- */
-export interface IDimensions {
-	width: number;
-	height: number;
-}
-
-/**
- * An object containing a top and left offset.
- */
-export interface IOffset {
-	top: number;
-	left: number;
-}
+};
 
 /**
  * The dimensions of the terminal, this is constructed and available after
  * {@link Terminal.open} is called.
  */
-export interface IRenderDimensions {
+export type IRenderDimensions = {
 	/**
 	 * Dimensions measured in CSS pixels (ie. device pixels / device pixel
 	 * ratio).
@@ -2213,4 +2159,4 @@ export interface IRenderDimensions {
 		 */
 		char: IDimensions & IOffset;
 	};
-}
+};
