@@ -31,7 +31,7 @@
 		terminal.open(element);
 
 		const observer = new ResizeObserver(() => {
-			const dims = proposeDimensions(element, terminal.dimensions, terminal.options);
+			const dims = proposeDimensions(terminal.element!, terminal.dimensions, terminal.options);
 			if (dims && !isNaN(dims.cols) && !isNaN(dims.rows)) {
 				terminal.resize(dims.cols, dims.rows);
 			}
