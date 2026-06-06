@@ -90,7 +90,7 @@ import { IDecorationService } from '$lib/common/services/Services';
 import { WindowsOptionsReportType } from '../common/InputHandler';
 import { AccessibilityManager } from './AccessibilityManager';
 import { Linkifier } from './Linkifier';
-import { LegacyEmitter, EventUtils } from '$lib/common/Event';
+import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
@@ -801,10 +801,13 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 			})
 		);
 		this._register(
-			EventUtils.any(
-				this._onScroll.event,
-				this._inputHandler.onScroll
-			)(() => {
+			((listener: (e: void) => void) => {
+				const store = new DisposableStore();
+				for (const event of [this._onScroll.event, this._inputHandler.onScroll]) {
+					store.add(event((e) => listener(e)));
+				}
+				return store;
+			})(() => {
 				this._selectionService!.refresh();
 				this._viewport?.queueSync();
 			})

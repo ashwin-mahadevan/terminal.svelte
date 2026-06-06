@@ -66,20 +66,4 @@ export namespace EventUtils {
 		return from((e) => to.fire(e));
 	}
 
-	export function map<I, O>(event: IEvent<I>, map: (i: I) => O): IEvent<O> {
-		return (listener: (e: O) => void) => event((i) => listener(map(i)));
-	}
-
-	export function any<T>(...events: IEvent<T>[]): IEvent<T>;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	export function any(...events: IEvent<any>[]): IEvent<void>;
-	export function any<T>(...events: IEvent<T>[]): IEvent<T> {
-		return (listener: (e: T) => void) => {
-			const store = new DisposableStore();
-			for (const event of events) {
-				store.add(event((e) => listener(e)));
-			}
-			return store;
-		};
-	}
 }
