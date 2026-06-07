@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Terminal } from '$lib/browser/public/Terminal';
-	import { proposeDimensions } from '$lib/FitAddon';
+	import { ViewportConstants } from '$lib/browser/shared/Constants';
 	import { ClipboardAddon } from '$lib/ClipboardAddon';
 	import { WebFontsAddon } from '$lib/WebFontsAddon';
 	import { ProgressAddon } from '$lib/ProgressAddon';
@@ -19,6 +19,8 @@
 	let terminal: Terminal;
 	let element: HTMLDivElement;
 	let serializeAddon: SerializeAddon;
+	let clientWidth = $state<number>();
+	let clientHeight = $state<number>();
 
 	onMount(() => {
 		terminal = new Terminal();
@@ -30,18 +32,22 @@
 		terminal.loadAddon(serializeAddon);
 		terminal.open(element);
 
-		const observer = new ResizeObserver(() => {
-			const dims = proposeDimensions(terminal.element!, terminal.dimensions, terminal.options);
-			if (dims && !isNaN(dims.cols) && !isNaN(dims.rows)) {
-				terminal.resize(dims.cols, dims.rows);
-			}
-		});
-		observer.observe(element);
+		return () => terminal.dispose();
+	});
 
-		return () => {
-			observer.disconnect();
-			terminal.dispose();
-		};
+	$effect(() => {
+		if (!clientWidth || !clientHeight || !terminal) return;
+		const dims = terminal.dimensions;
+		if (!dims || dims.css.cell.width === 0 || dims.css.cell.height === 0) return;
+		const showScrollbar = terminal.options.scrollbar?.showScrollbar ?? true;
+		const scrollbarWidth =
+			terminal.options.scrollback === 0 || !showScrollbar
+				? 0
+				: (terminal.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
+		terminal.resize(
+			Math.max(2, Math.floor((clientWidth - scrollbarWidth) / dims.css.cell.width)),
+			Math.max(1, Math.floor(clientHeight / dims.css.cell.height))
+		);
 	});
 
 	$effect(() => {
@@ -69,7 +75,7 @@
 	}
 </script>
 
-<div style:height="100%" bind:this={element}></div>
+<div style:height="100%" bind:this={element} bind:clientWidth bind:clientHeight></div>
 
 <!--
 	Copyright (c) 2014 The xterm.js authors. All rights reserved.
