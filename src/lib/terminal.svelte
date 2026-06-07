@@ -37,16 +37,15 @@
 
 	$effect(() => {
 		if (!clientWidth || !clientHeight || !terminal) return;
-		const dims = terminal.dimensions;
-		if (!dims || dims.css.cell.width === 0 || dims.css.cell.height === 0) return;
+
 		const showScrollbar = terminal.options.scrollbar?.showScrollbar ?? true;
 		const scrollbarWidth =
 			terminal.options.scrollback === 0 || !showScrollbar
 				? 0
 				: (terminal.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
 		terminal.resize(
-			Math.max(2, Math.floor((clientWidth - scrollbarWidth) / dims.css.cell.width)),
-			Math.max(1, Math.floor(clientHeight / dims.css.cell.height))
+			Math.max(2, Math.floor((clientWidth - scrollbarWidth) / terminal.dimensions!.css.cell.width)),
+			Math.max(1, Math.floor(clientHeight / terminal!.dimensions!.css.cell.height))
 		);
 	});
 
