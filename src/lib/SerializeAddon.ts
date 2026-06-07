@@ -616,7 +616,7 @@ export class SerializeAddon implements ITerminalAddon {
 		this._terminal = terminal;
 	}
 
-	private _serializeBufferByScrollback(
+	private static _serializeBufferByScrollback(
 		terminal: Terminal,
 		buffer: IBuffer,
 		scrollback?: number
@@ -624,7 +624,7 @@ export class SerializeAddon implements ITerminalAddon {
 		const maxRows = buffer.length;
 		const correctRows =
 			scrollback === undefined ? maxRows : constrain(scrollback + terminal.rows, 0, maxRows);
-		return this._serializeBufferByRange(
+		return SerializeAddon._serializeBufferByRange(
 			terminal,
 			buffer,
 			{
@@ -635,7 +635,7 @@ export class SerializeAddon implements ITerminalAddon {
 		);
 	}
 
-	private _serializeBufferByRange(
+	private static _serializeBufferByRange(
 		terminal: Terminal,
 		buffer: IBuffer,
 		range: ISerializeRange,
@@ -651,7 +651,7 @@ export class SerializeAddon implements ITerminalAddon {
 		);
 	}
 
-	private _serializeBufferAsHTML(
+	private static _serializeBufferAsHTML(
 		terminal: Terminal,
 		options: Partial<IHTMLSerializeOptions>
 	): string {
@@ -682,7 +682,7 @@ export class SerializeAddon implements ITerminalAddon {
 			});
 		}
 
-		const selection = this._terminal?.getSelectionPosition();
+		const selection = terminal.getSelectionPosition();
 		if (selection !== undefined) {
 			return handler.serialize({
 				start: { x: selection.start.x, y: selection.start.y },
@@ -697,7 +697,7 @@ export class SerializeAddon implements ITerminalAddon {
 	 * Serializes the scroll region (DECSTBM) if it's not set to the full terminal size.
 	 * Uses internal API access since scroll region is not exposed in the public API.
 	 */
-	private _serializeScrollRegion(terminal: Terminal): string {
+	private static _serializeScrollRegion(terminal: Terminal): string {
 		// HACK: Internal API access since scroll region is not exposed in the public API
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -714,7 +714,7 @@ export class SerializeAddon implements ITerminalAddon {
 		return '';
 	}
 
-	private _serializeModes(terminal: Terminal): string {
+	private static _serializeModes(terminal: Terminal): string {
 		let content = '';
 		const modes = terminal.modes;
 
@@ -766,13 +766,13 @@ export class SerializeAddon implements ITerminalAddon {
 
 		// Normal buffer
 		let content = options?.range
-			? this._serializeBufferByRange(
+			? SerializeAddon._serializeBufferByRange(
 					this._terminal,
 					this._terminal.buffer.normal,
 					options.range,
 					true
 				)
-			: this._serializeBufferByScrollback(
+			: SerializeAddon._serializeBufferByScrollback(
 					this._terminal,
 					this._terminal.buffer.normal,
 					options?.scrollback
@@ -781,7 +781,7 @@ export class SerializeAddon implements ITerminalAddon {
 		// Alternate buffer
 		if (!options?.excludeAltBuffer) {
 			if (this._terminal.buffer.active.type === 'alternate') {
-				const alternativeScreenContent = this._serializeBufferByScrollback(
+				const alternativeScreenContent = SerializeAddon._serializeBufferByScrollback(
 					this._terminal,
 					this._terminal.buffer.alternate,
 					undefined
@@ -792,8 +792,8 @@ export class SerializeAddon implements ITerminalAddon {
 
 		// Modes and scroll region
 		if (!options?.excludeModes) {
-			content += this._serializeModes(this._terminal);
-			content += this._serializeScrollRegion(this._terminal);
+			content += SerializeAddon._serializeModes(this._terminal);
+			content += SerializeAddon._serializeScrollRegion(this._terminal);
 		}
 
 		return content;
@@ -804,7 +804,7 @@ export class SerializeAddon implements ITerminalAddon {
 			throw new Error('Cannot use addon until it has been loaded');
 		}
 
-		return this._serializeBufferAsHTML(this._terminal, options ?? {});
+		return SerializeAddon._serializeBufferAsHTML(this._terminal, options ?? {});
 	}
 
 	public dispose(): void {}
