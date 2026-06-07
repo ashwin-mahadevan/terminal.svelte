@@ -758,32 +758,32 @@ export class SerializeAddon implements ITerminalAddon {
 		return content;
 	}
 
-	public serialize(options?: ISerializeOptions): string {
+	public static serialize(terminal: Terminal, options?: ISerializeOptions): string {
 		// TODO: Add combinedData support
-		if (!this._terminal) {
+		if (!terminal) {
 			throw new Error('Cannot use addon until it has been loaded');
 		}
 
 		// Normal buffer
 		let content = options?.range
 			? SerializeAddon._serializeBufferByRange(
-					this._terminal,
-					this._terminal.buffer.normal,
+					terminal,
+					terminal.buffer.normal,
 					options.range,
 					true
 				)
 			: SerializeAddon._serializeBufferByScrollback(
-					this._terminal,
-					this._terminal.buffer.normal,
+					terminal,
+					terminal.buffer.normal,
 					options?.scrollback
 				);
 
 		// Alternate buffer
 		if (!options?.excludeAltBuffer) {
-			if (this._terminal.buffer.active.type === 'alternate') {
+			if (terminal.buffer.active.type === 'alternate') {
 				const alternativeScreenContent = SerializeAddon._serializeBufferByScrollback(
-					this._terminal,
-					this._terminal.buffer.alternate,
+					terminal,
+					terminal.buffer.alternate,
 					undefined
 				);
 				content += `\u001b[?1049h\u001b[H${alternativeScreenContent}`;
@@ -792,8 +792,8 @@ export class SerializeAddon implements ITerminalAddon {
 
 		// Modes and scroll region
 		if (!options?.excludeModes) {
-			content += SerializeAddon._serializeModes(this._terminal);
-			content += SerializeAddon._serializeScrollRegion(this._terminal);
+			content += SerializeAddon._serializeModes(terminal);
+			content += SerializeAddon._serializeScrollRegion(terminal);
 		}
 
 		return content;

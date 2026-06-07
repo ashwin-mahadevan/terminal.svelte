@@ -67,7 +67,7 @@
 	}
 
 	export function serialize(options?: ISerializeOptions): string {
-		return serializeAddon.serialize(options);
+		return SerializeAddon.serialize(terminal, options);
 	}
 
 	export function serializeAsHTML(options?: Partial<IHTMLSerializeOptions>): string {
