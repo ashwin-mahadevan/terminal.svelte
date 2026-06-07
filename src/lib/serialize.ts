@@ -5,14 +5,7 @@
  * (EXPERIMENTAL) This Addon is still under development
  */
 
-import type {
-	IBuffer,
-	IBufferCell,
-	IBufferRange,
-	IMarker,
-	ITerminalAddon,
-	Terminal
-} from '$lib/xterm';
+import type { IBuffer, IBufferCell, IBufferRange, IMarker, Terminal } from '$lib/xterm';
 import type { IAttributeData, IColor } from '$lib/common/Types';
 import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 import { UnderlineStyle } from '$lib/common/buffer/Constants';
@@ -609,204 +602,180 @@ class StringSerializeHandler extends BaseSerializeHandler {
 	}
 }
 
-export class SerializeAddon implements ITerminalAddon {
-	public activate(): void {}
+function _serializeBufferByScrollback(
+	terminal: Terminal,
+	buffer: IBuffer,
+	scrollback?: number
+): string {
+	const maxRows = buffer.length;
+	const correctRows =
+		scrollback === undefined ? maxRows : constrain(scrollback + terminal.rows, 0, maxRows);
+	return _serializeBufferByRange(
+		terminal,
+		buffer,
+		{
+			start: maxRows - correctRows,
+			end: maxRows - 1
+		},
+		false
+	);
+}
 
-	private static _serializeBufferByScrollback(
-		terminal: Terminal,
-		buffer: IBuffer,
-		scrollback?: number
-	): string {
+function _serializeBufferByRange(
+	terminal: Terminal,
+	buffer: IBuffer,
+	range: ISerializeRange,
+	excludeFinalCursorPosition: boolean
+): string {
+	const handler = new StringSerializeHandler(buffer, terminal);
+	return handler.serialize(
+		{
+			start: { x: 0, y: typeof range.start === 'number' ? range.start : range.start.line },
+			end: { x: terminal.cols, y: typeof range.end === 'number' ? range.end : range.end.line }
+		},
+		excludeFinalCursorPosition
+	);
+}
+
+function _serializeBufferAsHTML(
+	terminal: Terminal,
+	options: Partial<IHTMLSerializeOptions>
+): string {
+	const buffer = terminal.buffer.active;
+	const handler = new HTMLSerializeHandler(buffer, terminal, options);
+	const onlySelection = options.onlySelection ?? false;
+	const range = options.range;
+	if (range) {
+		return handler.serialize({
+			start: {
+				x: range.startCol,
+				y: typeof range.startLine === 'number' ? range.startLine : range.startLine
+			},
+			end: {
+				x: terminal.cols,
+				y: typeof range.endLine === 'number' ? range.endLine : range.endLine
+			}
+		});
+	}
+	if (!onlySelection) {
 		const maxRows = buffer.length;
+		const scrollback = options.scrollback;
 		const correctRows =
 			scrollback === undefined ? maxRows : constrain(scrollback + terminal.rows, 0, maxRows);
-		return SerializeAddon._serializeBufferByRange(
-			terminal,
-			buffer,
-			{
-				start: maxRows - correctRows,
-				end: maxRows - 1
-			},
-			false
-		);
+		return handler.serialize({
+			start: { x: 0, y: maxRows - correctRows },
+			end: { x: terminal.cols, y: maxRows - 1 }
+		});
 	}
 
-	private static _serializeBufferByRange(
-		terminal: Terminal,
-		buffer: IBuffer,
-		range: ISerializeRange,
-		excludeFinalCursorPosition: boolean
-	): string {
-		const handler = new StringSerializeHandler(buffer, terminal);
-		return handler.serialize(
-			{
-				start: { x: 0, y: typeof range.start === 'number' ? range.start : range.start.line },
-				end: { x: terminal.cols, y: typeof range.end === 'number' ? range.end : range.end.line }
-			},
-			excludeFinalCursorPosition
-		);
+	const selection = terminal.getSelectionPosition();
+	if (selection !== undefined) {
+		return handler.serialize({
+			start: { x: selection.start.x, y: selection.start.y },
+			end: { x: selection.end.x, y: selection.end.y }
+		});
 	}
 
-	private static _serializeBufferAsHTML(
-		terminal: Terminal,
-		options: Partial<IHTMLSerializeOptions>
-	): string {
-		const buffer = terminal.buffer.active;
-		const handler = new HTMLSerializeHandler(buffer, terminal, options);
-		const onlySelection = options.onlySelection ?? false;
-		const range = options.range;
-		if (range) {
-			return handler.serialize({
-				start: {
-					x: range.startCol,
-					y: typeof range.startLine === 'number' ? range.startLine : range.startLine
-				},
-				end: {
-					x: terminal.cols,
-					y: typeof range.endLine === 'number' ? range.endLine : range.endLine
-				}
-			});
-		}
-		if (!onlySelection) {
-			const maxRows = buffer.length;
-			const scrollback = options.scrollback;
-			const correctRows =
-				scrollback === undefined ? maxRows : constrain(scrollback + terminal.rows, 0, maxRows);
-			return handler.serialize({
-				start: { x: 0, y: maxRows - correctRows },
-				end: { x: terminal.cols, y: maxRows - 1 }
-			});
-		}
+	return '';
+}
 
-		const selection = terminal.getSelectionPosition();
-		if (selection !== undefined) {
-			return handler.serialize({
-				start: { x: selection.start.x, y: selection.start.y },
-				end: { x: selection.end.x, y: selection.end.y }
-			});
-		}
+/**
+ * Serializes the scroll region (DECSTBM) if it's not set to the full terminal size.
+ * Uses internal API access since scroll region is not exposed in the public API.
+ */
+function _serializeScrollRegion(terminal: Terminal): string {
+	// HACK: Internal API access since scroll region is not exposed in the public API
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const buffer = (terminal as any)._core.buffer;
+	const scrollTop: number = buffer.scrollTop;
+	const scrollBottom: number = buffer.scrollBottom;
 
-		return '';
+	// Only serialize if scroll region is not the default (full terminal size)
+	if (scrollTop !== 0 || scrollBottom !== terminal.rows - 1) {
+		// DECSTBM uses 1-based indices: CSI Ps ; Ps r
+		return `\x1b[${scrollTop + 1};${scrollBottom + 1}r`;
 	}
 
-	/**
-	 * Serializes the scroll region (DECSTBM) if it's not set to the full terminal size.
-	 * Uses internal API access since scroll region is not exposed in the public API.
-	 */
-	private static _serializeScrollRegion(terminal: Terminal): string {
-		// HACK: Internal API access since scroll region is not exposed in the public API
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const buffer = (terminal as any)._core.buffer;
-		const scrollTop: number = buffer.scrollTop;
-		const scrollBottom: number = buffer.scrollBottom;
+	return '';
+}
 
-		// Only serialize if scroll region is not the default (full terminal size)
-		if (scrollTop !== 0 || scrollBottom !== terminal.rows - 1) {
-			// DECSTBM uses 1-based indices: CSI Ps ; Ps r
-			return `\x1b[${scrollTop + 1};${scrollBottom + 1}r`;
+function _serializeModes(terminal: Terminal): string {
+	let content = '';
+	const modes = terminal.modes;
+
+	// Default: false
+	if (modes.applicationCursorKeysMode) content += '\x1b[?1h';
+	if (modes.applicationKeypadMode) content += '\x1b[?66h';
+	if (modes.bracketedPasteMode) content += '\x1b[?2004h';
+	if (modes.insertMode) content += '\x1b[4h';
+	if (modes.originMode) content += '\x1b[?6h';
+	if (modes.reverseWraparoundMode) content += '\x1b[?45h';
+	if (modes.sendFocusMode) content += '\x1b[?1004h';
+	// synchronizedOutputMode doesn't need to be serialized as it's a temporary mode
+
+	// Default: true
+	if (modes.wraparoundMode === false) content += '\x1b[?7l';
+
+	// Default: 'none'
+	if (modes.mouseTrackingMode !== 'none') {
+		switch (modes.mouseTrackingMode) {
+			case 'x10':
+				content += '\x1b[?9h';
+				break;
+			case 'vt200':
+				content += '\x1b[?1000h';
+				break;
+			case 'drag':
+				content += '\x1b[?1002h';
+				break;
+			case 'any':
+				content += '\x1b[?1003h';
+				break;
 		}
-
-		return '';
 	}
 
-	private static _serializeModes(terminal: Terminal): string {
-		let content = '';
-		const modes = terminal.modes;
-
-		// Default: false
-		if (modes.applicationCursorKeysMode) content += '\x1b[?1h';
-		if (modes.applicationKeypadMode) content += '\x1b[?66h';
-		if (modes.bracketedPasteMode) content += '\x1b[?2004h';
-		if (modes.insertMode) content += '\x1b[4h';
-		if (modes.originMode) content += '\x1b[?6h';
-		if (modes.reverseWraparoundMode) content += '\x1b[?45h';
-		if (modes.sendFocusMode) content += '\x1b[?1004h';
-		// synchronizedOutputMode doesn't need to be serialized as it's a temporary mode
-
-		// Default: true
-		if (modes.wraparoundMode === false) content += '\x1b[?7l';
-
-		// Default: 'none'
-		if (modes.mouseTrackingMode !== 'none') {
-			switch (modes.mouseTrackingMode) {
-				case 'x10':
-					content += '\x1b[?9h';
-					break;
-				case 'vt200':
-					content += '\x1b[?1000h';
-					break;
-				case 'drag':
-					content += '\x1b[?1002h';
-					break;
-				case 'any':
-					content += '\x1b[?1003h';
-					break;
-			}
-		}
-
-		// Cursor visibility (DECTCEM)
-		// Default: visible
-		if (!modes.showCursor) {
-			content += '\x1b[?25l';
-		}
-
-		return content;
+	// Cursor visibility (DECTCEM)
+	// Default: visible
+	if (!modes.showCursor) {
+		content += '\x1b[?25l';
 	}
 
-	public static serialize(terminal: Terminal, options?: ISerializeOptions): string {
-		// TODO: Add combinedData support
-		if (!terminal) {
-			throw new Error('Cannot use addon until it has been loaded');
+	return content;
+}
+
+export function serialize(terminal: Terminal, options?: ISerializeOptions): string {
+	// Normal buffer
+	let content = options?.range
+		? _serializeBufferByRange(terminal, terminal.buffer.normal, options.range, true)
+		: _serializeBufferByScrollback(terminal, terminal.buffer.normal, options?.scrollback);
+
+	// Alternate buffer
+	if (!options?.excludeAltBuffer) {
+		if (terminal.buffer.active.type === 'alternate') {
+			const alternativeScreenContent = _serializeBufferByScrollback(
+				terminal,
+				terminal.buffer.alternate,
+				undefined
+			);
+			content += `\u001b[?1049h\u001b[H${alternativeScreenContent}`;
 		}
-
-		// Normal buffer
-		let content = options?.range
-			? SerializeAddon._serializeBufferByRange(
-					terminal,
-					terminal.buffer.normal,
-					options.range,
-					true
-				)
-			: SerializeAddon._serializeBufferByScrollback(
-					terminal,
-					terminal.buffer.normal,
-					options?.scrollback
-				);
-
-		// Alternate buffer
-		if (!options?.excludeAltBuffer) {
-			if (terminal.buffer.active.type === 'alternate') {
-				const alternativeScreenContent = SerializeAddon._serializeBufferByScrollback(
-					terminal,
-					terminal.buffer.alternate,
-					undefined
-				);
-				content += `\u001b[?1049h\u001b[H${alternativeScreenContent}`;
-			}
-		}
-
-		// Modes and scroll region
-		if (!options?.excludeModes) {
-			content += SerializeAddon._serializeModes(terminal);
-			content += SerializeAddon._serializeScrollRegion(terminal);
-		}
-
-		return content;
 	}
 
-	public static serializeAsHTML(
-		terminal: Terminal,
-		options?: Partial<IHTMLSerializeOptions>
-	): string {
-		if (!terminal) {
-			throw new Error('Cannot use addon until it has been loaded');
-		}
-
-		return SerializeAddon._serializeBufferAsHTML(terminal, options ?? {});
+	// Modes and scroll region
+	if (!options?.excludeModes) {
+		content += _serializeModes(terminal);
+		content += _serializeScrollRegion(terminal);
 	}
 
-	public dispose(): void {}
+	return content;
+}
+
+export function serializeAsHTML(
+	terminal: Terminal,
+	options?: Partial<IHTMLSerializeOptions>
+): string {
+	return _serializeBufferAsHTML(terminal, options ?? {});
 }
 
 export class HTMLSerializeHandler extends BaseSerializeHandler {
