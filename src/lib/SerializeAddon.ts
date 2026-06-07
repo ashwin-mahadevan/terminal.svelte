@@ -610,11 +610,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 }
 
 export class SerializeAddon implements ITerminalAddon {
-	private _terminal: Terminal | undefined;
-
-	public activate(terminal: Terminal): void {
-		this._terminal = terminal;
-	}
+	public activate(): void {}
 
 	private static _serializeBufferByScrollback(
 		terminal: Terminal,
@@ -799,12 +795,15 @@ export class SerializeAddon implements ITerminalAddon {
 		return content;
 	}
 
-	public serializeAsHTML(options?: Partial<IHTMLSerializeOptions>): string {
-		if (!this._terminal) {
+	public static serializeAsHTML(
+		terminal: Terminal,
+		options?: Partial<IHTMLSerializeOptions>
+	): string {
+		if (!terminal) {
 			throw new Error('Cannot use addon until it has been loaded');
 		}
 
-		return SerializeAddon._serializeBufferAsHTML(this._terminal, options ?? {});
+		return SerializeAddon._serializeBufferAsHTML(terminal, options ?? {});
 	}
 
 	public dispose(): void {}

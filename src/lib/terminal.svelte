@@ -71,7 +71,7 @@
 	}
 
 	export function serializeAsHTML(options?: Partial<IHTMLSerializeOptions>): string {
-		return serializeAddon.serializeAsHTML(options);
+		return SerializeAddon.serializeAsHTML(terminal, options);
 	}
 </script>
 
