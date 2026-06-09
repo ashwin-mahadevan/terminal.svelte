@@ -4,7 +4,7 @@
  */
 
 import { IRenderService } from '$lib/browser/services/Services';
-import { IBufferService, ICoreService, IOptionsService } from '$lib/common/services/Services';
+import { IBufferService, ICoreService } from '$lib/common/services/Services';
 import { C0 } from '$lib/common/data/EscapeSequences';
 
 interface IPosition {
@@ -58,7 +58,6 @@ export class CompositionHelper {
 		private readonly _textarea: HTMLTextAreaElement,
 		private readonly _compositionView: HTMLElement,
 		@IBufferService private readonly _bufferService: IBufferService,
-		@IOptionsService private readonly _optionsService: IOptionsService,
 		@ICoreService private readonly _coreService: ICoreService,
 		@IRenderService private readonly _renderService: IRenderService
 	) {
@@ -270,8 +269,7 @@ export class CompositionHelper {
 			this._compositionView.style.top = cursorTop + 'px';
 			this._compositionView.style.height = cellHeight + 'px';
 			this._compositionView.style.lineHeight = cellHeight + 'px';
-			this._compositionView.style.fontFamily = this._optionsService.rawOptions.fontFamily;
-			this._compositionView.style.fontSize = this._optionsService.rawOptions.fontSize + 'px';
+			// Font is inherited from the terminal's CSS font.
 			// Limit the composition view width to the space between the cursor and
 			// the terminal's right edge, preventing it from overflowing the terminal.
 			const maxWidth =

@@ -408,8 +408,10 @@ export class DomRenderer implements IRenderer {
 	 */
 	private _refreshWidthCacheFont(): void {
 		const style = this._coreBrowserService.window.getComputedStyle(this._rowContainer);
-		const fontFamily = style.fontFamily || this._optionsService.rawOptions.fontFamily;
-		const fontSize = parseFloat(style.fontSize) || this._optionsService.rawOptions.fontSize;
+		// Fallbacks cover the rare case where the rows are not yet laid out
+		// (e.g. detached); a real value arrives on the next char-size change.
+		const fontFamily = style.fontFamily || 'monospace';
+		const fontSize = parseFloat(style.fontSize) || 15;
 		this._widthCache.setFont(
 			fontFamily,
 			fontSize,

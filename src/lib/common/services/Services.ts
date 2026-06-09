@@ -252,8 +252,6 @@ export interface ITerminalOptions {
 	documentOverride?: any | null;
 	drawBoldTextInBrightColors?: boolean;
 	fastScrollSensitivity?: number;
-	fontSize?: number;
-	fontFamily?: string;
 	fontWeight?: FontWeight;
 	fontWeightBold?: FontWeight;
 	ignoreBracketedPasteMode?: boolean;

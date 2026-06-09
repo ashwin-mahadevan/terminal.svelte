@@ -463,9 +463,10 @@ export class AccessibilityManager {
 		if (!this._renderService.dimensions.css.cell.height) {
 			return;
 		}
+		// Font size is inherited from the terminal's CSS font; only the width
+		// needs to track the rendered canvas.
 		Object.assign(this._accessibilityContainer.style, {
-			width: `${this._renderService.dimensions.css.canvas.width}px`,
-			fontSize: `${this._terminal.options.fontSize}px`
+			width: `${this._renderService.dimensions.css.canvas.width}px`
 		});
 		if (this._rowElements.length !== this._terminal.rows) {
 			this._handleResize(this._terminal.rows);

@@ -20,8 +20,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	drawBoldTextInBrightColors: true,
 	documentOverride: null,
 	fastScrollSensitivity: 5,
-	fontFamily: 'monospace',
-	fontSize: 15,
 	fontWeight: 'normal',
 	fontWeightBold: 'bold',
 	ignoreBracketedPasteMode: false,

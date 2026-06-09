@@ -123,16 +123,6 @@ export type ITerminalOptions = {
 	fastScrollSensitivity?: number;
 
 	/**
-	 * The font size used to render text.
-	 */
-	fontSize?: number;
-
-	/**
-	 * The font family used to render text.
-	 */
-	fontFamily?: string;
-
-	/**
 	 * The font weight used to render non-bold text.
 	 */
 	fontWeight?: FontWeight;
@@ -950,12 +940,12 @@ export class Terminal implements IDisposable {
 	 *
 	 * @example Get a single option
 	 * ```ts
-	 * console.log(terminal.options.fontSize);
+	 * console.log(terminal.options.scrollback);
 	 * ```
 	 *
 	 * @example Set a single option:
 	 * ```ts
-	 * terminal.options.fontSize = 12;
+	 * terminal.options.scrollback = 1000;
 	 * ```
 	 * Note that for options that are object, a new object must be used in order
 	 * to take effect as a reference comparison will be done:
@@ -973,8 +963,8 @@ export class Terminal implements IDisposable {
 	 * @example Set multiple options
 	 * ```ts
 	 * terminal.options = {
-	 *   fontSize: 12,
-	 *   fontFamily: 'Courier New'
+	 *   scrollback: 1000,
+	 *   tabStopWidth: 4
 	 * };
 	 * ```
 	 */

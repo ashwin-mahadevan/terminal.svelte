@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { CompositionHelper } from '$lib/browser/input/CompositionHelper';
-import { MockCoreService, MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
+import { MockCoreService, MockBufferService } from '$lib/common/TestUtils';
 
 // NOTE: $lib/browser/TestUtils currently fails to import under
 // verbatimModuleSyntax (its `$lib/xterm` type-only import is not elided), so the
@@ -66,7 +66,6 @@ function setupCompositionHelper() {
 		textarea,
 		compositionView,
 		bufferService,
-		new MockOptionsService(),
 		coreService,
 		new MockRenderService()
 	);

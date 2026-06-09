@@ -135,8 +135,6 @@ export class RenderService implements IRenderService {
 				'drawBoldTextInBrightColors',
 				'letterSpacing',
 				'lineHeight',
-				'fontFamily',
-				'fontSize',
 				'fontWeight',
 				'fontWeightBold',
 				'minimumContrastRatio',
