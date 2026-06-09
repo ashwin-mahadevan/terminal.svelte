@@ -1,1 +1,1 @@
-export { default as Terminal } from "$lib/terminal.svelte"
+export { default as Terminal } from '$lib/terminal.svelte';
