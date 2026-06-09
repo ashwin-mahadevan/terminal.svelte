@@ -17,16 +17,24 @@
 	});
 </script>
 
-<Terminal
-	bind:this={terminal}
-	ondata={(data) => socket.emit('input', data)}
-	onresize={({ cols, rows }) => socket.emit('resize', cols, rows)}
-/>
+<main>
+	<Terminal
+		bind:this={terminal}
+		ondata={(data) => socket.emit('input', data)}
+		onresize={({ cols, rows }) => socket.emit('resize', cols, rows)}
+	/>
+</main>
 
 <style>
 	:global(html, body) {
 		margin: 0;
 		height: 100%;
 		background: #000;
+	}
+
+	main {
+		height: 100%;
+		/* The terminal inherits its font from CSS; supply a monospace family. */
+		font-family: monospace;
 	}
 </style>
