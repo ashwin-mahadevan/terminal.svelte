@@ -6,8 +6,7 @@
  */
 
 import type { IBuffer, IBufferCell, IBufferRange, IMarker, Terminal } from '$lib/xterm';
-import type { IAttributeData, IColor } from '$lib/common/Types';
-import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
+import type { IAttributeData } from '$lib/common/Types';
 import { UnderlineStyle } from '$lib/common/buffer/Constants';
 
 export interface ISerializeOptions {
@@ -35,37 +34,6 @@ export interface ISerializeOptions {
 	excludeAltBuffer?: boolean;
 }
 
-export interface IHTMLSerializeOptions {
-	/**
-	 * The number of rows in the scrollback buffer to serialize, starting from the bottom of the
-	 * scrollback buffer. When not specified, all available rows in the scrollback buffer will be
-	 * serialized. This setting is ignored if {@link IHTMLSerializeOptions.onlySelection} is true.
-	 */
-	scrollback: number;
-
-	/**
-	 * Whether to only serialize the selection. If false, the whole active buffer is serialized in HTML.
-	 * False by default.
-	 */
-	onlySelection: boolean;
-
-	/**
-	 * Whether to include the global background of the terminal. False by default.
-	 */
-	includeGlobalBackground: boolean;
-
-	/**
-	 * The range to serialize. This is prioritized over {@link onlySelection}.
-	 */
-	range?: ISerializeBufferRange;
-}
-
-export interface ISerializeBufferRange {
-	startLine: number;
-	endLine: number;
-	startCol: number;
-}
-
 export interface ISerializeRange {
 	/**
 	 * The line to start serializing (inclusive).
@@ -79,16 +47,6 @@ export interface ISerializeRange {
 
 function constrain(value: number, low: number, high: number): number {
 	return Math.max(low, Math.min(value, high));
-}
-
-function escapeHTMLChar(c: string): string {
-	switch (c) {
-		case '&':
-			return '&amp;';
-		case '<':
-			return '&lt;';
-	}
-	return c;
 }
 
 // TODO: Refine this template class later
@@ -637,48 +595,6 @@ function _serializeBufferByRange(
 	);
 }
 
-function _serializeBufferAsHTML(
-	terminal: Terminal,
-	options: Partial<IHTMLSerializeOptions>
-): string {
-	const buffer = terminal.buffer.active;
-	const handler = new HTMLSerializeHandler(buffer, terminal, options);
-	const onlySelection = options.onlySelection ?? false;
-	const range = options.range;
-	if (range) {
-		return handler.serialize({
-			start: {
-				x: range.startCol,
-				y: typeof range.startLine === 'number' ? range.startLine : range.startLine
-			},
-			end: {
-				x: terminal.cols,
-				y: typeof range.endLine === 'number' ? range.endLine : range.endLine
-			}
-		});
-	}
-	if (!onlySelection) {
-		const maxRows = buffer.length;
-		const scrollback = options.scrollback;
-		const correctRows =
-			scrollback === undefined ? maxRows : constrain(scrollback + terminal.rows, 0, maxRows);
-		return handler.serialize({
-			start: { x: 0, y: maxRows - correctRows },
-			end: { x: terminal.cols, y: maxRows - 1 }
-		});
-	}
-
-	const selection = terminal.getSelectionPosition();
-	if (selection !== undefined) {
-		return handler.serialize({
-			start: { x: selection.start.x, y: selection.start.y },
-			end: { x: selection.end.x, y: selection.end.y }
-		});
-	}
-
-	return '';
-}
-
 /**
  * Serializes the scroll region (DECSTBM) if it's not set to the full terminal size.
  * Uses internal API access since scroll region is not exposed in the public API.
@@ -769,217 +685,4 @@ export function serialize(terminal: Terminal, options?: ISerializeOptions): stri
 	}
 
 	return content;
-}
-
-export function serializeAsHTML(
-	terminal: Terminal,
-	options?: Partial<IHTMLSerializeOptions>
-): string {
-	return _serializeBufferAsHTML(terminal, options ?? {});
-}
-
-export class HTMLSerializeHandler extends BaseSerializeHandler {
-	private _currentRow: string = '';
-
-	private _htmlContent = '';
-
-	private _ansiColors: Readonly<IColor[]>;
-
-	constructor(
-		buffer: IBuffer,
-		private readonly _terminal: Terminal,
-		private readonly _options: Partial<IHTMLSerializeOptions>
-	) {
-		super(buffer);
-
-		// For xterm headless: fallback to ansi colors
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		if ((_terminal as any)._core._themeService) {
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			this._ansiColors = (_terminal as any)._core._themeService.colors.ansi;
-		} else {
-			this._ansiColors = DEFAULT_ANSI_COLORS;
-		}
-	}
-
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected _beforeSerialize(rows: number, start: number, end: number): void {
-		this._htmlContent += '<html><body><!--StartFragment--><pre>';
-
-		let foreground = '#000000';
-		let background = '#ffffff';
-		if (this._options.includeGlobalBackground ?? false) {
-			foreground = this._terminal.options.theme?.foreground ?? '#ffffff';
-			background = this._terminal.options.theme?.background ?? '#000000';
-		}
-
-		const globalStyleDefinitions = [];
-		globalStyleDefinitions.push('color: ' + foreground + ';');
-		globalStyleDefinitions.push('background-color: ' + background + ';');
-		globalStyleDefinitions.push('font-family: ' + this._terminal.options.fontFamily + ';');
-		globalStyleDefinitions.push('font-size: ' + this._terminal.options.fontSize + 'px;');
-		this._htmlContent += "<div style='" + globalStyleDefinitions.join(' ') + "'>";
-	}
-
-	protected _afterSerialize(): void {
-		this._htmlContent += '</div>';
-		this._htmlContent += '</pre><!--EndFragment--></body></html>';
-	}
-
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected _rowEnd(row: number, isLastRow: boolean): void {
-		this._htmlContent += '<div><span>' + this._currentRow + '</span></div>';
-		this._currentRow = '';
-	}
-
-	private _getHexColor(cell: IBufferCell, isFg: boolean): string | undefined {
-		const color = isFg ? cell.getFgColor() : cell.getBgColor();
-		if (isFg ? cell.isFgRGB() : cell.isBgRGB()) {
-			const rgb = [(color >> 16) & 255, (color >> 8) & 255, color & 255];
-			return '#' + rgb.map((x) => x.toString(16).padStart(2, '0')).join('');
-		}
-		if (isFg ? cell.isFgPalette() : cell.isBgPalette()) {
-			return this._ansiColors[color].css;
-		}
-		return undefined;
-	}
-
-	private _getUnderlineColor(cell: IBufferCell): string | undefined {
-		if (cell.isUnderlineColorDefault()) {
-			return undefined;
-		}
-		const color = cell.getUnderlineColor();
-		if (cell.isUnderlineColorRGB()) {
-			const rgb = [(color >> 16) & 255, (color >> 8) & 255, color & 255];
-			return '#' + rgb.map((x) => x.toString(16).padStart(2, '0')).join('');
-		}
-		// Palette color
-		return this._ansiColors[color].css;
-	}
-
-	private _getUnderlineStyle(cell: IBufferCell): string {
-		switch (cell.getUnderlineStyle()) {
-			case UnderlineStyle.SINGLE:
-				return 'underline';
-			case UnderlineStyle.DOUBLE:
-				return 'underline double';
-			case UnderlineStyle.CURLY:
-				return 'underline wavy';
-			case UnderlineStyle.DOTTED:
-				return 'underline dotted';
-			case UnderlineStyle.DASHED:
-				return 'underline dashed';
-			default:
-				return 'underline';
-		}
-	}
-
-	private _diffStyle(cell: IBufferCell, oldCell: IBufferCell): string[] | undefined {
-		const content: string[] = [];
-
-		if (attributesEquals(cell, oldCell)) {
-			return undefined;
-		}
-
-		const fgChanged = !equalFg(cell, oldCell);
-		const bgChanged = !equalBg(cell, oldCell);
-		const flagsChanged = !equalFlags(cell, oldCell);
-
-		if (fgChanged || bgChanged || flagsChanged) {
-			const fgHexColor = this._getHexColor(cell, true);
-			if (fgHexColor) {
-				content.push('color: ' + fgHexColor + ';');
-			}
-
-			const bgHexColor = this._getHexColor(cell, false);
-			if (bgHexColor) {
-				content.push('background-color: ' + bgHexColor + ';');
-			}
-
-			if (cell.isInverse()) {
-				content.push('color: #000000; background-color: #BFBFBF;');
-			}
-			if (cell.isBold()) {
-				content.push('font-weight: bold;');
-			}
-
-			// Handle text-decoration (underline, overline, strikethrough, blink)
-			const decorations: string[] = [];
-			if (cell.isUnderline()) {
-				decorations.push(this._getUnderlineStyle(cell));
-			}
-			if (cell.isOverline()) {
-				decorations.push('overline');
-			}
-			if (cell.isStrikethrough()) {
-				decorations.push('line-through');
-			}
-			if (cell.isBlink()) {
-				decorations.push('blink');
-			}
-			if (decorations.length > 0) {
-				content.push('text-decoration: ' + decorations.join(' ') + ';');
-			}
-
-			// Handle underline color
-			if (cell.isUnderline()) {
-				const underlineColor = this._getUnderlineColor(cell);
-				if (underlineColor) {
-					content.push('text-decoration-color: ' + underlineColor + ';');
-				}
-			}
-
-			if (cell.isInvisible()) {
-				content.push('visibility: hidden;');
-			}
-			if (cell.isItalic()) {
-				content.push('font-style: italic;');
-			}
-			if (cell.isDim()) {
-				content.push('opacity: 0.5;');
-			}
-
-			return content;
-		}
-
-		return undefined;
-	}
-
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected _nextCell(cell: IBufferCell, oldCell: IBufferCell, row: number, col: number): void {
-		// a width 0 cell don't need to be count because it is just a placeholder after a CJK character;
-		const isPlaceHolderCell = cell.getWidth() === 0;
-		if (isPlaceHolderCell) {
-			return;
-		}
-
-		// this cell don't have content
-		const isEmptyCell = cell.getChars() === '';
-
-		const styleDefinitions = this._diffStyle(cell, oldCell);
-
-		// handles style change
-		if (styleDefinitions) {
-			this._currentRow +=
-				styleDefinitions.length === 0
-					? '</span><span>'
-					: "</span><span style='" + styleDefinitions.join(' ') + "'>";
-		}
-
-		// handles actual content
-		if (isEmptyCell) {
-			this._currentRow += ' ';
-		} else {
-			this._currentRow += escapeHTMLChar(cell.getChars());
-		}
-	}
-
-	protected _serializeString(): string {
-		return this._htmlContent;
-	}
 }

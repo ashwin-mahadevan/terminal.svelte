@@ -6,11 +6,8 @@
 	import { WebFontsAddon } from '$lib/WebFontsAddon';
 	import { ProgressAddon } from '$lib/ProgressAddon';
 	import { WebLinksAddon } from '$lib/WebLinksAddon';
-	import {
-		serialize as internalSerialize,
-		serializeAsHTML as internalSerializeAsHTML
-	} from '$lib/serialize';
-	import type { ISerializeOptions, IHTMLSerializeOptions } from '$lib/serialize';
+	import { serialize as internalSerialize } from '$lib/serialize';
+	import type { ISerializeOptions } from '$lib/serialize';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -67,10 +64,6 @@
 
 	export function serialize(options?: ISerializeOptions): string {
 		return internalSerialize(terminal, options);
-	}
-
-	export function serializeAsHTML(options?: Partial<IHTMLSerializeOptions>): string {
-		return internalSerializeAsHTML(terminal, options);
 	}
 </script>
 
