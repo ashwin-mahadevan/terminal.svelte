@@ -42,8 +42,6 @@
 	$effect(() => {
 		if (!clientWidth || !clientHeight || !terminal || !measureWidth || !measureHeight) return;
 
-		// Feed the externally-measured cell size in first; this synchronously
-		// updates terminal.dimensions, which the cols/rows math below reads.
 		terminal.setCharSize(measureWidth / MEASURE_COLS, measureHeight);
 
 		const showScrollbar = terminal.options.scrollbar?.showScrollbar ?? true;
@@ -85,15 +83,6 @@
 	bind:clientWidth
 	bind:clientHeight
 >
-	<!--
-		Hidden cell-measuring element. It lives inside the host so it shares the
-		exact same font cascade as the rendered rows — both inherit from
-		`.terminal-host` — so its measured box is the true cell size regardless of
-		what font the consumer sets. `white-space: pre` + `font-kerning: none` stop
-		the glyphs collapsing or kerning, so its width is exactly MEASURE_COLS
-		advance widths. xterm only appends its own root next to this span, so the
-		span survives untouched.
-	-->
 	<span
 		class="cell-measure"
 		aria-hidden="true"
@@ -403,7 +392,6 @@
 		top: 0;
 		left: -9999px;
 		visibility: hidden;
-		/* inline elements report clientWidth/clientHeight as 0 */
 		display: inline-block;
 		padding: 0;
 		border: 0;
