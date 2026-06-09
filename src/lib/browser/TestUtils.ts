@@ -13,7 +13,6 @@ import type {
 } from '$lib/xterm';
 import type {
 	ICharacterJoinerService,
-	ICharSizeService,
 	ICoreBrowserService,
 	IMouseService,
 	IRenderService,
@@ -108,6 +107,10 @@ export class MockTerminal implements ITerminal {
 	public onRender!: IEvent<{ start: number; end: number }>;
 	public onResize!: IEvent<{ cols: number; rows: number }>;
 	public onDimensionsChange!: IEvent<IRenderDimensionsApi>;
+	public onCharSizeChange: IEvent<void> = new LegacyEmitter<void>().event;
+	public charWidth: number = 0;
+	public charHeight: number = 0;
+	public hasValidCharSize: boolean = false;
 	public dimensions: IRenderDimensionsApi | undefined;
 	public markers!: IMarker[];
 	public linkifier: ILinkifier2 | undefined;
@@ -624,23 +627,6 @@ export class MockCoreBrowserService implements ICoreBrowserService {
 		throw Error('Document object not available in tests');
 	}
 	public dpr: number = 1;
-}
-
-export class MockCharSizeService implements ICharSizeService {
-	public serviceBrand: undefined;
-	public get hasValidSize(): boolean {
-		return this.width > 0 && this.height > 0;
-	}
-	public onCharSizeChange: IEvent<void> = new LegacyEmitter<void>().event;
-	constructor(
-		public width: number,
-		public height: number
-	) {}
-	public setSize(width: number, height: number): void {
-		this.width = width;
-		this.height = height;
-	}
-	public measure(): void {}
 }
 
 export class MockMouseService implements IMouseService {

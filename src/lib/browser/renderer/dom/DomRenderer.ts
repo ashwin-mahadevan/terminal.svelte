@@ -15,11 +15,7 @@ import type {
 	IRequestRedrawEvent,
 	ISelectionRenderModel
 } from '$lib/browser/renderer/shared/Types';
-import {
-	ICharSizeService,
-	ICoreBrowserService,
-	IThemeService
-} from '$lib/browser/services/Services';
+import { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
 import type { ILinkifier2, ILinkifierEvent, ITerminal, ReadonlyColorSet } from '$lib/browser/Types';
 import { color } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -88,7 +84,6 @@ export class DomRenderer implements IRenderer {
 		private readonly _helperContainer: HTMLElement,
 		private readonly _linkifier2: ILinkifier2,
 		@IInstantiationService instantiationService: IInstantiationService,
-		@ICharSizeService private readonly _charSizeService: ICharSizeService,
 		@IOptionsService private readonly _optionsService: IOptionsService,
 		@IBufferService private readonly _bufferService: IBufferService,
 		@ICoreService private readonly _coreService: ICoreService,
@@ -165,8 +160,8 @@ export class DomRenderer implements IRenderer {
 
 	private _updateDimensions(): void {
 		const dpr = this._coreBrowserService.dpr;
-		this.dimensions.device.char.width = this._charSizeService.width * dpr;
-		this.dimensions.device.char.height = Math.ceil(this._charSizeService.height * dpr);
+		this.dimensions.device.char.width = this._terminal.charWidth * dpr;
+		this.dimensions.device.char.height = Math.ceil(this._terminal.charHeight * dpr);
 		this.dimensions.device.cell.width =
 			this.dimensions.device.char.width + Math.round(this._optionsService.rawOptions.letterSpacing);
 		this.dimensions.device.cell.height = Math.floor(
@@ -227,7 +222,7 @@ export class DomRenderer implements IRenderer {
 			`}`;
 		// Font family/size are intentionally omitted: the font is declared in
 		// CSS by the host and inherited by the rows. Cell geometry comes from
-		// the host's measurement via CharSizeService.setSize().
+		// the host's measurement via Terminal.setCharSize().
 		styles +=
 			`${this._terminalSelector} .${Constants.ROW_CONTAINER_CLASS}, ${this._terminalSelector} .${Constants.ROW_CONTAINER_CLASS} span {` +
 			` font-kerning: none;` +
@@ -352,7 +347,7 @@ export class DomRenderer implements IRenderer {
 	 * (render speedup is roughly 10%).
 	 */
 	private _setDefaultSpacing(): void {
-		// measure same char as in CharSizeService to get the base deviation
+		// measure the same char the host measures ('W') to get the base deviation
 		const spacing = this.dimensions.css.cell.width - this._widthCache.get('W', false, false);
 		this._rowContainer.style.letterSpacing = `${spacing}px`;
 		this._rowFactory.defaultSpacing = spacing;

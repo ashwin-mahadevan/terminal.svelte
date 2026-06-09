@@ -6,12 +6,9 @@
 import { RenderDebouncer } from '$lib/browser/RenderDebouncer';
 import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
+import type { ITerminal } from '$lib/browser/Types';
 import type { IRenderService } from '$lib/browser/services/Services';
-import {
-	ICharSizeService,
-	ICoreBrowserService,
-	IThemeService
-} from '$lib/browser/services/Services';
+import { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
@@ -81,10 +78,10 @@ export class RenderService implements IRenderService {
 	}
 
 	constructor(
+		terminal: ITerminal,
 		private _rowCount: number,
 		screenElement: HTMLElement,
 		@IOptionsService private readonly _optionsService: IOptionsService,
-		@ICharSizeService private readonly _charSizeService: ICharSizeService,
 		@ICoreService private readonly _coreService: ICoreService,
 		@IDecorationService decorationService: IDecorationService,
 		@IBufferService bufferService: IBufferService,
@@ -115,9 +112,7 @@ export class RenderService implements IRenderService {
 		this._optionChangeListener = this._optionsService.onOptionChange(() =>
 			this._handleOptionsChanged()
 		);
-		this._charSizeChangeListener = this._charSizeService.onCharSizeChange(() =>
-			this.handleCharSizeChanged()
-		);
+		this._charSizeChangeListener = terminal.onCharSizeChange(() => this.handleCharSizeChanged());
 
 		// Do a full refresh whenever any decoration is added or removed. This may not actually result
 		// in changes but since decorations should be used sparingly or added/removed all in the same
@@ -208,11 +203,6 @@ export class RenderService implements IRenderService {
 		this._isPaused =
 			entry.isIntersecting === undefined ? entry.intersectionRatio === 0 : !entry.isIntersecting;
 		this._renderer.value?.handleViewportVisibilityChange?.(!this._isPaused);
-
-		// Terminal was hidden on open
-		if (!this._isPaused && !this._charSizeService.hasValidSize) {
-			this._charSizeService.measure();
-		}
 
 		if (!this._isPaused && this._needsFullRefresh) {
 			this._pausedResizeTask.flush();
@@ -357,10 +347,6 @@ export class RenderService implements IRenderService {
 	}
 
 	public handleDevicePixelRatioChange(): void {
-		// Force char size measurement as DomMeasureStrategy(getBoundingClientRect) is not stable
-		// when devicePixelRatio changes
-		this._charSizeService.measure();
-
 		if (!this._renderer.value) {
 			return;
 		}
