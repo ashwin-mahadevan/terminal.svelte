@@ -78,20 +78,29 @@
 	}
 </script>
 
-<div style:height="100%" bind:this={element} bind:clientWidth bind:clientHeight></div>
-
-<!--
-	Hidden cell-measuring element. It inherits the same CSS font as the rendered
-	rows (see `--term-font-*` below), so its measured box is the true cell size.
-	`white-space: pre` + `font-kerning: none` keep the glyphs from collapsing or
-	kerning, so its width is exactly MEASURE_COLS advance widths.
--->
-<span
-	class="cell-measure"
-	aria-hidden="true"
-	bind:clientWidth={measureWidth}
-	bind:clientHeight={measureHeight}>WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW</span
+<div
+	class="terminal-host"
+	style:height="100%"
+	bind:this={element}
+	bind:clientWidth
+	bind:clientHeight
 >
+	<!--
+		Hidden cell-measuring element. It lives inside the host so it shares the
+		exact same font cascade as the rendered rows — both inherit from
+		`.terminal-host` — so its measured box is the true cell size regardless of
+		what font the consumer sets. `white-space: pre` + `font-kerning: none` stop
+		the glyphs collapsing or kerning, so its width is exactly MEASURE_COLS
+		advance widths. xterm only appends its own root next to this span, so the
+		span survives untouched.
+	-->
+	<span
+		class="cell-measure"
+		aria-hidden="true"
+		bind:clientWidth={measureWidth}
+		bind:clientHeight={measureHeight}>WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW</span
+	>
+</div>
 
 <!--
 	Copyright (c) 2014 The xterm.js authors. All rights reserved.
@@ -377,20 +386,16 @@
 	}
 
 	/*
-		The terminal font now lives entirely in CSS. The rows inherit it from
-		`.xterm`, and the hidden measuring span inherits the same values, so the
-		measured cell size always matches what is rendered. Change the font here
-		— no JS, no relayout() call — and the ResizeObserver behind
-		`bind:clientWidth` re-drives the grid.
+		The terminal font is not managed here — it is whatever CSS resolves on the
+		host. Both the rendered rows (inside xterm's `.xterm` child) and the hidden
+		measuring span inherit from `.terminal-host`, so the measured cell size
+		always matches what is rendered. The only default is `monospace`, since a
+		proportional font breaks a fixed grid; override it from the consumer with a
+		normal `font` rule on the terminal or any ancestor — no JS, no relayout(),
+		the ResizeObserver behind `bind:clientWidth` re-drives the grid.
 	*/
-	:global(:root) {
-		--term-font-family: ui-monospace, 'Cascadia Code', 'Courier New', monospace;
-		--term-font-size: 15px;
-	}
-
-	:global(.xterm) {
-		font-family: var(--term-font-family);
-		font-size: var(--term-font-size);
+	.terminal-host {
+		font-family: monospace;
 	}
 
 	.cell-measure {
@@ -405,7 +410,5 @@
 		white-space: pre;
 		font-kerning: none;
 		line-height: normal;
-		font-family: var(--term-font-family);
-		font-size: var(--term-font-size);
 	}
 </style>
