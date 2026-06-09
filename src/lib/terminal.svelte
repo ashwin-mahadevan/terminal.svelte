@@ -3,7 +3,6 @@
 	import { Terminal } from '$lib/browser/public/Terminal';
 	import { ViewportConstants } from '$lib/browser/shared/Constants';
 	import { ClipboardAddon } from '$lib/ClipboardAddon';
-	import { WebFontsAddon } from '$lib/WebFontsAddon';
 	import { ProgressAddon } from '$lib/ProgressAddon';
 	import { WebLinksAddon } from '$lib/WebLinksAddon';
 	import { serialize as internalSerialize } from '$lib/serialize';
@@ -21,10 +20,18 @@
 	let clientWidth = $state<number>();
 	let clientHeight = $state<number>();
 
+	// Cell size, measured from a hidden CSS-styled element. `measureWidth` is
+	// the width of MEASURE_COLS glyphs (divided out for sub-pixel precision,
+	// since clientWidth is integer-rounded); `measureHeight` is one line box.
+	// `bind:clientWidth` is backed by a ResizeObserver, so these re-fire when
+	// an async web font finishes loading and reflows the element.
+	const MEASURE_COLS = 32;
+	let measureWidth = $state<number>();
+	let measureHeight = $state<number>();
+
 	onMount(() => {
 		terminal = new Terminal();
 		terminal.loadAddon(new ClipboardAddon());
-		terminal.loadAddon(new WebFontsAddon());
 		terminal.loadAddon(new ProgressAddon());
 		terminal.loadAddon(new WebLinksAddon());
 		terminal.open(element);
@@ -33,7 +40,11 @@
 	});
 
 	$effect(() => {
-		if (!clientWidth || !clientHeight || !terminal) return;
+		if (!clientWidth || !clientHeight || !terminal || !measureWidth || !measureHeight) return;
+
+		// Feed the externally-measured cell size in first; this synchronously
+		// updates terminal.dimensions, which the cols/rows math below reads.
+		terminal.setCharSize(measureWidth / MEASURE_COLS, measureHeight);
 
 		const showScrollbar = terminal.options.scrollbar?.showScrollbar ?? true;
 		const scrollbarWidth =
@@ -68,6 +79,19 @@
 </script>
 
 <div style:height="100%" bind:this={element} bind:clientWidth bind:clientHeight></div>
+
+<!--
+	Hidden cell-measuring element. It inherits the same CSS font as the rendered
+	rows (see `--term-font-*` below), so its measured box is the true cell size.
+	`white-space: pre` + `font-kerning: none` keep the glyphs from collapsing or
+	kerning, so its width is exactly MEASURE_COLS advance widths.
+-->
+<span
+	class="cell-measure"
+	aria-hidden="true"
+	bind:clientWidth={measureWidth}
+	bind:clientHeight={measureHeight}>WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW</span
+>
 
 <!--
 	Copyright (c) 2014 The xterm.js authors. All rights reserved.
@@ -350,5 +374,38 @@
 		.xterm .xterm-scrollable-element > .shadow.top.left {
 			box-shadow: var(--vscode-scrollbar-shadow, #000) 6px 0 6px -6px inset;
 		}
+	}
+
+	/*
+		The terminal font now lives entirely in CSS. The rows inherit it from
+		`.xterm`, and the hidden measuring span inherits the same values, so the
+		measured cell size always matches what is rendered. Change the font here
+		— no JS, no relayout() call — and the ResizeObserver behind
+		`bind:clientWidth` re-drives the grid.
+	*/
+	:global(:root) {
+		--term-font-family: ui-monospace, 'Cascadia Code', 'Courier New', monospace;
+		--term-font-size: 15px;
+	}
+
+	:global(.xterm) {
+		font-family: var(--term-font-family);
+		font-size: var(--term-font-size);
+	}
+
+	.cell-measure {
+		position: absolute;
+		top: 0;
+		left: -9999px;
+		visibility: hidden;
+		/* inline elements report clientWidth/clientHeight as 0 */
+		display: inline-block;
+		padding: 0;
+		border: 0;
+		white-space: pre;
+		font-kerning: none;
+		line-height: normal;
+		font-family: var(--term-font-family);
+		font-size: var(--term-font-size);
 	}
 </style>
