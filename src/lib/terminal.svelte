@@ -84,8 +84,17 @@
 	bind:clientHeight
 >
 	<span
-		class="cell-measure"
 		aria-hidden="true"
+		style:position="absolute"
+		style:top="0"
+		style:left="-9999px"
+		style:visibility="hidden"
+		style:display="inline-block"
+		style:padding="0"
+		style:border="0"
+		style:white-space="pre"
+		style:font-kerning="none"
+		style:line-height="normal"
 		bind:clientWidth={measureWidth}
 		bind:clientHeight={measureHeight}>WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW</span
 	>
@@ -372,28 +381,5 @@
 		.xterm .xterm-scrollable-element > .shadow.top.left {
 			box-shadow: var(--vscode-scrollbar-shadow, #000) 6px 0 6px -6px inset;
 		}
-	}
-
-	/*
-		The terminal font is not managed here — it is whatever CSS resolves on the
-		host via normal inheritance. Both the rendered rows (inside xterm's `.xterm`
-		child) and the hidden measuring span inherit it, so the measured cell size
-		always matches what is rendered. Set `font-family`/`font-size` from the
-		consumer with a plain CSS rule on the terminal or any ancestor — no JS, no
-		relayout(); the ResizeObserver behind `bind:clientWidth` re-drives the grid.
-		There is no default font: a proportional font breaks the fixed grid, so the
-		consumer is responsible for keeping it monospaced.
-	*/
-	.cell-measure {
-		position: absolute;
-		top: 0;
-		left: -9999px;
-		visibility: hidden;
-		display: inline-block;
-		padding: 0;
-		border: 0;
-		white-space: pre;
-		font-kerning: none;
-		line-height: normal;
 	}
 </style>
