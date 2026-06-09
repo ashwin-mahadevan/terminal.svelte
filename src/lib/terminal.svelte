@@ -376,17 +376,14 @@
 
 	/*
 		The terminal font is not managed here — it is whatever CSS resolves on the
-		host. Both the rendered rows (inside xterm's `.xterm` child) and the hidden
-		measuring span inherit from `.terminal-host`, so the measured cell size
-		always matches what is rendered. The only default is `monospace`, since a
-		proportional font breaks a fixed grid; override it from the consumer with a
-		normal `font` rule on the terminal or any ancestor — no JS, no relayout(),
-		the ResizeObserver behind `bind:clientWidth` re-drives the grid.
+		host via normal inheritance. Both the rendered rows (inside xterm's `.xterm`
+		child) and the hidden measuring span inherit it, so the measured cell size
+		always matches what is rendered. Set `font-family`/`font-size` from the
+		consumer with a plain CSS rule on the terminal or any ancestor — no JS, no
+		relayout(); the ResizeObserver behind `bind:clientWidth` re-drives the grid.
+		There is no default font: a proportional font breaks the fixed grid, so the
+		consumer is responsible for keeping it monospaced.
 	*/
-	.terminal-host {
-		font-family: monospace;
-	}
-
 	.cell-measure {
 		position: absolute;
 		top: 0;
