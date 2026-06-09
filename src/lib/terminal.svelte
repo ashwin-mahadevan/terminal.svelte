@@ -96,7 +96,8 @@
 		style:font-kerning="none"
 		style:line-height="normal"
 		bind:clientWidth={measureWidth}
-		bind:clientHeight={measureHeight}>WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW</span
+		bind:clientHeight={measureHeight}
+		>{#each Array(MEASURE_COLS).keys() as i (i)}W{/each}</span
 	>
 </div>
 
