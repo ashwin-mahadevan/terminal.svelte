@@ -23,6 +23,7 @@ export interface ICharSizeService {
 
 	readonly onCharSizeChange: IEvent<void>;
 
+	setSize(width: number, height: number): void;
 	measure(): void;
 }
 

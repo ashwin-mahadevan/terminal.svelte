@@ -140,12 +140,7 @@ export class DomRenderer implements IRenderer {
 		);
 
 		this._widthCache = new WidthCache();
-		this._widthCache.setFont(
-			this._optionsService.rawOptions.fontFamily,
-			this._optionsService.rawOptions.fontSize,
-			this._optionsService.rawOptions.fontWeight,
-			this._optionsService.rawOptions.fontWeightBold
-		);
+		this._refreshWidthCacheFont();
 		this._setDefaultSpacing();
 	}
 
@@ -230,10 +225,11 @@ export class DomRenderer implements IRenderer {
 			` pointer-events: none;` +
 			` color: ${colors.foreground.css};` +
 			`}`;
+		// Font family/size are intentionally omitted: the font is declared in
+		// CSS by the host and inherited by the rows. Cell geometry comes from
+		// the host's measurement via CharSizeService.setSize().
 		styles +=
 			`${this._terminalSelector} .${Constants.ROW_CONTAINER_CLASS}, ${this._terminalSelector} .${Constants.ROW_CONTAINER_CLASS} span {` +
-			` font-family: ${this._optionsService.rawOptions.fontFamily};` +
-			` font-size: ${this._optionsService.rawOptions.fontSize}px;` +
 			` font-kerning: none;` +
 			` white-space: pre` +
 			`}`;
@@ -397,8 +393,29 @@ export class DomRenderer implements IRenderer {
 
 	public handleCharSizeChanged(): void {
 		this._updateDimensions();
+		// The font may have changed (e.g. an async web font loaded), so the
+		// glyph-width measurements must be re-taken against the live CSS font.
 		this._widthCache.clear();
+		this._refreshWidthCacheFont();
 		this._setDefaultSpacing();
+	}
+
+	/**
+	 * Point the glyph-width cache at the *computed* CSS font of the rows rather
+	 * than a font option. This keeps the canvas-measured widths (used to nudge
+	 * each glyph onto the grid) in sync with what the browser actually renders.
+	 * Weight still comes from options, which drive the bold/normal CSS classes.
+	 */
+	private _refreshWidthCacheFont(): void {
+		const style = this._coreBrowserService.window.getComputedStyle(this._rowContainer);
+		const fontFamily = style.fontFamily || this._optionsService.rawOptions.fontFamily;
+		const fontSize = parseFloat(style.fontSize) || this._optionsService.rawOptions.fontSize;
+		this._widthCache.setFont(
+			fontFamily,
+			fontSize,
+			this._optionsService.rawOptions.fontWeight,
+			this._optionsService.rawOptions.fontWeightBold
+		);
 	}
 
 	public handleBlur(): void {
@@ -571,12 +588,7 @@ export class DomRenderer implements IRenderer {
 		// Refresh CSS
 		this._injectCss(this._themeService.colors);
 		// update spacing cache
-		this._widthCache.setFont(
-			this._optionsService.rawOptions.fontFamily,
-			this._optionsService.rawOptions.fontSize,
-			this._optionsService.rawOptions.fontWeight,
-			this._optionsService.rawOptions.fontWeightBold
-		);
+		this._refreshWidthCacheFont();
 		this._setDefaultSpacing();
 	}
 

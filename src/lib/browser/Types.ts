@@ -29,6 +29,8 @@ export interface ITerminal extends InternalPassthroughApis, ICoreTerminal {
 
 	readonly dimensions: IRenderDimensionsApi | undefined;
 
+	setCharSize(width: number, height: number): void;
+
 	onBlur: IEvent<void>;
 	onFocus: IEvent<void>;
 	onDimensionsChange: IEvent<IRenderDimensionsApi>;

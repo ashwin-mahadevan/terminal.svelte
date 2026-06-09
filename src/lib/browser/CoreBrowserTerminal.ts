@@ -221,6 +221,17 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		};
 	}
 
+	/**
+	 * Set the cell size in CSS pixels, measured externally by the host (the
+	 * font is now CSS-driven rather than configured via options). This feeds
+	 * the single source of truth every consumer reads, so a change relayouts
+	 * the grid, scrollbar, selection and cursor exactly like the old internal
+	 * font measurement did.
+	 */
+	public setCharSize(width: number, height: number): void {
+		this._charSizeService?.setSize(width, height);
+	}
+
 	constructor(options: Partial<ITerminalOptions> = {}) {
 		super(options);
 
@@ -667,11 +678,7 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		this._register(addDisposableListener(this.textarea, 'blur', () => this._handleTextAreaBlur()));
 		this._helperContainer.appendChild(this.textarea);
 
-		this._charSizeService = this._instantiationService.createInstance(
-			CharSizeService,
-			this._document,
-			this._helperContainer
-		);
+		this._charSizeService = this._instantiationService.createInstance(CharSizeService);
 		this._instantiationService.setService(ICharSizeService, this._charSizeService);
 
 		this._themeService = this._instantiationService.createInstance(ThemeService);

@@ -156,6 +156,11 @@ export class MockTerminal implements ITerminal {
 	}
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	public setCharSize(width: number, height: number): void {
+		throw new Error('Method not implemented.');
+	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public writeln(data: string): void {
 		throw new Error('Method not implemented.');
 	}
@@ -631,6 +636,10 @@ export class MockCharSizeService implements ICharSizeService {
 		public width: number,
 		public height: number
 	) {}
+	public setSize(width: number, height: number): void {
+		this.width = width;
+		this.height = height;
+	}
 	public measure(): void {}
 }
 
