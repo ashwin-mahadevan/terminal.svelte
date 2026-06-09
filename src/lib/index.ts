@@ -1,1 +1,3 @@
-export { default as Terminal } from './terminal.svelte';
+import Terminal from './terminal.svelte';
+
+export default Terminal;
