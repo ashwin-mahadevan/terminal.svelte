@@ -3,7 +3,7 @@
 	import { Terminal } from '$lib/browser/public/Terminal';
 	import { ViewportConstants } from '$lib/browser/shared/Constants';
 	import { ProgressAddon } from '$lib/ProgressAddon';
-	import { WebLinksAddon } from '$lib/WebLinksAddon';
+	import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
 	import { setOrReportClipboard } from '$lib/clipboard';
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
@@ -32,7 +32,6 @@
 	onMount(() => {
 		terminal = new Terminal();
 		terminal.loadAddon(new ProgressAddon());
-		terminal.loadAddon(new WebLinksAddon());
 		terminal.open(element);
 
 		return () => terminal.dispose();
@@ -58,6 +57,14 @@
 	$effect(() => {
 		const disposable = terminal.parser.registerOscHandler(52, (data) =>
 			setOrReportClipboard(terminal, data)
+		);
+		return () => disposable.dispose();
+	});
+
+	// http(s) link detection, inlined from the upstream WebLinksAddon.
+	$effect(() => {
+		const disposable = terminal.registerLinkProvider(
+			new WebLinkProvider(terminal, strictUrlRegex, handleLink)
 		);
 		return () => disposable.dispose();
 	});

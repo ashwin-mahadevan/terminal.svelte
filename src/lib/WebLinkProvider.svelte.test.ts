@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Terminal } from '$lib/browser/public/Terminal';
-import { WebLinksAddon } from '$lib/WebLinksAddon';
+import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
 import type { ILink, ILinkProvider } from '$lib/xterm';
 
 /**
@@ -11,18 +11,19 @@ import type { ILink, ILinkProvider } from '$lib/xterm';
  * DOM (underlined spans) or reads back a `hover` callback's uri/range. That
  * pixel-level mouse interaction does not translate to a component test.
  *
- * Instead we load the real WebLinksAddon, capture the ILinkProvider it
- * registers, and invoke `provideLinks(row)` directly. This exercises the
- * addon's regex + WebLinkProvider/LinkComputer end-to-end (the same code the
- * hover path runs) and lets us assert on each link's `text` (uri) and `range`
- * deterministically. `link.range` is exactly the range the upstream `hover`
- * callback receives, so the "correct buffer offsets & uri" cases translate 1:1.
+ * The WebLinksAddon wrapper is now inlined into terminal.svelte, which
+ * registers a WebLinkProvider with `strictUrlRegex` and `handleLink`. We build
+ * that same provider here and invoke `provideLinks(row)` directly. This
+ * exercises the regex + WebLinkProvider/LinkComputer end-to-end (the same code
+ * the hover path runs) and lets us assert on each link's `text` (uri) and
+ * `range` deterministically. `link.range` is exactly the range the upstream
+ * `hover` callback receives, so the "correct buffer offsets & uri" cases
+ * translate 1:1.
  */
 
-describe('WebLinksAddon', () => {
+describe('WebLinkProvider', () => {
 	let term: Terminal;
 	let element: HTMLElement;
-	let addon: WebLinksAddon;
 	let provider: ILinkProvider;
 
 	beforeEach(() => {
@@ -30,23 +31,10 @@ describe('WebLinksAddon', () => {
 		document.body.appendChild(element);
 		term = new Terminal({ cols: 40, rows: 10 });
 		term.open(element);
-
-		// Capture the link provider the addon registers so we can drive
-		// provideLinks() directly instead of via real mouse hover.
-		const realRegister = term.registerLinkProvider.bind(term);
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(term as any).registerLinkProvider = (p: ILinkProvider) => {
-			provider = p;
-			return realRegister(p);
-		};
-
-		addon = new WebLinksAddon();
-		term.loadAddon(addon);
+		provider = new WebLinkProvider(term, strictUrlRegex, handleLink);
 	});
 
 	afterEach(() => {
-		addon.dispose();
 		term.dispose();
 		element.remove();
 	});

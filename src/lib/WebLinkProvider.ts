@@ -11,6 +11,37 @@ export interface ILinkProviderOptions {
 	urlRegex?: RegExp;
 }
 
+// consider everthing starting with http:// or https://
+// up to first whitespace, `"` or `'` as url
+// NOTE: The repeated end clause is needed to not match a dangling `:`
+// resembling the old (...)*([^:"\'\\s]) final path clause
+// additionally exclude early + final:
+// - unsafe from rfc3986: !*'()
+// - unsafe chars from rfc1738: {}|\^~[]` (minus [] as we need them for ipv6 adresses, also allow ~)
+// also exclude as finals:
+// - final interpunction like ,.!?
+// - any sort of brackets <>()[]{} (not spec conform, but often used to enclose urls)
+// - unsafe chars from rfc1738: {}|\^~[]`
+// TODO: Fix this upstream type error.
+/* eslint-disable no-useless-escape */
+export const strictUrlRegex =
+	/(https?|HTTPS?):[/]{2}[^\s"'!*(){}|\\\^<>`]*[^\s"':,.!?{}|\\\^~\[\]`()<>]/;
+/* eslint-enable no-useless-escape */
+
+export function handleLink(event: MouseEvent, uri: string): void {
+	const newWindow = window.open();
+	if (newWindow) {
+		try {
+			newWindow.opener = null;
+		} catch {
+			// no-op, Electron can throw
+		}
+		newWindow.location.href = uri;
+	} else {
+		console.warn('Opening link blocked as opener could not be cleared');
+	}
+}
+
 export class WebLinkProvider implements ILinkProvider {
 	constructor(
 		private readonly _terminal: Terminal,
