@@ -2,9 +2,9 @@
 	import { onMount } from 'svelte';
 	import { Terminal } from '$lib/browser/public/Terminal';
 	import { ViewportConstants } from '$lib/browser/shared/Constants';
-	import { ClipboardAddon } from '$lib/ClipboardAddon';
 	import { ProgressAddon } from '$lib/ProgressAddon';
 	import { WebLinksAddon } from '$lib/WebLinksAddon';
+	import { setOrReportClipboard } from '$lib/clipboard';
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
 
@@ -31,7 +31,6 @@
 
 	onMount(() => {
 		terminal = new Terminal();
-		terminal.loadAddon(new ClipboardAddon());
 		terminal.loadAddon(new ProgressAddon());
 		terminal.loadAddon(new WebLinksAddon());
 		terminal.open(element);
@@ -53,6 +52,14 @@
 			Math.max(2, Math.floor((clientWidth - scrollbarWidth) / terminal.dimensions!.css.cell.width)),
 			Math.max(1, Math.floor(clientHeight / terminal!.dimensions!.css.cell.height))
 		);
+	});
+
+	// OSC 52 clipboard read/report, inlined from the upstream ClipboardAddon.
+	$effect(() => {
+		const disposable = terminal.parser.registerOscHandler(52, (data) =>
+			setOrReportClipboard(terminal, data)
+		);
+		return () => disposable.dispose();
 	});
 
 	$effect(() => {
