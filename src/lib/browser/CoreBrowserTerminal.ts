@@ -829,9 +829,11 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 			})
 		);
 		this._register(
+			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			((listener: (e: any) => void) => {
 				const store = new DisposableStore();
+				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				for (const event of [this._onScroll.event, this._inputHandler.onScroll] as IEvent<any>[]) {
 					store.add(event((e) => listener(e)));

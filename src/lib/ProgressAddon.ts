@@ -103,6 +103,7 @@ export class ProgressAddon {
 			return true;
 		});
 		// FIXME: borrow emitter ctor from xterm, to be changed once #5283 is resolved
+		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		this._onChange = new (terminal as any)._core._onData.constructor();
 		this.onChange = this._onChange!.event;

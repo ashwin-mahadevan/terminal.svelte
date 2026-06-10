@@ -154,6 +154,7 @@ describe('SerializeAddon', () => {
 
 			it('should serialize scroll region when margins are set', async () => {
 				await writeP(scrollTerminal, '\x1b[2;4r');
+				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const buffer = (scrollTerminal as any)._core.buffer;
 				expect(buffer.scrollTop).toBe(1);
@@ -174,6 +175,7 @@ describe('SerializeAddon', () => {
 				const made = makeTerminal({ cols: 10, rows: 5 });
 				track(made.term, made.el);
 				await writeP(made.term, serialized);
+				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const buffer = (made.term as any)._core.buffer;
 				expect(buffer.scrollTop).toBe(1);
@@ -221,6 +223,7 @@ describe('SerializeAddon', () => {
 	describe('round-trip (10x10)', () => {
 		let bigTerminal: Terminal;
 
+		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		function inspectBuffer(buffer: any): string {
 			const lines: string[] = [];

@@ -26,6 +26,7 @@ export function setOrReportClipboard(terminal: Terminal, data: string): boolean 
 	let text = '';
 	try {
 		text = atob(payload);
+		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line no-empty
 	} catch {}
 	return navigator.clipboard.writeText(text).then(() => true);
