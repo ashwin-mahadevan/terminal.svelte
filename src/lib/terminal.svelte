@@ -2,18 +2,20 @@
 	import { onMount } from 'svelte';
 	import { Terminal } from '$lib/browser/public/Terminal';
 	import { ViewportConstants } from '$lib/browser/shared/Constants';
-	import { ProgressAddon } from '$lib/ProgressAddon';
 	import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
 	import { setOrReportClipboard } from '$lib/clipboard';
+	import { parseProgress } from '$lib/progress';
+	import type { IProgressState } from '$lib/progress';
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
 
 	type Props = {
 		ondata?: (data: string) => void;
 		onresize?: (size: { cols: number; rows: number }) => void;
+		onprogress?: (progress: IProgressState) => void;
 	};
 
-	const { ondata, onresize }: Props = $props();
+	const { ondata, onresize, onprogress }: Props = $props();
 
 	let terminal: Terminal;
 	let element: HTMLDivElement;
@@ -31,7 +33,6 @@
 
 	onMount(() => {
 		terminal = new Terminal();
-		terminal.loadAddon(new ProgressAddon());
 		terminal.open(element);
 
 		return () => terminal.dispose();
@@ -66,6 +67,21 @@
 		const disposable = terminal.registerLinkProvider(
 			new WebLinkProvider(terminal, strictUrlRegex, handleLink)
 		);
+		return () => disposable.dispose();
+	});
+
+	// ConEmu OSC 9;4 progress reporting, inlined from the upstream ProgressAddon.
+	$effect(() => {
+		let progress: IProgressState = { state: 0, value: 0 };
+		const disposable = terminal.parser.registerOscHandler(9, (data) => {
+			if (!data.startsWith('4;')) return false;
+			const next = parseProgress(data, progress);
+			if (next) {
+				progress = next;
+				onprogress?.(next);
+			}
+			return true;
+		});
 		return () => disposable.dispose();
 	});
 
