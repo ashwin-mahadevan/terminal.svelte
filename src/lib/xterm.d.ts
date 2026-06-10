@@ -870,11 +870,13 @@ export type IWindowOptions = {
 /**
  * The class that represents an xterm.js terminal.
  */
-export class Terminal implements IDisposable {
+export class Terminal {
 	/**
 	 * The element containing the terminal.
 	 */
 	readonly element: HTMLElement | undefined;
+
+	dispose(): void;
 
 	/**
 	 * The screen element containing the terminal's canvas rendering layers and
