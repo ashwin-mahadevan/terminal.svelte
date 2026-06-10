@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-import type { ITerminalAddon, Terminal } from '$lib/xterm';
+import type { Terminal } from '$lib/xterm';
 
-export class ClipboardAddon implements ITerminalAddon {
+export class ClipboardAddon {
 	private _terminal?: Terminal;
 	private _cleanup?: () => void;
 

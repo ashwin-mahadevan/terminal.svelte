@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { Terminal, ITerminalAddon, IDisposable } from '$lib/xterm';
+import type { Terminal, IDisposable } from '$lib/xterm';
 import type { LegacyEmitter, IEvent } from '$lib/common/Event';
 
 /**
@@ -54,7 +54,7 @@ function toInt(s: string): number {
 	return v;
 }
 
-export class ProgressAddon implements ITerminalAddon {
+export class ProgressAddon {
 	private _seqHandler: IDisposable | undefined;
 	private _st: ProgressType = ProgressType.REMOVE;
 	private _pr = 0;

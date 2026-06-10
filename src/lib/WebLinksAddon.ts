@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { Terminal, ITerminalAddon, IDisposable } from '$lib/xterm';
+import type { Terminal, IDisposable } from '$lib/xterm';
 import { WebLinkProvider } from './WebLinkProvider';
 import type { ILinkProviderOptions } from './WebLinkProvider';
 
@@ -35,7 +35,7 @@ function handleLink(event: MouseEvent, uri: string): void {
 	}
 }
 
-export class WebLinksAddon implements ITerminalAddon {
+export class WebLinksAddon {
 	private _terminal: Terminal | undefined;
 	private _linkProvider: IDisposable | undefined;
 
