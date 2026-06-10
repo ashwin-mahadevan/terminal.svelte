@@ -6,7 +6,7 @@
 import { RenderDebouncer } from '$lib/browser/RenderDebouncer';
 import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
-import type { ITerminal } from '$lib/browser/Types';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { IRenderService } from '$lib/browser/services/Services';
 import { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
@@ -78,7 +78,7 @@ export class RenderService implements IRenderService {
 	}
 
 	constructor(
-		terminal: ITerminal,
+		terminal: CoreBrowserTerminal,
 		private _rowCount: number,
 		screenElement: HTMLElement,
 		@IOptionsService private readonly _optionsService: IOptionsService,

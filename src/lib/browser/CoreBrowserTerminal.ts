@@ -45,8 +45,7 @@ import type {
 	IBrowser,
 	IBufferRange,
 	ICompositionHelper,
-	ILinkifier2,
-	ITerminal
+	ILinkifier2
 } from '$lib/browser/Types';
 import { Viewport } from '$lib/browser/Viewport';
 import { BufferDecorationRenderer } from '$lib/browser/decorations/BufferDecorationRenderer';
@@ -93,7 +92,7 @@ import type { IEvent } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 
-export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
+export class CoreBrowserTerminal extends CoreTerminal {
 	public textarea: HTMLTextAreaElement | undefined;
 	public element: HTMLElement | undefined;
 	public screenElement: HTMLElement | undefined;

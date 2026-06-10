@@ -3,7 +3,8 @@
  * @license MIT
  */
 
-import type { ILinkProvider, ILink, Terminal, IViewportRange, IBufferLine } from '$lib/xterm';
+import type { ILinkProvider, ILink, IViewportRange, IBufferLine } from '$lib/xterm';
+import type { Terminal } from '$lib/browser/public/Terminal';
 
 export interface ILinkProviderOptions {
 	hover?(event: MouseEvent, text: string, location: IViewportRange): void;

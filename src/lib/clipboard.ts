@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { Terminal } from '$lib/xterm';
+import type { Terminal } from '$lib/browser/public/Terminal';
 
 /**
  * Handle an OSC 52 clipboard sequence. A `?` payload reports the clipboard back

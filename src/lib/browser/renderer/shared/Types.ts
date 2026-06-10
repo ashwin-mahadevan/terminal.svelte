@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import type { Terminal } from '$lib/xterm';
-import type { ITerminal } from '$lib/browser/Types';
+import type { Terminal } from '$lib/browser/public/Terminal';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { IEvent } from '$lib/common/Event';
 
 export interface IDimensions {
@@ -89,7 +89,7 @@ export interface ISelectionRenderModel {
 	readonly selectionEnd: [number, number] | undefined;
 	clear(): void;
 	update(
-		terminal: ITerminal,
+		terminal: CoreBrowserTerminal,
 		start: [number, number] | undefined,
 		end: [number, number] | undefined,
 		columnSelectMode?: boolean

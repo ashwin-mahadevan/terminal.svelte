@@ -4,7 +4,8 @@
  */
 
 import * as Strings from '$lib/browser/LocalizableStrings';
-import type { ITerminal, IRenderDebouncer } from '$lib/browser/Types';
+import type { IRenderDebouncer } from '$lib/browser/Types';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
@@ -65,7 +66,7 @@ export class AccessibilityManager {
 	private _charsToAnnounce: string = '';
 
 	constructor(
-		private readonly _terminal: ITerminal,
+		private readonly _terminal: CoreBrowserTerminal,
 		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService,
 		@IRenderService private readonly _renderService: IRenderService
 	) {

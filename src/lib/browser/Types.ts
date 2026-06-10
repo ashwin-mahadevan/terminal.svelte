@@ -3,46 +3,9 @@
  * @license MIT
  */
 
-import type { IColor, ICoreTerminal, ITerminalOptions } from '$lib/common/Types';
-import type { IBuffer } from '$lib/common/buffer/Types';
-import type {
-	IRenderDimensions as IRenderDimensionsApi,
-	Terminal as ITerminalApi
-} from '$lib/xterm';
+import type { IColor } from '$lib/common/Types';
 import { channels, css } from '$lib/common/Color';
 import type { IEvent } from '$lib/common/Event';
-
-/**
- * A portion of the public API that are implemented identially internally and simply passed through.
- */
-type InternalPassthroughApis = Omit<
-	ITerminalApi,
-	'buffer' | 'parser' | 'unicode' | 'modes' | 'writeln'
->;
-
-export interface ITerminal extends InternalPassthroughApis, ICoreTerminal {
-	screenElement: HTMLElement | undefined;
-	browser: IBrowser;
-	buffer: IBuffer;
-	linkifier: ILinkifier2 | undefined;
-	options: Required<ITerminalOptions>;
-
-	readonly dimensions: IRenderDimensionsApi | undefined;
-
-	/** Pixel size of a single cell, measured externally by the host. */
-	readonly charWidth: number;
-	readonly charHeight: number;
-	readonly hasValidCharSize: boolean;
-	readonly onCharSizeChange: IEvent<void>;
-	setCharSize(width: number, height: number): void;
-
-	onBlur: IEvent<void>;
-	onFocus: IEvent<void>;
-	onDimensionsChange: IEvent<IRenderDimensionsApi>;
-	onA11yChar: IEvent<string>;
-	onA11yTab: IEvent<number>;
-	onWillOpen: IEvent<HTMLElement>;
-}
 
 export type CustomKeyEventHandler = (event: KeyboardEvent) => boolean;
 export type CustomWheelEventHandler = (event: WheelEvent) => boolean;

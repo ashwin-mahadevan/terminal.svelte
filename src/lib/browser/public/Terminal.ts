@@ -5,7 +5,7 @@
 
 import * as Strings from '$lib/browser/LocalizableStrings';
 import { CoreBrowserTerminal as TerminalCore } from '$lib/browser/CoreBrowserTerminal';
-import type { IBufferRange, ITerminal } from '$lib/browser/Types';
+import type { IBufferRange } from '$lib/browser/Types';
 import { DisposableStore } from '$lib/common/Lifecycle';
 import type { ITerminalOptions } from '$lib/common/Types';
 import { BufferNamespaceApi } from '$lib/common/public/BufferNamespaceApi';
@@ -22,7 +22,6 @@ import type {
 	IModes,
 	IParser,
 	IRenderDimensions,
-	Terminal as ITerminalApi,
 	ITerminalInitOnlyOptions,
 	IUnicodeHandling
 } from '$lib/xterm';
@@ -35,9 +34,9 @@ const CONSTRUCTOR_ONLY_OPTIONS = ['cols', 'rows'];
 
 let $value = 0;
 
-export class Terminal implements ITerminalApi {
+export class Terminal {
 	private readonly _store = new DisposableStore();
-	private _core: ITerminal;
+	private _core: TerminalCore;
 	private _parser: IParser | undefined;
 	private _buffer: BufferNamespaceApi | undefined;
 	private _publicOptions: Required<ITerminalOptions>;

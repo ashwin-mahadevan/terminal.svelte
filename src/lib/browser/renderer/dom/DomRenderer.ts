@@ -16,7 +16,8 @@ import type {
 	ISelectionRenderModel
 } from '$lib/browser/renderer/shared/Types';
 import { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
-import type { ILinkifier2, ILinkifierEvent, ITerminal, ReadonlyColorSet } from '$lib/browser/Types';
+import type { ILinkifier2, ILinkifierEvent, ReadonlyColorSet } from '$lib/browser/Types';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { color } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import {
@@ -76,7 +77,7 @@ export class DomRenderer implements IRenderer {
 	private _mouseDownListener!: IDisposable;
 
 	constructor(
-		private readonly _terminal: ITerminal,
+		private readonly _terminal: CoreBrowserTerminal,
 		private readonly _document: Document,
 		private readonly _element: HTMLElement,
 		private readonly _screenElement: HTMLElement,

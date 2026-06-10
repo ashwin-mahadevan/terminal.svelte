@@ -5,7 +5,8 @@
  * (EXPERIMENTAL) This Addon is still under development
  */
 
-import type { IBuffer, IBufferCell, IBufferRange, IMarker, Terminal } from '$lib/xterm';
+import type { IBuffer, IBufferCell, IBufferRange, IMarker } from '$lib/xterm';
+import type { Terminal } from '$lib/browser/public/Terminal';
 import type { IAttributeData } from '$lib/common/Types';
 import { UnderlineStyle } from '$lib/common/buffer/Constants';
 

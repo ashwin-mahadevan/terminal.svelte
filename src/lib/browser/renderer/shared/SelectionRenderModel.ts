@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-import type { ITerminal } from '$lib/browser/Types';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { ISelectionRenderModel } from '$lib/browser/renderer/shared/Types';
-import type { Terminal } from '$lib/xterm';
+import type { Terminal } from '$lib/browser/public/Terminal';
 
 class SelectionRenderModel implements ISelectionRenderModel {
 	public hasSelection!: boolean;
@@ -37,7 +37,7 @@ class SelectionRenderModel implements ISelectionRenderModel {
 	}
 
 	public update(
-		terminal: ITerminal,
+		terminal: CoreBrowserTerminal,
 		start: [number, number] | undefined,
 		end: [number, number] | undefined,
 		columnSelectMode: boolean = false
