@@ -17,7 +17,7 @@ import type { IEvent } from '$lib/common/Event';
  */
 type InternalPassthroughApis = Omit<
 	ITerminalApi,
-	'buffer' | 'parser' | 'unicode' | 'modes' | 'writeln' | 'loadAddon'
+	'buffer' | 'parser' | 'unicode' | 'modes' | 'writeln'
 >;
 
 export interface ITerminal extends InternalPassthroughApis, ICoreTerminal {

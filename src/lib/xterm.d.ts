@@ -1372,23 +1372,6 @@ export class Terminal {
 	 * Perform a full reset (RIS, aka '\x1bc').
 	 */
 	reset(): void;
-
-	/**
-	 * Loads an addon into this instance of xterm.js.
-	 * @param addon The addon to load.
-	 */
-	loadAddon(addon: ITerminalAddon): void;
-}
-
-/**
- * An addon that can provide additional functionality to the terminal.
- */
-export interface ITerminalAddon {
-	dispose(): void;
-	/**
-	 * This is called when the addon is activated.
-	 */
-	activate(terminal: Terminal): void;
 }
 
 /**

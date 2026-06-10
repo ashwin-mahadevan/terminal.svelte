@@ -8,7 +8,6 @@ import { CoreBrowserTerminal as TerminalCore } from '$lib/browser/CoreBrowserTer
 import type { IBufferRange, ITerminal } from '$lib/browser/Types';
 import { DisposableStore } from '$lib/common/Lifecycle';
 import type { ITerminalOptions } from '$lib/common/Types';
-import { AddonManager } from '$lib/common/public/AddonManager';
 import { BufferNamespaceApi } from '$lib/common/public/BufferNamespaceApi';
 import { ParserApi } from '$lib/common/public/ParserApi';
 import { UnicodeApi } from '$lib/common/public/UnicodeApi';
@@ -23,7 +22,6 @@ import type {
 	IModes,
 	IParser,
 	IRenderDimensions,
-	ITerminalAddon,
 	Terminal as ITerminalApi,
 	ITerminalInitOnlyOptions,
 	IUnicodeHandling
@@ -40,14 +38,12 @@ let $value = 0;
 export class Terminal implements ITerminalApi {
 	private readonly _store = new DisposableStore();
 	private _core: ITerminal;
-	private _addonManager: AddonManager;
 	private _parser: IParser | undefined;
 	private _buffer: BufferNamespaceApi | undefined;
 	private _publicOptions: Required<ITerminalOptions>;
 
 	constructor(options?: ITerminalOptions & ITerminalInitOnlyOptions) {
 		this._core = this._store.add(new TerminalCore(options));
-		this._addonManager = this._store.add(new AddonManager());
 
 		this._publicOptions = { ...this._core.options };
 		// TODO: Fix this upstream type error.
@@ -313,9 +309,6 @@ export class Terminal implements ITerminalApi {
 	}
 	public clearTextureAtlas(): void {
 		this._core.clearTextureAtlas();
-	}
-	public loadAddon(addon: ITerminalAddon): void {
-		this._addonManager.loadAddon(this, addon);
 	}
 	public static get strings(): ILocalizableStrings {
 		// A wrapper is required here because esbuild prevents setting an `export let`
