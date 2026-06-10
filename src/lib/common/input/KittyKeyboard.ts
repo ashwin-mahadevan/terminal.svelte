@@ -14,6 +14,7 @@ import { C0 } from '$lib/common/data/EscapeSequences';
  * Kitty keyboard protocol enhancement flags (bitfield).
  */
 export const enum KittyKeyboardFlags {
+	/** @public */
 	NONE = 0b00000,
 	/** Disambiguate escape codes - fixes ambiguous legacy encodings */
 	DISAMBIGUATE_ESCAPE_CODES = 0b00001,
@@ -39,6 +40,7 @@ export const enum KittyKeyboardEventType {
 /**
  * Kitty modifier bits (different from xterm modifier encoding).
  * Value sent = 1 + modifier_bits
+ * @public
  */
 export const enum KittyKeyboardModifiers {
 	SHIFT = 0b00000001,
