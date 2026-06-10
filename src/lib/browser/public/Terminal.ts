@@ -189,6 +189,9 @@ export class Terminal implements ITerminalApi {
 	public get dimensions(): IRenderDimensions | undefined {
 		return this._core.dimensions;
 	}
+	public setCharSize(width: number, height: number): void {
+		this._core.setCharSize(width, height);
+	}
 	public get options(): Required<ITerminalOptions> {
 		return this._publicOptions;
 	}

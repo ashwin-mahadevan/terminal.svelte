@@ -3,7 +3,6 @@
 	import { Terminal } from '$lib/browser/public/Terminal';
 	import { ViewportConstants } from '$lib/browser/shared/Constants';
 	import { ClipboardAddon } from '$lib/ClipboardAddon';
-	import { WebFontsAddon } from '$lib/WebFontsAddon';
 	import { ProgressAddon } from '$lib/ProgressAddon';
 	import { WebLinksAddon } from '$lib/WebLinksAddon';
 	import { serialize as internalSerialize } from '$lib/serialize';
@@ -21,10 +20,18 @@
 	let clientWidth = $state<number>();
 	let clientHeight = $state<number>();
 
+	// Cell size, measured from a hidden CSS-styled element. `measureWidth` is
+	// the width of MEASURE_COLS glyphs (divided out for sub-pixel precision,
+	// since clientWidth is integer-rounded); `measureHeight` is one line box.
+	// `bind:clientWidth` is backed by a ResizeObserver, so these re-fire when
+	// an async web font finishes loading and reflows the element.
+	const MEASURE_COLS = 32;
+	let measureWidth = $state<number>();
+	let measureHeight = $state<number>();
+
 	onMount(() => {
 		terminal = new Terminal();
 		terminal.loadAddon(new ClipboardAddon());
-		terminal.loadAddon(new WebFontsAddon());
 		terminal.loadAddon(new ProgressAddon());
 		terminal.loadAddon(new WebLinksAddon());
 		terminal.open(element);
@@ -33,7 +40,9 @@
 	});
 
 	$effect(() => {
-		if (!clientWidth || !clientHeight || !terminal) return;
+		if (!clientWidth || !clientHeight || !terminal || !measureWidth || !measureHeight) return;
+
+		terminal.setCharSize(measureWidth / MEASURE_COLS, measureHeight);
 
 		const showScrollbar = terminal.options.scrollbar?.showScrollbar ?? true;
 		const scrollbarWidth =
@@ -67,7 +76,30 @@
 	}
 </script>
 
-<div style:height="100%" bind:this={element} bind:clientWidth bind:clientHeight></div>
+<div
+	class="terminal-host"
+	style:height="100%"
+	bind:this={element}
+	bind:clientWidth
+	bind:clientHeight
+>
+	<span
+		aria-hidden="true"
+		style:position="absolute"
+		style:top="0"
+		style:left="-9999px"
+		style:visibility="hidden"
+		style:display="inline-block"
+		style:padding="0"
+		style:border="0"
+		style:white-space="pre"
+		style:font-kerning="none"
+		style:line-height="normal"
+		bind:clientWidth={measureWidth}
+		bind:clientHeight={measureHeight}
+		>{#each Array(MEASURE_COLS).keys() as i (i)}W{/each}</span
+	>
+</div>
 
 <!--
 	Copyright (c) 2014 The xterm.js authors. All rights reserved.

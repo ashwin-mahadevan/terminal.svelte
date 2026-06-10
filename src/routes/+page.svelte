@@ -28,5 +28,6 @@
 		margin: 0;
 		height: 100%;
 		background: #000;
+		font-family: monospace;
 	}
 </style>

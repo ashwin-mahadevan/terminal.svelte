@@ -13,19 +13,6 @@ import { createDecorator } from '$lib/common/services/ServiceRegistry';
 import type { AllColorIndex, IDisposable, IKeyboardResult } from '$lib/common/Types';
 import type { IEvent } from '$lib/common/Event';
 
-export const ICharSizeService = createDecorator<ICharSizeService>('CharSizeService');
-export interface ICharSizeService {
-	serviceBrand: undefined;
-
-	readonly width: number;
-	readonly height: number;
-	readonly hasValidSize: boolean;
-
-	readonly onCharSizeChange: IEvent<void>;
-
-	measure(): void;
-}
-
 export const ICoreBrowserService = createDecorator<ICoreBrowserService>('CoreBrowserService');
 export interface ICoreBrowserService {
 	serviceBrand: undefined;

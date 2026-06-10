@@ -5,14 +5,15 @@
 
 import { getWindow } from '$lib/browser/Dom';
 import { getCoords, getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
+import type { ITerminal } from '$lib/browser/Types';
 import type { IMouseCoordsService } from '$lib/browser/services/Services';
-import { ICharSizeService, IRenderService } from '$lib/browser/services/Services';
+import { IRenderService } from '$lib/browser/services/Services';
 
 export class MouseCoordsService implements IMouseCoordsService {
 	public serviceBrand: undefined;
 
 	constructor(
-		@ICharSizeService private readonly _charSizeService: ICharSizeService,
+		private readonly _terminal: ITerminal,
 		@IRenderService private readonly _renderService: IRenderService
 	) {}
 
@@ -29,7 +30,7 @@ export class MouseCoordsService implements IMouseCoordsService {
 			element,
 			colCount,
 			rowCount,
-			this._charSizeService.hasValidSize,
+			this._terminal.hasValidCharSize,
 			this._renderService.dimensions.css.cell.width,
 			this._renderService.dimensions.css.cell.height,
 			isSelection
@@ -41,7 +42,7 @@ export class MouseCoordsService implements IMouseCoordsService {
 		element: HTMLElement
 	): { col: number; row: number; x: number; y: number } | undefined {
 		const coords = getCoordsRelativeToElement(getWindow(element), event, element);
-		if (!this._charSizeService.hasValidSize) {
+		if (!this._terminal.hasValidCharSize) {
 			return undefined;
 		}
 		coords[0] = Math.min(

@@ -13,7 +13,6 @@ import type {
 } from '$lib/xterm';
 import type {
 	ICharacterJoinerService,
-	ICharSizeService,
 	ICoreBrowserService,
 	IMouseService,
 	IRenderService,
@@ -108,6 +107,10 @@ export class MockTerminal implements ITerminal {
 	public onRender!: IEvent<{ start: number; end: number }>;
 	public onResize!: IEvent<{ cols: number; rows: number }>;
 	public onDimensionsChange!: IEvent<IRenderDimensionsApi>;
+	public onCharSizeChange: IEvent<void> = new LegacyEmitter<void>().event;
+	public charWidth: number = 0;
+	public charHeight: number = 0;
+	public hasValidCharSize: boolean = false;
 	public dimensions: IRenderDimensionsApi | undefined;
 	public markers!: IMarker[];
 	public linkifier: ILinkifier2 | undefined;
@@ -152,6 +155,11 @@ export class MockTerminal implements ITerminal {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public resize(columns: number, rows: number): void {
+		throw new Error('Method not implemented.');
+	}
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	public setCharSize(width: number, height: number): void {
 		throw new Error('Method not implemented.');
 	}
 	// TODO: Fix this upstream type error.
@@ -619,19 +627,6 @@ export class MockCoreBrowserService implements ICoreBrowserService {
 		throw Error('Document object not available in tests');
 	}
 	public dpr: number = 1;
-}
-
-export class MockCharSizeService implements ICharSizeService {
-	public serviceBrand: undefined;
-	public get hasValidSize(): boolean {
-		return this.width > 0 && this.height > 0;
-	}
-	public onCharSizeChange: IEvent<void> = new LegacyEmitter<void>().event;
-	constructor(
-		public width: number,
-		public height: number
-	) {}
-	public measure(): void {}
 }
 
 export class MockMouseService implements IMouseService {

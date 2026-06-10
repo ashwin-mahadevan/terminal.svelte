@@ -29,6 +29,13 @@ export interface ITerminal extends InternalPassthroughApis, ICoreTerminal {
 
 	readonly dimensions: IRenderDimensionsApi | undefined;
 
+	/** Pixel size of a single cell, measured externally by the host. */
+	readonly charWidth: number;
+	readonly charHeight: number;
+	readonly hasValidCharSize: boolean;
+	readonly onCharSizeChange: IEvent<void>;
+	setCharSize(width: number, height: number): void;
+
 	onBlur: IEvent<void>;
 	onFocus: IEvent<void>;
 	onDimensionsChange: IEvent<IRenderDimensionsApi>;

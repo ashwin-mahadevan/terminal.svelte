@@ -54,7 +54,6 @@ import { OverviewRulerRenderer } from '$lib/browser/decorations/OverviewRulerRen
 import { CompositionHelper } from '$lib/browser/input/CompositionHelper';
 import { DomRenderer } from '$lib/browser/renderer/dom/DomRenderer';
 import type { IRenderer } from '$lib/browser/renderer/shared/Types';
-import { CharSizeService } from '$lib/browser/services/CharSizeService';
 import { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import { LinkProviderService } from '$lib/browser/services/LinkProviderService';
@@ -63,7 +62,6 @@ import { MouseEventCssClasses, MouseService } from '$lib/browser/services/MouseS
 import { RenderService } from '$lib/browser/services/RenderService';
 import { SelectionService } from '$lib/browser/services/SelectionService';
 import {
-	ICharSizeService,
 	ICharacterJoinerService,
 	ICoreBrowserService,
 	IKeyboardService,
@@ -126,7 +124,6 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 	private readonly _linkProviderService: ILinkProviderService;
 
 	// Optional browser services
-	private _charSizeService: ICharSizeService | undefined;
 	private _coreBrowserService: ICoreBrowserService | undefined;
 	private _mouseCoordsService: IMouseCoordsService | undefined;
 	private _mouseService: IMouseService | undefined;
@@ -202,6 +199,24 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 	}
 	private readonly _onDimensionsChange = this._register(new LegacyEmitter<IRenderDimensionsApi>());
 	public readonly onDimensionsChange = this._onDimensionsChange.event;
+	private readonly _onCharSizeChange = this._register(new LegacyEmitter<void>());
+	public readonly onCharSizeChange = this._onCharSizeChange.event;
+
+	// Pixel size of a single cell, measured externally by the host (see
+	// `setCharSize`). This is the single source of truth every browser consumer
+	// reads — the renderer's geometry, mouse coordinate mapping and the
+	// `onCharSizeChange` relayout all derive from it.
+	private _charWidth = 0;
+	private _charHeight = 0;
+	public get charWidth(): number {
+		return this._charWidth;
+	}
+	public get charHeight(): number {
+		return this._charHeight;
+	}
+	public get hasValidCharSize(): boolean {
+		return this._charWidth > 0 && this._charHeight > 0;
+	}
 
 	public get dimensions(): IRenderDimensionsApi | undefined {
 		if (!this._renderService) {
@@ -219,6 +234,27 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 				char: { ...dimensions.device.char }
 			}
 		};
+	}
+
+	/**
+	 * Set the cell size in CSS pixels, measured externally by the host (the
+	 * font is now CSS-driven rather than configured via options). Firing
+	 * `onCharSizeChange` relayouts the grid, scrollbar, selection and cursor
+	 * exactly like the old internal font measurement did.
+	 */
+	public setCharSize(width: number, height: number): void {
+		// Ignore non-positive values; the measuring element is likely
+		// `display: none` or not yet laid out, in which case we keep the
+		// previous size rather than collapsing the grid.
+		if (width <= 0 || height <= 0) {
+			return;
+		}
+		if (width === this._charWidth && height === this._charHeight) {
+			return;
+		}
+		this._charWidth = width;
+		this._charHeight = height;
+		this._onCharSizeChange.fire();
 	}
 
 	constructor(options: Partial<ITerminalOptions> = {}) {
@@ -255,7 +291,6 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		this._register(this._inputHandler.onA11yTab((e) => this._onA11yTabEmitter.fire(e)));
 
 		// Setup listeners
-		this._register(this._bufferService.onResize((e) => this._afterResize(e.cols, e.rows)));
 
 		this._register(
 			toDisposable(() => {
@@ -667,13 +702,6 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		this._register(addDisposableListener(this.textarea, 'blur', () => this._handleTextAreaBlur()));
 		this._helperContainer.appendChild(this.textarea);
 
-		this._charSizeService = this._instantiationService.createInstance(
-			CharSizeService,
-			this._document,
-			this._helperContainer
-		);
-		this._instantiationService.setService(ICharSizeService, this._charSizeService);
-
 		this._themeService = this._instantiationService.createInstance(ThemeService);
 		this._instantiationService.setService(IThemeService, this._themeService);
 
@@ -694,7 +722,7 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		this._instantiationService.setService(ICharacterJoinerService, this._characterJoinerService);
 
 		this._renderService = this._register(
-			this._instantiationService.createInstance(RenderService, this.rows, this.screenElement)
+			this._instantiationService.createInstance(RenderService, this, this.rows, this.screenElement)
 		);
 		this._instantiationService.setService(IRenderService, this._renderService);
 		this._register(this._renderService.onRenderedViewportChange((e) => this._onRender.fire(e)));
@@ -724,7 +752,7 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		);
 		this._helperContainer.appendChild(this._compositionView);
 
-		this._mouseCoordsService = this._instantiationService.createInstance(MouseCoordsService);
+		this._mouseCoordsService = this._instantiationService.createInstance(MouseCoordsService, this);
 		this._instantiationService.setService(IMouseCoordsService, this._mouseCoordsService);
 
 		const linkifier = (this._linkifier.value = this._register(
@@ -875,8 +903,6 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 				);
 			}
 		});
-		// Measure the character size
-		this._charSizeService.measure();
 
 		// Setup loop that draws to screen
 		this.refresh(0, this.rows - 1);
@@ -1318,20 +1344,10 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 	 */
 	public resize(x: number, y: number): void {
 		if (x === this.cols && y === this.rows) {
-			// Check if we still need to measure the char size (fixes #785).
-			if (this._charSizeService && !this._charSizeService.hasValidSize) {
-				this._charSizeService.measure();
-			}
 			return;
 		}
 
 		super.resize(x, y);
-	}
-
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	private _afterResize(x: number, y: number): void {
-		this._charSizeService?.measure();
 	}
 
 	/**
