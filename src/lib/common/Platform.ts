@@ -30,7 +30,6 @@ const platform = isNode ? 'node' : navigator.platform;
 
 export const isFirefox = userAgent.includes('Firefox');
 export const isChrome = userAgent.includes('Chrome');
-const isLegacyEdge = userAgent.includes('Edge');
 export const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
 
 interface IZoomWindow {
@@ -41,16 +40,6 @@ interface IZoomWindow {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getZoomFactor(_targetWindow: IZoomWindow): number {
 	return 1;
-}
-function getSafariVersion(): number {
-	if (!isSafari) {
-		return 0;
-	}
-	const majorVersion = userAgent.match(/Version\/(\d+)/);
-	if (majorVersion === null || majorVersion.length < 2) {
-		return 0;
-	}
-	return parseInt(majorVersion[1]);
 }
 
 // Find the users platform. We use this to interpret the meta key

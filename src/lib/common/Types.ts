@@ -62,10 +62,6 @@ export type CursorStyle = 'block' | 'underline' | 'bar';
 
 export type CursorInactiveStyle = 'outline' | 'block' | 'bar' | 'underline' | 'none';
 
-// TODO: Fix this upstream type error.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type XtermListener = (...args: any[]) => void;
-
 /**
  * A keyboard event interface which does not depend on the DOM, KeyboardEvent implicitly extends
  * this event.
@@ -329,11 +325,6 @@ export interface IKittyKeyboardState {
 	mainStack: number[];
 	/** Stack of flags for alternate screen */
 	altStack: number[];
-}
-
-interface IRowRange {
-	start: number;
-	end: number;
 }
 
 /**

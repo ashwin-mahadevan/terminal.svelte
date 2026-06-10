@@ -9,14 +9,6 @@ import type { ParserState } from '$lib/common/parser/Constants';
 /** sequence params serialized to js arrays */
 export type ParamsArray = (number | number[])[];
 
-/** Params constructor type. */
-interface IParamsConstructor {
-	new (maxLength: number, maxSubParamsLength: number): IParams;
-
-	/** create params from ParamsArray */
-	fromArray(values: ParamsArray): IParams;
-}
-
 /** Interface of Params storage class. */
 export interface IParams {
 	/** from ctor */
