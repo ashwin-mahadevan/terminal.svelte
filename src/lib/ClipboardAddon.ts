@@ -70,7 +70,7 @@ export class ClipboardAddon implements ITerminalAddon {
 	}
 }
 
-export class BrowserClipboardProvider {
+class BrowserClipboardProvider {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public readText(selection: string): Promise<string> {
 		return navigator.clipboard.readText();

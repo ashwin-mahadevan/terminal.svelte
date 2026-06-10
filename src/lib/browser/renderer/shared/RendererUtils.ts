@@ -12,14 +12,14 @@ export function throwIfFalsy<T>(value: T | undefined | null): T {
 	return value;
 }
 
-export function isPowerlineGlyph(codepoint: number): boolean {
+function isPowerlineGlyph(codepoint: number): boolean {
 	// Only return true for Powerline symbols which require
 	// different padding and should be excluded from minimum contrast
 	// ratio standards
 	return 0xe0a4 <= codepoint && codepoint <= 0xe0d6;
 }
 
-export function isRestrictedPowerlineGlyph(codepoint: number): boolean {
+function isRestrictedPowerlineGlyph(codepoint: number): boolean {
 	return 0xe0b0 <= codepoint && codepoint <= 0xe0b7;
 }
 
@@ -31,7 +31,7 @@ function isBoxOrBlockGlyph(codepoint: number): boolean {
 	return 0x2500 <= codepoint && codepoint <= 0x259f;
 }
 
-export function isEmoji(codepoint: number): boolean {
+function isEmoji(codepoint: number): boolean {
 	return (
 		(codepoint >= 0x1f600 && codepoint <= 0x1f64f) || // Emoticons
 		(codepoint >= 0x1f300 && codepoint <= 0x1f5ff) || // Misc Symbols and Pictographs
@@ -44,7 +44,7 @@ export function isEmoji(codepoint: number): boolean {
 	);
 }
 
-export function allowRescaling(
+function allowRescaling(
 	codepoint: number | undefined,
 	width: number,
 	glyphSizeX: number,

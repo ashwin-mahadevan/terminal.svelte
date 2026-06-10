@@ -151,7 +151,7 @@ export interface IServiceIdentifier<T> {
 	_id: string;
 }
 
-export interface IBrandedService {
+interface IBrandedService {
 	serviceBrand: undefined;
 }
 
@@ -319,18 +319,18 @@ export interface ITheme {
 	extendedAnsi?: string[];
 }
 
-export interface ITerminalQuirks {
+interface ITerminalQuirks {
 	allowSetCursorBlink?: boolean;
 }
 
-export interface IScrollbarOptions {
+interface IScrollbarOptions {
 	showScrollbar?: boolean;
 	showArrows?: boolean;
 	width?: number;
 	overviewRuler?: IOverviewRulerOptions;
 }
 
-export interface IVtExtensions {
+interface IVtExtensions {
 	kittyKeyboard?: boolean;
 	kittySgrBoldFaintControl?: boolean;
 	win32InputMode?: boolean;

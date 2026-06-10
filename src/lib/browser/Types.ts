@@ -47,7 +47,7 @@ export interface ITerminal extends InternalPassthroughApis, ICoreTerminal {
 export type CustomKeyEventHandler = (event: KeyboardEvent) => boolean;
 export type CustomWheelEventHandler = (event: WheelEvent) => boolean;
 
-export type LineData = CharData[];
+type LineData = CharData[];
 
 export interface ICompositionHelper {
 	readonly isComposing: boolean;
@@ -103,7 +103,7 @@ export interface IColorContrastCache {
 	getColor(bg: number, fg: number): IColor | null | undefined;
 }
 
-export interface IPartialColorSet {
+interface IPartialColorSet {
 	foreground: IColor;
 	background: IColor;
 	cursor?: IColor;
@@ -112,7 +112,7 @@ export interface IPartialColorSet {
 	ansi: IColor[];
 }
 
-export interface IViewport {
+interface IViewport {
 	dispose(): void;
 	scrollBarWidth: number;
 	readonly onRequestScrollLines: IEvent<{ amount: number; suppressScrollEvent: boolean }>;
@@ -195,7 +195,7 @@ export interface IRenderDebouncerWithCallback extends IRenderDebouncer {
 	addRefreshCallback(callback: FrameRequestCallback): number;
 }
 
-export interface IBufferElementProvider {
+interface IBufferElementProvider {
 	provideBufferElements(): DocumentFragment | HTMLElement;
 }
 

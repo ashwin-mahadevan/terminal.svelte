@@ -64,7 +64,7 @@ export type CursorInactiveStyle = 'outline' | 'block' | 'bar' | 'underline' | 'n
 
 // TODO: Fix this upstream type error.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type XtermListener = (...args: any[]) => void;
+type XtermListener = (...args: any[]) => void;
 
 /**
  * A keyboard event interface which does not depend on the DOM, KeyboardEvent implicitly extends
@@ -331,7 +331,7 @@ export interface IKittyKeyboardState {
 	altStack: number[];
 }
 
-export interface IRowRange {
+interface IRowRange {
 	start: number;
 	end: number;
 }
@@ -483,16 +483,16 @@ export const enum SpecialColorIndex {
 	BACKGROUND = 257,
 	CURSOR = 258
 }
-export interface IColorReportRequest {
+interface IColorReportRequest {
 	type: ColorRequestType.REPORT;
 	index: AllColorIndex;
 }
-export interface IColorSetRequest {
+interface IColorSetRequest {
 	type: ColorRequestType.SET;
 	index: AllColorIndex;
 	color: IColorRGB;
 }
-export interface IColorRestoreRequest {
+interface IColorRestoreRequest {
 	type: ColorRequestType.RESTORE;
 	index?: AllColorIndex;
 }

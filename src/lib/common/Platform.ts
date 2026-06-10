@@ -17,7 +17,7 @@ declare const process: unknown;
 // navigator.userAgent is also checked here because bundling with the process module can cause
 // issues otherwise. Note that navigator exists in Node.js 21+ but the userAgent is
 // "Node.js/<version>".
-export const isNode =
+const isNode =
 	typeof process !== 'undefined' &&
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,7 +30,7 @@ const platform = isNode ? 'node' : navigator.platform;
 
 export const isFirefox = userAgent.includes('Firefox');
 export const isChrome = userAgent.includes('Chrome');
-export const isLegacyEdge = userAgent.includes('Edge');
+const isLegacyEdge = userAgent.includes('Edge');
 export const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
 
 interface IZoomWindow {
@@ -42,7 +42,7 @@ interface IZoomWindow {
 export function getZoomFactor(_targetWindow: IZoomWindow): number {
 	return 1;
 }
-export function getSafariVersion(): number {
+function getSafariVersion(): number {
 	if (!isSafari) {
 		return 0;
 	}

@@ -34,7 +34,7 @@ export interface ISerializeOptions {
 	excludeAltBuffer?: boolean;
 }
 
-export interface ISerializeRange {
+interface ISerializeRange {
 	/**
 	 * The line to start serializing (inclusive).
 	 */

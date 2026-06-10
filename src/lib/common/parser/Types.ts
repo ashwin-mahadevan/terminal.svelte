@@ -10,7 +10,7 @@ import type { ParserState } from '$lib/common/parser/Constants';
 export type ParamsArray = (number | number[])[];
 
 /** Params constructor type. */
-export interface IParamsConstructor {
+interface IParamsConstructor {
 	new (maxLength: number, maxSubParamsLength: number): IParams;
 
 	/** create params from ParamsArray */
@@ -250,7 +250,7 @@ export interface IEscapeSequenceParser {
  * The subparsers are instantiated in `EscapeSequenceParser` and
  * called during `EscapeSequenceParser.parse`.
  */
-export interface ISubParser<T, U> extends IDisposable {
+interface ISubParser<T, U> extends IDisposable {
 	reset(): void;
 	registerHandler(ident: number, handler: T): IDisposable;
 	clearHandler(ident: number): void;

@@ -198,7 +198,7 @@ export interface IScrollPosition {
 	readonly scrollLeft: number;
 	readonly scrollTop: number;
 }
-export interface ISmoothScrollPosition {
+interface ISmoothScrollPosition {
 	readonly scrollLeft: number;
 	readonly scrollTop: number;
 

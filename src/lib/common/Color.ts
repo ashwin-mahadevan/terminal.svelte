@@ -330,7 +330,7 @@ export namespace rgba {
 		return undefined;
 	}
 
-	export function reduceLuminance(bgRgba: number, fgRgba: number, ratio: number): number {
+	function reduceLuminance(bgRgba: number, fgRgba: number, ratio: number): number {
 		// This is a naive but fast approach to reducing luminance as converting to
 		// HSL and back is expensive
 		const bgR = (bgRgba >> 24) & 0xff;
@@ -356,7 +356,7 @@ export namespace rgba {
 		return ((fgR << 24) | (fgG << 16) | (fgB << 8) | 0xff) >>> 0;
 	}
 
-	export function increaseLuminance(bgRgba: number, fgRgba: number, ratio: number): number {
+	function increaseLuminance(bgRgba: number, fgRgba: number, ratio: number): number {
 		// This is a naive but fast approach to increasing luminance as converting to
 		// HSL and back is expensive
 		const bgR = (bgRgba >> 24) & 0xff;

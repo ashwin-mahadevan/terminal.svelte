@@ -106,7 +106,7 @@ abstract class TaskQueue implements ITaskQueue {
  * per second. The tasks will run in the order they are enqueued, but they will run some time later,
  * and care should be taken to ensure they're non-urgent and will not introduce race conditions.
  */
-export class PriorityTaskQueue extends TaskQueue {
+class PriorityTaskQueue extends TaskQueue {
 	protected _requestCallback(callback: CallbackWithDeadline): number {
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -10,9 +10,7 @@ export const enum WidthCacheSettings {
 	/** sentinel for unset values in flat cache */
 	FLAT_UNSET = -9999,
 	/** size of flat cache, size-1 equals highest codepoint handled by flat */
-	FLAT_SIZE = 256,
-	/** char repeat for measuring */
-	REPEAT = 32
+	FLAT_SIZE = 256
 }
 
 const enum FontVariant {

@@ -14,7 +14,7 @@ import type {
 import type { IEvent } from '$lib/common/Event';
 
 // BufferIndex denotes a position in the buffer: [rowIndex, colIndex]
-export type BufferIndex = [number, number];
+type BufferIndex = [number, number];
 
 export interface IBuffer {
 	readonly lines: ICircularList<IBufferLine>;

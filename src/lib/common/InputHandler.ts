@@ -4093,6 +4093,6 @@ class DirtyRowTracker implements IDirtyRowTracker {
 	}
 }
 
-export function isValidColorIndex(value: number): value is ColorIndex {
+function isValidColorIndex(value: number): value is ColorIndex {
 	return 0 <= value && value < 256;
 }
