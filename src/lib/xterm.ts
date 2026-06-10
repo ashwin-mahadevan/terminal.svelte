@@ -14,7 +14,7 @@ import type { IEvent } from './common/Event';
 /**
  * A string or number representing text font weight.
  */
-export type FontWeight =
+type FontWeight =
 	| 'normal'
 	| 'bold'
 	| '100'
@@ -351,7 +351,7 @@ export type ITerminalInitOnlyOptions = {
 /**
  * Contains colors to theme the terminal with.
  */
-export type ITheme = {
+type ITheme = {
 	/** The default foreground color */
 	foreground?: string;
 	/** The default background color */
@@ -430,7 +430,7 @@ export type ITheme = {
  * Control various quirks features that are either non-standard or standard
  * in but generally rejected in modern terminals.
  */
-export type ITerminalQuirks = {
+type ITerminalQuirks = {
 	/**
 	 * Enables support for DECSET 12 and DECRST 12 which controls cursor blink.
 	 * Programs such as `vim` may use this to set the cursor blink state but may
@@ -444,7 +444,7 @@ export type ITerminalQuirks = {
 /**
  * Enable certain optional VT extensions.
  */
-export type IVtExtensions = {
+type IVtExtensions = {
 	/**
 	 * Whether the [kitty keyboard protocol][0] (`CSI =|?|>|< u`) is enabled.
 	 * When enabled, the terminal will respond to keyboard protocol queries and
@@ -527,22 +527,6 @@ export interface IMarker {
 	 */
 	readonly line: number;
 }
-
-/**
- * Represents a disposable that tracks is disposed state.
- */
-export type IDisposableWithEvent = {
-	dispose(): void;
-	/**
-	 * Event listener to get notified when this gets disposed.
-	 */
-	onDispose: IEvent<void>;
-
-	/**
-	 * Whether this is disposed.
-	 */
-	readonly isDisposed: boolean;
-};
 
 /**
  * Represents a decoration in the terminal that is associated with a
@@ -685,7 +669,7 @@ export type IOverviewRulerOptions = {
 /**
  * Options for configuring the scrollbar.
  */
-export type IScrollbarOptions = {
+type IScrollbarOptions = {
 	/**
 	 * Whether to show the scrollbar. When false, this supersedes
 	 * {@link IScrollbarOptions.width}. Defaults to true.
@@ -737,7 +721,7 @@ export type IScrollbarOptions = {
  * Therefore all options (even those without a default implementation) are
  * guarded by the boolean flag and disabled by default.
  */
-export type IWindowOptions = {
+type IWindowOptions = {
 	/**
 	 * Ps=1    De-iconify window.
 	 * No default implementation.
@@ -868,513 +852,6 @@ export type IWindowOptions = {
 };
 
 /**
- * The class that represents an xterm.js terminal.
- */
-export class Terminal {
-	/**
-	 * The element containing the terminal.
-	 */
-	readonly element: HTMLElement | undefined;
-
-	dispose(): void;
-
-	/**
-	 * The screen element containing the terminal's canvas rendering layers and
-	 * decorations, excluding the viewport and the scrollbar.
-	 */
-	readonly screenElement: HTMLElement | undefined;
-
-	/**
-	 * The textarea that accepts input for the terminal.
-	 */
-	readonly textarea: HTMLTextAreaElement | undefined;
-
-	/**
-	 * The number of rows in the terminal's viewport. Use
-	 * `ITerminalOptions.rows` to set this in the constructor and
-	 * `Terminal.resize` for when the terminal exists.
-	 */
-	readonly rows: number;
-
-	/**
-	 * The number of columns in the terminal's viewport. Use
-	 * `ITerminalOptions.cols` to set this in the constructor and
-	 * `Terminal.resize` for when the terminal exists.
-	 */
-	readonly cols: number;
-
-	/**
-	 * Access to the terminal's normal and alt buffer.
-	 */
-	readonly buffer: IBufferNamespace;
-
-	/**
-	 * Get all markers registered against the buffer. If the alt buffer is
-	 * active this will always return [].
-	 */
-	readonly markers: ReadonlyArray<IMarker>;
-
-	/**
-	 * Get the parser interface to register custom escape sequence handlers.
-	 */
-	readonly parser: IParser;
-
-	/**
-	 * (EXPERIMENTAL) Get the Unicode handling interface to register and switch
-	 * Unicode version.
-	 */
-	readonly unicode: IUnicodeHandling;
-
-	/**
-	 * Gets the terminal modes as set by SM/DECSET.
-	 */
-	readonly modes: IModes;
-
-	/**
-	 * The dimensions of the terminal. This will be undefined before
-	 * {@link open} is called.
-	 */
-	readonly dimensions: IRenderDimensions | undefined;
-
-	/**
-	 * Gets or sets the terminal options. This supports setting multiple
-	 * options.
-	 *
-	 * @example Get a single option
-	 * ```ts
-	 * console.log(terminal.options.scrollback);
-	 * ```
-	 *
-	 * @example Set a single option:
-	 * ```ts
-	 * terminal.options.scrollback = 1000;
-	 * ```
-	 * Note that for options that are object, a new object must be used in order
-	 * to take effect as a reference comparison will be done:
-	 * ```ts
-	 * const newValue = terminal.options.theme;
-	 * newValue.background = '#000000';
-	 *
-	 * // This won't work
-	 * terminal.options.theme = newValue;
-	 *
-	 * // This will work
-	 * terminal.options.theme = { ...newValue };
-	 * ```
-	 *
-	 * @example Set multiple options
-	 * ```ts
-	 * terminal.options = {
-	 *   scrollback: 1000,
-	 *   tabStopWidth: 4
-	 * };
-	 * ```
-	 */
-	options: ITerminalOptions;
-
-	/**
-	 * Natural language strings that can be localized.
-	 */
-	static strings: ILocalizableStrings;
-
-	/**
-	 * Creates a new `Terminal` object.
-	 *
-	 * @param options An object containing a set of options.
-	 */
-	constructor(options?: ITerminalOptions & ITerminalInitOnlyOptions);
-
-	/**
-	 * Adds an event listener for when the bell is triggered.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onBell: IEvent<void>;
-
-	/**
-	 * Adds an event listener for when a binary event fires. This is used to
-	 * enable non UTF-8 conformant binary messages to be sent to the backend.
-	 * Currently this is only used for a certain type of mouse reports that
-	 * happen to be not UTF-8 compatible.
-	 * The event value is a JS string, pass it to the underlying pty as
-	 * binary data, e.g. `pty.write(Buffer.from(data, 'binary'))`.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onBinary: IEvent<string>;
-
-	/**
-	 * Adds an event listener for the cursor moves.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onCursorMove: IEvent<void>;
-
-	/**
-	 * Adds an event listener for when a data event fires. This happens for
-	 * example when the user types or pastes into the terminal. The event value
-	 * is whatever `string` results, in a typical setup, this should be passed
-	 * on to the backing pty.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onData: IEvent<string>;
-
-	/**
-	 * Adds an event listener for when a key is pressed. The event value
-	 * contains the string that will be sent in the data event as well as the
-	 * DOM event that triggered it.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onKey: IEvent<{ key: string; domEvent: KeyboardEvent }>;
-
-	/**
-	 * Adds an event listener for when a line feed is added.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onLineFeed: IEvent<void>;
-
-	/**
-	 * Adds an event listener for when rows are rendered. The event value
-	 * contains the start row and end rows of the rendered area (ranges from `0`
-	 * to `Terminal.rows - 1`).
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onRender: IEvent<{ start: number; end: number }>;
-
-	/**
-	 * Adds an event listener for when data has been parsed by the terminal,
-	 * after {@link write} is called. This event is useful to listen for any
-	 * changes in the buffer.
-	 *
-	 * This fires at most once per frame, after data parsing completes. Note
-	 * that this can fire when there are still writes pending if there is a lot
-	 * of data.
-	 */
-	onWriteParsed: IEvent<void>;
-
-	/**
-	 * Adds an event listener for when the terminal is resized. The event value
-	 * contains the new size.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onResize: IEvent<{ cols: number; rows: number }>;
-
-	/**
-	 * Adds an event listener for when a scroll occurs. The event value is the
-	 * new position of the viewport.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onScroll: IEvent<number>;
-
-	/**
-	 * Adds an event listener for when a selection change occurs.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onSelectionChange: IEvent<void>;
-
-	/**
-	 * Adds an event listener for when an OSC 0 or OSC 2 title change occurs.
-	 * The event value is the new title.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onTitleChange: IEvent<string>;
-
-	/**
-	 * Adds an event listener for when the terminal's dimensions change.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onDimensionsChange: IEvent<IRenderDimensions>;
-
-	/**
-	 * Unfocus the terminal.
-	 */
-	blur(): void;
-
-	/**
-	 * Focus the terminal.
-	 */
-	focus(): void;
-
-	/**
-	 * Input data to application side. The data is treated the same way input
-	 * typed into the terminal would (ie. the {@link onData} event will fire).
-	 * @param data The data to forward to the application.
-	 * @param wasUserInput Whether the input is genuine user input. This is true
-	 * by default and triggers additionalbehavior like focus or selection
-	 * clearing. Set this to false if the data sent should not be treated like
-	 * user input would, for example passing an escape sequence to the
-	 * application.
-	 */
-	input(data: string, wasUserInput?: boolean): void;
-
-	/**
-	 * Resizes the terminal. It's best practice to debounce calls to resize,
-	 * this will help ensure that the pty can respond to the resize event
-	 * before another one occurs.
-	 * @param x The number of columns to resize to.
-	 * @param y The number of rows to resize to.
-	 */
-	resize(columns: number, rows: number): void;
-
-	/**
-	 * Opens the terminal within an element. This should also be called if the
-	 * xterm.js element ever changes browser window.
-	 * @param parent The element to create the terminal within. This element
-	 * must be visible (have dimensions) when `open` is called as several DOM-
-	 * based measurements need to be performed when this function is called.
-	 */
-	open(parent: HTMLElement): void;
-
-	/**
-	 * Attaches a custom key event handler which is run before keys are
-	 * processed, giving consumers of xterm.js ultimate control as to what keys
-	 * should be processed by the terminal and what keys should not.
-	 * @param customKeyEventHandler The custom KeyboardEvent handler to attach.
-	 * This is a function that takes a KeyboardEvent, allowing consumers to stop
-	 * propagation and/or prevent the default action. The function returns
-	 * whether the event should be processed by xterm.js.
-	 *
-	 * @example A custom keymap that overrides the backspace key
-	 * ```ts
-	 * const keymap = [
-	 *   { "key": "Backspace", "shiftKey": false, "mapCode": 8 },
-	 *   { "key": "Backspace", "shiftKey": true, "mapCode": 127 }
-	 * ];
-	 * term.attachCustomKeyEventHandler(ev => {
-	 *   if (ev.type === 'keydown') {
-	 *     for (let i in keymap) {
-	 *       if (keymap[i].key == ev.key && keymap[i].shiftKey == ev.shiftKey) {
-	 *         socket.send(String.fromCharCode(keymap[i].mapCode));
-	 *         return false;
-	 *       }
-	 *     }
-	 *   }
-	 * });
-	 * ```
-	 */
-	attachCustomKeyEventHandler(customKeyEventHandler: (event: KeyboardEvent) => boolean): void;
-
-	/**
-	 * Attaches a custom wheel event handler which is run before keys are
-	 * processed, giving consumers of xterm.js control over whether to proceed
-	 * or cancel terminal wheel events.
-	 * @param customWheelEventHandler The custom WheelEvent handler to attach.
-	 * This is a function that takes a WheelEvent, allowing consumers to stop
-	 * propagation and/or prevent the default action. The function returns
-	 * whether the event should be processed by xterm.js.
-	 *
-	 * @example A handler that prevents all wheel events while ctrl is held from
-	 * being processed.
-	 * ```ts
-	 * term.attachCustomWheelEventHandler(ev => {
-	 *   if (ev.ctrlKey) {
-	 *     return false;
-	 *   }
-	 *   return true;
-	 * });
-	 * ```
-	 */
-	attachCustomWheelEventHandler(customWheelEventHandler: (event: WheelEvent) => boolean): void;
-
-	/**
-	 * Registers a link provider, allowing a custom parser to be used to match
-	 * and handle links. Multiple link providers can be used, they will be asked
-	 * in the order in which they are registered.
-	 * @param linkProvider The link provider to use to detect links.
-	 */
-	registerLinkProvider(linkProvider: ILinkProvider): IDisposable;
-
-	/**
-	 * Registers a character joiner, allowing custom sequences of characters to
-	 * be rendered as a single unit. This is useful in particular for rendering
-	 * ligatures and graphemes, among other things.
-	 *
-	 * Each registered character joiner is called with a string of text
-	 * representing a portion of a line in the terminal that can be rendered as
-	 * a single unit. The joiner must return a sorted array, where each entry is
-	 * itself an array of length two, containing the start (inclusive) and end
-	 * (exclusive) index of a substring of the input that should be rendered as
-	 * a single unit. When multiple joiners are provided, the results of each
-	 * are collected. If there are any overlapping substrings between them, they
-	 * are combined into one larger unit that is drawn together.
-	 *
-	 * All character joiners that are registered get called every time a line is
-	 * rendered in the terminal, so it is essential for the handler function to
-	 * run as quickly as possible to avoid slowdowns when rendering. Similarly,
-	 * joiners should strive to return the smallest possible substrings to
-	 * render together, since they aren't drawn as optimally as individual
-	 * characters.
-	 *
-	 * @param handler The function that determines character joins. It is called
-	 * with a string of text that is eligible for joining and returns an array
-	 * where each entry is an array containing the start (inclusive) and end
-	 * (exclusive) indexes of ranges that should be rendered as a single unit.
-	 * @returns The ID of the new joiner, this can be used to deregister
-	 */
-	registerCharacterJoiner(handler: (text: string) => [number, number][]): number;
-
-	/**
-	 * Deregisters the character joiner if one was registered. Note that
-	 * character joiners are only used by the webgl renderer.
-	 * @param joinerId The character joiner's ID (returned after register)
-	 */
-	deregisterCharacterJoiner(joinerId: number): void;
-
-	/**
-	 * Adds a marker to the normal buffer and returns it.
-	 * @param cursorYOffset The y position offset of the marker from the cursor.
-	 * @returns The new marker or undefined.
-	 */
-	registerMarker(cursorYOffset?: number): IMarker;
-
-	/**
-	 * Registers a decoration to the terminal.
-	 * @param decorationOptions, which takes a marker and an optional anchor,
-	 * width, height, and x offset from the anchor. Returns the decoration or
-	 * undefined if the alt buffer is active or the marker has already been
-	 * disposed of.
-	 * @throws when options include a negative x offset.
-	 */
-	registerDecoration(decorationOptions: IDecorationOptions): IDecoration | undefined;
-
-	/**
-	 * Gets whether the terminal has an active selection.
-	 */
-	hasSelection(): boolean;
-
-	/**
-	 * Gets the terminal's current selection, this is useful for implementing
-	 * copy behavior outside of xterm.js.
-	 */
-	getSelection(): string;
-
-	/**
-	 * Gets the selection position or undefined if there is no selection.
-	 */
-	getSelectionPosition(): IBufferRange | undefined;
-
-	/**
-	 * Clears the current terminal selection.
-	 */
-	clearSelection(): void;
-
-	/**
-	 * Selects text within the terminal.
-	 * @param column The column the selection starts at.
-	 * @param row The row the selection starts at.
-	 * @param length The length of the selection.
-	 */
-	select(column: number, row: number, length: number): void;
-
-	/**
-	 * Selects all text within the terminal.
-	 */
-	selectAll(): void;
-
-	/**
-	 * Selects text in the buffer between 2 lines.
-	 * @param start The 0-based line index to select from (inclusive).
-	 * @param end The 0-based line index to select to (inclusive).
-	 */
-	selectLines(start: number, end: number): void;
-
-	/*
-	 * Disposes of the terminal, detaching it from the DOM and removing any
-	 * active listeners. Once the terminal is disposed it should not be used
-	 * again.
-	 */
-	dispose(): void;
-
-	/**
-	 * Scroll the display of the terminal
-	 * @param amount The number of lines to scroll down (negative scroll up).
-	 */
-	scrollLines(amount: number): void;
-
-	/**
-	 * Scroll the display of the terminal by a number of pages.
-	 * @param pageCount The number of pages to scroll (negative scrolls up).
-	 */
-	scrollPages(pageCount: number): void;
-
-	/**
-	 * Scrolls the display of the terminal to the top.
-	 */
-	scrollToTop(): void;
-
-	/**
-	 * Scrolls the display of the terminal to the bottom.
-	 */
-	scrollToBottom(): void;
-
-	/**
-	 * Scrolls to a line within the buffer.
-	 * @param line The 0-based line index to scroll to.
-	 */
-	scrollToLine(line: number): void;
-
-	/**
-	 * Clear the entire buffer, making the prompt line the new first line.
-	 */
-	clear(): void;
-
-	/**
-	 * Write data to the terminal.
-	 *
-	 * Note that the change will not be reflected in the {@link buffer}
-	 * immediately as the data is processed asynchronously. Provide a
-	 * {@link callback} to know when the data was processed.
-	 * @param data The data to write to the terminal. This can either be raw
-	 * bytes given as Uint8Array from the pty or a string. Raw bytes will always
-	 * be treated as UTF-8 encoded, string data as UTF-16.
-	 * @param callback Optional callback that fires when the data was processed
-	 * by the parser. This callback must be provided and awaited in order for
-	 * {@link buffer} to reflect the change in the write.
-	 */
-	write(data: string | Uint8Array, callback?: () => void): void;
-
-	/**
-	 * Writes data to the terminal, followed by a break line character (\n).
-	 *
-	 * Note that the change will not be reflected in the {@link buffer}
-	 * immediately as the data is processed asynchronously. Provide a
-	 * {@link callback} to know when the data was processed.
-	 * @param data The data to write to the terminal. This can either be raw
-	 * bytes given as Uint8Array from the pty or a string. Raw bytes will always
-	 * be treated as UTF-8 encoded, string data as UTF-16.
-	 * @param callback Optional callback that fires when the data was processed
-	 * by the parser. This callback must be provided and awaited in order for
-	 * {@link buffer} to reflect the change in the write.
-	 */
-	writeln(data: string | Uint8Array, callback?: () => void): void;
-
-	/**
-	 * Writes text to the terminal, performing the necessary transformations for
-	 * pasted text.
-	 * @param data The text to write to the terminal.
-	 */
-	paste(data: string): void;
-
-	/**
-	 * Tells the renderer to refresh terminal content between two rows
-	 * (inclusive) at the next opportunity.
-	 * @param start The row to start from (between 0 and this.rows - 1).
-	 * @param end The row to end at (between start and this.rows - 1).
-	 */
-	refresh(start: number, end: number): void;
-
-	/**
-	 * Clears the texture atlas of the webgl renderer if it's active. Doing
-	 * this will force a redraw of all glyphs which can workaround issues
-	 * causing the texture to become corrupt, for example Chromium/Nvidia has an
-	 * issue where the texture gets messed up when resuming the OS from sleep.
-	 */
-	clearTextureAtlas(): void;
-
-	/**
-	 * Perform a full reset (RIS, aka '\x1bc').
-	 */
-	reset(): void;
-}
-
-/**
  * An object representing a range within the viewport of the terminal.
  */
 export type IViewportRange = {
@@ -1412,7 +889,7 @@ interface IViewportRangePosition {
 /**
  * A link handler for OSC 8 hyperlinks.
  */
-interface ILinkHandler {
+export interface ILinkHandler {
 	/**
 	 * Calls when the link is activated.
 	 * @param event The mouse event triggering the callback.
@@ -1449,10 +926,7 @@ interface ILinkHandler {
 	allowNonHttpProtocols?: boolean;
 }
 
-/**
- * A custom link provider.
- */
-interface ILinkProvider {
+export interface ILinkProvider {
 	/**
 	 * Provides a link a buffer position
 	 * @param bufferLineNumber The y position of the buffer to check for links
@@ -1463,10 +937,7 @@ interface ILinkProvider {
 	provideLinks(bufferLineNumber: number, callback: (links: ILink[] | undefined) => void): void;
 }
 
-/**
- * A link within the terminal.
- */
-interface ILink {
+export interface ILink {
 	/**
 	 * The buffer range of the link.
 	 */
@@ -1514,10 +985,7 @@ interface ILink {
 	dispose?(): void;
 }
 
-/**
- * A set of decorations that can be applied to links.
- */
-interface ILinkDecorations {
+export interface ILinkDecorations {
 	/**
 	 * Whether the cursor is set to pointer.
 	 */
@@ -1557,6 +1025,30 @@ interface IBufferCellPosition {
 	 * The y position within the buffer (1-based).
 	 */
 	y: number;
+}
+
+export interface IBufferNamespace {
+	/**
+	 * The active buffer, this will either be the normal or alternate buffers.
+	 */
+	readonly active: IBuffer;
+
+	/**
+	 * The normal buffer.
+	 */
+	readonly normal: IBuffer;
+
+	/**
+	 * The alternate buffer, this becomes the active buffer when an application
+	 * enters this mode via DECSET (`CSI ? 4 7 h`)
+	 */
+	readonly alternate: IBuffer;
+
+	/**
+	 * Adds an event listener for when the active buffer changes.
+	 * @returns an `IDisposable` to stop listening.
+	 */
+	onBufferChange: IEvent<IBuffer>;
 }
 
 /**
@@ -1617,56 +1109,15 @@ export interface IBuffer {
 	getNullCell(): IBufferCell;
 }
 
-export type IBufferElementProvider = {
-	/**
-	 * Provides a document fragment or HTMLElement containing the buffer
-	 * elements.
-	 */
-	provideBufferElements(): DocumentFragment | HTMLElement;
-};
-
-/**
- * Represents the terminal's set of buffers.
- */
-interface IBufferNamespace {
-	/**
-	 * The active buffer, this will either be the normal or alternate buffers.
-	 */
-	readonly active: IBuffer;
-
-	/**
-	 * The normal buffer.
-	 */
-	readonly normal: IBuffer;
-
-	/**
-	 * The alternate buffer, this becomes the active buffer when an application
-	 * enters this mode via DECSET (`CSI ? 4 7 h`)
-	 */
-	readonly alternate: IBuffer;
-
-	/**
-	 * Adds an event listener for when the active buffer changes.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onBufferChange: IEvent<IBuffer>;
-}
-
 /**
  * Represents a line in the terminal's buffer.
  */
-interface IBufferLine {
+export interface IBufferLine {
 	/**
 	 * Whether the line is wrapped from the previous line.
 	 */
 	readonly isWrapped: boolean;
 
-	/**
-	 * The length of the line, all call to getCell beyond the length will result
-	 * in `undefined`. Note that this may exceed columns as the line array may
-	 * not be trimmed after a resize, compare against {@link Terminal.cols} to
-	 * get the actual maximum length of a line.
-	 */
 	readonly length: number;
 
 	/**
@@ -2084,7 +1535,7 @@ export type IModes = {
 /**
  * An object containing a width and height in pixels.
  */
-export type IDimensions = {
+type IDimensions = {
 	width: number;
 	height: number;
 };
@@ -2092,15 +1543,11 @@ export type IDimensions = {
 /**
  * An object containing a top and left offset.
  */
-export type IOffset = {
+type IOffset = {
 	top: number;
 	left: number;
 };
 
-/**
- * The dimensions of the terminal, this is constructed and available after
- * {@link Terminal.open} is called.
- */
 export type IRenderDimensions = {
 	/**
 	 * Dimensions measured in CSS pixels (ie. device pixels / device pixel
