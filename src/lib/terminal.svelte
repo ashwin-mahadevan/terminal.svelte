@@ -106,13 +106,7 @@
 	}
 </script>
 
-<div
-	class="terminal-host"
-	style:height="100%"
-	bind:this={element}
-	bind:clientWidth
-	bind:clientHeight
->
+<div style:height="100%" bind:this={element} bind:clientWidth bind:clientHeight>
 	<span
 		aria-hidden="true"
 		style:position="absolute"

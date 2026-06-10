@@ -295,7 +295,11 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 		this._register(
 			toDisposable(() => {
 				this._customKeyEventHandler = undefined;
-				this.element?.parentNode?.removeChild(this.element);
+				// The root element is the caller-owned host (see open()), so we must not
+				// remove it — its owner (e.g. Svelte unmounting the component) discards
+				// it along with every child we inserted. We only drop the one child that
+				// no sub-service cleans up itself.
+				this._viewportElement?.remove();
 			})
 		);
 	}
@@ -625,10 +629,13 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 			this._document = this.optionsService.rawOptions.documentOverride as Document;
 		}
 
-		// Create main element container
-		this.element = this._document.createElement('div');
+		// Use the parent directly as the terminal's root element. Upstream xterm.js
+		// creates its own wrapper div because consumers may call open() on an
+		// arbitrary element it doesn't control; here we own the host element, so we
+		// apply the terminal's fixed state (classes, dir) to it directly and save a
+		// level of DOM nesting.
+		this.element = parent;
 		this.element.dir = 'ltr'; // xterm.css assumes LTR
-		this.element.classList.add('terminal');
 		this.element.classList.add('xterm');
 		this.element.classList.toggle('allow-transparency', this.options.allowTransparency);
 		this._register(
@@ -636,7 +643,6 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
 				this.element!.classList.toggle('allow-transparency', value)
 			)
 		);
-		parent.appendChild(this.element);
 
 		// Performance: Use a document fragment to build the terminal
 		// viewport and helper elements detached from the DOM
