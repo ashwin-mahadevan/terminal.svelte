@@ -6,7 +6,6 @@
 import type {
 	IParsingState,
 	IDcsHandler,
-	IEscapeSequenceParser,
 	IParams,
 	IOscHandler,
 	IHandlerCollection,
@@ -525,7 +524,7 @@ export const VT500_TRANSITION_TABLE = (function (): TransitionTable {
  *
  * TODO: implement error recovery hook via error handler return values
  */
-export class EscapeSequenceParser implements IEscapeSequenceParser {
+export class EscapeSequenceParser {
 	public initialState: number;
 	public currentState: number;
 	public precedingJoinState: number; // UnicodeJoinProperties

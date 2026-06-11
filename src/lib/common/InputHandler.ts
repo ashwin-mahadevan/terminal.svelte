@@ -18,12 +18,7 @@ import { CHARSETS, DEFAULT_CHARSET } from '$lib/common/data/Charsets';
 import { EscapeSequenceParser } from '$lib/common/parser/EscapeSequenceParser';
 import { StringToUtf32, stringFromCodePoint, Utf8ToUtf32 } from '$lib/common/input/TextDecoder';
 import { BufferLine, DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
-import type {
-	IParsingState,
-	IEscapeSequenceParser,
-	IParams,
-	IFunctionIdentifier
-} from '$lib/common/parser/Types';
+import type { IParsingState, IParams, IFunctionIdentifier } from '$lib/common/parser/Types';
 import {
 	NULL_CELL_CODE,
 	NULL_CELL_WIDTH,
@@ -217,7 +212,7 @@ export class InputHandler {
 		private readonly _oscLinkService: IOscLinkService,
 		private readonly _mouseStateService: IMouseStateService,
 		private readonly _unicodeService: IUnicodeService,
-		private readonly _parser: IEscapeSequenceParser = new EscapeSequenceParser()
+		private readonly _parser: EscapeSequenceParser = new EscapeSequenceParser()
 	) {
 		this._dirtyRowTracker = new DirtyRowTracker(this._bufferService);
 
