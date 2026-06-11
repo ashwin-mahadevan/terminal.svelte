@@ -3,6 +3,7 @@
  * @license MIT
  */
 
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
 	IParsingState,
 	IDcsHandler,
@@ -30,7 +31,7 @@ import type {
 } from '$lib/common/parser/Types';
 import { ParserStackType } from '$lib/common/parser/Types';
 import { ParserState, ParserAction } from '$lib/common/parser/Constants';
-import type { IDisposable } from '$lib/common/Types';
+
 import { Params } from '$lib/common/parser/Params';
 import { OscParser } from '$lib/common/parser/OscParser';
 import { DcsParser } from '$lib/common/parser/DcsParser';

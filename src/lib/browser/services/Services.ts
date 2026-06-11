@@ -3,13 +3,14 @@
  * @license MIT
  */
 
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
 import type { IColorSet, ILink, ReadonlyColorSet } from '$lib/browser/Types';
 import type {
 	ISelectionRedrawRequestEvent as ISelectionRequestRedrawEvent,
 	ISelectionRequestScrollLinesEvent
 } from '$lib/browser/selection/Types';
-import type { AllColorIndex, IDisposable } from '$lib/common/Types';
+import type { AllColorIndex } from '$lib/common/Types';
 import type { IEvent } from '$lib/common/Event';
 
 export interface ICoreBrowserService {

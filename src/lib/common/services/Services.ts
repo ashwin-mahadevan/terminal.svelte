@@ -3,6 +3,7 @@
  * @license MIT
  */
 
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
 	IDecoration,
 	IDecorationOptions,
@@ -21,7 +22,6 @@ import type {
 	ICoreMouseEvent,
 	ICoreMouseProtocol,
 	IDecPrivateModes,
-	IDisposable,
 	IKittyKeyboardState,
 	IModes,
 	IOscLinkData,

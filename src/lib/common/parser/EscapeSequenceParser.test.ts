@@ -3,6 +3,7 @@
  * @license MIT
  */
 
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { describe, it, expect, beforeEach } from 'vitest';
 import type {
 	IParsingState,
@@ -24,7 +25,7 @@ import { StringToUtf32, stringFromCodePoint, utf32ToString } from '$lib/common/i
 import { ParserState } from '$lib/common/parser/Constants';
 import { Params } from '$lib/common/parser/Params';
 import { OscHandler } from '$lib/common/parser/OscParser';
-import type { IDisposable } from '$lib/common/Types';
+
 import { DcsHandler } from '$lib/common/parser/DcsParser';
 import { ApcHandler } from '$lib/common/parser/ApcParser';
 

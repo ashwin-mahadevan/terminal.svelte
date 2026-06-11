@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { IDisposable } from '$lib/common/Types';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
 	IDcsHandler,
 	IParams,

@@ -21,6 +21,7 @@
  *   http://linux.die.net/man/7/urxvt
  */
 
+import type { ITerminalOptions } from '$lib/common/services/Services';
 import type {
 	IDecoration,
 	IDecorationOptions,
@@ -73,7 +74,7 @@ import { KeyboardService } from '$lib/browser/services/KeyboardService';
 import { channels, color, rgb } from '$lib/common/Color';
 import { CoreTerminal } from '$lib/common/CoreTerminal';
 import * as Browser from '$lib/common/Platform';
-import type { IColorEvent, ITerminalOptions } from '$lib/common/Types';
+import type { IColorEvent } from '$lib/common/Types';
 import { ColorRequestType, KeyboardResultType, SpecialColorIndex } from '$lib/common/Types';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import type { IBuffer } from '$lib/common/buffer/Types';

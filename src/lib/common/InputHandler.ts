@@ -4,9 +4,9 @@
  * @license MIT
  */
 
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
 	IAttributeData,
-	IDisposable,
 	IWindowOptions,
 	IColorEvent,
 	IParseStack,

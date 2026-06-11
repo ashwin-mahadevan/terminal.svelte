@@ -11,8 +11,9 @@ import type {
 	ILinkifier2,
 	ILinkifierEvent
 } from '$lib/browser/Types';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { dispose } from '$lib/common/Lifecycle';
-import type { IDisposable } from '$lib/common/Types';
+
 import type { IBufferService } from '$lib/common/services/Services';
 import type {
 	ILinkProviderService,

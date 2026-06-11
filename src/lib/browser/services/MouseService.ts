@@ -10,9 +10,10 @@ import type {
 	ICoreService,
 	IOptionsService
 } from '$lib/common/services/Services';
-import type { ICoreMouseEvent, IDisposable } from '$lib/common/Types';
+import type { ICoreMouseEvent } from '$lib/common/Types';
 import { CoreMouseAction, CoreMouseButton, CoreMouseEventType } from '$lib/common/Types';
 import { C0 } from '$lib/common/data/EscapeSequences';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IMouseServiceTarget } from './Services';
 import type {

@@ -1,5 +1,5 @@
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type { ILinkProvider, ILinkProviderService } from '$lib/browser/services/Services';
-import type { IDisposable } from '$lib/common/Types';
 
 export class LinkProviderService implements ILinkProviderService {
 	public readonly linkProviders: ILinkProvider[] = [];

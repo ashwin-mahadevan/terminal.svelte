@@ -3,11 +3,12 @@
  * @license MIT
  */
 
+import type { ITerminalOptions } from '$lib/common/services/Services';
 import * as Strings from '$lib/browser/LocalizableStrings';
 import { CoreBrowserTerminal as TerminalCore } from '$lib/browser/CoreBrowserTerminal';
 import type { IBufferRange } from '$lib/browser/Types';
 import { DisposableStore } from '$lib/common/Lifecycle';
-import type { ITerminalOptions } from '$lib/common/Types';
+
 import { BufferNamespaceApi } from '$lib/common/public/BufferNamespaceApi';
 import { ParserApi } from '$lib/common/public/ParserApi';
 import { UnicodeApi } from '$lib/common/public/UnicodeApi';

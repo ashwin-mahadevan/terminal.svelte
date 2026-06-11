@@ -3,9 +3,9 @@
  * @license MIT
  */
 
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { OptionsService, DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
-import type { IDisposable } from '$lib/common/Types';
 
 describe('OptionsService', () => {
 	describe('constructor', () => {

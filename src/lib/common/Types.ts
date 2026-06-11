@@ -16,11 +16,8 @@ import type {
 import type { IFunctionIdentifier } from '$lib/xterm';
 import type { LegacyEmitter, IEvent } from '$lib/common/Event';
 
-// IDisposable and ITerminalOptions are defined canonically elsewhere; re-export
-// them so existing `$lib/common/Types` importers keep working.
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { ITerminalOptions } from '$lib/common/services/Services';
-export type { IDisposable, ITerminalOptions };
 
 export interface ICoreTerminal {
 	mouseStateService: IMouseStateService;

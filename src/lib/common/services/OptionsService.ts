@@ -3,8 +3,9 @@
  * @license MIT
  */
 
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { isMac } from '$lib/common/Platform';
-import type { CursorStyle, IDisposable } from '$lib/common/Types';
+import type { CursorStyle } from '$lib/common/Types';
 import type { FontWeight, IOptionsService, ITerminalOptions } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 

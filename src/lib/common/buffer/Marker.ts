@@ -3,8 +3,9 @@
  * @license MIT
  */
 
-import type { IDisposable, IMarker } from '$lib/common/Types';
+import type { IMarker } from '$lib/common/Types';
 import { LegacyEmitter } from '$lib/common/Event';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { dispose } from '$lib/common/Lifecycle';
 
 export class Marker implements IMarker {

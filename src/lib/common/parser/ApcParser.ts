@@ -3,6 +3,7 @@
  * @license MIT
  */
 
+import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
 	IApcHandler,
 	IHandlerCollection,
@@ -12,7 +13,7 @@ import type {
 } from '$lib/common/parser/Types';
 import { ParserConstants } from '$lib/common/parser/Constants';
 import { utf32ToString } from '$lib/common/input/TextDecoder';
-import type { IDisposable } from '$lib/common/Types';
+
 import { LimitedStringBuilder } from '$lib/common/StringBuilder';
 
 const EMPTY_HANDLERS: IApcHandler[] = [];

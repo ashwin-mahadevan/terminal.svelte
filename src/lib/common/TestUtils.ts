@@ -30,10 +30,10 @@ import type {
 	IModes,
 	IAttributeData,
 	IOscLinkData,
-	IDisposable,
 	IBufferLine,
 	IExtendedAttrs
 } from '$lib/common/Types';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { UnicodeV6 } from '$lib/common/input/UnicodeV6';
 import type { IDecorationOptions, IDecoration } from '$lib/xterm';
 import { LegacyEmitter } from '$lib/common/Event';

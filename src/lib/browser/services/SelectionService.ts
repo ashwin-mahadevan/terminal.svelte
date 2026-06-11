@@ -17,9 +17,10 @@ import type {
 	IMouseCoordsService,
 	IRenderService
 } from '$lib/browser/services/Services';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { MutableDisposable } from '$lib/common/Lifecycle';
 import * as Browser from '$lib/common/Platform';
-import type { IBufferLine, ICellData, IDisposable } from '$lib/common/Types';
+import type { IBufferLine, ICellData } from '$lib/common/Types';
 import { getRangeLength } from '$lib/common/buffer/BufferRange';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { IBuffer } from '$lib/common/buffer/Types';
