@@ -14,7 +14,7 @@ import type { ICoreMouseEvent, IDisposable } from '$lib/common/Types';
 import { CoreMouseAction, CoreMouseButton, CoreMouseEventType } from '$lib/common/Types';
 import { C0 } from '$lib/common/data/EscapeSequences';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
-import type { IMouseService, IMouseServiceTarget } from './Services';
+import type { IMouseServiceTarget } from './Services';
 import type {
 	ICoreBrowserService,
 	IMouseCoordsService,
@@ -39,7 +39,7 @@ interface IMouseBindContext {
 	readonly requestedEvents: RequestedMouseEvents;
 }
 
-export class MouseService implements IMouseService {
+export class MouseService {
 	private _lastEvent: ICoreMouseEvent | null = null;
 	private _wheelPartialScroll: number = 0;
 	private _touchScrollAccumulator: number = 0;

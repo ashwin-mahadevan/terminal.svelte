@@ -49,14 +49,6 @@ export interface IMouseCoordsService {
 	): { col: number; row: number; x: number; y: number } | undefined;
 }
 
-export interface IMouseService {
-	bindMouse(
-		target: IMouseServiceTarget,
-		register: (disposable: IDisposable) => void,
-		focus: () => void
-	): void;
-	reset(): void;
-}
 export interface IMouseServiceTarget {
 	element: HTMLElement;
 	screenElement: HTMLElement;

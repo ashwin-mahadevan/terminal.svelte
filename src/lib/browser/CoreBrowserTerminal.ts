@@ -65,7 +65,6 @@ import type {
 	IKeyboardService,
 	ILinkProviderService,
 	IMouseCoordsService,
-	IMouseService,
 	IRenderService,
 	ISelectionService,
 	IThemeService
@@ -124,7 +123,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	// Optional browser services
 	private _coreBrowserService: ICoreBrowserService | undefined;
 	private _mouseCoordsService: IMouseCoordsService | undefined;
-	private _mouseService: IMouseService | undefined;
+	private _mouseService: MouseService | undefined;
 	private _renderService: IRenderService | undefined;
 	private _themeService: IThemeService | undefined;
 	private _characterJoinerService: ICharacterJoinerService | undefined;
