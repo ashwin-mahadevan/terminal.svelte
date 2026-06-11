@@ -5,14 +5,13 @@
 
 import { UnicodeV6 } from '$lib/common/input/UnicodeV6';
 import type {
-	IUnicodeService,
 	IUnicodeVersionProvider,
 	UnicodeCharProperties,
 	UnicodeCharWidth
 } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
-export class UnicodeService implements IUnicodeService {
+export class UnicodeService {
 	// TODO: Fix this upstream type error.
 
 	private _providers: { [key: string]: IUnicodeVersionProvider } = Object.create(null);

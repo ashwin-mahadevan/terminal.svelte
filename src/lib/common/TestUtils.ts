@@ -13,8 +13,7 @@ import type {
 	IBufferService,
 	ICoreService,
 	IOptionsService,
-	IMouseStateService,
-	IUnicodeService
+	IMouseStateService
 } from '$lib/common/services/Services';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
@@ -278,7 +277,7 @@ export class MockOscLinkService {
 }
 
 // defaults to V6 always to keep tests passing
-export class MockUnicodeService implements IUnicodeService {
+export class MockUnicodeService {
 	// TODO: Fix this upstream type error.
 
 	private _provider = new UnicodeV6();

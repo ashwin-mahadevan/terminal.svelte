@@ -28,6 +28,7 @@ import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import { BufferService } from '$lib/common/services/BufferService';
 import { CoreService } from '$lib/common/services/CoreService';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
+import type { UnicodeService } from '$lib/common/services/UnicodeService';
 
 function getCursor(bufferService: IBufferService): number[] {
 	return [bufferService.buffer.x, bufferService.buffer.y];
@@ -95,7 +96,7 @@ describe('InputHandler', () => {
 			optionsService,
 			oscLinkService,
 			new MockMouseStateService(),
-			new MockUnicodeService()
+			new MockUnicodeService() as unknown as UnicodeService
 		);
 	});
 
@@ -371,7 +372,7 @@ describe('InputHandler', () => {
 				new MockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 			// Set bracketed paste mode
 			inputHandler.setModePrivate(Params.fromArray([2004]));
@@ -390,7 +391,7 @@ describe('InputHandler', () => {
 				optionsService,
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 			// Set color scheme updates mode (default colorSchemeQuery=true)
 			inputHandler.setModePrivate(Params.fromArray([2031]));
@@ -410,7 +411,7 @@ describe('InputHandler', () => {
 				optionsService,
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 			// Attempt to set color scheme updates mode
 			inputHandler.setModePrivate(Params.fromArray([2031]));
@@ -434,7 +435,7 @@ describe('InputHandler', () => {
 				new MockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 
 			// insert some data in first and second line
@@ -489,7 +490,7 @@ describe('InputHandler', () => {
 				new MockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 
 			// insert some data in first and second line
@@ -547,7 +548,7 @@ describe('InputHandler', () => {
 				new MockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 
 			// fill 6 lines to test 3 different states
@@ -588,7 +589,7 @@ describe('InputHandler', () => {
 				new MockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 
 			const resetToBaseState = async (): Promise<void> => {
@@ -637,7 +638,7 @@ describe('InputHandler', () => {
 				new MockOptionsService({ scrollOnEraseInDisplay: true }),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 			const aLine = 'a'.repeat(bufferService.cols);
 			// add 2 full lines of text.
@@ -668,7 +669,7 @@ describe('InputHandler', () => {
 				new MockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 
 			// fill display with a's
@@ -790,7 +791,7 @@ describe('InputHandler', () => {
 				new MockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 			const container = new Uint32Array(10);
 			container[0] = 0x200b;
@@ -825,7 +826,7 @@ describe('InputHandler', () => {
 				new MockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 		});
 		it('should handle DECSET/DECRST 47 (alt screen buffer)', async () => {
@@ -1052,7 +1053,7 @@ describe('InputHandler', () => {
 				optionsService,
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 		});
 		describe('should equal to semicolon', () => {
@@ -2862,7 +2863,7 @@ describe('InputHandler', () => {
 				optionsService,
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 		});
 
@@ -2923,7 +2924,7 @@ describe('InputHandler', () => {
 				optionsService,
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
-				new MockUnicodeService()
+				new MockUnicodeService() as unknown as UnicodeService
 			);
 		});
 

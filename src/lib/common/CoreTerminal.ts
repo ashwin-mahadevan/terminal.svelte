@@ -26,8 +26,7 @@ import type {
 	IOptionsService,
 	IBufferService,
 	ICoreService,
-	IMouseStateService,
-	IUnicodeService
+	IMouseStateService
 } from '$lib/common/services/Services';
 import { BufferService, BufferServiceConstants } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
@@ -62,7 +61,7 @@ export abstract class CoreTerminal {
 
 	public readonly mouseStateService: IMouseStateService;
 	public readonly coreService: ICoreService;
-	public readonly unicodeService: IUnicodeService;
+	public readonly unicodeService: UnicodeService;
 	public readonly optionsService: IOptionsService;
 
 	protected _inputHandler: InputHandler;

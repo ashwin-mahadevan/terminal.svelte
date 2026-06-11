@@ -33,8 +33,7 @@ import { AttributeData } from '$lib/common/buffer/AttributeData';
 import type {
 	ICoreService,
 	IOptionsService,
-	IMouseStateService,
-	IUnicodeService
+	IMouseStateService
 } from '$lib/common/services/Services';
 import type { IBufferService } from '$lib/common/services/Services';
 import type { CharsetService } from '$lib/common/services/CharsetService';
@@ -211,7 +210,7 @@ export class InputHandler {
 		private readonly _optionsService: IOptionsService,
 		private readonly _oscLinkService: OscLinkService,
 		private readonly _mouseStateService: IMouseStateService,
-		private readonly _unicodeService: IUnicodeService,
+		private readonly _unicodeService: UnicodeService,
 		private readonly _parser: EscapeSequenceParser = new EscapeSequenceParser()
 	) {
 		this._dirtyRowTracker = new DirtyRowTracker(this._bufferService);
