@@ -5,7 +5,7 @@
 
 import * as dom from '../Dom';
 import { FastDomNode } from './fastDomNode';
-import type { IMouseEvent, IMouseWheelEvent } from './mouseEvent';
+import type { IMouseWheelEvent, StandardMouseEvent } from './mouseEvent';
 import { StandardWheelEvent } from './mouseEvent';
 import type { IScrollbarHost } from './abstractScrollbar';
 import { HorizontalScrollbar } from './horizontalScrollbar';
@@ -552,14 +552,14 @@ export class SmoothScrollableElement extends Widget {
 
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	private _handleMouseLeave(e: IMouseEvent): void {
+	private _handleMouseLeave(e: StandardMouseEvent): void {
 		this._mouseIsOver = false;
 		this._hide();
 	}
 
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	private _handleMouseOver(e: IMouseEvent): void {
+	private _handleMouseOver(e: StandardMouseEvent): void {
 		this._mouseIsOver = true;
 		this._reveal();
 	}
