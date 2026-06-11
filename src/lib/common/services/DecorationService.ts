@@ -12,7 +12,8 @@ import type { IInternalDecoration } from '$lib/common/services/Services';
 import { IBufferService } from '$lib/common/services/Services';
 import { SortedList } from '$lib/common/SortedList';
 import type { IColor, ICircularList } from '$lib/common/Types';
-import type { IDecoration, IDecorationOptions, IMarker } from '$lib/xterm';
+import type { IDecoration, IDecorationOptions } from '$lib/xterm';
+import type { Marker } from '$lib/common/buffer/Marker';
 import { LegacyEmitter } from '$lib/common/Event';
 
 // Work variables to avoid garbage collection
@@ -360,7 +361,7 @@ export class DecorationLineCache {
 }
 
 class Decoration extends DisposableStore implements IInternalDecoration {
-	public readonly marker: IMarker;
+	public readonly marker: Marker;
 	public element: HTMLElement | undefined;
 
 	/** Start line used for line-index removal when marker.line is cleared on dispose. */

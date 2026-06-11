@@ -26,7 +26,6 @@ import type {
 	IDecorationOptions,
 	IDisposable,
 	ILinkProvider,
-	IMarker,
 	IRenderDimensions as IRenderDimensionsApi
 } from '$lib/xterm';
 import {
@@ -80,6 +79,7 @@ import type { IColorEvent, ITerminalOptions } from '$lib/common/Types';
 import { ColorRequestType, KeyboardResultType, SpecialColorIndex } from '$lib/common/Types';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import type { IBuffer } from '$lib/common/buffer/Types';
+import type { Marker } from '$lib/common/buffer/Marker';
 import { C0, C1ESCAPED } from '$lib/common/data/EscapeSequences';
 import { toRgbString } from '$lib/common/input/XParseColor';
 import { DecorationService } from '$lib/common/services/DecorationService';
@@ -1042,11 +1042,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 	}
 
-	public get markers(): IMarker[] {
+	public get markers(): Marker[] {
 		return this.buffer.markers;
 	}
 
-	public registerMarker(cursorYOffset: number): IMarker {
+	public registerMarker(cursorYOffset: number): Marker {
 		return this.buffer.addMarker(this.buffer.ybase + this.buffer.y + cursorYOffset);
 	}
 

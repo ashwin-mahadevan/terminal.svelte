@@ -5,9 +5,10 @@
  * (EXPERIMENTAL) This Addon is still under development
  */
 
-import type { IBufferCell, IBufferRange, IMarker } from '$lib/xterm';
+import type { IBufferCell, IBufferRange } from '$lib/xterm';
 import type { Terminal } from '$lib/browser/public/Terminal';
 import type { IBuffer } from '$lib/common/buffer/Types';
+import type { Marker } from '$lib/common/buffer/Marker';
 import type { IAttributeData } from '$lib/common/Types';
 import { UnderlineStyle } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
@@ -41,11 +42,11 @@ interface ISerializeRange {
 	/**
 	 * The line to start serializing (inclusive).
 	 */
-	start: IMarker | number;
+	start: Marker | number;
 	/**
 	 * The line to end serializing (inclusive).
 	 */
-	end: IMarker | number;
+	end: Marker | number;
 }
 
 function constrain(value: number, low: number, high: number): number {

@@ -18,13 +18,13 @@ import type {
 	IDisposable,
 	ILinkProvider,
 	ILocalizableStrings,
-	IMarker,
 	IModes,
 	IParser,
 	IRenderDimensions,
 	ITerminalInitOnlyOptions,
 	IUnicodeHandling
 } from '$lib/xterm';
+import type { Marker } from '$lib/common/buffer/Marker';
 import type { IEvent } from '$lib/common/Event';
 
 /**
@@ -146,7 +146,7 @@ export class Terminal {
 	public get buffer(): IBufferNamespaceApi {
 		return (this._buffer ??= this._store.add(new BufferNamespaceApi(this._core)));
 	}
-	public get markers(): ReadonlyArray<IMarker> {
+	public get markers(): ReadonlyArray<Marker> {
 		return this._core.markers;
 	}
 	public get modes(): IModes {
@@ -230,7 +230,7 @@ export class Terminal {
 	public deregisterCharacterJoiner(joinerId: number): void {
 		this._core.deregisterCharacterJoiner(joinerId);
 	}
-	public registerMarker(cursorYOffset: number = 0): IMarker {
+	public registerMarker(cursorYOffset: number = 0): Marker {
 		this._verifyIntegers(cursorYOffset);
 		return this._core.registerMarker(cursorYOffset);
 	}

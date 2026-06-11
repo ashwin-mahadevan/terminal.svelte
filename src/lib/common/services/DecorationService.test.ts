@@ -5,22 +5,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { DecorationLineCache, DecorationService } from '$lib/common/services/DecorationService';
-import type { IMarker } from '$lib/common/Types';
-import { Disposable } from '$lib/common/Lifecycle';
-import { LegacyEmitter } from '$lib/common/Event';
 import { MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
 import type { Buffer } from '$lib/common/buffer/Buffer';
+import { Marker } from '$lib/common/buffer/Marker';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 
-function createFakeMarker(line: number): IMarker {
-	return Object.freeze(
-		new (class extends Disposable {
-			public readonly id = 1;
-			public readonly line = line;
-			public readonly isDisposed = false;
-			public readonly onDispose = new LegacyEmitter<void>().event;
-		})()
-	);
+function createFakeMarker(line: number): Marker {
+	return new Marker(line);
 }
 
 function createDecorationService(): DecorationService {
@@ -28,7 +19,7 @@ function createDecorationService(): DecorationService {
 	return new DecorationService(bufferService);
 }
 
-const fakeMarker: IMarker = createFakeMarker(1);
+const fakeMarker: Marker = createFakeMarker(1);
 
 describe('DecorationService', () => {
 	it('should set isDisposed to true after dispose', () => {

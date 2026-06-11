@@ -2,6 +2,7 @@
 
 import type { IEvent } from './common/Event';
 import type { IBuffer } from './common/buffer/Types';
+import type { Marker } from './common/buffer/Marker';
 
 /**
  * A string or number representing text font weight.
@@ -500,27 +501,6 @@ export interface IDisposable {
 }
 
 /**
- * Represents a specific line in the terminal that is tracked when scrollback
- * is trimmed and lines are added or removed. This is a single line that may
- * be part of a larger wrapped line.
- */
-export interface IMarker {
-	dispose(): void;
-	onDispose: IEvent<void>;
-	readonly isDisposed: boolean;
-	/**
-	 * A unique identifier for this marker.
-	 */
-	readonly id: number;
-
-	/**
-	 * The actual line index in the buffer at this point in time. This is set to
-	 * -1 if the marker has been disposed.
-	 */
-	readonly line: number;
-}
-
-/**
  * Represents a decoration in the terminal that is associated with a
  * particular marker and DOM element.
  */
@@ -531,7 +511,7 @@ export interface IDecoration {
 	/*
 	 * The marker for the decoration in the terminal.
 	 */
-	readonly marker: IMarker;
+	readonly marker: Marker;
 
 	/**
 	 * An event fired when the decoration
@@ -571,7 +551,7 @@ export type IDecorationOptions = {
 	 * The line in the terminal where
 	 * the decoration will be displayed
 	 */
-	readonly marker: IMarker;
+	readonly marker: Marker;
 
 	/*
 	 * Where the decoration will be anchored -

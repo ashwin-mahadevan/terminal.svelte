@@ -8,9 +8,9 @@ import type {
 	ICircularList,
 	IBufferLine,
 	ICellData,
-	IMarker,
 	ICharset
 } from '$lib/common/Types';
+import type { Marker } from '$lib/common/buffer/Marker';
 import type { IEvent } from '$lib/common/Event';
 
 export interface IBuffer {
@@ -34,7 +34,7 @@ export interface IBuffer {
 	savedWraparoundMode: boolean;
 	savedCurAttrData: IAttributeData;
 	isCursorInViewport: boolean;
-	markers: IMarker[];
+	markers: Marker[];
 	translateBufferLineToString(
 		lineIndex: number,
 		trimRight: boolean,
@@ -47,7 +47,7 @@ export interface IBuffer {
 	getBlankLine(attr: IAttributeData, isWrapped?: boolean): IBufferLine;
 	getNullCell(attr?: IAttributeData): ICellData;
 	getWhitespaceCell(attr?: IAttributeData): ICellData;
-	addMarker(y: number): IMarker;
+	addMarker(y: number): Marker;
 	clearMarkers(y: number): void;
 	clearAllMarkers(): void;
 }
