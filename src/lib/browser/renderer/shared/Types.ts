@@ -3,8 +3,6 @@
  * @license MIT
  */
 
-import type { Terminal } from '$lib/browser/public/Terminal';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { IEvent } from '$lib/common/Event';
 
 export interface IDimensions {
@@ -74,25 +72,4 @@ export interface IRenderer {
 	clear(): void;
 	renderRows(start: number, end: number): void;
 	clearTextureAtlas?(): void;
-}
-
-export interface ISelectionRenderModel {
-	readonly hasSelection: boolean;
-	readonly columnSelectMode: boolean;
-	readonly viewportStartRow: number;
-	readonly viewportEndRow: number;
-	readonly viewportCappedStartRow: number;
-	readonly viewportCappedEndRow: number;
-	readonly startCol: number;
-	readonly endCol: number;
-	readonly selectionStart: [number, number] | undefined;
-	readonly selectionEnd: [number, number] | undefined;
-	clear(): void;
-	update(
-		terminal: CoreBrowserTerminal,
-		start: [number, number] | undefined,
-		end: [number, number] | undefined,
-		columnSelectMode?: boolean
-	): void;
-	isCellSelected(terminal: Terminal, x: number, y: number): boolean;
 }

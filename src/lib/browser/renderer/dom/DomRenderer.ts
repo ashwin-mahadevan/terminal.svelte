@@ -8,12 +8,12 @@ import { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
 import { INVERTED_DEFAULT_COLOR, RendererConstants } from '$lib/browser/renderer/shared/Constants';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
 import { createSelectionRenderModel } from '$lib/browser/renderer/shared/SelectionRenderModel';
+import type { SelectionRenderModel } from '$lib/browser/renderer/shared/SelectionRenderModel';
 import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
 import type {
 	IRenderDimensions,
 	IRenderer,
-	IRequestRedrawEvent,
-	ISelectionRenderModel
+	IRequestRedrawEvent
 } from '$lib/browser/renderer/shared/Types';
 import type {
 	ICharacterJoinerService,
@@ -60,7 +60,7 @@ export class DomRenderer implements IRenderer {
 	private _rowElements: HTMLElement[] = [];
 	private _selectionContainer: HTMLElement;
 	private _widthCache: WidthCache;
-	private _selectionRenderModel: ISelectionRenderModel = createSelectionRenderModel();
+	private _selectionRenderModel: SelectionRenderModel = createSelectionRenderModel();
 	private _lastSelectionStart: [number, number] | undefined;
 	private _lastSelectionEnd: [number, number] | undefined;
 	private _lastSelectionColumnMode: boolean = false;

@@ -4,10 +4,9 @@
  */
 
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
-import type { ISelectionRenderModel } from '$lib/browser/renderer/shared/Types';
 import type { Terminal } from '$lib/browser/public/Terminal';
 
-class SelectionRenderModel implements ISelectionRenderModel {
+export class SelectionRenderModel {
 	public hasSelection!: boolean;
 	public columnSelectMode!: boolean;
 	public viewportStartRow!: number;
@@ -110,6 +109,6 @@ class SelectionRenderModel implements ISelectionRenderModel {
 	}
 }
 
-export function createSelectionRenderModel(): ISelectionRenderModel {
+export function createSelectionRenderModel(): SelectionRenderModel {
 	return new SelectionRenderModel();
 }
