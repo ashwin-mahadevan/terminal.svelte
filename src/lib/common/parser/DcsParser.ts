@@ -6,7 +6,6 @@
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
 	IDcsHandler,
-	IParams,
 	IHandlerCollection,
 	IDcsParser,
 	DcsFallbackHandlerType,
@@ -74,7 +73,7 @@ export class DcsParser implements IDcsParser {
 		this._ident = 0;
 	}
 
-	public hook(ident: number, params: IParams): void {
+	public hook(ident: number, params: Params): void {
 		// always reset leftover handlers
 		this.reset();
 		this._ident = ident;
@@ -153,12 +152,12 @@ export class DcsHandler implements IDcsHandler {
 	private static _payloadLimit = ParserConstants.PAYLOAD_LIMIT;
 
 	private _data = new LimitedStringBuilder(DcsHandler._payloadLimit);
-	private _params: IParams = EMPTY_PARAMS;
+	private _params: Params = EMPTY_PARAMS;
 	private _hitLimit: boolean = false;
 
-	constructor(private _handler: (data: string, params: IParams) => boolean | Promise<boolean>) {}
+	constructor(private _handler: (data: string, params: Params) => boolean | Promise<boolean>) {}
 
-	public hook(params: IParams): void {
+	public hook(params: Params): void {
 		// since we need to preserve params until `unhook`, we have to clone it
 		// (only borrowed from parser and spans multiple parser states)
 		// perf optimization:

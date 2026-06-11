@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { IParams } from '$lib/common/parser/Types';
+import type { Params } from '$lib/common/parser/Params';
 import type { IDisposable, IFunctionIdentifier, IParser } from '$lib/xterm';
 import type { CoreTerminal } from '$lib/common/CoreTerminal';
 
@@ -14,7 +14,7 @@ export class ParserApi implements IParser {
 		id: IFunctionIdentifier,
 		callback: (params: (number | number[])[]) => boolean | Promise<boolean>
 	): IDisposable {
-		return this._core.registerCsiHandler(id, (params: IParams) => callback(params.toArray()));
+		return this._core.registerCsiHandler(id, (params: Params) => callback(params.toArray()));
 	}
 	public addCsiHandler(
 		id: IFunctionIdentifier,
@@ -26,7 +26,7 @@ export class ParserApi implements IParser {
 		id: IFunctionIdentifier,
 		callback: (data: string, param: (number | number[])[]) => boolean | Promise<boolean>
 	): IDisposable {
-		return this._core.registerDcsHandler(id, (data: string, params: IParams) =>
+		return this._core.registerDcsHandler(id, (data: string, params: Params) =>
 			callback(data, params.toArray())
 		);
 	}

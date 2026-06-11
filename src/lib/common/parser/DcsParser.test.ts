@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DcsParser, DcsHandler } from '$lib/common/parser/DcsParser';
-import type { IDcsHandler, IParams, IFunctionIdentifier } from '$lib/common/parser/Types';
+import type { IDcsHandler, IFunctionIdentifier } from '$lib/common/parser/Types';
 import { utf32ToString, StringToUtf32 } from '$lib/common/input/TextDecoder';
 import { Params } from '$lib/common/parser/Params';
 
@@ -60,7 +60,7 @@ class TestHandler implements IDcsHandler {
 		public msg: string,
 		public returnFalse: boolean = false
 	) {}
-	public hook(params: IParams): void {
+	public hook(params: Params): void {
 		this.output.push([this.msg, 'HOOK', params.toArray()]);
 	}
 	public put(data: Uint32Array, start: number, end: number): void {
@@ -455,7 +455,7 @@ class TestHandlerAsync implements IDcsHandler {
 		public msg: string,
 		public returnFalse: boolean = false
 	) {}
-	public hook(params: IParams): void {
+	public hook(params: Params): void {
 		this.output.push([this.msg, 'HOOK', params.toArray()]);
 	}
 	public put(data: Uint32Array, start: number, end: number): void {

@@ -7,7 +7,6 @@ import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
 	IParsingState,
 	IDcsHandler,
-	IParams,
 	IOscHandler,
 	IHandlerCollection,
 	CsiHandlerType,
@@ -579,7 +578,7 @@ export class EscapeSequenceParser {
 		this._executeHandlerFb = (code: number): void => {};
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		this._csiHandlerFb = (ident: number, params: IParams): void => {};
+		this._csiHandlerFb = (ident: number, params: Params): void => {};
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		this._escHandlerFb = (ident: number): void => {};
@@ -714,7 +713,7 @@ export class EscapeSequenceParser {
 	public clearCsiHandler(id: IFunctionIdentifier): void {
 		if (this._csiHandlers[this._identifier(id)]) delete this._csiHandlers[this._identifier(id)];
 	}
-	public setCsiHandlerFallback(callback: (ident: number, params: IParams) => void): void {
+	public setCsiHandlerFallback(callback: (ident: number, params: Params) => void): void {
 		this._csiHandlerFb = callback;
 	}
 

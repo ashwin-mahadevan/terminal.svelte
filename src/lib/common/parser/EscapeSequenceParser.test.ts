@@ -7,7 +7,6 @@ import type { IDisposable } from '$lib/common/Lifecycle';
 import { describe, it, expect, beforeEach } from 'vitest';
 import type {
 	IParsingState,
-	IParams,
 	ParamsArray,
 	IOscParser,
 	IOscHandler,
@@ -94,7 +93,7 @@ class TestEscapeSequenceParser extends EscapeSequenceParser {
 	public set params(value: ParamsArray) {
 		this._params = Params.fromArray(value);
 	}
-	public get realParams(): IParams {
+	public get realParams(): Params {
 		return this._params;
 	}
 	public get collect(): string {
@@ -162,13 +161,13 @@ const testTerminal: any = {
 	actionExecute(flag: string): void {
 		this.calls.push(['exe', flag]);
 	},
-	actionCSI(collect: string, params: IParams, flag: string): void {
+	actionCSI(collect: string, params: Params, flag: string): void {
 		this.calls.push(['csi', collect, params.toArray(), flag]);
 	},
 	actionESC(collect: string, flag: string): void {
 		this.calls.push(['esc', collect, flag]);
 	},
-	actionDCSHook(params: IParams): void {
+	actionDCSHook(params: Params): void {
 		this.calls.push(['dcs hook', params.toArray()]);
 	},
 	actionDCSPrint(s: string): void {
@@ -215,7 +214,7 @@ let state: any;
 const testParser = new TestEscapeSequenceParser();
 testParser.mockOscParser();
 testParser.setPrintHandler(testTerminal.print.bind(testTerminal));
-testParser.setCsiHandlerFallback((ident: number, params: IParams) => {
+testParser.setCsiHandlerFallback((ident: number, params: Params) => {
 	const id = testParser.identToString(ident);
 	testTerminal.actionCSI(id.slice(0, -1), params, id.slice(-1));
 });
@@ -1913,7 +1912,7 @@ describe('EscapeSequenceParser', () => {
 		it('CSI handler', () => {
 			const parser2 = new TestEscapeSequenceParser();
 			const csi: [string, ParamsArray, string][] = [];
-			parser2.registerCsiHandler({ final: 'm' }, function (params: IParams): boolean {
+			parser2.registerCsiHandler({ final: 'm' }, function (params: Params): boolean {
 				csi.push(['m', params.toArray(), '']);
 				return true;
 			});
@@ -2308,7 +2307,7 @@ describe('EscapeSequenceParser', () => {
 			parser2.registerDcsHandler(
 				{ intermediates: '+', final: 'p' },
 				{
-					hook: function (params: IParams): void {
+					hook: function (params: Params): void {
 						dcs.push(['hook', '', params.toArray(), 0]);
 					},
 					put: function (data: Uint32Array, start: number, end: number): void {

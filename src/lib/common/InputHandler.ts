@@ -18,7 +18,8 @@ import { CHARSETS, DEFAULT_CHARSET } from '$lib/common/data/Charsets';
 import { EscapeSequenceParser } from '$lib/common/parser/EscapeSequenceParser';
 import { StringToUtf32, stringFromCodePoint, Utf8ToUtf32 } from '$lib/common/input/TextDecoder';
 import { BufferLine, DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
-import type { IParsingState, IParams, IFunctionIdentifier } from '$lib/common/parser/Types';
+import type { IParsingState, IFunctionIdentifier } from '$lib/common/parser/Types';
+import type { Params } from '$lib/common/parser/Params';
 import {
 	NULL_CELL_CODE,
 	NULL_CELL_WIDTH,
@@ -880,7 +881,7 @@ export class InputHandler {
 	 */
 	public registerCsiHandler(
 		id: IFunctionIdentifier,
-		callback: (params: IParams) => boolean | Promise<boolean>
+		callback: (params: Params) => boolean | Promise<boolean>
 	): IDisposable {
 		if (id.final === 't' && !id.prefix && !id.intermediates) {
 			// security: always check whether window option is allowed
@@ -899,7 +900,7 @@ export class InputHandler {
 	 */
 	public registerDcsHandler(
 		id: IFunctionIdentifier,
-		callback: (data: string, param: IParams) => boolean | Promise<boolean>
+		callback: (data: string, param: Params) => boolean | Promise<boolean>
 	): IDisposable {
 		return this._parser.registerDcsHandler(id, new DcsHandler(callback));
 	}
@@ -1152,7 +1153,7 @@ export class InputHandler {
 	 * @vt: #Y CSI CUU   "Cursor Up"   "CSI Ps A"  "Move cursor `Ps` times up (default=1)."
 	 * If the cursor would pass the top scroll margin, it will stop there.
 	 */
-	public cursorUp(params: IParams): boolean {
+	public cursorUp(params: Params): boolean {
 		// stop at scrollTop
 		const diffToTop = this._activeBuffer.y - this._activeBuffer.scrollTop;
 		if (diffToTop >= 0) {
@@ -1170,7 +1171,7 @@ export class InputHandler {
 	 * @vt: #Y CSI CUD   "Cursor Down"   "CSI Ps B"  "Move cursor `Ps` times down (default=1)."
 	 * If the cursor would pass the bottom scroll margin, it will stop there.
 	 */
-	public cursorDown(params: IParams): boolean {
+	public cursorDown(params: Params): boolean {
 		// stop at scrollBottom
 		const diffToBottom = this._activeBuffer.scrollBottom - this._activeBuffer.y;
 		if (diffToBottom >= 0) {
@@ -1187,7 +1188,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI CUF   "Cursor Forward"    "CSI Ps C"  "Move cursor `Ps` times forward (default=1)."
 	 */
-	public cursorForward(params: IParams): boolean {
+	public cursorForward(params: Params): boolean {
 		this._moveCursor(params.params[0] || 1, 0);
 		return true;
 	}
@@ -1198,7 +1199,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI CUB   "Cursor Backward"   "CSI Ps D"  "Move cursor `Ps` times backward (default=1)."
 	 */
-	public cursorBackward(params: IParams): boolean {
+	public cursorBackward(params: Params): boolean {
 		this._moveCursor(-(params.params[0] || 1), 0);
 		return true;
 	}
@@ -1211,7 +1212,7 @@ export class InputHandler {
 	 * @vt: #Y CSI CNL   "Cursor Next Line"  "CSI Ps E"  "Move cursor `Ps` times down (default=1) and to the first column."
 	 * Same as CUD, additionally places the cursor at the first column.
 	 */
-	public cursorNextLine(params: IParams): boolean {
+	public cursorNextLine(params: Params): boolean {
 		this.cursorDown(params);
 		this._activeBuffer.x = 0;
 		return true;
@@ -1225,7 +1226,7 @@ export class InputHandler {
 	 * @vt: #Y CSI CPL   "Cursor Backward"   "CSI Ps F"  "Move cursor `Ps` times up (default=1) and to the first column."
 	 * Same as CUU, additionally places the cursor at the first column.
 	 */
-	public cursorPrecedingLine(params: IParams): boolean {
+	public cursorPrecedingLine(params: Params): boolean {
 		this.cursorUp(params);
 		this._activeBuffer.x = 0;
 		return true;
@@ -1237,7 +1238,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI CHA   "Cursor Horizontal Absolute" "CSI Ps G" "Move cursor to `Ps`-th column of the active row (default=1)."
 	 */
-	public cursorCharAbsolute(params: IParams): boolean {
+	public cursorCharAbsolute(params: Params): boolean {
 		this._setCursor((params.params[0] || 1) - 1, this._activeBuffer.y);
 		return true;
 	}
@@ -1251,7 +1252,7 @@ export class InputHandler {
 	 * If ORIGIN mode is not set, places the cursor to the absolute position within the viewport.
 	 * Note that the coordinates are 1-based, thus the top left position starts at `1 ; 1`.
 	 */
-	public cursorPosition(params: IParams): boolean {
+	public cursorPosition(params: Params): boolean {
 		this._setCursor(
 			// col
 			params.length >= 2 ? (params.params[1] || 1) - 1 : 0,
@@ -1268,7 +1269,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI HPA   "Horizontal Position Absolute"  "CSI Ps ` " "Same as CHA."
 	 */
-	public charPosAbsolute(params: IParams): boolean {
+	public charPosAbsolute(params: Params): boolean {
 		this._setCursor((params.params[0] || 1) - 1, this._activeBuffer.y);
 		return true;
 	}
@@ -1279,7 +1280,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI HPR   "Horizontal Position Relative"  "CSI Ps a"  "Same as CUF."
 	 */
-	public hPositionRelative(params: IParams): boolean {
+	public hPositionRelative(params: Params): boolean {
 		this._moveCursor(params.params[0] || 1, 0);
 		return true;
 	}
@@ -1290,7 +1291,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI VPA   "Vertical Position Absolute"    "CSI Ps d"  "Move cursor to `Ps`-th row (default=1)."
 	 */
-	public linePosAbsolute(params: IParams): boolean {
+	public linePosAbsolute(params: Params): boolean {
 		this._setCursor(this._activeBuffer.x, (params.params[0] || 1) - 1);
 		return true;
 	}
@@ -1302,7 +1303,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI VPR   "Vertical Position Relative"    "CSI Ps e"  "Move cursor `Ps` times down (default=1)."
 	 */
-	public vPositionRelative(params: IParams): boolean {
+	public vPositionRelative(params: Params): boolean {
 		this._moveCursor(0, params.params[0] || 1);
 		return true;
 	}
@@ -1315,7 +1316,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI HVP   "Horizontal and Vertical Position" "CSI Ps ; Ps f"  "Same as CUP."
 	 */
-	public hVPosition(params: IParams): boolean {
+	public hVPosition(params: Params): boolean {
 		this.cursorPosition(params);
 		return true;
 	}
@@ -1331,7 +1332,7 @@ export class InputHandler {
 	 * @vt: #Y CSI TBC   "Tab Clear" "CSI Ps g"  "Clear tab stops at current position (0) or all (3) (default=0)."
 	 * Clearing tabstops off the active row (Ps = 2, VT100) is currently not supported.
 	 */
-	public tabClear(params: IParams): boolean {
+	public tabClear(params: Params): boolean {
 		const param = params.params[0];
 		if (param === 0) {
 			delete this._activeBuffer.tabs[this._activeBuffer.x];
@@ -1347,7 +1348,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI CHT   "Cursor Horizontal Tabulation" "CSI Ps I" "Move cursor `Ps` times tabs forward (default=1)."
 	 */
-	public cursorForwardTab(params: IParams): boolean {
+	public cursorForwardTab(params: Params): boolean {
 		if (this._activeBuffer.x >= this._bufferService.cols) {
 			return true;
 		}
@@ -1363,7 +1364,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI CBT   "Cursor Backward Tabulation"  "CSI Ps Z"  "Move cursor `Ps` tabs backward (default=1)."
 	 */
-	public cursorBackwardTab(params: IParams): boolean {
+	public cursorBackwardTab(params: Params): boolean {
 		if (this._activeBuffer.x >= this._bufferService.cols) {
 			return true;
 		}
@@ -1380,7 +1381,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI DECSCA   "Select Character Protection Attribute"  "CSI Ps " q"  "Whether DECSED and DECSEL can erase (0=default, 2) or not (1)."
 	 */
-	public selectProtected(params: IParams): boolean {
+	public selectProtected(params: Params): boolean {
 		const p = params.params[0];
 		if (p === 1) this._curAttrData.bg |= BgFlags.PROTECTED;
 		if (p === 2 || p === 0) this._curAttrData.bg &= ~BgFlags.PROTECTED;
@@ -1456,7 +1457,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI DECSED   "Selective Erase In Display"  "CSI ? Ps J"  "Same as ED with respecting protection flag."
 	 */
-	public eraseInDisplay(params: IParams, respectProtect: boolean = false): boolean {
+	public eraseInDisplay(params: Params, respectProtect: boolean = false): boolean {
 		this._restrictCursor(this._bufferService.cols);
 		let j;
 		switch (params.params[0]) {
@@ -1553,7 +1554,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI DECSEL   "Selective Erase In Line"  "CSI ? Ps K"  "Same as EL with respecting protecting flag."
 	 */
-	public eraseInLine(params: IParams, respectProtect: boolean = false): boolean {
+	public eraseInLine(params: Params, respectProtect: boolean = false): boolean {
 		this._restrictCursor(this._bufferService.cols);
 		switch (params.params[0]) {
 			case 0:
@@ -1597,7 +1598,7 @@ export class InputHandler {
 	 * The cursor is set to the first column.
 	 * IL has no effect if the cursor is outside the scroll margins.
 	 */
-	public insertLines(params: IParams): boolean {
+	public insertLines(params: Params): boolean {
 		this._restrictCursor();
 		let param = params.params[0] || 1;
 
@@ -1638,7 +1639,7 @@ export class InputHandler {
 	 * The cursor is set to the first column.
 	 * DL has no effect if the cursor is outside the scroll margins.
 	 */
-	public deleteLines(params: IParams): boolean {
+	public deleteLines(params: Params): boolean {
 		this._restrictCursor();
 		let param = params.params[0] || 1;
 
@@ -1678,7 +1679,7 @@ export class InputHandler {
 	 *
 	 * FIXME: check against xterm - should not work outside of scroll margins (see VT520 manual)
 	 */
-	public insertChars(params: IParams): boolean {
+	public insertChars(params: Params): boolean {
 		this._restrictCursor();
 		const line = this._activeBuffer.lines.get(this._activeBuffer.ybase + this._activeBuffer.y);
 		if (line) {
@@ -1704,7 +1705,7 @@ export class InputHandler {
 	 *
 	 * FIXME: check against xterm - should not work outside of scroll margins (see VT520 manual)
 	 */
-	public deleteChars(params: IParams): boolean {
+	public deleteChars(params: Params): boolean {
 		this._restrictCursor();
 		const line = this._activeBuffer.lines.get(this._activeBuffer.ybase + this._activeBuffer.y);
 		if (line) {
@@ -1726,7 +1727,7 @@ export class InputHandler {
 	 *
 	 * FIXME: scrolled out lines at top = 1 should add to scrollback (xterm)
 	 */
-	public scrollUp(params: IParams): boolean {
+	public scrollUp(params: Params): boolean {
 		let param = params.params[0] || 1;
 
 		while (param--) {
@@ -1749,7 +1750,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI SD  "Scroll Down"   "CSI Ps T"  "Scroll `Ps` lines down (default=1)."
 	 */
-	public scrollDown(params: IParams): boolean {
+	public scrollDown(params: Params): boolean {
 		let param = params.params[0] || 1;
 
 		while (param--) {
@@ -1788,7 +1789,7 @@ export class InputHandler {
 	 * SL moves the content of all lines within the scroll margins `Ps` times to the left.
 	 * SL has no effect outside of the scroll margins.
 	 */
-	public scrollLeft(params: IParams): boolean {
+	public scrollLeft(params: Params): boolean {
 		if (
 			this._activeBuffer.y > this._activeBuffer.scrollBottom ||
 			this._activeBuffer.y < this._activeBuffer.scrollTop
@@ -1827,7 +1828,7 @@ export class InputHandler {
 	 * Content at the right margin is lost.
 	 * SL has no effect outside of the scroll margins.
 	 */
-	public scrollRight(params: IParams): boolean {
+	public scrollRight(params: Params): boolean {
 		if (
 			this._activeBuffer.y > this._activeBuffer.scrollBottom ||
 			this._activeBuffer.y < this._activeBuffer.scrollTop
@@ -1856,7 +1857,7 @@ export class InputHandler {
 	 * margins, moving content to the right. Content at the right margin is lost. DECIC has no effect
 	 * outside the scrolling margins.
 	 */
-	public insertColumns(params: IParams): boolean {
+	public insertColumns(params: Params): boolean {
 		if (
 			this._activeBuffer.y > this._activeBuffer.scrollBottom ||
 			this._activeBuffer.y < this._activeBuffer.scrollTop
@@ -1889,7 +1890,7 @@ export class InputHandler {
 	 * moving content to the left. Blank columns are added at the right margin.
 	 * DECDC has no effect outside the scrolling margins.
 	 */
-	public deleteColumns(params: IParams): boolean {
+	public deleteColumns(params: Params): boolean {
 		if (
 			this._activeBuffer.y > this._activeBuffer.scrollBottom ||
 			this._activeBuffer.y < this._activeBuffer.scrollTop
@@ -1921,7 +1922,7 @@ export class InputHandler {
 	 * ED erases `Ps` characters from current cursor position to the right.
 	 * ED works inside or outside the scrolling margins.
 	 */
-	public eraseChars(params: IParams): boolean {
+	public eraseChars(params: Params): boolean {
 		this._restrictCursor();
 		const line = this._activeBuffer.lines.get(this._activeBuffer.ybase + this._activeBuffer.y);
 		if (line) {
@@ -1961,7 +1962,7 @@ export class InputHandler {
 	 * set. REP has no effect if the sequence does not follow a printable ASCII character
 	 * (NOOP for any other sequence in between or NON ASCII characters).
 	 */
-	public repeatPrecedingCharacter(params: IParams): boolean {
+	public repeatPrecedingCharacter(params: Params): boolean {
 		const joinState = this._parser.precedingJoinState;
 		if (!joinState) {
 			return true;
@@ -2015,7 +2016,7 @@ export class InputHandler {
 	 *
 	 * TODO: fix and cleanup response
 	 */
-	public sendDeviceAttributesPrimary(params: IParams): boolean {
+	public sendDeviceAttributesPrimary(params: Params): boolean {
 		if (params.params[0] > 0) {
 			return true;
 		}
@@ -2051,7 +2052,7 @@ export class InputHandler {
 	 *
 	 * TODO: fix and cleanup response
 	 */
-	public sendDeviceAttributesSecondary(params: IParams): boolean {
+	public sendDeviceAttributesSecondary(params: Params): boolean {
 		if (params.params[0] > 0) {
 			return true;
 		}
@@ -2080,7 +2081,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI XTVERSION "Report Xterm Version" "CSI > q" "Report the terminal name and version."
 	 */
-	public sendXtVersion(params: IParams): boolean {
+	public sendXtVersion(params: Params): boolean {
 		if (params.params[0] > 0) {
 			return true;
 		}
@@ -2113,7 +2114,7 @@ export class InputHandler {
 	 * | 12    | Send/receive (SRM). Always off.        | #N      |
 	 * | 20    | Automatic Newline (LNM).               | #Y      |
 	 */
-	public setMode(params: IParams): boolean {
+	public setMode(params: Params): boolean {
 		for (let i = 0; i < params.length; i++) {
 			switch (params.params[i]) {
 				case 4:
@@ -2241,7 +2242,7 @@ export class InputHandler {
 	 *
 	 * FIXME: implement DECSCNM, 1049 should clear altbuffer
 	 */
-	public setModePrivate(params: IParams): boolean {
+	public setModePrivate(params: Params): boolean {
 		for (let i = 0; i < params.length; i++) {
 			switch (params.params[i]) {
 				case 1:
@@ -2384,7 +2385,7 @@ export class InputHandler {
 	 *
 	 * FIXME: why is LNM commented out?
 	 */
-	public resetMode(params: IParams): boolean {
+	public resetMode(params: Params): boolean {
 		for (let i = 0; i < params.length; i++) {
 			switch (params.params[i]) {
 				case 4:
@@ -2508,7 +2509,7 @@ export class InputHandler {
 	 *
 	 * FIXME: DECCOLM is currently broken (already fixed in window options PR)
 	 */
-	public resetModePrivate(params: IParams): boolean {
+	public resetModePrivate(params: Params): boolean {
 		for (let i = 0; i < params.length; i++) {
 			switch (params.params[i]) {
 				case 1:
@@ -2648,7 +2649,7 @@ export class InputHandler {
 	 * e.g. if the default implementation already exposes a certain behavior. If you find
 	 * discrepancies in the mode reports, please file a bug.
 	 */
-	public requestMode(params: IParams, ansi: boolean): boolean {
+	public requestMode(params: Params, ansi: boolean): boolean {
 		// return value as in DECRPM
 		const enum V {
 			NOT_RECOGNIZED = 0,
@@ -2748,7 +2749,7 @@ export class InputHandler {
 	 * Helper to extract and apply color params/subparams.
 	 * Returns advance for params index.
 	 */
-	private _extractColor(params: IParams, pos: number, attr: IAttributeData): number {
+	private _extractColor(params: Params, pos: number, attr: IAttributeData): number {
 		// normalize params
 		// meaning: [target, CM, ign, val, val, val]
 		// RGB    : [ 38/48,  2, ign,   r,   g,   b]
@@ -2937,7 +2938,7 @@ export class InputHandler {
 	 * | 4      | CMYK color.                                                   | #N      |
 	 * | 5      | Indexed (256 colors) as `Ps ; 5 ; INDEX` or `Ps : 5 : INDEX`. | #Y      |
 	 */
-	public charAttributes(params: IParams): boolean {
+	public charAttributes(params: Params): boolean {
 		// Optimize a single SGR0.
 		if (params.length === 1 && params.params[0] === 0) {
 			this._processSGR0(this._curAttrData);
@@ -3089,7 +3090,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI DSR   "Device Status Report"  "CSI Ps n"  "Request cursor position (CPR) with `Ps` = 6."
 	 */
-	public deviceStatus(params: IParams): boolean {
+	public deviceStatus(params: Params): boolean {
 		switch (params.params[0]) {
 			case 5:
 				// status report
@@ -3110,7 +3111,7 @@ export class InputHandler {
 	}
 
 	// @vt: #P[Only CPR is supported.]  CSI DECDSR  "DEC Device Status Report"  "CSI ? Ps n"  "Only CPR is supported (same as DSR)."
-	public deviceStatusPrivate(params: IParams): boolean {
+	public deviceStatusPrivate(params: Params): boolean {
 		// modern xterm doesnt seem to
 		// respond to any of these except ?6, 6, and 5
 		switch (params.params[0]) {
@@ -3172,7 +3173,7 @@ export class InputHandler {
 	 */
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	public softReset(params: IParams): boolean {
+	public softReset(params: Params): boolean {
 		this._coreService.isCursorHidden = false;
 		this._onRequestSyncScrollBar.fire();
 		this._activeBuffer.scrollTop = 0;
@@ -3213,7 +3214,7 @@ export class InputHandler {
 	 *  - 5: blinking bar
 	 *  - 6: steady bar
 	 */
-	public setCursorStyle(params: IParams): boolean {
+	public setCursorStyle(params: Params): boolean {
 		const param = params.length === 0 ? 1 : params.params[0];
 		if (param === 0) {
 			this._coreService.decPrivateModes.cursorStyle = undefined;
@@ -3246,7 +3247,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI DECSTBM "Set Top and Bottom Margin" "CSI Ps ; Ps r" "Set top and bottom margins of the viewport [top;bottom] (default = viewport size)."
 	 */
-	public setScrollRegion(params: IParams): boolean {
+	public setScrollRegion(params: Params): boolean {
 		const top = params.params[0] || 1;
 		let bottom: number;
 
@@ -3296,7 +3297,7 @@ export class InputHandler {
 	 *    Ps = 23 ; 2  -> Restore xterm window title from stack.            supported
 	 *    Ps >= 24                                                          not implemented
 	 */
-	public windowOptions(params: IParams): boolean {
+	public windowOptions(params: Params): boolean {
 		if (!paramToWindowOption(params.params[0], this._optionsService.rawOptions.windowOptions)) {
 			return true;
 		}
@@ -3357,7 +3358,7 @@ export class InputHandler {
 	 */
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	public saveCursor(params?: IParams): boolean {
+	public saveCursor(params?: Params): boolean {
 		this._activeBuffer.savedX = this._activeBuffer.x;
 		this._activeBuffer.savedY = this._activeBuffer.ybase + this._activeBuffer.y;
 		this._activeBuffer.savedCurAttrData.fg = this._curAttrData.fg;
@@ -3380,7 +3381,7 @@ export class InputHandler {
 	 */
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	public restoreCursor(params?: IParams): boolean {
+	public restoreCursor(params?: Params): boolean {
 		this._activeBuffer.x = this._activeBuffer.savedX || 0;
 		this._activeBuffer.y = Math.max(this._activeBuffer.savedY - this._activeBuffer.ybase, 0);
 		this._curAttrData.fg = this._activeBuffer.savedCurAttrData.fg;
@@ -3908,7 +3909,7 @@ export class InputHandler {
 	 */
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	public requestStatusString(data: string, params: IParams): boolean {
+	public requestStatusString(data: string, params: Params): boolean {
 		const f = (s: string): boolean => {
 			this._coreService.triggerDataEvent(`${C0.ESC}${s}${C0.ESC}\\`);
 			return true;
@@ -3941,7 +3942,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI KKBDSET "Kitty Keyboard Set" "CSI = Ps ; Pm u" "Set Kitty keyboard protocol flags."
 	 */
-	public kittyKeyboardSet(params: IParams): boolean {
+	public kittyKeyboardSet(params: Params): boolean {
 		if (!this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
 			return true;
 		}
@@ -3972,7 +3973,7 @@ export class InputHandler {
 	 */
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	public kittyKeyboardQuery(params: IParams): boolean {
+	public kittyKeyboardQuery(params: Params): boolean {
 		if (!this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
 			return true;
 		}
@@ -3987,7 +3988,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI KKBDPUSH "Kitty Keyboard Push" "CSI > Ps u" "Push keyboard flags to stack and set new flags."
 	 */
-	public kittyKeyboardPush(params: IParams): boolean {
+	public kittyKeyboardPush(params: Params): boolean {
 		if (!this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
 			return true;
 		}
@@ -4013,7 +4014,7 @@ export class InputHandler {
 	 *
 	 * @vt: #Y CSI KKBDPOP "Kitty Keyboard Pop" "CSI < Ps u" "Pop keyboard flags from stack."
 	 */
-	public kittyKeyboardPop(params: IParams): boolean {
+	public kittyKeyboardPop(params: Params): boolean {
 		if (!this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
 			return true;
 		}

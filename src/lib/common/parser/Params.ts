@@ -2,7 +2,7 @@
  * Copyright (c) 2019 The xterm.js authors. All rights reserved.
  * @license MIT
  */
-import type { IParams, ParamsArray } from '$lib/common/parser/Types';
+import type { ParamsArray } from '$lib/common/parser/Types';
 
 const enum Constants {
 	/**
@@ -34,7 +34,7 @@ const enum Constants {
  * it should add 0 for empty params, otherwise -1. This does not apply
  * to subparams, empty subparams should always be added with -1.
  */
-export class Params implements IParams {
+export class Params {
 	// params store and length
 	public params: Int32Array;
 	public length: number;

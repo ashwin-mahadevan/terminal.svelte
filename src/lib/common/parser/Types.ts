@@ -5,31 +5,10 @@
 
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { ParserState } from '$lib/common/parser/Constants';
+import type { Params } from '$lib/common/parser/Params';
 
 /** sequence params serialized to js arrays */
 export type ParamsArray = (number | number[])[];
-
-/** Interface of Params storage class. */
-export interface IParams {
-	/** from ctor */
-	maxLength: number;
-	maxSubParamsLength: number;
-
-	/** param values and its length */
-	params: Int32Array;
-	length: number;
-
-	/** methods */
-	clone(): IParams;
-	toArray(): ParamsArray;
-	reset(): void;
-	resetZdm(): void;
-	addParam(value: number): void;
-	addSubParam(value: number): void;
-	hasSubParams(idx: number): boolean;
-	getSubParams(idx: number): Int32Array | null;
-	getSubParamsAll(): { [idx: number]: Int32Array };
-}
 
 /**
  * Internal state of EscapeSequenceParser.
@@ -49,7 +28,7 @@ export interface IParsingState {
 	// collect buffer with intermediate characters
 	collect: number;
 	// params buffer
-	params: IParams;
+	params: Params;
 	// should abort (default: false)
 	abort: boolean;
 }
@@ -62,8 +41,8 @@ export interface IParsingState {
  * CSI handler types.
  * Note: `params` is borrowed.
  */
-export type CsiHandlerType = (params: IParams) => boolean | Promise<boolean>;
-export type CsiFallbackHandlerType = (ident: number, params: IParams) => void;
+export type CsiHandlerType = (params: Params) => boolean | Promise<boolean>;
+export type CsiFallbackHandlerType = (ident: number, params: Params) => void;
 
 /**
  * DCS handler types.
@@ -74,7 +53,7 @@ export interface IDcsHandler {
 	 * Prepare needed data structures here.
 	 * Note: `params` is borrowed.
 	 */
-	hook(params: IParams): void;
+	hook(params: Params): void;
 	/**
 	 * Incoming payload chunk.
 	 * Note: `params` is borrowed.
@@ -192,7 +171,7 @@ export interface IOscParser extends ISubParser<IOscHandler, OscFallbackHandlerTy
 }
 
 export interface IDcsParser extends ISubParser<IDcsHandler, DcsFallbackHandlerType> {
-	hook(ident: number, params: IParams): void;
+	hook(ident: number, params: Params): void;
 	unhook(success: boolean, promiseResult?: boolean): void | Promise<boolean>;
 }
 

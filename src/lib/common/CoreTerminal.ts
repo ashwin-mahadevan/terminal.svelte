@@ -36,7 +36,8 @@ import { MouseStateService } from '$lib/common/services/MouseStateService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { CharsetService } from '$lib/common/services/CharsetService';
 import { updateWindowsModeWrappedState } from '$lib/common/WindowsMode';
-import type { IFunctionIdentifier, IParams } from '$lib/common/parser/Types';
+import type { IFunctionIdentifier } from '$lib/common/parser/Types';
+import type { Params } from '$lib/common/parser/Params';
 import type { BufferSet } from '$lib/common/buffer/BufferSet';
 import { InputHandler } from '$lib/common/InputHandler';
 import { WriteBuffer } from '$lib/common/input/WriteBuffer';
@@ -268,7 +269,7 @@ export abstract class CoreTerminal {
 	/** Add handler for DCS escape sequence. See xterm.d.ts for details. */
 	public registerDcsHandler(
 		id: IFunctionIdentifier,
-		callback: (data: string, param: IParams) => boolean | Promise<boolean>
+		callback: (data: string, param: Params) => boolean | Promise<boolean>
 	): IDisposable {
 		return this._inputHandler.registerDcsHandler(id, callback);
 	}
@@ -276,7 +277,7 @@ export abstract class CoreTerminal {
 	/** Add handler for CSI escape sequence. See xterm.d.ts for details. */
 	public registerCsiHandler(
 		id: IFunctionIdentifier,
-		callback: (params: IParams) => boolean | Promise<boolean>
+		callback: (params: Params) => boolean | Promise<boolean>
 	): IDisposable {
 		return this._inputHandler.registerCsiHandler(id, callback);
 	}
