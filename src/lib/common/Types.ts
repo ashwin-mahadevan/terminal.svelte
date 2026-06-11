@@ -4,47 +4,7 @@
  */
 
 import type { UnderlineStyle } from '$lib/common/buffer/Constants';
-import type { IBufferSet } from '$lib/common/buffer/Types';
-import type { IParams } from '$lib/common/parser/Types';
-import type {
-	IMouseStateService,
-	ICoreService,
-	IOptionsService,
-	IUnicodeService
-} from '$lib/common/services/Services';
-import type { IFunctionIdentifier } from '$lib/xterm';
 import type { IEvent } from '$lib/common/Event';
-import type { IDisposable } from '$lib/common/Lifecycle';
-import type { ITerminalOptions } from '$lib/common/services/Services';
-
-export interface ICoreTerminal {
-	mouseStateService: IMouseStateService;
-	coreService: ICoreService;
-	optionsService: IOptionsService;
-	unicodeService: IUnicodeService;
-	buffers: IBufferSet;
-	options: Required<ITerminalOptions>;
-	registerCsiHandler(
-		id: IFunctionIdentifier,
-		callback: (params: IParams) => boolean | Promise<boolean>
-	): IDisposable;
-	registerDcsHandler(
-		id: IFunctionIdentifier,
-		callback: (data: string, param: IParams) => boolean | Promise<boolean>
-	): IDisposable;
-	registerEscHandler(
-		id: IFunctionIdentifier,
-		callback: () => boolean | Promise<boolean>
-	): IDisposable;
-	registerOscHandler(
-		ident: number,
-		callback: (data: string) => boolean | Promise<boolean>
-	): IDisposable;
-	registerApcHandler(
-		id: IFunctionIdentifier,
-		callback: (data: string) => boolean | Promise<boolean>
-	): IDisposable;
-}
 
 export type CursorStyle = 'block' | 'underline' | 'bar';
 

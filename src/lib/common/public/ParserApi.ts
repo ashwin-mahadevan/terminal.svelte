@@ -5,10 +5,10 @@
 
 import type { IParams } from '$lib/common/parser/Types';
 import type { IDisposable, IFunctionIdentifier, IParser } from '$lib/xterm';
-import type { ICoreTerminal } from '$lib/common/Types';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 
 export class ParserApi implements IParser {
-	constructor(private _core: ICoreTerminal) {}
+	constructor(private _core: CoreTerminal) {}
 
 	public registerCsiHandler(
 		id: IFunctionIdentifier,

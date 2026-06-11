@@ -3,11 +3,11 @@
  * @license MIT
  */
 
-import type { ICoreTerminal } from '$lib/common/Types';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 import type { IUnicodeHandling, IUnicodeVersionProvider } from '$lib/xterm';
 
 export class UnicodeApi implements IUnicodeHandling {
-	constructor(private _core: ICoreTerminal) {}
+	constructor(private _core: CoreTerminal) {}
 
 	public register(provider: IUnicodeVersionProvider): void {
 		this._core.unicodeService.register(provider);

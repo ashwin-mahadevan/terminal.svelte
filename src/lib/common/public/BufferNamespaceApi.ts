@@ -5,7 +5,7 @@
 
 import type { IBufferNamespace as IBufferNamespaceApi } from '$lib/xterm';
 import type { IBuffer } from '$lib/common/buffer/Types';
-import type { ICoreTerminal } from '$lib/common/Types';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -15,7 +15,7 @@ export class BufferNamespaceApi implements IBufferNamespaceApi {
 
 	private readonly _bufferActivateListener: IDisposable;
 
-	constructor(private _core: ICoreTerminal) {
+	constructor(private _core: CoreTerminal) {
 		this._bufferActivateListener = this._core.buffers.onBufferActivate(() =>
 			this._onBufferChange.fire(this.active)
 		);

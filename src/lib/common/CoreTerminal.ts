@@ -32,7 +32,7 @@ import type {
 } from '$lib/common/services/Services';
 import { BufferService, BufferServiceConstants } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
-import type { IAttributeData, ICoreTerminal } from '$lib/common/Types';
+import type { IAttributeData } from '$lib/common/Types';
 import { CoreService } from '$lib/common/services/CoreService';
 import { MouseStateService } from '$lib/common/services/MouseStateService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
@@ -55,7 +55,7 @@ interface ITerminalScrollEvent {
 // Only trigger this warning a single time per session
 let hasWriteSyncWarnHappened = false;
 
-export abstract class CoreTerminal implements ICoreTerminal {
+export abstract class CoreTerminal {
 	protected readonly _store = new DisposableStore();
 	protected readonly _bufferService: IBufferService;
 	protected readonly _charsetService: CharsetService;
