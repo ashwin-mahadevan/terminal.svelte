@@ -6,7 +6,6 @@
 import type { IAttributeData, IBufferLine, ICellData, ICharset } from '$lib/common/Types';
 import type { CircularList } from '$lib/common/CircularList';
 import type { Marker } from '$lib/common/buffer/Marker';
-import type { IEvent } from '$lib/common/Event';
 
 export interface IBuffer {
 	readonly lines: CircularList<IBufferLine>;
@@ -45,19 +44,4 @@ export interface IBuffer {
 	addMarker(y: number): Marker;
 	clearMarkers(y: number): void;
 	clearAllMarkers(): void;
-}
-
-export interface IBufferSet {
-	dispose(): void;
-	alt: IBuffer;
-	normal: IBuffer;
-	active: IBuffer;
-
-	onBufferActivate: IEvent<{ activeBuffer: IBuffer; inactiveBuffer: IBuffer }>;
-
-	activateNormalBuffer(): void;
-	activateAltBuffer(fillAttr?: IAttributeData): void;
-	reset(): void;
-	resize(newCols: number, newRows: number): void;
-	setupTabStops(i?: number): void;
 }

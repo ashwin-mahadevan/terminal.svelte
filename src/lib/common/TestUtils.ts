@@ -17,7 +17,7 @@ import type {
 } from '$lib/common/services/Services';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
-import type { IBufferSet, IBuffer } from '$lib/common/buffer/Types';
+import type { IBuffer } from '$lib/common/buffer/Types';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { CoreMouseEventType } from '$lib/common/Types';
 import type {
@@ -60,7 +60,7 @@ export class MockBufferService implements IBufferService {
 	}
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public buffers: IBufferSet = {} as any;
+	public buffers: BufferSet = {} as any;
 	public onResize: IEvent<IBufferResizeEvent> = new LegacyEmitter<IBufferResizeEvent>().event;
 	public onScroll: IEvent<number> = new LegacyEmitter<number>().event;
 	private readonly _onScroll = new LegacyEmitter<number>();

@@ -6,7 +6,7 @@
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IAttributeData, IBufferLine } from '$lib/common/Types';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
-import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
+import type { IBuffer } from '$lib/common/buffer/Types';
 import type { IBufferService } from '$lib/common/services/Services';
 import type { IOptionsService } from '$lib/common/services/Services';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
@@ -22,7 +22,7 @@ export class BufferService implements IBufferService {
 
 	public cols: number;
 	public rows: number;
-	public readonly buffers: IBufferSet;
+	public readonly buffers: BufferSet;
 	/** Whether the user is scrolling (locks the scroll position) */
 	public isUserScrolling: boolean = false;
 

@@ -25,14 +25,15 @@ import type {
 	IModes,
 	IWindowOptions
 } from '$lib/common/Types';
-import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
+import type { IBuffer } from '$lib/common/buffer/Types';
+import type { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { LegacyEmitter, IEvent } from '$lib/common/Event';
 
 export interface IBufferService {
 	readonly cols: number;
 	readonly rows: number;
 	readonly buffer: IBuffer;
-	readonly buffers: IBufferSet;
+	readonly buffers: BufferSet;
 	isUserScrolling: boolean;
 	onResize: IEvent<IBufferResizeEvent>;
 	onScroll: IEvent<number>;

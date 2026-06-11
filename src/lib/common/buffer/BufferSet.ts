@@ -7,7 +7,7 @@ import { MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IAttributeData } from '$lib/common/Types';
 import { Buffer } from '$lib/common/buffer/Buffer';
-import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
+import type { IBuffer } from '$lib/common/buffer/Types';
 import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -15,7 +15,7 @@ import { LegacyEmitter } from '$lib/common/Event';
  * The BufferSet represents the set of two buffers used by xterm terminals (normal and alt) and
  * provides also utilities for working with them.
  */
-export class BufferSet implements IBufferSet {
+export class BufferSet {
 	private _normal!: Buffer;
 	private _alt!: Buffer;
 	private _activeBuffer!: Buffer;

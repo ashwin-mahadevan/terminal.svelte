@@ -37,7 +37,7 @@ import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { CharsetService } from '$lib/common/services/CharsetService';
 import { updateWindowsModeWrappedState } from '$lib/common/WindowsMode';
 import type { IFunctionIdentifier, IParams } from '$lib/common/parser/Types';
-import type { IBufferSet } from '$lib/common/buffer/Types';
+import type { BufferSet } from '$lib/common/buffer/BufferSet';
 import { InputHandler } from '$lib/common/InputHandler';
 import { WriteBuffer } from '$lib/common/input/WriteBuffer';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
@@ -105,7 +105,7 @@ export abstract class CoreTerminal {
 	public get rows(): number {
 		return this._bufferService.rows;
 	}
-	public get buffers(): IBufferSet {
+	public get buffers(): BufferSet {
 		return this._bufferService.buffers;
 	}
 	public get options(): Required<ITerminalOptions> {
