@@ -62,7 +62,6 @@ import { SelectionService } from '$lib/browser/services/SelectionService';
 import type {
 	ICharacterJoinerService,
 	ICoreBrowserService,
-	IKeyboardService,
 	ILinkProviderService,
 	IMouseCoordsService,
 	IRenderService,
@@ -117,7 +116,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 	// Browser services
 	private readonly _decorationService: DecorationService;
-	private readonly _keyboardService: IKeyboardService;
+	private readonly _keyboardService: KeyboardService;
 	private readonly _linkProviderService: ILinkProviderService;
 
 	// Optional browser services

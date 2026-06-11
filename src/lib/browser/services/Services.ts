@@ -9,7 +9,7 @@ import type {
 	ISelectionRedrawRequestEvent as ISelectionRequestRedrawEvent,
 	ISelectionRequestScrollLinesEvent
 } from '$lib/browser/selection/Types';
-import type { AllColorIndex, IDisposable, IKeyboardResult } from '$lib/common/Types';
+import type { AllColorIndex, IDisposable } from '$lib/common/Types';
 import type { IEvent } from '$lib/common/Event';
 
 export interface ICoreBrowserService {
@@ -146,11 +146,4 @@ export interface ILinkProviderService {
 }
 export interface ILinkProvider {
 	provideLinks(y: number, callback: (links: ILink[] | undefined) => void): void;
-}
-
-export interface IKeyboardService {
-	evaluateKeyDown(event: KeyboardEvent): IKeyboardResult;
-	evaluateKeyUp(event: KeyboardEvent): IKeyboardResult | undefined;
-	readonly useKitty: boolean;
-	readonly useWin32InputMode: boolean;
 }

@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import type { IKeyboardService } from '$lib/browser/services/Services';
 import { evaluateKeyboardEvent } from '$lib/common/input/Keyboard';
 import {
 	KittyKeyboard,
@@ -15,7 +14,7 @@ import { isMac } from '$lib/common/Platform';
 import type { ICoreService, IOptionsService } from '$lib/common/services/Services';
 import type { IKeyboardResult } from '$lib/common/Types';
 
-export class KeyboardService implements IKeyboardService {
+export class KeyboardService {
 	private _win32InputMode: Win32InputMode | undefined;
 	private _kittyKeyboard: KittyKeyboard | undefined;
 
