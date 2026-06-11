@@ -5,7 +5,6 @@
  */
 
 import type {
-	IInputHandler,
 	IAttributeData,
 	IDisposable,
 	IWindowOptions,
@@ -141,13 +140,13 @@ export enum WindowsOptionsReportType {
 let $temp = 0;
 
 /**
- * The terminal's standard implementation of IInputHandler, this handles all
+ * The terminal's standard input handler, this handles all
  * input from the Parser.
  *
  * Refer to http://invisible-island.net/xterm/ctlseqs/ctlseqs.html to understand
  * each function's header comment.
  */
-export class InputHandler implements IInputHandler {
+export class InputHandler {
 	private _parseBuffer: Uint32Array = new Uint32Array(4096);
 	private _stringDecoder: StringToUtf32 = new StringToUtf32();
 	private _utf8Decoder: Utf8ToUtf32 = new Utf8ToUtf32();
