@@ -3,10 +3,7 @@
  * @license MIT
  */
 
-import type {
-	IBufferLineStringCache,
-	IBufferLineStringCacheEntry
-} from '$lib/common/buffer/BufferLine';
+import type { IBufferLineStringCacheEntry } from '$lib/common/buffer/BufferLine';
 import { disposableTimeout } from '$lib/common/Async';
 import { MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -15,7 +12,7 @@ const enum Constants {
 	CACHE_TTL_MS = 15000
 }
 
-export class BufferLineStringCache implements IBufferLineStringCache {
+export class BufferLineStringCache {
 	public generation: number = 0;
 	public readonly entries: Set<IBufferLineStringCacheEntry> = new Set();
 	private readonly _clearTimeout = new MutableDisposable<IDisposable>();

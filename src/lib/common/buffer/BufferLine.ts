@@ -11,6 +11,7 @@ import type {
 	IExtendedAttrs
 } from '$lib/common/Types';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
+import type { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
 import { CellData } from '$lib/common/buffer/CellData';
 import {
 	Attributes,
@@ -67,12 +68,6 @@ export interface IBufferLineStringCacheEntry {
 	generation: number;
 }
 
-export interface IBufferLineStringCache {
-	generation: number;
-	allocateEntry(): IBufferLineStringCacheEntry;
-	touch?(): void;
-}
-
 /**
  * Typed array based bufferline implementation.
  *
@@ -96,7 +91,7 @@ export class BufferLine implements IBufferLine {
 	public length: number;
 
 	constructor(
-		protected readonly _stringCache: IBufferLineStringCache,
+		protected readonly _stringCache: BufferLineStringCache,
 		cols: number,
 		fillCellData?: ICellData,
 		public isWrapped: boolean = false
