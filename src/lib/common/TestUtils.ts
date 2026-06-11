@@ -29,10 +29,10 @@ import type {
 	IModes,
 	IAttributeData,
 	IOscLinkData,
-	IBufferLine,
-	IExtendedAttrs
+	IBufferLine
 } from '$lib/common/Types';
 import type { IDisposable } from '$lib/common/Lifecycle';
+import type { ExtendedAttrs } from '$lib/common/buffer/AttributeData';
 import { UnicodeV6 } from '$lib/common/input/UnicodeV6';
 import type { IDecorationOptions, IDecoration } from '$lib/xterm';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -44,7 +44,7 @@ export function createCellData(attr: number, char: string, width: number): CellD
 	return CellData.fromCharData([attr, char, width, char.length === 0 ? 0 : char.charCodeAt(0)]);
 }
 
-export function extendedAttributes(line: IBufferLine, index: number): IExtendedAttrs | undefined {
+export function extendedAttributes(line: IBufferLine, index: number): ExtendedAttrs | undefined {
 	const cell = new CellData();
 	line.loadCell(index, cell);
 	return cell.hasExtendedAttrs() !== 0 ? cell.extended : undefined;

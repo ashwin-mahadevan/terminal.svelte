@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { CharData, ICellData, IExtendedAttrs } from '$lib/common/Types';
+import type { CharData, ICellData } from '$lib/common/Types';
 import { stringFromCodePoint } from '$lib/common/input/TextDecoder';
 import {
 	CHAR_DATA_CHAR_INDEX,
@@ -28,7 +28,7 @@ export class CellData extends AttributeData implements ICellData {
 	public content = 0;
 	public fg = 0;
 	public bg = 0;
-	public extended: IExtendedAttrs = new ExtendedAttrs();
+	public extended: ExtendedAttrs = new ExtendedAttrs();
 	public combinedData = '';
 	/** Whether cell contains a combined string. */
 	public isCombined(): number {

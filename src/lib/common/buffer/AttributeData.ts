@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { IAttributeData, IColorRGB, IExtendedAttrs } from '$lib/common/Types';
+import type { IAttributeData, IColorRGB } from '$lib/common/Types';
 import {
 	Attributes,
 	FgFlags,
@@ -40,7 +40,7 @@ export class AttributeData implements IAttributeData {
 	// data
 	public fg = 0;
 	public bg = 0;
-	public extended: IExtendedAttrs = new ExtendedAttrs();
+	public extended: ExtendedAttrs = new ExtendedAttrs();
 
 	// flags
 	public isInverse(): number {
@@ -198,7 +198,7 @@ export class AttributeData implements IAttributeData {
  * Extended attributes for a cell.
  * Holds information about different underline styles and color.
  */
-export class ExtendedAttrs implements IExtendedAttrs {
+export class ExtendedAttrs {
 	private _ext: number = 0;
 	public get ext(): number {
 		if (this._urlId) {
@@ -255,7 +255,7 @@ export class ExtendedAttrs implements IExtendedAttrs {
 		this._urlId = urlId;
 	}
 
-	public clone(): IExtendedAttrs {
+	public clone(): ExtendedAttrs {
 		return new ExtendedAttrs(this._ext, this._urlId);
 	}
 

@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { UnderlineStyle } from '$lib/common/buffer/Constants';
+import type { ExtendedAttrs } from '$lib/common/buffer/AttributeData';
 import type { IEvent } from '$lib/common/Event';
 
 export type CursorStyle = 'block' | 'underline' | 'bar';
@@ -51,16 +51,6 @@ export interface IColor {
 }
 export type IColorRGB = [red: number, green: number, blue: number];
 
-export interface IExtendedAttrs {
-	ext: number;
-	underlineStyle: UnderlineStyle;
-	underlineColor: number;
-	underlineVariantOffset: number;
-	urlId: number;
-	clone(): IExtendedAttrs;
-	isEmpty(): boolean;
-}
-
 /**
  * Tracks the current hyperlink. Since these are treated as extended attirbutes, these get passed on
  * to the linkifier when anything is printed. Doing it this way ensures that even when the cursor
@@ -90,7 +80,7 @@ export interface IAttributeData {
 	 * "extended", aka "ext", stores extended attributes beyond those available in fg and bg. This
 	 * data is optional on a cell and encodes less common data.
 	 */
-	extended: IExtendedAttrs;
+	extended: ExtendedAttrs;
 
 	clone(): IAttributeData;
 

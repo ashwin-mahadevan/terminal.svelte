@@ -3,14 +3,9 @@
  * @license MIT
  */
 
-import type {
-	CharData,
-	IAttributeData,
-	IBufferLine,
-	ICellData,
-	IExtendedAttrs
-} from '$lib/common/Types';
+import type { CharData, IAttributeData, IBufferLine, ICellData } from '$lib/common/Types';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
+import type { ExtendedAttrs } from '$lib/common/buffer/AttributeData';
 import type { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
 import { CellData } from '$lib/common/buffer/CellData';
 import {
@@ -86,7 +81,7 @@ export interface IBufferLineStringCacheEntry {
 export class BufferLine implements IBufferLine {
 	protected _data: Uint32Array;
 	protected _combined: { [index: number]: string } = {};
-	protected _extendedAttrs: { [index: number]: IExtendedAttrs | undefined } = {};
+	protected _extendedAttrs: { [index: number]: ExtendedAttrs | undefined } = {};
 	protected _stringCacheEntryRef: WeakRef<IBufferLineStringCacheEntry> | undefined;
 	public length: number;
 
