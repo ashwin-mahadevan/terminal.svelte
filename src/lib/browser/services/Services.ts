@@ -5,10 +5,6 @@
 
 import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
 import type { IColorSet, ILink, ReadonlyColorSet } from '$lib/browser/Types';
-import type {
-	ISelectionRedrawRequestEvent as ISelectionRequestRedrawEvent,
-	ISelectionRequestScrollLinesEvent
-} from '$lib/browser/selection/Types';
 import type { AllColorIndex } from '$lib/common/Types';
 import type { IEvent } from '$lib/common/Event';
 
@@ -92,32 +88,6 @@ export interface IRenderService {
 	): void;
 	handleCursorMove(): void;
 	clear(): void;
-}
-
-export interface ISelectionService {
-	readonly selectionText: string;
-	readonly hasSelection: boolean;
-	readonly selectionStart: [number, number] | undefined;
-	readonly selectionEnd: [number, number] | undefined;
-
-	readonly onLinuxMouseSelection: IEvent<string>;
-	readonly onRequestRedraw: IEvent<ISelectionRequestRedrawEvent>;
-	readonly onRequestScrollLines: IEvent<ISelectionRequestScrollLinesEvent>;
-	readonly onSelectionChange: IEvent<void>;
-
-	disable(): void;
-	enable(): void;
-	reset(): void;
-	setSelection(row: number, col: number, length: number): void;
-	selectAll(): void;
-	selectLines(start: number, end: number): void;
-	clearSelection(): void;
-	rightClickSelect(event: MouseEvent): void;
-	shouldColumnSelect(event: KeyboardEvent | MouseEvent): boolean;
-	shouldForceSelection(event: MouseEvent): boolean;
-	refresh(isLinuxMouseSelection?: boolean): void;
-	handleMouseDown(event: MouseEvent): void;
-	isCellInSelection(x: number, y: number): boolean;
 }
 
 export interface IThemeService {

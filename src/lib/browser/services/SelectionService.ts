@@ -12,7 +12,6 @@ import type {
 	ISelectionRedrawRequestEvent,
 	ISelectionRequestScrollLinesEvent
 } from '$lib/browser/selection/Types';
-import type { ISelectionService } from '$lib/browser/services/Services';
 import type {
 	ICoreBrowserService,
 	IMouseCoordsService,
@@ -85,7 +84,7 @@ export const enum SelectionMode {
  * not handled by the SelectionService but the onRedrawRequest event is fired
  * when the selection is ready to be redrawn (on an animation frame).
  */
-export class SelectionService implements ISelectionService {
+export class SelectionService {
 	protected _model: SelectionModel;
 
 	/**

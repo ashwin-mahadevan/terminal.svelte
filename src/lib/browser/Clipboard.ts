@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { ISelectionService } from '$lib/browser/services/Services';
+import type { SelectionService } from '$lib/browser/services/SelectionService';
 import type { ICoreService, IOptionsService } from '$lib/common/services/Services';
 
 /**
@@ -34,7 +34,7 @@ export function bracketTextForPaste(text: string, bracketedPasteMode: boolean): 
  * Binds copy functionality to the given terminal.
  * @param ev The original copy event to be handled
  */
-export function copyHandler(ev: ClipboardEvent, selectionService: ISelectionService): void {
+export function copyHandler(ev: ClipboardEvent, selectionService: SelectionService): void {
 	if (ev.clipboardData) {
 		ev.clipboardData.setData('text/plain', selectionService.selectionText);
 	}
@@ -106,7 +106,7 @@ export function rightClickHandler(
 	ev: MouseEvent,
 	textarea: HTMLTextAreaElement,
 	screenElement: HTMLElement,
-	selectionService: ISelectionService,
+	selectionService: SelectionService,
 	shouldSelectWord: boolean
 ): void {
 	moveTextAreaUnderMouseCursor(ev, textarea, screenElement);

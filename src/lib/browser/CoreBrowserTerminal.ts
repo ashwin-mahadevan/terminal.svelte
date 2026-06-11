@@ -63,7 +63,6 @@ import type {
 	ICoreBrowserService,
 	IMouseCoordsService,
 	IRenderService,
-	ISelectionService,
 	IThemeService
 } from '$lib/browser/services/Services';
 import { ThemeService } from '$lib/browser/services/ThemeService';
@@ -124,7 +123,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _renderService: IRenderService | undefined;
 	private _themeService: IThemeService | undefined;
 	private _characterJoinerService: CharacterJoinerService | undefined;
-	private _selectionService: ISelectionService | undefined;
+	private _selectionService: SelectionService | undefined;
 
 	/**
 	 * Records whether the keydown event has already been handled and triggered a data event, if so

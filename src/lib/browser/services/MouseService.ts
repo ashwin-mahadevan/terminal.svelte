@@ -16,12 +16,8 @@ import { C0 } from '$lib/common/data/EscapeSequences';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IMouseServiceTarget } from './Services';
-import type {
-	ICoreBrowserService,
-	IMouseCoordsService,
-	IRenderService,
-	ISelectionService
-} from './Services';
+import type { ICoreBrowserService, IMouseCoordsService, IRenderService } from './Services';
+import type { SelectionService } from '$lib/browser/services/SelectionService';
 import type { IGestureEvent } from '$lib/browser/scrollable/touch';
 import { Gesture, EventType as GestureEventType } from '$lib/browser/scrollable/touch';
 
@@ -53,7 +49,7 @@ export class MouseService {
 		private readonly _coreService: ICoreService,
 		private readonly _bufferService: IBufferService,
 		private readonly _optionsService: IOptionsService,
-		private readonly _selectionService: ISelectionService,
+		private readonly _selectionService: SelectionService,
 		private readonly _coreBrowserService: ICoreBrowserService
 	) {}
 
