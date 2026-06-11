@@ -71,10 +71,6 @@ export interface IKeyboardEvent {
 	code: string;
 }
 
-export interface IScrollEvent {
-	position: number;
-}
-
 export interface ICircularList<T> {
 	length: number;
 	maxLength: number;

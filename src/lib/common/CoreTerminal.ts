@@ -33,7 +33,7 @@ import type {
 } from '$lib/common/services/Services';
 import { BufferService, BufferServiceConstants } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
-import type { IDisposable, IAttributeData, ICoreTerminal, IScrollEvent } from '$lib/common/Types';
+import type { IDisposable, IAttributeData, ICoreTerminal } from '$lib/common/Types';
 import { CoreService } from '$lib/common/services/CoreService';
 import { MouseStateService } from '$lib/common/services/MouseStateService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
@@ -47,6 +47,10 @@ import { OscLinkService } from '$lib/common/services/OscLinkService';
 import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+
+interface ITerminalScrollEvent {
+	position: number;
+}
 
 // Only trigger this warning a single time per session
 let hasWriteSyncWarnHappened = false;
@@ -86,7 +90,7 @@ export abstract class CoreTerminal implements ICoreTerminal {
 	 * it's filtered out.
 	 */
 	protected _onScrollApi?: LegacyEmitter<number>;
-	protected _onScroll = this._store.add(new LegacyEmitter<IScrollEvent>());
+	protected _onScroll = this._store.add(new LegacyEmitter<ITerminalScrollEvent>());
 	public get onScroll(): IEvent<number> {
 		if (!this._onScrollApi) {
 			this._onScrollApi = this._store.add(new LegacyEmitter<number>());
