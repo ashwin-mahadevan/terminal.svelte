@@ -13,8 +13,14 @@ import type {
 	IOptionsService,
 	IUnicodeService
 } from '$lib/common/services/Services';
-import type { IFunctionIdentifier, ITerminalOptions as IPublicTerminalOptions } from '$lib/xterm';
+import type { IFunctionIdentifier } from '$lib/xterm';
 import type { LegacyEmitter, IEvent } from '$lib/common/Event';
+
+// IDisposable and ITerminalOptions are defined canonically elsewhere; re-export
+// them so existing `$lib/common/Types` importers keep working.
+import type { IDisposable } from '$lib/common/Lifecycle';
+import type { ITerminalOptions } from '$lib/common/services/Services';
+export type { IDisposable, ITerminalOptions };
 
 export interface ICoreTerminal {
 	mouseStateService: IMouseStateService;
@@ -43,19 +49,6 @@ export interface ICoreTerminal {
 		id: IFunctionIdentifier,
 		callback: (data: string) => boolean | Promise<boolean>
 	): IDisposable;
-}
-
-export interface IDisposable {
-	dispose(): void;
-}
-
-// TODO: The options that are not in the public API should be reviewed
-export interface ITerminalOptions extends IPublicTerminalOptions {
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	[key: string]: any;
-	convertEol?: boolean;
-	termName?: string;
 }
 
 export type CursorStyle = 'block' | 'underline' | 'bar';

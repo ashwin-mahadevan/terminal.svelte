@@ -233,7 +233,7 @@ export interface ITerminalOptions {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;
-	termName: string;
+	termName?: string;
 }
 
 export interface ITheme {
