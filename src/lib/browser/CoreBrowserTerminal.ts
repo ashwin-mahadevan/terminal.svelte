@@ -61,7 +61,6 @@ import { MouseEventCssClasses, MouseService } from '$lib/browser/services/MouseS
 import { RenderService } from '$lib/browser/services/RenderService';
 import { SelectionService } from '$lib/browser/services/SelectionService';
 import type {
-	ICharacterJoinerService,
 	ICoreBrowserService,
 	IMouseCoordsService,
 	IRenderService,
@@ -125,7 +124,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _mouseService: MouseService | undefined;
 	private _renderService: IRenderService | undefined;
 	private _themeService: IThemeService | undefined;
-	private _characterJoinerService: ICharacterJoinerService | undefined;
+	private _characterJoinerService: CharacterJoinerService | undefined;
 	private _selectionService: ISelectionService | undefined;
 
 	/**

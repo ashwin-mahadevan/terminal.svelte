@@ -120,12 +120,6 @@ export interface ISelectionService {
 	isCellInSelection(x: number, y: number): boolean;
 }
 
-export interface ICharacterJoinerService {
-	register(handler: (text: string) => [number, number][]): number;
-	deregister(joinerId: number): boolean;
-	getJoinedCharacters(row: number): [number, number][];
-}
-
 export interface IThemeService {
 	readonly colors: ReadonlyColorSet;
 

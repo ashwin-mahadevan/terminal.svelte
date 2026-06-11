@@ -9,7 +9,6 @@ import { AttributeData } from '$lib/common/buffer/AttributeData';
 import { WHITESPACE_CELL_CHAR, Content } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { IBufferService } from '$lib/common/services/Services';
-import type { ICharacterJoinerService } from '$lib/browser/services/Services';
 
 export class JoinedCellData extends AttributeData implements ICellData {
 	private _width: number;
@@ -58,7 +57,7 @@ export class JoinedCellData extends AttributeData implements ICellData {
 	}
 }
 
-export class CharacterJoinerService implements ICharacterJoinerService {
+export class CharacterJoinerService {
 	private _characterJoiners: ICharacterJoiner[] = [];
 	private _nextCharacterJoinerId: number = 0;
 	private _workCell: CellData = new CellData();

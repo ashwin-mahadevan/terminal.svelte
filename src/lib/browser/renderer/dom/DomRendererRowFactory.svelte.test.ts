@@ -24,6 +24,7 @@ import {
 	NULL_CELL_DATA
 } from '$lib/common/TestUtils';
 import { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
+import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { LegacyEmitter } from '$lib/common/Event';
 import { css } from '$lib/common/Color';
 
@@ -50,6 +51,10 @@ class MockCharacterJoinerService {
 	public getJoinedCharacters(_row: number): [number, number][] {
 		return [];
 	}
+}
+
+function createMockCharacterJoinerService(): CharacterJoinerService {
+	return new MockCharacterJoinerService() as unknown as CharacterJoinerService;
 }
 
 class MockCoreBrowserService {
@@ -157,7 +162,7 @@ describe('DomRendererRowFactory', () => {
 		it('should not create anything for an empty row', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -186,7 +191,7 @@ describe('DomRendererRowFactory', () => {
 		it('should set correct attributes for double width characters', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -219,7 +224,7 @@ describe('DomRendererRowFactory', () => {
 		it('should add class for cursor and cursor style', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -252,7 +257,7 @@ describe('DomRendererRowFactory', () => {
 		it('should add class for cursor blink', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -287,7 +292,7 @@ describe('DomRendererRowFactory', () => {
 			coreBrowserService.isFocused = false;
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				coreBrowserService,
 				new MockCoreService(),
@@ -326,7 +331,7 @@ describe('DomRendererRowFactory', () => {
 			coreService.isCursorInitialized = false;
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService(),
 				new MockCoreBrowserService(),
 				coreService,
@@ -354,7 +359,7 @@ describe('DomRendererRowFactory', () => {
 			it('should add class for bold', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -386,7 +391,7 @@ describe('DomRendererRowFactory', () => {
 			it('should add class for italic', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -418,7 +423,7 @@ describe('DomRendererRowFactory', () => {
 			it('should add class for dim', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -451,7 +456,7 @@ describe('DomRendererRowFactory', () => {
 				it('should add class for straight underline style', () => {
 					const rowFactory = new DomRendererRowFactory(
 						document,
-						new MockCharacterJoinerService(),
+						createMockCharacterJoinerService(),
 						new MockOptionsService({ drawBoldTextInBrightColors: true }),
 						new MockCoreBrowserService(),
 						new MockCoreService(),
@@ -484,7 +489,7 @@ describe('DomRendererRowFactory', () => {
 				it('should add class for double underline style', () => {
 					const rowFactory = new DomRendererRowFactory(
 						document,
-						new MockCharacterJoinerService(),
+						createMockCharacterJoinerService(),
 						new MockOptionsService({ drawBoldTextInBrightColors: true }),
 						new MockCoreBrowserService(),
 						new MockCoreService(),
@@ -517,7 +522,7 @@ describe('DomRendererRowFactory', () => {
 				it('should add class for curly underline style', () => {
 					const rowFactory = new DomRendererRowFactory(
 						document,
-						new MockCharacterJoinerService(),
+						createMockCharacterJoinerService(),
 						new MockOptionsService({ drawBoldTextInBrightColors: true }),
 						new MockCoreBrowserService(),
 						new MockCoreService(),
@@ -550,7 +555,7 @@ describe('DomRendererRowFactory', () => {
 				it('should add class for double dotted style', () => {
 					const rowFactory = new DomRendererRowFactory(
 						document,
-						new MockCharacterJoinerService(),
+						createMockCharacterJoinerService(),
 						new MockOptionsService({ drawBoldTextInBrightColors: true }),
 						new MockCoreBrowserService(),
 						new MockCoreService(),
@@ -583,7 +588,7 @@ describe('DomRendererRowFactory', () => {
 				it('should add class for dashed underline style', () => {
 					const rowFactory = new DomRendererRowFactory(
 						document,
-						new MockCharacterJoinerService(),
+						createMockCharacterJoinerService(),
 						new MockOptionsService({ drawBoldTextInBrightColors: true }),
 						new MockCoreBrowserService(),
 						new MockCoreService(),
@@ -618,7 +623,7 @@ describe('DomRendererRowFactory', () => {
 			it('should add class for overline', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -650,7 +655,7 @@ describe('DomRendererRowFactory', () => {
 			it('should add class for strikethrough', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -682,7 +687,7 @@ describe('DomRendererRowFactory', () => {
 			it('should hide blinking text when blink is off', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -733,7 +738,7 @@ describe('DomRendererRowFactory', () => {
 			it('should add classes for 256 foreground colors', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -769,7 +774,7 @@ describe('DomRendererRowFactory', () => {
 			it('should add classes for 256 background colors', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -805,7 +810,7 @@ describe('DomRendererRowFactory', () => {
 			it('should correctly invert colors', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -838,7 +843,7 @@ describe('DomRendererRowFactory', () => {
 			it('should correctly invert default fg color', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -871,7 +876,7 @@ describe('DomRendererRowFactory', () => {
 			it('should correctly invert default bg color', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -903,7 +908,7 @@ describe('DomRendererRowFactory', () => {
 			it('should turn bold fg text bright', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -939,7 +944,7 @@ describe('DomRendererRowFactory', () => {
 			it('should set style attribute for RBG', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -974,7 +979,7 @@ describe('DomRendererRowFactory', () => {
 			it('should correctly invert RGB colors', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -1011,7 +1016,7 @@ describe('DomRendererRowFactory', () => {
 			it('should force selected cells with content to be rendered above the background', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -1044,7 +1049,7 @@ describe('DomRendererRowFactory', () => {
 			it('should force whitespace cells to be rendered above the background', () => {
 				const rowFactory = new DomRendererRowFactory(
 					document,
-					new MockCharacterJoinerService(),
+					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
 					new MockCoreBrowserService(),
 					new MockCoreService(),
@@ -1080,7 +1085,7 @@ describe('DomRendererRowFactory', () => {
 		it('should not create anything for an empty row', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -1109,7 +1114,7 @@ describe('DomRendererRowFactory', () => {
 		it('can merge codepoints for equal spacing', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -1141,7 +1146,7 @@ describe('DomRendererRowFactory', () => {
 		it('should not merge codepoints with different spacing', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -1176,7 +1181,7 @@ describe('DomRendererRowFactory', () => {
 		it('should not merge on FG change', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -1215,7 +1220,7 @@ describe('DomRendererRowFactory', () => {
 		it('should not merge cursor cell', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -1251,7 +1256,7 @@ describe('DomRendererRowFactory', () => {
 		it('should handle BCE correctly', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -1288,7 +1293,7 @@ describe('DomRendererRowFactory', () => {
 		it('should handle BCE for multiple cells', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -1369,7 +1374,7 @@ describe('DomRendererRowFactory', () => {
 		it('should apply correct positive or negative spacing', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -1406,7 +1411,7 @@ describe('DomRendererRowFactory', () => {
 		it('should not merge across link borders', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -1444,7 +1449,7 @@ describe('DomRendererRowFactory', () => {
 		it('empty cells included in link underline', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),
@@ -1479,7 +1484,7 @@ describe('DomRendererRowFactory', () => {
 		it('link range gets capped to actual line borders', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
-				new MockCharacterJoinerService(),
+				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
 				new MockCoreBrowserService(),
 				new MockCoreService(),

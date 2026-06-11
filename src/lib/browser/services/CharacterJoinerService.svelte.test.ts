@@ -4,7 +4,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { ICharacterJoinerService } from '$lib/browser/services/Services';
 import { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
@@ -15,7 +14,7 @@ import { MockBufferService, createCellData } from '$lib/common/TestUtils';
 const TEST_STRING_CACHE = new BufferLineStringCache();
 
 describe('CharacterJoinerService', () => {
-	function createService(): ICharacterJoinerService {
+	function createService(): CharacterJoinerService {
 		const bufferService = new MockBufferService(16, 10);
 		const lines = bufferService.buffer.lines;
 		lines.set(0, lineData([['a -> b -> c -> d']]));
