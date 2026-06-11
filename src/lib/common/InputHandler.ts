@@ -153,7 +153,7 @@ export class InputHandler implements IInputHandler {
 	private _utf8Decoder: Utf8ToUtf32 = new Utf8ToUtf32();
 	private _windowTitle = '';
 	private _iconName = '';
-	private _dirtyRowTracker: IDirtyRowTracker;
+	private _dirtyRowTracker: DirtyRowTracker;
 	protected _windowTitleStack: string[] = [];
 	protected _iconNameStack: string[] = [];
 
@@ -4043,17 +4043,7 @@ export class InputHandler implements IInputHandler {
 	// #endregion
 }
 
-export interface IDirtyRowTracker {
-	readonly start: number;
-	readonly end: number;
-
-	clearRange(): void;
-	markDirty(y: number): void;
-	markRangeDirty(y1: number, y2: number): void;
-	markAllDirty(): void;
-}
-
-class DirtyRowTracker implements IDirtyRowTracker {
+class DirtyRowTracker {
 	public start!: number;
 	public end!: number;
 
