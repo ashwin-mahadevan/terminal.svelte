@@ -3,10 +3,9 @@
  * @license MIT
  */
 
-import type { IColorContrastCache } from '$lib/browser/Types';
 import type { IColor } from '$lib/common/Types';
 
-export class ColorContrastCache implements IColorContrastCache {
+export class ColorContrastCache {
 	private _color: Map</* bg */ number, Map</* fg */ number, IColor | null>> = new Map();
 	private _css: Map</* bg */ number, Map</* fg */ number, string | null>> = new Map();
 

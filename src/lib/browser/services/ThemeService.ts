@@ -5,7 +5,7 @@
 
 import { ColorContrastCache } from '$lib/browser/ColorContrastCache';
 import type { IThemeService } from '$lib/browser/services/Services';
-import type { IColorContrastCache, IColorSet, ReadonlyColorSet } from '$lib/browser/Types';
+import type { IColorSet, ReadonlyColorSet } from '$lib/browser/Types';
 import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 import { color, css, NULL_COLOR } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -34,8 +34,8 @@ const DEFAULT_OVERVIEW_RULER_BORDER = DEFAULT_FOREGROUND;
 
 export class ThemeService implements IThemeService {
 	private _colors: IColorSet;
-	private _contrastCache: IColorContrastCache = new ColorContrastCache();
-	private _halfContrastCache: IColorContrastCache = new ColorContrastCache();
+	private _contrastCache: ColorContrastCache = new ColorContrastCache();
+	private _halfContrastCache: ColorContrastCache = new ColorContrastCache();
 	private _restoreColors!: IRestoreColorSet;
 
 	public get colors(): ReadonlyColorSet {

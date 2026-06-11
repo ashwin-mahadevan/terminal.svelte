@@ -3,6 +3,7 @@
  * @license MIT
  */
 
+import type { ColorContrastCache } from '$lib/browser/ColorContrastCache';
 import type { IColor } from '$lib/common/Types';
 import { channels, css } from '$lib/common/Color';
 import type { IEvent } from '$lib/common/Event';
@@ -47,22 +48,14 @@ export interface IColorSet {
 	overviewRulerBorder: IColor;
 	ansi: IColor[];
 	/** Maps original colors to colors that respect minimum contrast ratio. */
-	contrastCache: IColorContrastCache;
+	contrastCache: ColorContrastCache;
 	/** Maps original colors to colors that respect _half_ of the minimum contrast ratio. */
-	halfContrastCache: IColorContrastCache;
+	halfContrastCache: ColorContrastCache;
 }
 
 export type ReadonlyColorSet = Readonly<Omit<IColorSet, 'ansi'>> & {
 	ansi: Readonly<Pick<IColorSet, 'ansi'>['ansi']>;
 };
-
-export interface IColorContrastCache {
-	clear(): void;
-	setCss(bg: number, fg: number, value: string | null): void;
-	getCss(bg: number, fg: number): string | null | undefined;
-	setColor(bg: number, fg: number, value: IColor | null): void;
-	getColor(bg: number, fg: number): IColor | null | undefined;
-}
 
 export interface ILinkifierEvent {
 	x1: number;

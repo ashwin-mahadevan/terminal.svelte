@@ -22,7 +22,7 @@ import { JoinedCellData } from '$lib/browser/services/CharacterJoinerService';
 import { treatGlyphAsBackgroundColor } from '$lib/browser/renderer/shared/RendererUtils';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import type { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
-import type { IColorContrastCache } from '$lib/browser/Types';
+import type { ColorContrastCache } from '$lib/browser/ColorContrastCache';
 
 export const enum RowCss {
 	BOLD_CLASS = 'xterm-bold',
@@ -581,7 +581,7 @@ export class DomRendererRowFactory {
 		return false;
 	}
 
-	private _getContrastCache(cell: ICellData): IColorContrastCache {
+	private _getContrastCache(cell: ICellData): ColorContrastCache {
 		if (cell.isDim()) {
 			return this._themeService.colors.halfContrastCache;
 		}
