@@ -25,7 +25,6 @@ import type { ITerminalOptions } from '$lib/common/services/Services';
 import type {
 	IOptionsService,
 	IBufferService,
-	ICharsetService,
 	ICoreService,
 	IMouseStateService,
 	IUnicodeService,
@@ -59,7 +58,7 @@ let hasWriteSyncWarnHappened = false;
 export abstract class CoreTerminal implements ICoreTerminal {
 	protected readonly _store = new DisposableStore();
 	protected readonly _bufferService: IBufferService;
-	protected readonly _charsetService: ICharsetService;
+	protected readonly _charsetService: CharsetService;
 	protected readonly _oscLinkService: IOscLinkService;
 
 	public readonly mouseStateService: IMouseStateService;

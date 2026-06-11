@@ -3,10 +3,9 @@
  * @license MIT
  */
 
-import type { ICharsetService } from '$lib/common/services/Services';
 import type { ICharset } from '$lib/common/Types';
 
-export class CharsetService implements ICharsetService {
+export class CharsetService {
 	// TODO: Fix this upstream type error.
 
 	public charset: ICharset | undefined;

@@ -34,11 +34,11 @@ import type {
 	ICoreService,
 	IOptionsService,
 	IMouseStateService,
-	ICharsetService,
 	IUnicodeService,
 	IOscLinkService
 } from '$lib/common/services/Services';
 import type { IBufferService } from '$lib/common/services/Services';
+import type { CharsetService } from '$lib/common/services/CharsetService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { OscHandler } from '$lib/common/parser/OscParser';
 import { DcsHandler } from '$lib/common/parser/DcsParser';
@@ -206,7 +206,7 @@ export class InputHandler {
 
 	constructor(
 		private readonly _bufferService: IBufferService,
-		private readonly _charsetService: ICharsetService,
+		private readonly _charsetService: CharsetService,
 		private readonly _coreService: ICoreService,
 		private readonly _optionsService: IOptionsService,
 		private readonly _oscLinkService: IOscLinkService,

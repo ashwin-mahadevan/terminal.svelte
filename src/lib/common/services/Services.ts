@@ -17,7 +17,6 @@ import type {
 	CursorInactiveStyle,
 	CursorStyle,
 	IAttributeData,
-	ICharset,
 	IColor,
 	ICoreMouseEvent,
 	ICoreMouseProtocol,
@@ -107,27 +106,6 @@ export interface ICoreService {
 	 * @param data The data that is being emitted.
 	 */
 	triggerBinaryEvent(data: string): void;
-}
-
-export interface ICharsetService {
-	charset: ICharset | undefined;
-	readonly glevel: number;
-	readonly charsets: (ICharset | undefined)[];
-
-	reset(): void;
-
-	/**
-	 * Set the G level of the terminal.
-	 * @param g
-	 */
-	setgLevel(g: number): void;
-
-	/**
-	 * Set the charset for the given G level of the terminal.
-	 * @param g
-	 * @param charset
-	 */
-	setgCharset(g: number, charset: ICharset | undefined): void;
 }
 
 export interface IOptionsService {

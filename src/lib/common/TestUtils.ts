@@ -14,7 +14,6 @@ import type {
 	ICoreService,
 	IOptionsService,
 	IMouseStateService,
-	ICharsetService,
 	IUnicodeService,
 	IOscLinkService
 } from '$lib/common/services/Services';
@@ -151,7 +150,7 @@ export class MockMouseStateService implements IMouseStateService {
 	}
 }
 
-export class MockCharsetService implements ICharsetService {
+export class MockCharsetService {
 	// TODO: Fix this upstream type error.
 
 	public charset: ICharset | undefined;

@@ -24,6 +24,7 @@ import {
 } from '$lib/common/TestUtils';
 import type { IBufferService, ICoreService } from '$lib/common/services/Services';
 import type { IOscLinkService } from '$lib/common/services/Services';
+import type { CharsetService } from '$lib/common/services/CharsetService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import { BufferService } from '$lib/common/services/BufferService';
 import { CoreService } from '$lib/common/services/CoreService';
@@ -90,7 +91,7 @@ describe('InputHandler', () => {
 
 		inputHandler = new TestInputHandler(
 			bufferService,
-			new MockCharsetService(),
+			new MockCharsetService() as unknown as CharsetService,
 			coreService,
 			optionsService,
 			oscLinkService,
@@ -366,7 +367,7 @@ describe('InputHandler', () => {
 			const coreService = new MockCoreService();
 			const inputHandler = new TestInputHandler(
 				new MockBufferService(80, 30),
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				new MockOptionsService(),
 				new MockOscLinkService(),
@@ -385,7 +386,7 @@ describe('InputHandler', () => {
 			const optionsService = new MockOptionsService();
 			const inputHandler = new TestInputHandler(
 				new MockBufferService(80, 30),
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
 				new MockOscLinkService(),
@@ -405,7 +406,7 @@ describe('InputHandler', () => {
 			optionsService.rawOptions.vtExtensions = { colorSchemeQuery: false };
 			const inputHandler = new TestInputHandler(
 				new MockBufferService(80, 30),
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
 				new MockOscLinkService(),
@@ -429,7 +430,7 @@ describe('InputHandler', () => {
 			const bufferService = new MockBufferService(80, 30);
 			const inputHandler = new TestInputHandler(
 				bufferService,
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
@@ -484,7 +485,7 @@ describe('InputHandler', () => {
 			const bufferService = new MockBufferService(80, 30);
 			const inputHandler = new TestInputHandler(
 				bufferService,
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
@@ -542,7 +543,7 @@ describe('InputHandler', () => {
 			const bufferService = new MockBufferService(80, 30);
 			const inputHandler = new TestInputHandler(
 				bufferService,
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
@@ -583,7 +584,7 @@ describe('InputHandler', () => {
 			const bufferService = new MockBufferService(80, 30);
 			const inputHandler = new TestInputHandler(
 				bufferService,
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
@@ -632,7 +633,7 @@ describe('InputHandler', () => {
 		it('ED2 with scrollOnEraseInDisplay turned on', async () => {
 			const inputHandler = new TestInputHandler(
 				bufferService,
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService({ scrollOnEraseInDisplay: true }),
 				new MockOscLinkService(),
@@ -663,7 +664,7 @@ describe('InputHandler', () => {
 			const bufferService = new MockBufferService(80, 7);
 			const inputHandler = new TestInputHandler(
 				bufferService,
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
@@ -785,7 +786,7 @@ describe('InputHandler', () => {
 		it('should not cause an infinite loop (regression test)', () => {
 			const inputHandler = new TestInputHandler(
 				new MockBufferService(80, 30),
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
@@ -820,7 +821,7 @@ describe('InputHandler', () => {
 			bufferService = new MockBufferService(80, 30);
 			handler = new TestInputHandler(
 				bufferService,
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
 				new MockOscLinkService(),
@@ -1047,7 +1048,7 @@ describe('InputHandler', () => {
 		beforeEach(() => {
 			inputHandler2 = new TestInputHandler(
 				bufferService,
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
 				new MockOscLinkService(),
@@ -2857,7 +2858,7 @@ describe('InputHandler', () => {
 			coreService = new CoreService(bufferService, optionsService);
 			inputHandler = new TestInputHandler(
 				bufferService,
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
 				new MockOscLinkService(),
@@ -2918,7 +2919,7 @@ describe('InputHandler', () => {
 
 			inputHandler = new TestInputHandler(
 				bufferService,
-				new MockCharsetService(),
+				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
 				new MockOscLinkService(),
