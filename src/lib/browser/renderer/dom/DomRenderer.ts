@@ -17,7 +17,8 @@ import type {
 } from '$lib/browser/renderer/shared/Types';
 import type { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
 import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
-import type { ILinkifier2, ILinkifierEvent, ReadonlyColorSet } from '$lib/browser/Types';
+import type { ILinkifierEvent, ReadonlyColorSet } from '$lib/browser/Types';
+import type { Linkifier } from '$lib/browser/Linkifier';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { color } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -84,7 +85,7 @@ export class DomRenderer implements IRenderer {
 		private readonly _screenElement: HTMLElement,
 		private readonly _viewportElement: HTMLElement,
 		private readonly _helperContainer: HTMLElement,
-		private readonly _linkifier2: ILinkifier2,
+		private readonly _linkifier2: Linkifier,
 		private readonly _characterJoinerService: CharacterJoinerService,
 		private readonly _decorationService: IDecorationService,
 		private readonly _optionsService: IOptionsService,

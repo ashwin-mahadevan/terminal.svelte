@@ -6,7 +6,6 @@
 import type { ColorContrastCache } from '$lib/browser/ColorContrastCache';
 import type { IColor } from '$lib/common/Types';
 import { channels, css } from '$lib/common/Color';
-import type { IEvent } from '$lib/common/Event';
 
 export type CustomKeyEventHandler = (event: KeyboardEvent) => boolean;
 export type CustomWheelEventHandler = (event: WheelEvent) => boolean;
@@ -73,13 +72,6 @@ interface ILinkState {
 export interface ILinkWithState {
 	link: ILink;
 	state?: ILinkState;
-}
-
-export interface ILinkifier2 {
-	dispose(): void;
-	onShowLinkUnderline: IEvent<ILinkifierEvent>;
-	onHideLinkUnderline: IEvent<ILinkifierEvent>;
-	readonly currentLink: ILinkWithState | undefined;
 }
 
 export interface ILink {

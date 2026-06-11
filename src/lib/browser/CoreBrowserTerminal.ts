@@ -44,8 +44,7 @@ import type {
 	CustomWheelEventHandler,
 	IBrowser,
 	IBufferRange,
-	ICompositionHelper,
-	ILinkifier2
+	ICompositionHelper
 } from '$lib/browser/Types';
 import { Viewport } from '$lib/browser/Viewport';
 import { BufferDecorationRenderer } from '$lib/browser/decorations/BufferDecorationRenderer';
@@ -98,10 +97,10 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _helperContainer: HTMLElement | undefined;
 	private _compositionView: HTMLElement | undefined;
 
-	private readonly _linkifier: MutableDisposable<ILinkifier2> = this._register(
+	private readonly _linkifier: MutableDisposable<Linkifier> = this._register(
 		new MutableDisposable()
 	);
-	public get linkifier(): ILinkifier2 | undefined {
+	public get linkifier(): Linkifier | undefined {
 		return this._linkifier.value;
 	}
 	private _overviewRulerRenderer: OverviewRulerRenderer | undefined;

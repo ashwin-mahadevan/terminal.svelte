@@ -8,7 +8,6 @@ import type {
 	ILink,
 	ILinkDecorations,
 	ILinkWithState,
-	ILinkifier2,
 	ILinkifierEvent
 } from '$lib/browser/Types';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -20,7 +19,7 @@ import type { LinkProviderService } from './services/LinkProviderService';
 import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 
-export class Linkifier implements ILinkifier2 {
+export class Linkifier {
 	public get currentLink(): ILinkWithState | undefined {
 		return this._currentLink;
 	}

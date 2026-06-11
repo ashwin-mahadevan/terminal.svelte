@@ -3,7 +3,8 @@
  * @license MIT
  */
 
-import type { IBufferRange, ILinkifier2 } from '$lib/browser/Types';
+import type { IBufferRange } from '$lib/browser/Types';
+import type { Linkifier } from '$lib/browser/Linkifier';
 import { getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
 import { moveToCellSequence } from '$lib/browser/input/MoveToCell';
 import { SelectionModel } from '$lib/browser/selection/SelectionModel';
@@ -139,7 +140,7 @@ export class SelectionService implements ISelectionService {
 	constructor(
 		private readonly _element: HTMLElement,
 		private readonly _screenElement: HTMLElement,
-		private readonly _linkifier: ILinkifier2,
+		private readonly _linkifier: Linkifier,
 		private readonly _bufferService: IBufferService,
 		private readonly _coreService: ICoreService,
 		private readonly _mouseCoordsService: IMouseCoordsService,
