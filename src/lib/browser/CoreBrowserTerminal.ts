@@ -59,7 +59,7 @@ import { MouseCoordsService } from '$lib/browser/services/MouseCoordsService';
 import { MouseEventCssClasses, MouseService } from '$lib/browser/services/MouseService';
 import { RenderService } from '$lib/browser/services/RenderService';
 import { SelectionService } from '$lib/browser/services/SelectionService';
-import {
+import type {
 	ICharacterJoinerService,
 	ICoreBrowserService,
 	IKeyboardService,
@@ -83,7 +83,6 @@ import type { Marker } from '$lib/common/buffer/Marker';
 import { C0, C1ESCAPED } from '$lib/common/data/EscapeSequences';
 import { toRgbString } from '$lib/common/input/XParseColor';
 import { DecorationService } from '$lib/common/services/DecorationService';
-import { IDecorationService } from '$lib/common/services/Services';
 import { WindowsOptionsReportType } from '../common/InputHandler';
 import { AccessibilityManager } from './AccessibilityManager';
 import { Linkifier } from './Linkifier';
@@ -261,14 +260,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		this._setup();
 
-		this._decorationService = this._instantiationService.createInstance(DecorationService);
-		this._instantiationService.setService(IDecorationService, this._decorationService);
-		this._keyboardService = this._instantiationService.createInstance(KeyboardService);
-		this._instantiationService.setService(IKeyboardService, this._keyboardService);
-		this._linkProviderService = this._instantiationService.createInstance(LinkProviderService);
-		this._instantiationService.setService(ILinkProviderService, this._linkProviderService);
+		this._decorationService = new DecorationService(this._bufferService);
+		this._keyboardService = new KeyboardService(this.coreService, this.optionsService);
+		this._linkProviderService = new LinkProviderService();
 		this._linkProviderService.registerLinkProvider(
-			this._instantiationService.createInstance(OscLinkProvider)
+			new OscLinkProvider(this._bufferService, this.optionsService, this._oscLinkService)
 		);
 
 		// Setup InputHandler listeners
@@ -403,9 +399,10 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _handleScreenReaderModeOptionChange(value: boolean): void {
 		if (value) {
 			if (!this._accessibilityManager.value && this._renderService) {
-				this._accessibilityManager.value = this._instantiationService.createInstance(
-					AccessibilityManager,
-					this
+				this._accessibilityManager.value = new AccessibilityManager(
+					this,
+					this._coreBrowserService!,
+					this._renderService
 				);
 			}
 		} else {
@@ -687,8 +684,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		// Register the core browser service before the generic textarea handlers are registered so it
 		// handles them first. Otherwise the renderers may use the wrong focus state.
 		this._coreBrowserService = this._register(
-			this._instantiationService.createInstance(
-				CoreBrowserService,
+			new CoreBrowserService(
 				this.textarea,
 				parent.ownerDocument.defaultView ?? window,
 				// Force unsafe null in node.js environment for tests
@@ -697,7 +693,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				(this._document ?? typeof window !== 'undefined') ? window.document : (null as any)
 			)
 		);
-		this._instantiationService.setService(ICoreBrowserService, this._coreBrowserService);
 
 		this._register(
 			addDisposableListener(this.textarea, 'focus', (ev: FocusEvent) =>
@@ -707,8 +702,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._register(addDisposableListener(this.textarea, 'blur', () => this._handleTextAreaBlur()));
 		this._helperContainer.appendChild(this.textarea);
 
-		this._themeService = this._instantiationService.createInstance(ThemeService);
-		this._instantiationService.setService(IThemeService, this._themeService);
+		this._themeService = new ThemeService(this.optionsService);
 
 		// CSI ? 996 n - color scheme query (https://contour-terminal.org/vt-extensions/color-palette-update-notifications/)
 		this._register(this._inputHandler.onRequestColorSchemeQuery(() => this._reportColorScheme()));
@@ -722,14 +716,21 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			})
 		);
 
-		this._characterJoinerService =
-			this._instantiationService.createInstance(CharacterJoinerService);
-		this._instantiationService.setService(ICharacterJoinerService, this._characterJoinerService);
+		this._characterJoinerService = new CharacterJoinerService(this._bufferService);
 
 		this._renderService = this._register(
-			this._instantiationService.createInstance(RenderService, this, this.rows, this.screenElement)
+			new RenderService(
+				this,
+				this.rows,
+				this.screenElement,
+				this.optionsService,
+				this.coreService,
+				this._decorationService,
+				this._bufferService,
+				this._coreBrowserService,
+				this._themeService
+			)
 		);
-		this._instantiationService.setService(IRenderService, this._renderService);
 		this._register(this._renderService.onRenderedViewportChange((e) => this._onRender.fire(e)));
 		this._register(
 			this._renderService.onDimensionsChange((e) =>
@@ -750,18 +751,25 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		this._compositionView = this._document.createElement('div');
 		this._compositionView.classList.add('composition-view');
-		this._compositionHelper = this._instantiationService.createInstance(
-			CompositionHelper,
+		this._compositionHelper = new CompositionHelper(
 			this.textarea,
-			this._compositionView
+			this._compositionView,
+			this._bufferService,
+			this.coreService,
+			this._renderService
 		);
 		this._helperContainer.appendChild(this._compositionView);
 
-		this._mouseCoordsService = this._instantiationService.createInstance(MouseCoordsService, this);
-		this._instantiationService.setService(IMouseCoordsService, this._mouseCoordsService);
+		this._mouseCoordsService = new MouseCoordsService(this, this._renderService);
 
 		const linkifier = (this._linkifier.value = this._register(
-			this._instantiationService.createInstance(Linkifier, this.screenElement)
+			new Linkifier(
+				this.screenElement,
+				this._mouseCoordsService,
+				this._renderService,
+				this._bufferService,
+				this._linkProviderService
+			)
 		));
 
 		// Performance: Add viewport and helper elements from the fragment
@@ -792,7 +800,17 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._register(this.onFocus(() => this._renderService!.handleFocus()));
 
 		this._viewport = this._register(
-			this._instantiationService.createInstance(Viewport, this.element, this.screenElement)
+			new Viewport(
+				this.element,
+				this.screenElement,
+				this._bufferService,
+				this._coreBrowserService,
+				this.coreService,
+				this.mouseStateService,
+				this._themeService,
+				this.optionsService,
+				this._renderService
+			)
 		);
 		this._register(
 			this._viewport.onRequestScrollLines((e) => {
@@ -802,16 +820,29 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		);
 
 		this._selectionService = this._register(
-			this._instantiationService.createInstance(
-				SelectionService,
+			new SelectionService(
 				this.element,
 				this.screenElement,
-				linkifier
+				linkifier,
+				this._bufferService,
+				this.coreService,
+				this._mouseCoordsService,
+				this.optionsService,
+				this.mouseStateService,
+				this._renderService,
+				this._coreBrowserService
 			)
 		);
-		this._instantiationService.setService(ISelectionService, this._selectionService);
-		this._mouseService = this._instantiationService.createInstance(MouseService);
-		this._instantiationService.setService(IMouseService, this._mouseService);
+		this._mouseService = new MouseService(
+			this._renderService,
+			this._mouseCoordsService,
+			this.mouseStateService,
+			this.coreService,
+			this._bufferService,
+			this.optionsService,
+			this._selectionService,
+			this._coreBrowserService
+		);
 		this._register(
 			this._selectionService.onRequestScrollLines((e) =>
 				this.scrollLines(e.amount, e.suppressScrollEvent)
@@ -851,7 +882,13 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		);
 
 		this._register(
-			this._instantiationService.createInstance(BufferDecorationRenderer, this.screenElement)
+			new BufferDecorationRenderer(
+				this.screenElement,
+				this._bufferService,
+				this._coreBrowserService,
+				this._decorationService,
+				this._renderService
+			)
 		);
 		this._register(
 			addDisposableListener(this.element, 'mousedown', (e: MouseEvent) =>
@@ -871,9 +908,10 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		if (this.options.screenReaderMode) {
 			// Note that this must be done *after* the renderer is created in order to
 			// ensure the correct order of the dprchange event
-			this._accessibilityManager.value = this._instantiationService.createInstance(
-				AccessibilityManager,
-				this
+			this._accessibilityManager.value = new AccessibilityManager(
+				this,
+				this._coreBrowserService,
+				this._renderService
 			);
 		}
 		this._register(
@@ -886,10 +924,15 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		const overviewRulerWidth = this.options.scrollbar?.width;
 		if (showScrollbar && overviewRulerWidth) {
 			this._overviewRulerRenderer = this._register(
-				this._instantiationService.createInstance(
-					OverviewRulerRenderer,
+				new OverviewRulerRenderer(
 					this._viewportElement,
-					this.screenElement
+					this.screenElement,
+					this._bufferService,
+					this._decorationService,
+					this._renderService,
+					this.optionsService,
+					this._themeService,
+					this._coreBrowserService
 				)
 			);
 		}
@@ -902,10 +945,15 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				this.screenElement
 			) {
 				this._overviewRulerRenderer = this._register(
-					this._instantiationService.createInstance(
-						OverviewRulerRenderer,
+					new OverviewRulerRenderer(
 						this._viewportElement,
-						this.screenElement
+						this.screenElement,
+						this._bufferService,
+						this._decorationService,
+						this._renderService!,
+						this.optionsService,
+						this._themeService!,
+						this._coreBrowserService!
 					)
 				);
 			}
@@ -932,15 +980,21 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	}
 
 	private _createRenderer(): IRenderer {
-		return this._instantiationService.createInstance(
-			DomRenderer,
+		return new DomRenderer(
 			this,
 			this._document!,
 			this.element!,
 			this.screenElement!,
 			this._viewportElement!,
 			this._helperContainer!,
-			this.linkifier!
+			this.linkifier!,
+			this._characterJoinerService!,
+			this._decorationService,
+			this.optionsService,
+			this._bufferService,
+			this.coreService,
+			this._coreBrowserService!,
+			this._themeService!
 		);
 	}
 

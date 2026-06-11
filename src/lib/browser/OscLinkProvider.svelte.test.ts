@@ -12,8 +12,7 @@ import type { IBufferLine, IOscLinkData } from '$lib/common/Types';
 
 class TestOscLinkService implements IOscLinkService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
+
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public registerLink(_linkData: IOscLinkData): number {

@@ -57,8 +57,7 @@ export const NULL_CELL_DATA = Object.freeze(
 
 export class MockBufferService implements IBufferService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
+
 	public get buffer(): IBuffer {
 		return this.buffers.active;
 	}
@@ -115,8 +114,7 @@ export class MockBufferService implements IBufferService {
 
 export class MockMouseStateService implements IMouseStateService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
+
 	public areMouseEventsActive: boolean = false;
 	public activeEncoding: string = '';
 	public activeProtocol: string = '';
@@ -155,8 +153,7 @@ export class MockMouseStateService implements IMouseStateService {
 
 export class MockCharsetService implements ICharsetService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
+
 	public charset: ICharset | undefined;
 	public glevel: number = 0;
 	public charsets: (ICharset | undefined)[] = [];
@@ -175,8 +172,7 @@ export class MockCharsetService implements ICharsetService {
 
 export class MockCoreService implements ICoreService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
+
 	public isCursorInitialized: boolean = true;
 	public isCursorHidden: boolean = false;
 	public isFocused: boolean = false;
@@ -219,8 +215,7 @@ export class MockCoreService implements ICoreService {
 
 export class MockOptionsService implements IOptionsService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
+
 	public readonly rawOptions: Required<ITerminalOptions> = structuredClone(DEFAULT_OPTIONS);
 	public options: Required<ITerminalOptions> = this.rawOptions;
 	public onOptionChange: IEvent<keyof ITerminalOptions> = new LegacyEmitter<
@@ -268,8 +263,7 @@ export class MockOptionsService implements IOptionsService {
 
 export class MockOscLinkService implements IOscLinkService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
+
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public registerLink(linkData: IOscLinkData): number {
@@ -288,8 +282,7 @@ export class MockOscLinkService implements IOscLinkService {
 // defaults to V6 always to keep tests passing
 export class MockUnicodeService implements IUnicodeService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
+
 	private _provider = new UnicodeV6();
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -325,8 +318,7 @@ export class MockUnicodeService implements IUnicodeService {
 
 export class MockDecorationService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
+
 	public get decorations(): IterableIterator<IInternalDecoration> {
 		return [].values();
 	}

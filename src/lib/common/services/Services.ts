@@ -28,13 +28,9 @@ import type {
 	IWindowOptions
 } from '$lib/common/Types';
 import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
-import { createDecorator } from '$lib/common/services/ServiceRegistry';
 import type { LegacyEmitter, IEvent } from '$lib/common/Event';
 
-export const IBufferService = createDecorator<IBufferService>('BufferService');
 export interface IBufferService {
-	serviceBrand: undefined;
-
 	readonly cols: number;
 	readonly rows: number;
 	readonly buffer: IBuffer;
@@ -55,10 +51,7 @@ export interface IBufferResizeEvent {
 	rowsChanged: boolean;
 }
 
-export const IMouseStateService = createDecorator<IMouseStateService>('MouseStateService');
 export interface IMouseStateService {
-	serviceBrand: undefined;
-
 	activeProtocol: string;
 	activeEncoding: string;
 	areMouseEventsActive: boolean;
@@ -80,10 +73,7 @@ export interface IMouseStateService {
 	readonly isPixelEncoding: boolean;
 }
 
-export const ICoreService = createDecorator<ICoreService>('CoreService');
 export interface ICoreService {
-	serviceBrand: undefined;
-
 	/**
 	 * Initially the cursor will not be visible until the first time the terminal
 	 * is focused.
@@ -119,10 +109,7 @@ export interface ICoreService {
 	triggerBinaryEvent(data: string): void;
 }
 
-export const ICharsetService = createDecorator<ICharsetService>('CharsetService');
 export interface ICharsetService {
-	serviceBrand: undefined;
-
 	charset: ICharset | undefined;
 	readonly glevel: number;
 	readonly charsets: (ICharset | undefined)[];
@@ -143,46 +130,7 @@ export interface ICharsetService {
 	setgCharset(g: number, charset: ICharset | undefined): void;
 }
 
-export interface IServiceIdentifier<T> {
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	(...args: any[]): void;
-	type: T;
-	_id: string;
-}
-
-interface IBrandedService {
-	serviceBrand: undefined;
-}
-
-// TODO: Fix this upstream type error.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type GetLeadingNonServiceArgs<TArgs extends any[]> = TArgs extends []
-	? []
-	: TArgs extends [...infer TFirst, infer TLast]
-		? TLast extends IBrandedService
-			? GetLeadingNonServiceArgs<TFirst>
-			: TArgs
-		: never;
-
-export const IInstantiationService = createDecorator<IInstantiationService>('InstantiationService');
-export interface IInstantiationService {
-	serviceBrand: undefined;
-
-	setService<T>(id: IServiceIdentifier<T>, instance: T): void;
-	getService<T>(id: IServiceIdentifier<T>): T | undefined;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	createInstance<Ctor extends new (...args: any[]) => any, R extends InstanceType<Ctor>>(
-		t: Ctor,
-		...args: GetLeadingNonServiceArgs<ConstructorParameters<Ctor>>
-	): R;
-}
-
-export const IOptionsService = createDecorator<IOptionsService>('OptionsService');
 export interface IOptionsService {
-	serviceBrand: undefined;
-
 	/**
 	 * Read only access to the raw options object, this is an internal-only fast path for accessing
 	 * single options without any validation as we trust TypeScript to enforce correct usage
@@ -337,9 +285,7 @@ interface IVtExtensions {
 	colorSchemeQuery?: boolean;
 }
 
-export const IOscLinkService = createDecorator<IOscLinkService>('OscLinkService');
 export interface IOscLinkService {
-	serviceBrand: undefined;
 	/**
 	 * Registers a link to the service, returning the link ID. The link data is managed by this
 	 * service and will be freed when this current cursor position is trimmed off the buffer.
@@ -376,9 +322,7 @@ export type UnicodeCharProperties = number;
  */
 export type UnicodeCharWidth = 0 | 1 | 2;
 
-export const IUnicodeService = createDecorator<IUnicodeService>('UnicodeService');
 export interface IUnicodeService {
-	serviceBrand: undefined;
 	/** Register an Unicode version provider. */
 	register(provider: IUnicodeVersionProvider): void;
 	/** Registered Unicode versions. */
@@ -407,10 +351,8 @@ export interface IUnicodeVersionProvider {
 	charProperties(codepoint: number, preceding: UnicodeCharProperties): UnicodeCharProperties;
 }
 
-export const IDecorationService = createDecorator<IDecorationService>('DecorationService');
 export interface IDecorationService {
 	dispose(): void;
-	serviceBrand: undefined;
 	readonly decorations: IterableIterator<IInternalDecoration>;
 	readonly onDecorationRegistered: IEvent<IInternalDecoration>;
 	readonly onDecorationRemoved: IEvent<IInternalDecoration>;

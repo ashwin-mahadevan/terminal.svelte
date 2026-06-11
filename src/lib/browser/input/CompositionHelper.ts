@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import { IRenderService } from '$lib/browser/services/Services';
-import { IBufferService, ICoreService } from '$lib/common/services/Services';
+import type { IRenderService } from '$lib/browser/services/Services';
+import type { IBufferService, ICoreService } from '$lib/common/services/Services';
 import { C0 } from '$lib/common/data/EscapeSequences';
 
 interface IPosition {
@@ -57,9 +57,9 @@ export class CompositionHelper {
 	constructor(
 		private readonly _textarea: HTMLTextAreaElement,
 		private readonly _compositionView: HTMLElement,
-		@IBufferService private readonly _bufferService: IBufferService,
-		@ICoreService private readonly _coreService: ICoreService,
-		@IRenderService private readonly _renderService: IRenderService
+		private readonly _bufferService: IBufferService,
+		private readonly _coreService: ICoreService,
+		private readonly _renderService: IRenderService
 	) {
 		this._isComposing = false;
 		this._isSendingComposition = false;

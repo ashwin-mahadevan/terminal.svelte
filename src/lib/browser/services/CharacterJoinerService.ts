@@ -8,7 +8,7 @@ import type { ICharacterJoiner } from '$lib/browser/Types';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import { WHITESPACE_CELL_CHAR, Content } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
-import { IBufferService } from '$lib/common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
 import type { ICharacterJoinerService } from '$lib/browser/services/Services';
 
 export class JoinedCellData extends AttributeData implements ICellData {
@@ -59,13 +59,11 @@ export class JoinedCellData extends AttributeData implements ICellData {
 }
 
 export class CharacterJoinerService implements ICharacterJoinerService {
-	public serviceBrand: undefined;
-
 	private _characterJoiners: ICharacterJoiner[] = [];
 	private _nextCharacterJoinerId: number = 0;
 	private _workCell: CellData = new CellData();
 
-	constructor(@IBufferService private _bufferService: IBufferService) {}
+	constructor(private _bufferService: IBufferService) {}
 
 	public register(handler: (text: string) => [number, number][]): number {
 		const joiner: ICharacterJoiner = {

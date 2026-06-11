@@ -36,7 +36,6 @@ import { css } from '$lib/common/Color';
 // common/TestUtils.ts but missed browser/TestUtils.ts. We inline the mocks here
 // rather than editing the vendored helper. See report / FIXME below.
 class MockCharacterJoinerService {
-	public serviceBrand: undefined;
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public register(_handler: (text: string) => [number, number][]): number {
@@ -57,7 +56,6 @@ class MockCharacterJoinerService {
 class MockCoreBrowserService {
 	public onDprChange = new LegacyEmitter<number>().event;
 	public onWindowChange = new LegacyEmitter<Window & typeof globalThis>().event;
-	public serviceBrand: undefined;
 	public isFocused: boolean = true;
 	public get window(): Window & typeof globalThis {
 		throw Error('Window object not available in tests');
@@ -69,7 +67,6 @@ class MockCoreBrowserService {
 }
 
 class MockThemeService {
-	public serviceBrand: undefined;
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public onChangeColors = new LegacyEmitter<any>().event;

@@ -5,9 +5,17 @@
 
 import type { IColorZone, IColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
-import { ICoreBrowserService, IRenderService, IThemeService } from '$lib/browser/services/Services';
+import type {
+	ICoreBrowserService,
+	IRenderService,
+	IThemeService
+} from '$lib/browser/services/Services';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { IBufferService, IDecorationService, IOptionsService } from '$lib/common/services/Services';
+import type {
+	IBufferService,
+	IDecorationService,
+	IOptionsService
+} from '$lib/common/services/Services';
 
 const enum Constants {
 	OVERVIEW_RULER_BORDER_WIDTH = 1
@@ -66,12 +74,12 @@ export class OverviewRulerRenderer {
 	constructor(
 		private readonly _viewportElement: HTMLElement,
 		private readonly _screenElement: HTMLElement,
-		@IBufferService private readonly _bufferService: IBufferService,
-		@IDecorationService private readonly _decorationService: IDecorationService,
-		@IRenderService private readonly _renderService: IRenderService,
-		@IOptionsService private readonly _optionsService: IOptionsService,
-		@IThemeService private readonly _themeService: IThemeService,
-		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService
+		private readonly _bufferService: IBufferService,
+		private readonly _decorationService: IDecorationService,
+		private readonly _renderService: IRenderService,
+		private readonly _optionsService: IOptionsService,
+		private readonly _themeService: IThemeService,
+		private readonly _coreBrowserService: ICoreBrowserService
 	) {
 		this._canvas = this._coreBrowserService.mainDocument.createElement('canvas');
 		this._canvas.classList.add('xterm-decoration-overview-ruler');

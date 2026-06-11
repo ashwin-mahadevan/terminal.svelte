@@ -34,7 +34,6 @@ function createManager(duration: number): {
 	const fakeWindow = new FakeWindow();
 	let renderCount = 0;
 	const coreBrowserService: ICoreBrowserService = {
-		serviceBrand: undefined,
 		isFocused: true,
 		dpr: 1,
 		onDprChange: new LegacyEmitter<number>().event,

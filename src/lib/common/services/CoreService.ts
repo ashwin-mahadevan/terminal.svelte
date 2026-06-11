@@ -5,7 +5,7 @@
 
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
 import type { ICoreService } from '$lib/common/services/Services';
-import { IBufferService, IOptionsService } from '$lib/common/services/Services';
+import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
 const DEFAULT_MODES: IModes = Object.freeze({
@@ -37,8 +37,6 @@ const DEFAULT_KITTY_KEYBOARD_STATE = (): IKittyKeyboardState => ({
 
 export class CoreService implements ICoreService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
 
 	public isCursorInitialized: boolean;
 	public isCursorHidden: boolean = false;
@@ -56,8 +54,8 @@ export class CoreService implements ICoreService {
 	public readonly onRequestScrollToBottom = this._onRequestScrollToBottom.event;
 
 	constructor(
-		@IBufferService private readonly _bufferService: IBufferService,
-		@IOptionsService private readonly _optionsService: IOptionsService
+		private readonly _bufferService: IBufferService,
+		private readonly _optionsService: IOptionsService
 	) {
 		this.isCursorInitialized = _optionsService.rawOptions.showCursorImmediately ?? false;
 		this.modes = structuredClone(DEFAULT_MODES);

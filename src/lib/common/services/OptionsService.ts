@@ -71,8 +71,6 @@ const FONT_WEIGHT_OPTIONS: Extract<FontWeight, string>[] = [
 
 export class OptionsService implements IOptionsService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
 
 	public readonly rawOptions: Required<ITerminalOptions>;
 	public options: Required<ITerminalOptions>;

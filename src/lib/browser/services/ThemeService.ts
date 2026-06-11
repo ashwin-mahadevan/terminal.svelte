@@ -10,7 +10,7 @@ import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 import { color, css, NULL_COLOR } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { ITheme } from '$lib/common/services/Services';
-import { IOptionsService } from '$lib/common/services/Services';
+import type { IOptionsService } from '$lib/common/services/Services';
 import type { AllColorIndex, IColor } from '$lib/common/Types';
 import { SpecialColorIndex } from '$lib/common/Types';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -33,8 +33,6 @@ const DEFAULT_SELECTION = {
 const DEFAULT_OVERVIEW_RULER_BORDER = DEFAULT_FOREGROUND;
 
 export class ThemeService implements IThemeService {
-	public serviceBrand: undefined;
-
 	private _colors: IColorSet;
 	private _contrastCache: IColorContrastCache = new ColorContrastCache();
 	private _halfContrastCache: IColorContrastCache = new ColorContrastCache();
@@ -50,7 +48,7 @@ export class ThemeService implements IThemeService {
 	private readonly _minContrastListener: IDisposable;
 	private readonly _themeListener: IDisposable;
 
-	constructor(@IOptionsService private readonly _optionsService: IOptionsService) {
+	constructor(private readonly _optionsService: IOptionsService) {
 		this._colors = {
 			foreground: DEFAULT_FOREGROUND,
 			background: DEFAULT_BACKGROUND,

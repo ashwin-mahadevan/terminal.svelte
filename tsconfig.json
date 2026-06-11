@@ -8,8 +8,8 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		// The vendored xterm.js sources use TypeScript parameter decorators for
-		// dependency injection (e.g. @IBufferService), which require this flag.
+		// The vendored xterm.js sources use a TypeScript method decorator (@memoize),
+		// which requires this flag.
 		"experimentalDecorators": true
 		// module / moduleResolution are inherited from .svelte-kit/tsconfig.json
 		// (module: "esnext", moduleResolution: "bundler"), which lets the copied

@@ -7,9 +7,13 @@ import type { IBufferLine, ICellData, IColor } from '$lib/common/Types';
 import { INVERTED_DEFAULT_COLOR } from '$lib/browser/renderer/shared/Constants';
 import { WHITESPACE_CELL_CHAR, Attributes } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
-import { ICoreService, IDecorationService, IOptionsService } from '$lib/common/services/Services';
+import type {
+	ICoreService,
+	IDecorationService,
+	IOptionsService
+} from '$lib/common/services/Services';
 import { channels, color } from '$lib/common/Color';
-import {
+import type {
 	ICharacterJoinerService,
 	ICoreBrowserService,
 	IThemeService
@@ -47,12 +51,12 @@ export class DomRendererRowFactory {
 
 	constructor(
 		private readonly _document: Document,
-		@ICharacterJoinerService private readonly _characterJoinerService: ICharacterJoinerService,
-		@IOptionsService private readonly _optionsService: IOptionsService,
-		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService,
-		@ICoreService private readonly _coreService: ICoreService,
-		@IDecorationService private readonly _decorationService: IDecorationService,
-		@IThemeService private readonly _themeService: IThemeService
+		private readonly _characterJoinerService: ICharacterJoinerService,
+		private readonly _optionsService: IOptionsService,
+		private readonly _coreBrowserService: ICoreBrowserService,
+		private readonly _coreService: ICoreService,
+		private readonly _decorationService: IDecorationService,
+		private readonly _themeService: IThemeService
 	) {}
 
 	public handleSelectionChanged(

@@ -9,14 +9,10 @@ import type {
 	ISelectionRedrawRequestEvent as ISelectionRequestRedrawEvent,
 	ISelectionRequestScrollLinesEvent
 } from '$lib/browser/selection/Types';
-import { createDecorator } from '$lib/common/services/ServiceRegistry';
 import type { AllColorIndex, IDisposable, IKeyboardResult } from '$lib/common/Types';
 import type { IEvent } from '$lib/common/Event';
 
-export const ICoreBrowserService = createDecorator<ICoreBrowserService>('CoreBrowserService');
 export interface ICoreBrowserService {
-	serviceBrand: undefined;
-
 	readonly isFocused: boolean;
 
 	readonly onDprChange: IEvent<number>;
@@ -39,10 +35,7 @@ export interface ICoreBrowserService {
 	readonly dpr: number;
 }
 
-export const IMouseCoordsService = createDecorator<IMouseCoordsService>('MouseCoordsService');
 export interface IMouseCoordsService {
-	serviceBrand: undefined;
-
 	getCoords(
 		event: { clientX: number; clientY: number },
 		element: HTMLElement,
@@ -56,10 +49,7 @@ export interface IMouseCoordsService {
 	): { col: number; row: number; x: number; y: number } | undefined;
 }
 
-export const IMouseService = createDecorator<IMouseService>('MouseService');
 export interface IMouseService {
-	serviceBrand: undefined;
-
 	bindMouse(
 		target: IMouseServiceTarget,
 		register: (disposable: IDisposable) => void,
@@ -74,10 +64,8 @@ export interface IMouseServiceTarget {
 	handleTouchScroll?(amount: number): void;
 }
 
-export const IRenderService = createDecorator<IRenderService>('RenderService');
 export interface IRenderService {
 	dispose(): void;
-	serviceBrand: undefined;
 
 	onDimensionsChange: IEvent<IRenderDimensions>;
 	/**
@@ -114,10 +102,7 @@ export interface IRenderService {
 	clear(): void;
 }
 
-export const ISelectionService = createDecorator<ISelectionService>('SelectionService');
 export interface ISelectionService {
-	serviceBrand: undefined;
-
 	readonly selectionText: string;
 	readonly hasSelection: boolean;
 	readonly selectionStart: [number, number] | undefined;
@@ -143,20 +128,13 @@ export interface ISelectionService {
 	isCellInSelection(x: number, y: number): boolean;
 }
 
-export const ICharacterJoinerService =
-	createDecorator<ICharacterJoinerService>('CharacterJoinerService');
 export interface ICharacterJoinerService {
-	serviceBrand: undefined;
-
 	register(handler: (text: string) => [number, number][]): number;
 	deregister(joinerId: number): boolean;
 	getJoinedCharacters(row: number): [number, number][];
 }
 
-export const IThemeService = createDecorator<IThemeService>('ThemeService');
 export interface IThemeService {
-	serviceBrand: undefined;
-
 	readonly colors: ReadonlyColorSet;
 
 	readonly onChangeColors: IEvent<ReadonlyColorSet>;
@@ -169,10 +147,8 @@ export interface IThemeService {
 	modifyColors(callback: (colors: IColorSet) => void): void;
 }
 
-export const ILinkProviderService = createDecorator<ILinkProviderService>('LinkProviderService');
 export interface ILinkProviderService {
 	dispose(): void;
-	serviceBrand: undefined;
 	readonly linkProviders: ReadonlyArray<ILinkProvider>;
 	registerLinkProvider(linkProvider: ILinkProvider): IDisposable;
 }
@@ -180,9 +156,7 @@ export interface ILinkProvider {
 	provideLinks(y: number, callback: (links: ILink[] | undefined) => void): void;
 }
 
-export const IKeyboardService = createDecorator<IKeyboardService>('KeyboardService');
 export interface IKeyboardService {
-	serviceBrand: undefined;
 	evaluateKeyDown(event: KeyboardEvent): IKeyboardResult;
 	evaluateKeyUp(event: KeyboardEvent): IKeyboardResult | undefined;
 	readonly useKitty: boolean;

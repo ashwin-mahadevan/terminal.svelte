@@ -10,8 +10,6 @@ import { MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 
 export class CoreBrowserService implements ICoreBrowserService {
-	public serviceBrand: undefined;
-
 	private _isFocused = false;
 	private _cachedIsFocused: boolean | undefined = undefined;
 	private readonly _screenDprMonitor: ScreenDprMonitor;

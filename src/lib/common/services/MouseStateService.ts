@@ -178,8 +178,6 @@ const DEFAULT_ENCODINGS: { [key: string]: CoreMouseEncoding } = {
  */
 export class MouseStateService implements IMouseStateService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
 
 	private _protocols: { [name: string]: ICoreMouseProtocol } = {};
 	private _encodings: { [name: string]: CoreMouseEncoding } = {};

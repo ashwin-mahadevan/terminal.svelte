@@ -3,13 +3,11 @@
  * @license MIT
  */
 import type { IOscLinkService } from '$lib/common/services/Services';
-import { IBufferService } from '$lib/common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
 import type { IMarker, IOscLinkData } from '$lib/common/Types';
 
 export class OscLinkService implements IOscLinkService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
 
 	private _nextId = 1;
 
@@ -25,7 +23,7 @@ export class OscLinkService implements IOscLinkService {
 	 */
 	private _dataByLinkId: Map<number, IOscLinkEntryNoId | IOscLinkEntryWithId> = new Map();
 
-	constructor(@IBufferService private readonly _bufferService: IBufferService) {}
+	constructor(private readonly _bufferService: IBufferService) {}
 
 	public registerLink(data: IOscLinkData): number {
 		const buffer = this._bufferService.buffer;

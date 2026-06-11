@@ -44,7 +44,7 @@ import type {
 	IUnicodeService,
 	IOscLinkService
 } from '$lib/common/services/Services';
-import { IBufferService } from '$lib/common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { OscHandler } from '$lib/common/parser/OscParser';
 import { DcsHandler } from '$lib/common/parser/DcsParser';
@@ -4057,7 +4057,7 @@ class DirtyRowTracker implements IDirtyRowTracker {
 	public start!: number;
 	public end!: number;
 
-	constructor(@IBufferService private readonly _bufferService: IBufferService) {
+	constructor(private readonly _bufferService: IBufferService) {
 		this.clearRange();
 	}
 

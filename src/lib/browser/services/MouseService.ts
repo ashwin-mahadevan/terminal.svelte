@@ -4,7 +4,7 @@
  */
 
 import { addDisposableListener } from '$lib/browser/Dom';
-import {
+import type {
 	IBufferService,
 	IMouseStateService,
 	ICoreService,
@@ -15,7 +15,7 @@ import { CoreMouseAction, CoreMouseButton, CoreMouseEventType } from '$lib/commo
 import { C0 } from '$lib/common/data/EscapeSequences';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IMouseService, IMouseServiceTarget } from './Services';
-import {
+import type {
 	ICoreBrowserService,
 	IMouseCoordsService,
 	IRenderService,
@@ -40,22 +40,20 @@ interface IMouseBindContext {
 }
 
 export class MouseService implements IMouseService {
-	public serviceBrand: undefined;
-
 	private _lastEvent: ICoreMouseEvent | null = null;
 	private _wheelPartialScroll: number = 0;
 	private _touchScrollAccumulator: number = 0;
 	private _altMouseCursor: AltMouseCursorController | undefined;
 
 	constructor(
-		@IRenderService private readonly _renderService: IRenderService,
-		@IMouseCoordsService private readonly _mouseCoordsService: IMouseCoordsService,
-		@IMouseStateService private readonly _mouseStateService: IMouseStateService,
-		@ICoreService private readonly _coreService: ICoreService,
-		@IBufferService private readonly _bufferService: IBufferService,
-		@IOptionsService private readonly _optionsService: IOptionsService,
-		@ISelectionService private readonly _selectionService: ISelectionService,
-		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService
+		private readonly _renderService: IRenderService,
+		private readonly _mouseCoordsService: IMouseCoordsService,
+		private readonly _mouseStateService: IMouseStateService,
+		private readonly _coreService: ICoreService,
+		private readonly _bufferService: IBufferService,
+		private readonly _optionsService: IOptionsService,
+		private readonly _selectionService: ISelectionService,
+		private readonly _coreBrowserService: ICoreBrowserService
 	) {}
 
 	public bindMouse(

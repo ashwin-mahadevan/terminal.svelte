@@ -21,8 +21,8 @@
  *   http://linux.die.net/man/7/urxvt
  */
 
-import type { IInstantiationService, ITerminalOptions } from '$lib/common/services/Services';
-import {
+import type { ITerminalOptions } from '$lib/common/services/Services';
+import type {
 	IOptionsService,
 	IBufferService,
 	ICharsetService,
@@ -31,7 +31,6 @@ import {
 	IUnicodeService,
 	IOscLinkService
 } from '$lib/common/services/Services';
-import { InstantiationService } from '$lib/common/services/InstantiationService';
 import { BufferService, BufferServiceConstants } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import type { IDisposable, IAttributeData, ICoreTerminal, IScrollEvent } from '$lib/common/Types';
@@ -54,7 +53,6 @@ let hasWriteSyncWarnHappened = false;
 
 export abstract class CoreTerminal implements ICoreTerminal {
 	protected readonly _store = new DisposableStore();
-	protected readonly _instantiationService: IInstantiationService;
 	protected readonly _bufferService: IBufferService;
 	protected readonly _charsetService: ICharsetService;
 	protected readonly _oscLinkService: IOscLinkService;
@@ -119,25 +117,13 @@ export abstract class CoreTerminal implements ICoreTerminal {
 
 	constructor(options: Partial<ITerminalOptions>) {
 		// Setup and initialize services
-		this._instantiationService = new InstantiationService();
 		this.optionsService = this._store.add(new OptionsService(options));
-		this._instantiationService.setService(IOptionsService, this.optionsService);
-		this._bufferService = this._store.add(this._instantiationService.createInstance(BufferService));
-		this._instantiationService.setService(IBufferService, this._bufferService);
-		this.coreService = this._store.add(this._instantiationService.createInstance(CoreService));
-		this._instantiationService.setService(ICoreService, this.coreService);
-		this.mouseStateService = this._store.add(
-			this._instantiationService.createInstance(MouseStateService)
-		);
-		this._instantiationService.setService(IMouseStateService, this.mouseStateService);
-		this.unicodeService = this._store.add(
-			this._instantiationService.createInstance(UnicodeService)
-		);
-		this._instantiationService.setService(IUnicodeService, this.unicodeService);
-		this._charsetService = this._instantiationService.createInstance(CharsetService);
-		this._instantiationService.setService(ICharsetService, this._charsetService);
-		this._oscLinkService = this._instantiationService.createInstance(OscLinkService);
-		this._instantiationService.setService(IOscLinkService, this._oscLinkService);
+		this._bufferService = this._store.add(new BufferService(this.optionsService));
+		this.coreService = this._store.add(new CoreService(this._bufferService, this.optionsService));
+		this.mouseStateService = this._store.add(new MouseStateService());
+		this.unicodeService = this._store.add(new UnicodeService());
+		this._charsetService = new CharsetService();
+		this._oscLinkService = new OscLinkService(this._bufferService);
 
 		// Register input handler and handle/forward events
 		this._inputHandler = this._store.add(

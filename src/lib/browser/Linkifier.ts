@@ -13,8 +13,12 @@ import type {
 } from '$lib/browser/Types';
 import { dispose } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Types';
-import { IBufferService } from '$lib/common/services/Services';
-import { ILinkProviderService, IMouseCoordsService, IRenderService } from './services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
+import type {
+	ILinkProviderService,
+	IMouseCoordsService,
+	IRenderService
+} from './services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 
@@ -47,10 +51,10 @@ export class Linkifier implements ILinkifier2 {
 
 	constructor(
 		private readonly _element: HTMLElement,
-		@IMouseCoordsService private readonly _mouseCoordsService: IMouseCoordsService,
-		@IRenderService private readonly _renderService: IRenderService,
-		@IBufferService private readonly _bufferService: IBufferService,
-		@ILinkProviderService private readonly _linkProviderService: ILinkProviderService
+		private readonly _mouseCoordsService: IMouseCoordsService,
+		private readonly _renderService: IRenderService,
+		private readonly _bufferService: IBufferService,
+		private readonly _linkProviderService: ILinkProviderService
 	) {
 		// Listen to resize to catch the case where it's resized and the cursor is out of the viewport.
 		this._resizeListener = this._bufferService.onResize(() => {

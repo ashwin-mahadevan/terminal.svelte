@@ -9,7 +9,7 @@ import { css } from '$lib/common/Color';
 import { DisposableStore, MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
-import { IBufferService } from '$lib/common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
 import { SortedList } from '$lib/common/SortedList';
 import type { IColor, ICircularList } from '$lib/common/Types';
 import type { IDecoration, IDecorationOptions } from '$lib/xterm';
@@ -22,8 +22,6 @@ let $xmax = 0;
 
 export class DecorationService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
 
 	/**
 	 * A list of all decorations, sorted by the marker's line value. This relies on the fact that
@@ -45,7 +43,7 @@ export class DecorationService {
 		return this._decorations.values();
 	}
 
-	constructor(@IBufferService private readonly _bufferService: IBufferService) {
+	constructor(private readonly _bufferService: IBufferService) {
 		this._decorations = new SortedList((e) => e?.marker.line);
 
 		this._bufferActivateListener = this._bufferService.buffers.onBufferActivate(() => {

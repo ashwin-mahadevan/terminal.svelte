@@ -12,7 +12,7 @@ import type {
 	ISelectionRequestScrollLinesEvent
 } from '$lib/browser/selection/Types';
 import type { ISelectionService } from '$lib/browser/services/Services';
-import {
+import type {
 	ICoreBrowserService,
 	IMouseCoordsService,
 	IRenderService
@@ -23,7 +23,7 @@ import type { IBufferLine, ICellData, IDisposable } from '$lib/common/Types';
 import { getRangeLength } from '$lib/common/buffer/BufferRange';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { IBuffer } from '$lib/common/buffer/Types';
-import {
+import type {
 	IBufferService,
 	ICoreService,
 	IMouseStateService,
@@ -84,8 +84,6 @@ export const enum SelectionMode {
  * when the selection is ready to be redrawn (on an animation frame).
  */
 export class SelectionService implements ISelectionService {
-	public serviceBrand: undefined;
-
 	protected _model: SelectionModel;
 
 	/**
@@ -141,13 +139,13 @@ export class SelectionService implements ISelectionService {
 		private readonly _element: HTMLElement,
 		private readonly _screenElement: HTMLElement,
 		private readonly _linkifier: ILinkifier2,
-		@IBufferService private readonly _bufferService: IBufferService,
-		@ICoreService private readonly _coreService: ICoreService,
-		@IMouseCoordsService private readonly _mouseCoordsService: IMouseCoordsService,
-		@IOptionsService private readonly _optionsService: IOptionsService,
-		@IMouseStateService private readonly _mouseStateService: IMouseStateService,
-		@IRenderService private readonly _renderService: IRenderService,
-		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService
+		private readonly _bufferService: IBufferService,
+		private readonly _coreService: ICoreService,
+		private readonly _mouseCoordsService: IMouseCoordsService,
+		private readonly _optionsService: IOptionsService,
+		private readonly _mouseStateService: IMouseStateService,
+		private readonly _renderService: IRenderService,
+		private readonly _coreBrowserService: ICoreBrowserService
 	) {
 		// Init listeners
 		this._mouseMoveListener = (event) => this._handleMouseMove(event as MouseEvent);

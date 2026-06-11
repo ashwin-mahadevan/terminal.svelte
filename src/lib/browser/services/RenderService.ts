@@ -8,11 +8,11 @@ import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { IRenderService } from '$lib/browser/services/Services';
-import { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
+import type { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
-import {
+import type {
 	IBufferService,
 	ICoreService,
 	IDecorationService,
@@ -31,8 +31,6 @@ const enum Constants {
 }
 
 export class RenderService implements IRenderService {
-	public serviceBrand: undefined;
-
 	private readonly _renderer = new MutableDisposable<IRenderer>();
 	private _renderDebouncer!: IRenderDebouncerWithCallback;
 	private _pausedResizeTask!: DebouncedIdleTask;
@@ -81,12 +79,12 @@ export class RenderService implements IRenderService {
 		terminal: CoreBrowserTerminal,
 		private _rowCount: number,
 		screenElement: HTMLElement,
-		@IOptionsService private readonly _optionsService: IOptionsService,
-		@ICoreService private readonly _coreService: ICoreService,
-		@IDecorationService decorationService: IDecorationService,
-		@IBufferService bufferService: IBufferService,
-		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService,
-		@IThemeService themeService: IThemeService
+		private readonly _optionsService: IOptionsService,
+		private readonly _coreService: ICoreService,
+		decorationService: IDecorationService,
+		bufferService: IBufferService,
+		private readonly _coreBrowserService: ICoreBrowserService,
+		themeService: IThemeService
 	) {
 		this._pausedResizeTask = new DebouncedIdleTask();
 

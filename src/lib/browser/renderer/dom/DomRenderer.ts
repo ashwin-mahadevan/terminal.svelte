@@ -15,15 +15,19 @@ import type {
 	IRequestRedrawEvent,
 	ISelectionRenderModel
 } from '$lib/browser/renderer/shared/Types';
-import { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
+import type {
+	ICharacterJoinerService,
+	ICoreBrowserService,
+	IThemeService
+} from '$lib/browser/services/Services';
 import type { ILinkifier2, ILinkifierEvent, ReadonlyColorSet } from '$lib/browser/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { color } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import {
+import type {
 	IBufferService,
 	ICoreService,
-	IInstantiationService,
+	IDecorationService,
 	IOptionsService
 } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -84,12 +88,13 @@ export class DomRenderer implements IRenderer {
 		private readonly _viewportElement: HTMLElement,
 		private readonly _helperContainer: HTMLElement,
 		private readonly _linkifier2: ILinkifier2,
-		@IInstantiationService instantiationService: IInstantiationService,
-		@IOptionsService private readonly _optionsService: IOptionsService,
-		@IBufferService private readonly _bufferService: IBufferService,
-		@ICoreService private readonly _coreService: ICoreService,
-		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService,
-		@IThemeService private readonly _themeService: IThemeService
+		private readonly _characterJoinerService: ICharacterJoinerService,
+		private readonly _decorationService: IDecorationService,
+		private readonly _optionsService: IOptionsService,
+		private readonly _bufferService: IBufferService,
+		private readonly _coreService: ICoreService,
+		private readonly _coreBrowserService: ICoreBrowserService,
+		private readonly _themeService: IThemeService
 	) {
 		this._rowContainer = this._document.createElement('div');
 		this._rowContainer.classList.add(Constants.ROW_CONTAINER_CLASS);
@@ -109,7 +114,15 @@ export class DomRenderer implements IRenderer {
 		this._themeChangeListener = this._themeService.onChangeColors((e) => this._injectCss(e));
 		this._injectCss(this._themeService.colors);
 
-		this._rowFactory = instantiationService.createInstance(DomRendererRowFactory, document);
+		this._rowFactory = new DomRendererRowFactory(
+			document,
+			this._characterJoinerService,
+			this._optionsService,
+			this._coreBrowserService,
+			this._coreService,
+			this._decorationService,
+			this._themeService
+		);
 
 		this._element.classList.add(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
 		this._screenElement.appendChild(this._rowContainer);

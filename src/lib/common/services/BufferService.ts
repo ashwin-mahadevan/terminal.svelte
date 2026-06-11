@@ -8,7 +8,7 @@ import type { IAttributeData, IBufferLine } from '$lib/common/Types';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
 import type { IBufferService } from '$lib/common/services/Services';
-import { IOptionsService } from '$lib/common/services/Services';
+import type { IOptionsService } from '$lib/common/services/Services';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -19,8 +19,6 @@ export const enum BufferServiceConstants {
 
 export class BufferService implements IBufferService {
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public serviceBrand: any;
 
 	public cols: number;
 	public rows: number;
@@ -41,7 +39,7 @@ export class BufferService implements IBufferService {
 	private _cachedBlankLine: IBufferLine | undefined;
 	private readonly _bufferActivateListener: IDisposable;
 
-	constructor(@IOptionsService optionsService: IOptionsService) {
+	constructor(optionsService: IOptionsService) {
 		this.cols = Math.max(optionsService.rawOptions.cols || 0, BufferServiceConstants.MINIMUM_COLS);
 		this.rows = Math.max(optionsService.rawOptions.rows || 0, BufferServiceConstants.MINIMUM_ROWS);
 		this.buffers = new BufferSet(optionsService, this);

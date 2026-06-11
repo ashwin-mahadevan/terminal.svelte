@@ -2,8 +2,6 @@ import type { ILinkProvider, ILinkProviderService } from '$lib/browser/services/
 import type { IDisposable } from '$lib/common/Types';
 
 export class LinkProviderService implements ILinkProviderService {
-	declare public serviceBrand: undefined;
-
 	public readonly linkProviders: ILinkProvider[] = [];
 
 	public dispose(): void {

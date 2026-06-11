@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
+import type { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
-import { IBufferService, IDecorationService } from '$lib/common/services/Services';
+import type { IBufferService, IDecorationService } from '$lib/common/services/Services';
 
 export class BufferDecorationRenderer {
 	private readonly _container: HTMLElement;
@@ -25,10 +25,10 @@ export class BufferDecorationRenderer {
 
 	constructor(
 		private readonly _screenElement: HTMLElement,
-		@IBufferService private readonly _bufferService: IBufferService,
-		@ICoreBrowserService private readonly _coreBrowserService: ICoreBrowserService,
-		@IDecorationService private readonly _decorationService: IDecorationService,
-		@IRenderService private readonly _renderService: IRenderService
+		private readonly _bufferService: IBufferService,
+		private readonly _coreBrowserService: ICoreBrowserService,
+		private readonly _decorationService: IDecorationService,
+		private readonly _renderService: IRenderService
 	) {
 		this._container = document.createElement('div');
 		this._container.classList.add('xterm-decoration-container');

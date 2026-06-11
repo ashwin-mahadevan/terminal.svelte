@@ -7,14 +7,12 @@ import { getWindow } from '$lib/browser/Dom';
 import { getCoords, getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { IMouseCoordsService } from '$lib/browser/services/Services';
-import { IRenderService } from '$lib/browser/services/Services';
+import type { IRenderService } from '$lib/browser/services/Services';
 
 export class MouseCoordsService implements IMouseCoordsService {
-	public serviceBrand: undefined;
-
 	constructor(
 		private readonly _terminal: CoreBrowserTerminal,
-		@IRenderService private readonly _renderService: IRenderService
+		private readonly _renderService: IRenderService
 	) {}
 
 	public getCoords(

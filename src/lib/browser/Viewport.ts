@@ -3,10 +3,14 @@
  * @license MIT
  */
 
-import { ICoreBrowserService, IRenderService, IThemeService } from '$lib/browser/services/Services';
+import type {
+	ICoreBrowserService,
+	IRenderService,
+	IThemeService
+} from '$lib/browser/services/Services';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import {
+import type {
 	IBufferService,
 	ICoreService,
 	IMouseStateService,
@@ -49,13 +53,13 @@ export class Viewport {
 	constructor(
 		element: HTMLElement,
 		screenElement: HTMLElement,
-		@IBufferService private readonly _bufferService: IBufferService,
-		@ICoreBrowserService coreBrowserService: ICoreBrowserService,
-		@ICoreService private readonly _coreService: ICoreService,
-		@IMouseStateService mouseStateService: IMouseStateService,
-		@IThemeService themeService: IThemeService,
-		@IOptionsService private readonly _optionsService: IOptionsService,
-		@IRenderService private readonly _renderService: IRenderService
+		private readonly _bufferService: IBufferService,
+		coreBrowserService: ICoreBrowserService,
+		private readonly _coreService: ICoreService,
+		mouseStateService: IMouseStateService,
+		themeService: IThemeService,
+		private readonly _optionsService: IOptionsService,
+		private readonly _renderService: IRenderService
 	) {
 		this._scrollable = new Scrollable({
 			forceIntegerValues: false,

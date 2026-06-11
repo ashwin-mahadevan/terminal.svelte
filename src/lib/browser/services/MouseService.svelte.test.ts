@@ -21,18 +21,15 @@ import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUti
 // $lib/xterm module. The mocks the upstream test pulled from TestUtils are
 // inlined minimally below instead.
 class MockRenderService {
-	public serviceBrand: undefined;
 	public dimensions = createRenderDimensions();
 }
 
 class MockCoreBrowserService {
-	public serviceBrand: undefined;
 	public isFocused = true;
 	public dpr = 1;
 }
 
 class MockSelectionService {
-	public serviceBrand: undefined;
 	public enable(): void {
 		throw new Error('Method not implemented.');
 	}

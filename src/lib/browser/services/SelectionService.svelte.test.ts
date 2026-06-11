@@ -28,13 +28,11 @@ import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUti
 // $lib/xterm module. The browser mocks the upstream test pulled from TestUtils
 // are inlined minimally below instead.
 class MockCoreBrowserService {
-	public serviceBrand: undefined;
 	public isFocused = true;
 	public dpr = 1;
 }
 
 class MockMouseService {
-	public serviceBrand: undefined;
 	public getCoords(): [number, number] | undefined {
 		throw new Error('Not implemented');
 	}
@@ -46,7 +44,6 @@ class MockMouseService {
 }
 
 class MockRenderService {
-	public serviceBrand: undefined;
 	public dimensions = createRenderDimensions();
 }
 
