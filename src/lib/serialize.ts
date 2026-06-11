@@ -5,8 +5,9 @@
  * (EXPERIMENTAL) This Addon is still under development
  */
 
-import type { IBuffer, IBufferCell, IBufferRange, IMarker } from '$lib/xterm';
+import type { IBufferCell, IBufferRange, IMarker } from '$lib/xterm';
 import type { Terminal } from '$lib/browser/public/Terminal';
+import type { IBuffer } from '$lib/common/buffer/Types';
 import type { IAttributeData } from '$lib/common/Types';
 import { UnderlineStyle } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
@@ -59,7 +60,7 @@ abstract class BaseSerializeHandler {
 		// we need two of them to flip between old and new cell
 		const cell1 = new CellData();
 		const cell2 = new CellData();
-		let oldCell: IBufferCell = cell1;
+		let oldCell: CellData = cell1;
 
 		const startRow = range.start.y;
 		const endRow = range.end.y;
@@ -69,16 +70,13 @@ abstract class BaseSerializeHandler {
 		this._beforeSerialize(endRow - startRow, startRow, endRow);
 
 		for (let row = startRow; row <= endRow; row++) {
-			const line = this._buffer.getLine(row);
+			const line = this._buffer.lines.get(row);
 			if (line) {
 				const startLineColumn = row === range.start.y ? startColumn : 0;
 				const endLineColumn = row === range.end.y ? endColumn : line.length;
 				for (let col = startLineColumn; col < endLineColumn; col++) {
-					const c = line.getCell(col, oldCell === cell1 ? cell2 : cell1);
-					if (!c) {
-						console.warn(`Can't get cell at row=${row}, col=${col}`);
-						continue;
-					}
+					const c = oldCell === cell1 ? cell2 : cell1;
+					line.loadCell(col, c);
 					this._nextCell(c, oldCell, row, col);
 					oldCell = c;
 				}
@@ -108,19 +106,28 @@ abstract class BaseSerializeHandler {
 	}
 }
 
-function equalFg(cell1: IBufferCell | IAttributeData, cell2: IBufferCell): boolean {
+function equalFg(
+	cell1: IBufferCell | IAttributeData,
+	cell2: IBufferCell | IAttributeData
+): boolean {
 	return (
 		cell1.getFgColorMode() === cell2.getFgColorMode() && cell1.getFgColor() === cell2.getFgColor()
 	);
 }
 
-function equalBg(cell1: IBufferCell | IAttributeData, cell2: IBufferCell): boolean {
+function equalBg(
+	cell1: IBufferCell | IAttributeData,
+	cell2: IBufferCell | IAttributeData
+): boolean {
 	return (
 		cell1.getBgColorMode() === cell2.getBgColorMode() && cell1.getBgColor() === cell2.getBgColor()
 	);
 }
 
-function equalUnderline(cell1: IBufferCell | IAttributeData, cell2: IBufferCell): boolean {
+function equalUnderline(
+	cell1: IBufferCell | IAttributeData,
+	cell2: IBufferCell | IAttributeData
+): boolean {
 	// If neither cell has underline, consider them equal regardless of internal underline color
 	// values
 	if (!cell1.isUnderline() && !cell2.isUnderline()) {
@@ -143,7 +150,10 @@ function equalUnderline(cell1: IBufferCell | IAttributeData, cell2: IBufferCell)
 	);
 }
 
-function equalFlags(cell1: IBufferCell | IAttributeData, cell2: IBufferCell): boolean {
+function equalFlags(
+	cell1: IBufferCell | IAttributeData,
+	cell2: IBufferCell | IAttributeData
+): boolean {
 	return (
 		cell1.isInverse() === cell2.isInverse() &&
 		cell1.isBold() === cell2.isBold() &&
@@ -176,7 +186,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 	// we can see a full colored cell and a null cell that only have background the same style
 	// but the information isn't preserved by null cell itself
 	// so wee need to record it when required.
-	private _cursorStyle: IBufferCell = new CellData();
+	private _cursorStyle: CellData = new CellData();
 
 	// where exact the cursor styles comes from
 	// because we can't copy the cell directly
@@ -185,7 +195,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 	private _cursorStyleCol: number = 0;
 
 	// this is a null cell for reference for checking whether background is empty or not
-	private _backgroundCell: IBufferCell = new CellData();
+	private _backgroundCell: CellData = new CellData();
 
 	private _firstRow: number = 0;
 	private _lastCursorRow: number = 0;
@@ -209,9 +219,9 @@ class StringSerializeHandler extends BaseSerializeHandler {
 		this._firstRow = start;
 	}
 
-	private _thisRowLastChar: IBufferCell = new CellData();
-	private _thisRowLastSecondChar: IBufferCell = new CellData();
-	private _nextRowFirstChar: IBufferCell = new CellData();
+	private _thisRowLastChar: CellData = new CellData();
+	private _thisRowLastSecondChar: CellData = new CellData();
+	private _nextRowFirstChar: CellData = new CellData();
 	protected _rowEnd(row: number, isLastRow: boolean): void {
 		// if there is colorful empty cell at line end, whe must pad it back, or the the color block
 		// will missing
@@ -226,15 +236,15 @@ class StringSerializeHandler extends BaseSerializeHandler {
 		if (!isLastRow) {
 			// Enable BCE
 			if (row - this._firstRow >= this._terminal.rows) {
-				this._buffer
-					.getLine(this._cursorStyleRow)
-					?.getCell(this._cursorStyleCol, this._backgroundCell);
+				this._buffer.lines
+					.get(this._cursorStyleRow)
+					?.loadCell(this._cursorStyleCol, this._backgroundCell);
 			}
 
 			// Fetch current line
-			const currentLine = this._buffer.getLine(row)!;
+			const currentLine = this._buffer.lines.get(row)!;
 			// Fetch next line
-			const nextLine = this._buffer.getLine(row + 1)!;
+			const nextLine = this._buffer.lines.get(row + 1)!;
 
 			if (!nextLine.isWrapped) {
 				// just insert the line break
@@ -244,12 +254,12 @@ class StringSerializeHandler extends BaseSerializeHandler {
 				this._lastCursorCol = 0;
 			} else {
 				rowSeparator = '';
-				const thisRowLastChar = currentLine.getCell(currentLine.length - 1, this._thisRowLastChar)!;
-				const thisRowLastSecondChar = currentLine.getCell(
+				const thisRowLastChar = currentLine.loadCell(currentLine.length - 1, this._thisRowLastChar);
+				const thisRowLastSecondChar = currentLine.loadCell(
 					currentLine.length - 2,
 					this._thisRowLastSecondChar
-				)!;
-				const nextRowFirstChar = nextLine.getCell(0, this._nextRowFirstChar)!;
+				);
+				const nextRowFirstChar = nextLine.loadCell(0, this._nextRowFirstChar);
 				const isNextRowFirstCharDoubleWidth = nextRowFirstChar.getWidth() > 1;
 
 				// validate whether this line wrap is ever possible
@@ -463,9 +473,9 @@ class StringSerializeHandler extends BaseSerializeHandler {
 			this._currentRow += `\u001b[${sgrSeq.join(';')}m`;
 
 			// update the last cursor style
-			const line = this._buffer.getLine(row);
+			const line = this._buffer.lines.get(row);
 			if (line !== undefined) {
-				line.getCell(col, this._cursorStyle);
+				line.loadCell(col, this._cursorStyle);
 				this._cursorStyleRow = row;
 				this._cursorStyleCol = col;
 			}
@@ -503,7 +513,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 
 		// the fixup is only required for data without scrollback
 		// because it will always be placed at last line otherwise
-		if (this._buffer.length - this._firstRow <= this._terminal.rows) {
+		if (this._buffer.lines.length - this._firstRow <= this._terminal.rows) {
 			rowEnd = this._lastContentCursorRow + 1 - this._firstRow;
 			this._lastCursorCol = this._lastContentCursorCol;
 			this._lastCursorRow = this._lastContentCursorRow;
@@ -520,8 +530,8 @@ class StringSerializeHandler extends BaseSerializeHandler {
 
 		// restore the cursor
 		if (!excludeFinalCursorPosition) {
-			const realCursorRow = this._buffer.baseY + this._buffer.cursorY;
-			const realCursorCol = this._buffer.cursorX;
+			const realCursorRow = this._buffer.ybase + this._buffer.y;
+			const realCursorCol = this._buffer.x;
 
 			const cursorMoved =
 				realCursorRow !== this._lastCursorRow || realCursorCol !== this._lastCursorCol;
@@ -567,7 +577,7 @@ function _serializeBufferByScrollback(
 	buffer: IBuffer,
 	scrollback?: number
 ): string {
-	const maxRows = buffer.length;
+	const maxRows = buffer.lines.length;
 	const correctRows =
 		scrollback === undefined ? maxRows : constrain(scrollback + terminal.rows, 0, maxRows);
 	return _serializeBufferByRange(

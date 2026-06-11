@@ -10,6 +10,7 @@
 /// <reference lib="dom"/>
 
 import type { IEvent } from './common/Event';
+import type { IBuffer } from './common/buffer/Types';
 
 /**
  * A string or number representing text font weight.
@@ -1049,88 +1050,6 @@ export interface IBufferNamespace {
 	 * @returns an `IDisposable` to stop listening.
 	 */
 	onBufferChange: IEvent<IBuffer>;
-}
-
-/**
- * Represents a terminal buffer.
- */
-export interface IBuffer {
-	/**
-	 * The y position of the cursor. This ranges between `0` (when the
-	 * cursor is at baseY) and `Terminal.rows - 1` (when the cursor is on the
-	 * last row).
-	 */
-	readonly cursorY: number;
-
-	/**
-	 * The x position of the cursor. This ranges between `0` (left side) and
-	 * `Terminal.cols` (after last cell of the row).
-	 */
-	readonly cursorX: number;
-
-	/**
-	 * The line within the buffer where the top of the viewport is.
-	 */
-	readonly viewportY: number;
-
-	/**
-	 * The line within the buffer where the top of the bottom page is (when
-	 * fully scrolled down).
-	 */
-	readonly baseY: number;
-
-	/**
-	 * The amount of lines in the buffer.
-	 */
-	readonly length: number;
-
-	/**
-	 * Gets a line from the buffer, or undefined if the line index does not
-	 * exist.
-	 *
-	 * Note that the result of this function should be used immediately after
-	 * calling as when the terminal updates it could lead to unexpected
-	 * behavior.
-	 *
-	 * @param y The line index to get.
-	 */
-	getLine(y: number): IBufferLine | undefined;
-}
-
-/**
- * Represents a line in the terminal's buffer.
- */
-export interface IBufferLine {
-	/**
-	 * Whether the line is wrapped from the previous line.
-	 */
-	readonly isWrapped: boolean;
-
-	readonly length: number;
-
-	/**
-	 * Gets a cell from the line, or undefined if the line index does not exist.
-	 *
-	 * Note that the result of this function should be used immediately after
-	 * calling as when the terminal updates it could lead to unexpected
-	 * behavior.
-	 *
-	 * @param x The character index to get.
-	 * @param cell Optional cell object to load data into for performance
-	 * reasons. This is mainly useful when every cell in the buffer is being
-	 * looped over to avoid creating new objects for every cell.
-	 */
-	getCell(x: number, cell?: IBufferCell): IBufferCell | undefined;
-
-	/**
-	 * Gets the line as a string. Note that this is gets only the string for the
-	 * line, not taking isWrapped into account.
-	 *
-	 * @param trimRight Whether to trim any whitespace at the right of the line.
-	 * @param startColumn The column to start from (inclusive).
-	 * @param endColumn The column to end at (exclusive).
-	 */
-	translateToString(trimRight?: boolean, startColumn?: number, endColumn?: number): string;
 }
 
 /**

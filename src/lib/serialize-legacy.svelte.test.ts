@@ -13,6 +13,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Terminal } from '$lib/browser/public/Terminal';
+import { CellData } from '$lib/common/buffer/CellData';
 import { serialize } from './serialize';
 
 function sgr(...seq: string[]): string {
@@ -227,8 +228,8 @@ describe('SerializeAddon', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		function inspectBuffer(buffer: any): string {
 			const lines: string[] = [];
-			for (let i = 0; i < buffer.length; i++) {
-				const bufferLine = buffer.getLine(i)._line;
+			for (let i = 0; i < buffer.lines.length; i++) {
+				const bufferLine = buffer.lines.get(i);
 				lines.push(
 					JSON.stringify(bufferLine, (key, value) => {
 						if (key === '_stringCache' || key === '_stringCacheEntryRef') {
@@ -238,7 +239,7 @@ describe('SerializeAddon', () => {
 					})
 				);
 			}
-			return JSON.stringify({ x: buffer.cursorX, y: buffer.cursorY, data: lines });
+			return JSON.stringify({ x: buffer.x, y: buffer.y, data: lines });
 		}
 
 		async function testNormalScreenEqual(str: string): Promise<void> {
@@ -398,28 +399,34 @@ describe('SerializeAddon', () => {
 		});
 
 		it('buffer cell attributesEquals compares underline style and color', async () => {
+			const firstTwoCellsEqual = (): boolean => {
+				const line = bigTerminal.buffer.active.lines.get(0)!;
+				const cell0 = new CellData();
+				const cell1 = new CellData();
+				line.loadCell(0, cell0);
+				line.loadCell(1, cell1);
+				return cell0.attributesEquals(cell1);
+			};
+
 			await writeP(
 				bigTerminal,
 				`${sgr(UNDERLINE_DOUBLE, UNDERLINE_COLOR_RED)}A${sgr(UNDERLINE_DOUBLE, UNDERLINE_COLOR_RED)}B${sgr(NORMAL)}`
 			);
-			let line = bigTerminal.buffer.active.getLine(0);
-			expect(line?.getCell(0)!.attributesEquals(line.getCell(1)!)).toBe(true);
+			expect(firstTwoCellsEqual()).toBe(true);
 
 			bigTerminal.reset();
 			await writeP(
 				bigTerminal,
 				`${sgr(UNDERLINE_DOUBLE, UNDERLINE_COLOR_RED)}A${sgr(UNDERLINE_DOUBLE, UNDERLINE_COLOR_GREEN)}B${sgr(NORMAL)}`
 			);
-			line = bigTerminal.buffer.active.getLine(0);
-			expect(line?.getCell(0)!.attributesEquals(line.getCell(1)!)).toBe(false);
+			expect(firstTwoCellsEqual()).toBe(false);
 
 			bigTerminal.reset();
 			await writeP(
 				bigTerminal,
 				`${sgr(UNDERLINE_DOUBLE, UNDERLINE_COLOR_RED)}A${sgr(UNDERLINED, UNDERLINE_COLOR_RED)}B${sgr(NORMAL)}`
 			);
-			line = bigTerminal.buffer.active.getLine(0);
-			expect(line?.getCell(0)!.attributesEquals(line.getCell(1)!)).toBe(false);
+			expect(firstTwoCellsEqual()).toBe(false);
 		});
 
 		it('serialize all rows of content with color256', async () => {

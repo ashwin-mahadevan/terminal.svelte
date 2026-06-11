@@ -3,7 +3,8 @@
  * @license MIT
  */
 
-import type { ILinkProvider, ILink, IViewportRange, IBufferLine } from '$lib/xterm';
+import type { ILinkProvider, ILink, IViewportRange } from '$lib/xterm';
+import type { IBufferLine } from '$lib/common/Types';
 import type { Terminal } from '$lib/browser/public/Terminal';
 import { CellData } from '$lib/common/buffer/CellData';
 
@@ -156,13 +157,13 @@ class LinkComputer {
 		let content;
 		const lines: string[] = [];
 
-		if ((line = terminal.buffer.active.getLine(lineIndex))) {
+		if ((line = terminal.buffer.active.lines.get(lineIndex))) {
 			const currentContent = line.translateToString(true);
 
 			// expand top, stop on whitespaces or length > 2048
 			if (line.isWrapped && currentContent[0] !== ' ') {
 				length = 0;
-				while ((line = terminal.buffer.active.getLine(--topIdx)) && length < 2048) {
+				while ((line = terminal.buffer.active.lines.get(--topIdx)) && length < 2048) {
 					content = line.translateToString(true);
 					length += content.length;
 					lines.push(content);
@@ -179,7 +180,7 @@ class LinkComputer {
 			// expand bottom, stop on whitespaces or length > 2048
 			length = 0;
 			while (
-				(line = terminal.buffer.active.getLine(++bottomIdx)) &&
+				(line = terminal.buffer.active.lines.get(++bottomIdx)) &&
 				line.isWrapped &&
 				length < 2048
 			) {
@@ -209,12 +210,12 @@ class LinkComputer {
 		const cell = new CellData();
 		let start = rowIndex;
 		while (stringIndex) {
-			const line = buf.getLine(lineIndex);
+			const line = buf.lines.get(lineIndex);
 			if (!line) {
 				return [-1, -1];
 			}
 			for (let i = start; i < line.length; ++i) {
-				line.getCell(i, cell);
+				line.loadCell(i, cell);
 				const chars = cell.getChars();
 				const width = cell.getWidth();
 				if (width) {
@@ -226,9 +227,9 @@ class LinkComputer {
 					// - follow-up line must be wrapped and contain wide char at first cell
 					// --> if all these conditions are met, correct stringIndex by +1
 					if (i === line.length - 1 && chars === '') {
-						const line = buf.getLine(lineIndex + 1);
+						const line = buf.lines.get(lineIndex + 1);
 						if (line && line.isWrapped) {
-							line.getCell(0, cell);
+							line.loadCell(0, cell);
 							if (cell.getWidth() === 2) {
 								stringIndex += 1;
 							}

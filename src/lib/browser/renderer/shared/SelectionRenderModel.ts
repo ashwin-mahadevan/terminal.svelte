@@ -77,7 +77,7 @@ class SelectionRenderModel implements ISelectionRenderModel {
 		if (!this.hasSelection) {
 			return false;
 		}
-		y -= terminal.buffer.active.viewportY;
+		y -= terminal.buffer.active.ydisp;
 		if (this.columnSelectMode) {
 			if (this.startCol <= this.endCol) {
 				return (
