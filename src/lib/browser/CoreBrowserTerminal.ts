@@ -61,7 +61,6 @@ import { RenderService } from '$lib/browser/services/RenderService';
 import { SelectionService } from '$lib/browser/services/SelectionService';
 import type {
 	ICoreBrowserService,
-	IMouseCoordsService,
 	IRenderService,
 	IThemeService
 } from '$lib/browser/services/Services';
@@ -118,7 +117,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 	// Optional browser services
 	private _coreBrowserService: ICoreBrowserService | undefined;
-	private _mouseCoordsService: IMouseCoordsService | undefined;
+	private _mouseCoordsService: MouseCoordsService | undefined;
 	private _mouseService: MouseService | undefined;
 	private _renderService: IRenderService | undefined;
 	private _themeService: IThemeService | undefined;

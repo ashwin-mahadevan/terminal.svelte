@@ -14,7 +14,8 @@ import type { IDisposable } from '$lib/common/Lifecycle';
 import { dispose } from '$lib/common/Lifecycle';
 
 import type { IBufferService } from '$lib/common/services/Services';
-import type { IMouseCoordsService, IRenderService } from './services/Services';
+import type { IRenderService } from './services/Services';
+import type { MouseCoordsService } from './services/MouseCoordsService';
 import type { LinkProviderService } from './services/LinkProviderService';
 import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
@@ -48,7 +49,7 @@ export class Linkifier {
 
 	constructor(
 		private readonly _element: HTMLElement,
-		private readonly _mouseCoordsService: IMouseCoordsService,
+		private readonly _mouseCoordsService: MouseCoordsService,
 		private readonly _renderService: IRenderService,
 		private readonly _bufferService: IBufferService,
 		private readonly _linkProviderService: LinkProviderService

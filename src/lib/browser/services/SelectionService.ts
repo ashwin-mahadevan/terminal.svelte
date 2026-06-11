@@ -12,11 +12,8 @@ import type {
 	ISelectionRedrawRequestEvent,
 	ISelectionRequestScrollLinesEvent
 } from '$lib/browser/selection/Types';
-import type {
-	ICoreBrowserService,
-	IMouseCoordsService,
-	IRenderService
-} from '$lib/browser/services/Services';
+import type { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
+import type { MouseCoordsService } from '$lib/browser/services/MouseCoordsService';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { MutableDisposable } from '$lib/common/Lifecycle';
 import * as Browser from '$lib/common/Platform';
@@ -142,7 +139,7 @@ export class SelectionService {
 		private readonly _linkifier: Linkifier,
 		private readonly _bufferService: IBufferService,
 		private readonly _coreService: ICoreService,
-		private readonly _mouseCoordsService: IMouseCoordsService,
+		private readonly _mouseCoordsService: MouseCoordsService,
 		private readonly _optionsService: IOptionsService,
 		private readonly _mouseStateService: IMouseStateService,
 		private readonly _renderService: IRenderService,
