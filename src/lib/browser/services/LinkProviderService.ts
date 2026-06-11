@@ -1,7 +1,7 @@
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { ILinkProvider, ILinkProviderService } from '$lib/browser/services/Services';
+import type { ILinkProvider } from '$lib/browser/services/Services';
 
-export class LinkProviderService implements ILinkProviderService {
+export class LinkProviderService {
 	public readonly linkProviders: ILinkProvider[] = [];
 
 	public dispose(): void {

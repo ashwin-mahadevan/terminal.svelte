@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
 import type { IColorSet, ILink, ReadonlyColorSet } from '$lib/browser/Types';
 import type {
@@ -140,11 +139,6 @@ export interface IThemeService {
 	modifyColors(callback: (colors: IColorSet) => void): void;
 }
 
-export interface ILinkProviderService {
-	dispose(): void;
-	readonly linkProviders: ReadonlyArray<ILinkProvider>;
-	registerLinkProvider(linkProvider: ILinkProvider): IDisposable;
-}
 export interface ILinkProvider {
 	provideLinks(y: number, callback: (links: ILink[] | undefined) => void): void;
 }
