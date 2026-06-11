@@ -7,11 +7,8 @@ import type { IBufferRange, ILink } from '$lib/browser/Types';
 import type { ILinkProvider } from '$lib/browser/services/Services';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { IBufferLine } from '$lib/common/Types';
-import type {
-	IBufferService,
-	IOptionsService,
-	IOscLinkService
-} from '$lib/common/services/Services';
+import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
+import type { OscLinkService } from '$lib/common/services/OscLinkService';
 
 export class OscLinkProvider implements ILinkProvider {
 	private readonly _workCell = new CellData();
@@ -19,7 +16,7 @@ export class OscLinkProvider implements ILinkProvider {
 	constructor(
 		private readonly _bufferService: IBufferService,
 		private readonly _optionsService: IOptionsService,
-		private readonly _oscLinkService: IOscLinkService
+		private readonly _oscLinkService: OscLinkService
 	) {}
 
 	public provideLinks(y: number, callback: (links: ILink[] | undefined) => void): void {

@@ -2,11 +2,10 @@
  * Copyright (c) 2022 The xterm.js authors. All rights reserved.
  * @license MIT
  */
-import type { IOscLinkService } from '$lib/common/services/Services';
 import type { IBufferService } from '$lib/common/services/Services';
 import type { IMarker, IOscLinkData } from '$lib/common/Types';
 
-export class OscLinkService implements IOscLinkService {
+export class OscLinkService {
 	// TODO: Fix this upstream type error.
 
 	private _nextId = 1;

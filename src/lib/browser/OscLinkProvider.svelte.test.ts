@@ -7,10 +7,10 @@ import { describe, it, expect } from 'vitest';
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
 import type { ILink } from '$lib/browser/Types';
 import { createCellData, MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
-import type { IOscLinkService } from '$lib/common/services/Services';
+import type { OscLinkService } from '$lib/common/services/OscLinkService';
 import type { IBufferLine, IOscLinkData } from '$lib/common/Types';
 
-class TestOscLinkService implements IOscLinkService {
+class TestOscLinkService {
 	// TODO: Fix this upstream type error.
 
 	// TODO: Fix this upstream type error.
@@ -55,7 +55,11 @@ describe('OscLinkProvider', () => {
 	it('expands a wrapped link range backward to the previous line', async () => {
 		const optionsService = new MockOptionsService();
 		const bufferService = new MockBufferService(5, 5, optionsService);
-		const provider = new OscLinkProvider(bufferService, optionsService, new TestOscLinkService());
+		const provider = new OscLinkProvider(
+			bufferService,
+			optionsService,
+			new TestOscLinkService() as unknown as OscLinkService
+		);
 		const line1 = bufferService.buffer.lines.get(0);
 		const line2 = bufferService.buffer.lines.get(1);
 		setText(line1, 0, 'aa');
@@ -75,7 +79,11 @@ describe('OscLinkProvider', () => {
 	it('expands a wrapped link range forward when a link ends at line boundary', async () => {
 		const optionsService = new MockOptionsService();
 		const bufferService = new MockBufferService(5, 5, optionsService);
-		const provider = new OscLinkProvider(bufferService, optionsService, new TestOscLinkService());
+		const provider = new OscLinkProvider(
+			bufferService,
+			optionsService,
+			new TestOscLinkService() as unknown as OscLinkService
+		);
 		const line1 = bufferService.buffer.lines.get(0);
 		const line2 = bufferService.buffer.lines.get(1);
 		setUrl(line1, 0, 'aaaaa', 1);
@@ -94,7 +102,11 @@ describe('OscLinkProvider', () => {
 	it('does not merge wrapped links with different url ids', async () => {
 		const optionsService = new MockOptionsService();
 		const bufferService = new MockBufferService(5, 5, optionsService);
-		const provider = new OscLinkProvider(bufferService, optionsService, new TestOscLinkService());
+		const provider = new OscLinkProvider(
+			bufferService,
+			optionsService,
+			new TestOscLinkService() as unknown as OscLinkService
+		);
 		const line1 = bufferService.buffer.lines.get(0);
 		const line2 = bufferService.buffer.lines.get(1);
 		setUrl(line1, 0, 'aaaaa', 1);

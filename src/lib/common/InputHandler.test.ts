@@ -23,7 +23,6 @@ import {
 	extendedAttributes
 } from '$lib/common/TestUtils';
 import type { IBufferService, ICoreService } from '$lib/common/services/Services';
-import type { IOscLinkService } from '$lib/common/services/Services';
 import type { CharsetService } from '$lib/common/services/CharsetService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import { BufferService } from '$lib/common/services/BufferService';
@@ -79,7 +78,7 @@ describe('InputHandler', () => {
 	let bufferService: IBufferService;
 	let coreService: ICoreService;
 	let optionsService: MockOptionsService;
-	let oscLinkService: IOscLinkService;
+	let oscLinkService: OscLinkService;
 	let inputHandler: TestInputHandler;
 
 	beforeEach(() => {
@@ -370,7 +369,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				new MockOptionsService(),
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -389,7 +388,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -409,7 +408,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -433,7 +432,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -488,7 +487,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -546,7 +545,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -587,7 +586,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -636,7 +635,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService({ scrollOnEraseInDisplay: true }),
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -667,7 +666,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -789,7 +788,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -824,7 +823,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				new MockCoreService(),
 				new MockOptionsService(),
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -1051,7 +1050,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -2861,7 +2860,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);
@@ -2922,7 +2921,7 @@ describe('InputHandler', () => {
 				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
-				new MockOscLinkService(),
+				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService(),
 				new MockUnicodeService()
 			);

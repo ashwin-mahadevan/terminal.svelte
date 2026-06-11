@@ -14,8 +14,7 @@ import type {
 	ICoreService,
 	IOptionsService,
 	IMouseStateService,
-	IUnicodeService,
-	IOscLinkService
+	IUnicodeService
 } from '$lib/common/services/Services';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
@@ -260,7 +259,7 @@ export class MockOptionsService implements IOptionsService {
 	}
 }
 
-export class MockOscLinkService implements IOscLinkService {
+export class MockOscLinkService {
 	// TODO: Fix this upstream type error.
 
 	// TODO: Fix this upstream type error.

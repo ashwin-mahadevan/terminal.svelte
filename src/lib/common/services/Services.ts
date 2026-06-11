@@ -23,7 +23,6 @@ import type {
 	IDecPrivateModes,
 	IKittyKeyboardState,
 	IModes,
-	IOscLinkData,
 	IWindowOptions
 } from '$lib/common/Types';
 import type { IBuffer, IBufferSet } from '$lib/common/buffer/Types';
@@ -261,20 +260,6 @@ interface IVtExtensions {
 	kittySgrBoldFaintControl?: boolean;
 	win32InputMode?: boolean;
 	colorSchemeQuery?: boolean;
-}
-
-export interface IOscLinkService {
-	/**
-	 * Registers a link to the service, returning the link ID. The link data is managed by this
-	 * service and will be freed when this current cursor position is trimmed off the buffer.
-	 */
-	registerLink(linkData: IOscLinkData): number;
-	/**
-	 * Adds a line to a link if needed.
-	 */
-	addLineToLink(linkId: number, y: number): void;
-	/** Get the link data associated with a link ID. */
-	getLinkData(linkId: number): IOscLinkData | undefined;
 }
 
 /*

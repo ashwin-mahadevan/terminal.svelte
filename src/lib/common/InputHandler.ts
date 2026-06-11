@@ -34,11 +34,11 @@ import type {
 	ICoreService,
 	IOptionsService,
 	IMouseStateService,
-	IUnicodeService,
-	IOscLinkService
+	IUnicodeService
 } from '$lib/common/services/Services';
 import type { IBufferService } from '$lib/common/services/Services';
 import type { CharsetService } from '$lib/common/services/CharsetService';
+import type { OscLinkService } from '$lib/common/services/OscLinkService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { OscHandler } from '$lib/common/parser/OscParser';
 import { DcsHandler } from '$lib/common/parser/DcsParser';
@@ -209,7 +209,7 @@ export class InputHandler {
 		private readonly _charsetService: CharsetService,
 		private readonly _coreService: ICoreService,
 		private readonly _optionsService: IOptionsService,
-		private readonly _oscLinkService: IOscLinkService,
+		private readonly _oscLinkService: OscLinkService,
 		private readonly _mouseStateService: IMouseStateService,
 		private readonly _unicodeService: IUnicodeService,
 		private readonly _parser: EscapeSequenceParser = new EscapeSequenceParser()
