@@ -5,9 +5,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { WidthCache, WidthCacheSettings } from '$lib/browser/renderer/dom/WidthCache';
-import type { IWidthCacheFontVariantCanvas } from '$lib/browser/renderer/dom/WidthCache';
 
-class MockWidthCacheFontVariantCanvas implements IWidthCacheFontVariantCanvas {
+class MockWidthCacheFontVariantCanvas {
 	public widths: { [key: string]: number } = {};
 
 	public setFont(
@@ -48,7 +47,7 @@ class TestWidthCache extends WidthCache {
 	}
 
 	constructor() {
-		super(() => new MockWidthCacheFontVariantCanvas());
+		super(() => new MockWidthCacheFontVariantCanvas() as never);
 	}
 
 	public setWidths(widths: { [key: string]: number }): void {

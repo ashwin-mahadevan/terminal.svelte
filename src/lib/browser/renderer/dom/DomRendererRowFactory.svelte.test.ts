@@ -24,7 +24,6 @@ import {
 	NULL_CELL_DATA
 } from '$lib/common/TestUtils';
 import { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
-import type { IWidthCacheFontVariantCanvas } from '$lib/browser/renderer/dom/WidthCache';
 import { LegacyEmitter } from '$lib/common/Event';
 import { css } from '$lib/common/Color';
 
@@ -112,7 +111,7 @@ class MockThemeService {
 
 const TEST_STRING_CACHE = new BufferLineStringCache();
 
-class MockWidthCacheFontVariantCanvas implements IWidthCacheFontVariantCanvas {
+class MockWidthCacheFontVariantCanvas {
 	public widths: { [key: string]: number } = {};
 
 	public setFont(
@@ -143,7 +142,7 @@ class TestWidthCache extends WidthCache {
 	}
 
 	constructor() {
-		super(() => new MockWidthCacheFontVariantCanvas());
+		super(() => new MockWidthCacheFontVariantCanvas() as never);
 	}
 
 	public setWidths(widths: { [key: string]: number }): void {

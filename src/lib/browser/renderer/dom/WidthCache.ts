@@ -20,11 +20,6 @@ const enum FontVariant {
 	BOLD_ITALIC = 3
 }
 
-export interface IWidthCacheFontVariantCanvas {
-	setFont(fontFamily: string, fontSize: number, fontWeight: FontWeight, italic: boolean): void;
-	measure(c: string): number;
-}
-
 export class WidthCache {
 	// flat cache for regular variant up to CacheSettings.FLAT_SIZE
 	// NOTE: ~4x faster access than holey (serving >>80% of terminal content)
@@ -42,10 +37,10 @@ export class WidthCache {
 	private _fontSize = 0;
 	private _weight: FontWeight = 'normal';
 	private _weightBold: FontWeight = 'bold';
-	private _canvasElements: IWidthCacheFontVariantCanvas[] = [];
+	private _canvasElements: WidthCacheFontVariantCanvas[] = [];
 
 	constructor(
-		canvasFactory: () => IWidthCacheFontVariantCanvas = () => new WidthCacheFontVariantCanvas()
+		canvasFactory: () => WidthCacheFontVariantCanvas = () => new WidthCacheFontVariantCanvas()
 	) {
 		this._canvasElements = [canvasFactory(), canvasFactory(), canvasFactory(), canvasFactory()];
 
@@ -137,7 +132,7 @@ export class WidthCache {
 	}
 }
 
-class WidthCacheFontVariantCanvas implements IWidthCacheFontVariantCanvas {
+class WidthCacheFontVariantCanvas {
 	private _canvas: OffscreenCanvas | HTMLCanvasElement;
 	private _ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
 
