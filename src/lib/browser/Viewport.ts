@@ -7,12 +7,8 @@ import type { ICoreBrowserService, IRenderService } from '$lib/browser/services/
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type {
-	IBufferService,
-	ICoreService,
-	IMouseStateService,
-	IOptionsService
-} from '$lib/common/services/Services';
+import type { IBufferService, ICoreService, IOptionsService } from '$lib/common/services/Services';
+import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import { CoreMouseEventType } from '$lib/common/Types';
 import { scheduleAtNextAnimationFrame } from '$lib/browser/Dom';
 import { SmoothScrollableElement } from '$lib/browser/scrollable/scrollableElement';
@@ -53,7 +49,7 @@ export class Viewport {
 		private readonly _bufferService: IBufferService,
 		coreBrowserService: ICoreBrowserService,
 		private readonly _coreService: ICoreService,
-		mouseStateService: IMouseStateService,
+		mouseStateService: MouseStateService,
 		themeService: ThemeService,
 		private readonly _optionsService: IOptionsService,
 		private readonly _renderService: IRenderService

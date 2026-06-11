@@ -31,14 +31,11 @@ import {
 } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
-import type {
-	ICoreService,
-	IOptionsService,
-	IMouseStateService
-} from '$lib/common/services/Services';
+import type { ICoreService, IOptionsService } from '$lib/common/services/Services';
 import type { IBufferService } from '$lib/common/services/Services';
 import type { CharsetService } from '$lib/common/services/CharsetService';
 import type { OscLinkService } from '$lib/common/services/OscLinkService';
+import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { OscHandler } from '$lib/common/parser/OscParser';
 import { DcsHandler } from '$lib/common/parser/DcsParser';
@@ -210,7 +207,7 @@ export class InputHandler {
 		private readonly _coreService: ICoreService,
 		private readonly _optionsService: IOptionsService,
 		private readonly _oscLinkService: OscLinkService,
-		private readonly _mouseStateService: IMouseStateService,
+		private readonly _mouseStateService: MouseStateService,
 		private readonly _unicodeService: UnicodeService,
 		private readonly _parser: EscapeSequenceParser = new EscapeSequenceParser()
 	) {

@@ -21,12 +21,8 @@ import type { IBufferLine, ICellData } from '$lib/common/Types';
 import { getRangeLength } from '$lib/common/buffer/BufferRange';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { IBuffer } from '$lib/common/buffer/Types';
-import type {
-	IBufferService,
-	ICoreService,
-	IMouseStateService,
-	IOptionsService
-} from '$lib/common/services/Services';
+import type { IBufferService, ICoreService, IOptionsService } from '$lib/common/services/Services';
+import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import { LegacyEmitter } from '$lib/common/Event';
 
 const enum Constants {
@@ -141,7 +137,7 @@ export class SelectionService {
 		private readonly _coreService: ICoreService,
 		private readonly _mouseCoordsService: MouseCoordsService,
 		private readonly _optionsService: IOptionsService,
-		private readonly _mouseStateService: IMouseStateService,
+		private readonly _mouseStateService: MouseStateService,
 		private readonly _renderService: IRenderService,
 		private readonly _coreBrowserService: ICoreBrowserService
 	) {

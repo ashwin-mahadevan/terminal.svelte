@@ -12,14 +12,10 @@ import type {
 	IOverviewRulerOptions
 } from '$lib/xterm';
 import type {
-	CoreMouseEncoding,
-	CoreMouseEventType,
 	CursorInactiveStyle,
 	CursorStyle,
 	IAttributeData,
 	IColor,
-	ICoreMouseEvent,
-	ICoreMouseProtocol,
 	IDecPrivateModes,
 	IKittyKeyboardState,
 	IModes,
@@ -48,28 +44,6 @@ export interface IBufferResizeEvent {
 	rows: number;
 	colsChanged: boolean;
 	rowsChanged: boolean;
-}
-
-export interface IMouseStateService {
-	activeProtocol: string;
-	activeEncoding: string;
-	areMouseEventsActive: boolean;
-	addProtocol(name: string, protocol: ICoreMouseProtocol): void;
-	addEncoding(name: string, encoding: CoreMouseEncoding): void;
-	reset(): void;
-	setCustomWheelEventHandler(
-		customWheelEventHandler: ((event: WheelEvent) => boolean) | undefined
-	): void;
-	allowCustomWheelEvent(ev: WheelEvent): boolean;
-
-	/**
-	 * Event to announce changes in mouse tracking.
-	 */
-	onProtocolChange: IEvent<CoreMouseEventType>;
-	restrictMouseEvent(event: ICoreMouseEvent): boolean;
-	encodeMouseEvent(event: ICoreMouseEvent): string;
-	readonly isDefaultEncoding: boolean;
-	readonly isPixelEncoding: boolean;
 }
 
 export interface ICoreService {

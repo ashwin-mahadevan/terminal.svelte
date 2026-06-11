@@ -12,8 +12,7 @@ import type {
 	IBufferResizeEvent,
 	IBufferService,
 	ICoreService,
-	IOptionsService,
-	IMouseStateService
+	IOptionsService
 } from '$lib/common/services/Services';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
@@ -109,7 +108,7 @@ export class MockBufferService implements IBufferService {
 	public reset(): void {}
 }
 
-export class MockMouseStateService implements IMouseStateService {
+export class MockMouseStateService {
 	// TODO: Fix this upstream type error.
 
 	public areMouseEventsActive: boolean = false;

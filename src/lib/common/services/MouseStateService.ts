@@ -2,7 +2,6 @@
  * Copyright (c) 2019 The xterm.js authors. All rights reserved.
  * @license MIT
  */
-import type { IMouseStateService } from '$lib/common/services/Services';
 import type { ICoreMouseProtocol, ICoreMouseEvent, CoreMouseEncoding } from '$lib/common/Types';
 import { CoreMouseEventType, CoreMouseButton, CoreMouseAction } from '$lib/common/Types';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -176,7 +175,7 @@ const DEFAULT_ENCODINGS: { [key: string]: CoreMouseEncoding } = {
  * a tracking report to the backend based on protocol and encoding limitations.
  * To send a mouse event call `triggerMouseEvent`.
  */
-export class MouseStateService implements IMouseStateService {
+export class MouseStateService {
 	// TODO: Fix this upstream type error.
 
 	private _protocols: { [name: string]: ICoreMouseProtocol } = {};

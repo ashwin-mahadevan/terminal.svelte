@@ -4,12 +4,8 @@
  */
 
 import { addDisposableListener } from '$lib/browser/Dom';
-import type {
-	IBufferService,
-	IMouseStateService,
-	ICoreService,
-	IOptionsService
-} from '$lib/common/services/Services';
+import type { IBufferService, ICoreService, IOptionsService } from '$lib/common/services/Services';
+import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import type { ICoreMouseEvent } from '$lib/common/Types';
 import { CoreMouseAction, CoreMouseButton, CoreMouseEventType } from '$lib/common/Types';
 import { C0 } from '$lib/common/data/EscapeSequences';
@@ -46,7 +42,7 @@ export class MouseService {
 	constructor(
 		private readonly _renderService: IRenderService,
 		private readonly _mouseCoordsService: MouseCoordsService,
-		private readonly _mouseStateService: IMouseStateService,
+		private readonly _mouseStateService: MouseStateService,
 		private readonly _coreService: ICoreService,
 		private readonly _bufferService: IBufferService,
 		private readonly _optionsService: IOptionsService,

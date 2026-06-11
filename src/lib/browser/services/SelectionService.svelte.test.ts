@@ -19,6 +19,7 @@ import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache'
 import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { IRenderService } from '$lib/browser/services/Services';
+import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
 
 // NOTE: $lib/browser/TestUtils cannot be imported here because its inline
@@ -68,7 +69,7 @@ class TestSelectionService extends SelectionService {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			new MockMouseService() as any,
 			optionsService,
-			mouseStateService,
+			mouseStateService as unknown as MouseStateService,
 			renderService,
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
