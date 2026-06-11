@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { IColorZone, IColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
+import type { IColorZone } from '$lib/browser/decorations/ColorZoneStore';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
 import type {
 	ICoreBrowserService,
@@ -46,7 +46,7 @@ export class OverviewRulerRenderer {
 	private _isDisposed = false;
 	private readonly _canvas: HTMLCanvasElement;
 	private readonly _ctx: CanvasRenderingContext2D;
-	private readonly _colorZoneStore: IColorZoneStore = new ColorZoneStore();
+	private readonly _colorZoneStore: ColorZoneStore = new ColorZoneStore();
 	private get _width(): number {
 		const scrollbar = this._optionsService.rawOptions.scrollbar;
 		const showScrollbar = scrollbar?.showScrollbar ?? true;

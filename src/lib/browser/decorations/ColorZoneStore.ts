@@ -5,17 +5,6 @@
 
 import type { IInternalDecoration } from '$lib/common/services/Services';
 
-export interface IColorZoneStore {
-	readonly zones: IColorZone[];
-	clear(): void;
-	addDecoration(decoration: IInternalDecoration): void;
-	/**
-	 * Sets the amount of padding in lines that will be added between zones, if new lines intersect
-	 * the padding they will be merged into the same zone.
-	 */
-	setPadding(padding: { [position: string]: number }): void;
-}
-
 export interface IColorZone {
 	/** Color in a format supported by canvas' fillStyle. */
 	color: string;
@@ -29,7 +18,7 @@ interface IMinimalDecorationForColorZone {
 	options: Pick<IInternalDecoration['options'], 'overviewRulerOptions'>;
 }
 
-export class ColorZoneStore implements IColorZoneStore {
+export class ColorZoneStore {
 	private _zones: IColorZone[] = [];
 
 	// The zone pool is used to keep zone objects from being freed between clearing the color zone
