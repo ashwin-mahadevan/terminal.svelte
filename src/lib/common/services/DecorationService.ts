@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { IDeleteEvent, IInsertEvent } from '$lib/common/CircularList';
+import type { CircularList, IDeleteEvent, IInsertEvent } from '$lib/common/CircularList';
 import { MicrotaskTimer } from '$lib/common/Async';
 import { css } from '$lib/common/Color';
 import { DisposableStore, MutableDisposable } from '$lib/common/Lifecycle';
@@ -11,7 +11,7 @@ import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
 import type { IBufferService } from '$lib/common/services/Services';
 import { SortedList } from '$lib/common/SortedList';
-import type { IColor, ICircularList } from '$lib/common/Types';
+import type { IColor } from '$lib/common/Types';
 import type { IDecoration, IDecorationOptions } from '$lib/xterm';
 import type { Marker } from '$lib/common/buffer/Marker';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -170,7 +170,7 @@ export class DecorationLineCache {
 		return this._decorationsByLine.get(line);
 	}
 
-	public attachToBufferLines(lines: ICircularList<unknown>): void {
+	public attachToBufferLines(lines: CircularList<unknown>): void {
 		const store = new DisposableStore();
 		this._bufferLineListeners.value = store;
 		store.add(lines.onTrim((amount) => this._handleBufferLinesTrim(amount)));

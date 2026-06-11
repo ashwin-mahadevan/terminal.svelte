@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import type { IDeleteEvent, IInsertEvent } from '$lib/common/CircularList';
 import type { UnderlineStyle } from '$lib/common/buffer/Constants';
 import type { IBufferSet } from '$lib/common/buffer/Types';
 import type { IParams } from '$lib/common/parser/Types';
@@ -14,8 +13,7 @@ import type {
 	IUnicodeService
 } from '$lib/common/services/Services';
 import type { IFunctionIdentifier } from '$lib/xterm';
-import type { LegacyEmitter, IEvent } from '$lib/common/Event';
-
+import type { IEvent } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { ITerminalOptions } from '$lib/common/services/Services';
 
@@ -66,28 +64,6 @@ export interface IKeyboardEvent {
 	key: string;
 	type: string;
 	code: string;
-}
-
-export interface ICircularList<T> {
-	length: number;
-	maxLength: number;
-	isFull: boolean;
-
-	onDeleteEmitter: LegacyEmitter<IDeleteEvent>;
-	onDelete: IEvent<IDeleteEvent>;
-	onInsertEmitter: LegacyEmitter<IInsertEvent>;
-	onInsert: IEvent<IInsertEvent>;
-	onTrimEmitter: LegacyEmitter<number>;
-	onTrim: IEvent<number>;
-
-	get(index: number): T | undefined;
-	set(index: number, value: T): void;
-	push(value: T): void;
-	recycle(): T;
-	pop(): T | undefined;
-	splice(start: number, deleteCount: number, ...items: T[]): void;
-	trimStart(count: number): void;
-	shiftElements(start: number, count: number, offset: number): void;
 }
 
 export const enum KeyboardResultType {

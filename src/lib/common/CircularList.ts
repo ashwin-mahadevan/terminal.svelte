@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import type { ICircularList } from '$lib/common/Types';
 import { Disposable } from '$lib/common/Lifecycle';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -21,7 +20,7 @@ export interface IDeleteEvent {
  * Represents a circular list; a list with a maximum size that wraps around when push is called,
  * overriding values at the start of the list.
  */
-export class CircularList<T> extends Disposable implements ICircularList<T> {
+export class CircularList<T> extends Disposable {
 	protected _array: (T | undefined)[];
 	private _startIndex: number;
 	private _length: number;

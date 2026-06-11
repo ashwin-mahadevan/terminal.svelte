@@ -3,18 +3,13 @@
  * @license MIT
  */
 
-import type {
-	IAttributeData,
-	ICircularList,
-	IBufferLine,
-	ICellData,
-	ICharset
-} from '$lib/common/Types';
+import type { IAttributeData, IBufferLine, ICellData, ICharset } from '$lib/common/Types';
+import type { CircularList } from '$lib/common/CircularList';
 import type { Marker } from '$lib/common/buffer/Marker';
 import type { IEvent } from '$lib/common/Event';
 
 export interface IBuffer {
-	readonly lines: ICircularList<IBufferLine>;
+	readonly lines: CircularList<IBufferLine>;
 	ydisp: number;
 	ybase: number;
 	y: number;
