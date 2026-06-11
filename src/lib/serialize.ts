@@ -9,6 +9,7 @@ import type { IBuffer, IBufferCell, IBufferRange, IMarker } from '$lib/xterm';
 import type { Terminal } from '$lib/browser/public/Terminal';
 import type { IAttributeData } from '$lib/common/Types';
 import { UnderlineStyle } from '$lib/common/buffer/Constants';
+import { CellData } from '$lib/common/buffer/CellData';
 
 export interface ISerializeOptions {
 	/**
@@ -56,9 +57,9 @@ abstract class BaseSerializeHandler {
 
 	public serialize(range: IBufferRange, excludeFinalCursorPosition?: boolean): string {
 		// we need two of them to flip between old and new cell
-		const cell1 = this._buffer.getNullCell();
-		const cell2 = this._buffer.getNullCell();
-		let oldCell = cell1;
+		const cell1 = new CellData();
+		const cell2 = new CellData();
+		let oldCell: IBufferCell = cell1;
 
 		const startRow = range.start.y;
 		const endRow = range.end.y;
@@ -175,7 +176,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 	// we can see a full colored cell and a null cell that only have background the same style
 	// but the information isn't preserved by null cell itself
 	// so wee need to record it when required.
-	private _cursorStyle: IBufferCell = this._buffer.getNullCell();
+	private _cursorStyle: IBufferCell = new CellData();
 
 	// where exact the cursor styles comes from
 	// because we can't copy the cell directly
@@ -184,7 +185,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 	private _cursorStyleCol: number = 0;
 
 	// this is a null cell for reference for checking whether background is empty or not
-	private _backgroundCell: IBufferCell = this._buffer.getNullCell();
+	private _backgroundCell: IBufferCell = new CellData();
 
 	private _firstRow: number = 0;
 	private _lastCursorRow: number = 0;
@@ -208,9 +209,9 @@ class StringSerializeHandler extends BaseSerializeHandler {
 		this._firstRow = start;
 	}
 
-	private _thisRowLastChar: IBufferCell = this._buffer.getNullCell();
-	private _thisRowLastSecondChar: IBufferCell = this._buffer.getNullCell();
-	private _nextRowFirstChar: IBufferCell = this._buffer.getNullCell();
+	private _thisRowLastChar: IBufferCell = new CellData();
+	private _thisRowLastSecondChar: IBufferCell = new CellData();
+	private _nextRowFirstChar: IBufferCell = new CellData();
 	protected _rowEnd(row: number, isLastRow: boolean): void {
 		// if there is colorful empty cell at line end, whe must pad it back, or the the color block
 		// will missing
@@ -669,7 +670,7 @@ export function serialize(terminal: Terminal, options?: ISerializeOptions): stri
 
 	// Alternate buffer
 	if (!options?.excludeAltBuffer) {
-		if (terminal.buffer.active.type === 'alternate') {
+		if (terminal.buffer.active === terminal.buffer.alternate) {
 			const alternativeScreenContent = _serializeBufferByScrollback(
 				terminal,
 				terminal.buffer.alternate,

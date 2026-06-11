@@ -3,20 +3,12 @@
  * @license MIT
  */
 
-import type {
-	IBuffer as IBufferApi,
-	IBufferLine as IBufferLineApi,
-	IBufferCell as IBufferCellApi
-} from '$lib/xterm';
+import type { IBuffer as IBufferApi, IBufferLine as IBufferLineApi } from '$lib/xterm';
 import type { IBuffer } from '$lib/common/buffer/Types';
 import { BufferLineApiView } from '$lib/common/public/BufferLineApiView';
-import { CellData } from '$lib/common/buffer/CellData';
 
 export class BufferApiView implements IBufferApi {
-	constructor(
-		private _buffer: IBuffer,
-		public readonly type: 'normal' | 'alternate'
-	) {}
+	constructor(private _buffer: IBuffer) {}
 
 	public init(buffer: IBuffer): BufferApiView {
 		this._buffer = buffer;
@@ -44,8 +36,5 @@ export class BufferApiView implements IBufferApi {
 			return undefined;
 		}
 		return new BufferLineApiView(line);
-	}
-	public getNullCell(): IBufferCellApi {
-		return new CellData();
 	}
 }

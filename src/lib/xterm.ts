@@ -1056,11 +1056,6 @@ export interface IBufferNamespace {
  */
 export interface IBuffer {
 	/**
-	 * The type of the buffer.
-	 */
-	readonly type: 'normal' | 'alternate';
-
-	/**
 	 * The y position of the cursor. This ranges between `0` (when the
 	 * cursor is at baseY) and `Terminal.rows - 1` (when the cursor is on the
 	 * last row).
@@ -1100,13 +1095,6 @@ export interface IBuffer {
 	 * @param y The line index to get.
 	 */
 	getLine(y: number): IBufferLine | undefined;
-
-	/**
-	 * Creates an empty cell object suitable as a cell reference in
-	 * `line.getCell(x, cell)`. Use this to avoid costly recreation of
-	 * cell objects when dealing with tons of cells.
-	 */
-	getNullCell(): IBufferCell;
 }
 
 /**

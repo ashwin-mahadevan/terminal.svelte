@@ -5,6 +5,7 @@
 
 import type { ILinkProvider, ILink, IViewportRange, IBufferLine } from '$lib/xterm';
 import type { Terminal } from '$lib/browser/public/Terminal';
+import { CellData } from '$lib/common/buffer/CellData';
 
 export interface ILinkProviderOptions {
 	hover?(event: MouseEvent, text: string, location: IViewportRange): void;
@@ -205,7 +206,7 @@ class LinkComputer {
 		stringIndex: number
 	): [number, number] {
 		const buf = terminal.buffer.active;
-		const cell = buf.getNullCell();
+		const cell = new CellData();
 		let start = rowIndex;
 		while (stringIndex) {
 			const line = buf.getLine(lineIndex);

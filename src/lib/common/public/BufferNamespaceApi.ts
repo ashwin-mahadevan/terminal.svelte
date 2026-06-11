@@ -19,8 +19,8 @@ export class BufferNamespaceApi implements IBufferNamespaceApi {
 	private readonly _bufferActivateListener: IDisposable;
 
 	constructor(private _core: ICoreTerminal) {
-		this._normal = new BufferApiView(this._core.buffers.normal, 'normal');
-		this._alternate = new BufferApiView(this._core.buffers.alt, 'alternate');
+		this._normal = new BufferApiView(this._core.buffers.normal);
+		this._alternate = new BufferApiView(this._core.buffers.alt);
 		this._bufferActivateListener = this._core.buffers.onBufferActivate(() =>
 			this._onBufferChange.fire(this.active)
 		);

@@ -590,7 +590,7 @@ describe('SerializeAddon', () => {
 			const lines = [`1${SMCUP}${CUP}2`];
 			const expected = [`1${SMCUP}${CUP}2`];
 			await writeP(bigTerminal, lines.join('\r\n'));
-			expect(bigTerminal.buffer.active.type).toBe('alternate');
+			expect(bigTerminal.buffer.active).toBe(bigTerminal.buffer.alternate);
 			expect(serialize(bigTerminal)).toBe(expected.join('\r\n'));
 		});
 
@@ -600,7 +600,7 @@ describe('SerializeAddon', () => {
 			const lines = [`1${SMCUP}2${RMCUP}`];
 			const expected = [`1`];
 			await writeP(bigTerminal, lines.join('\r\n'));
-			expect(bigTerminal.buffer.active.type).toBe('normal');
+			expect(bigTerminal.buffer.active).toBe(bigTerminal.buffer.normal);
 			expect(serialize(bigTerminal)).toBe(expected.join('\r\n'));
 		});
 
