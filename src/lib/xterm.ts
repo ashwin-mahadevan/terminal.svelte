@@ -957,7 +957,7 @@ export interface ILink {
 	dispose?(): void;
 }
 
-export interface ILinkDecorations {
+interface ILinkDecorations {
 	/**
 	 * Whether the cursor is set to pointer.
 	 */
