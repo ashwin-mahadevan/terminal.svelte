@@ -4,6 +4,14 @@ import type { IEvent } from './common/Event';
 import type { IBuffer } from './common/buffer/Types';
 import type { Marker } from './common/buffer/Marker';
 
+// These public-API types are defined canonically elsewhere; re-export them so
+// `$lib/xterm` remains the single import surface for consumers.
+import type { IDisposable } from './common/Lifecycle';
+import type { ILink, IBufferCellPosition } from './browser/Types';
+import type { ILinkProvider } from './browser/services/Services';
+import type { IUnicodeVersionProvider } from './common/services/Services';
+export type { IDisposable, ILink, ILinkProvider, IUnicodeVersionProvider };
+
 /**
  * A string or number representing text font weight.
  */
@@ -494,13 +502,6 @@ export type IWindowsPty = {
 };
 
 /**
- * An object that can be disposed via a dispose function.
- */
-export interface IDisposable {
-	dispose(): void;
-}
-
-/**
  * Represents a decoration in the terminal that is associated with a
  * particular marker and DOM element.
  */
@@ -898,77 +899,6 @@ export interface ILinkHandler {
 	allowNonHttpProtocols?: boolean;
 }
 
-export interface ILinkProvider {
-	/**
-	 * Provides a link a buffer position
-	 * @param bufferLineNumber The y position of the buffer to check for links
-	 * within.
-	 * @param callback The callback to be fired when ready with the resulting
-	 * link(s) for the line or `undefined`.
-	 */
-	provideLinks(bufferLineNumber: number, callback: (links: ILink[] | undefined) => void): void;
-}
-
-export interface ILink {
-	/**
-	 * The buffer range of the link.
-	 */
-	range: IBufferRange;
-
-	/**
-	 * The text of the link.
-	 */
-	text: string;
-
-	/**
-	 * What link decorations to show when hovering the link, this property is
-	 * tracked and changes made after the link is provided will trigger changes.
-	 * If not set, all decroations will be enabled.
-	 */
-	decorations?: ILinkDecorations;
-
-	/**
-	 * Calls when the link is activated.
-	 * @param event The mouse event triggering the callback.
-	 * @param text The text of the link.
-	 */
-	activate(event: MouseEvent, text: string): void;
-
-	/**
-	 * Called when the mouse hovers the link. To use this to create a DOM-based
-	 * hover tooltip, create the hover element within `Terminal.element` and add
-	 * the `xterm-hover` class to it, that will cause mouse events to not fall
-	 * through and activate other links.
-	 * @param event The mouse event triggering the callback.
-	 * @param text The text of the link.
-	 */
-	hover?(event: MouseEvent, text: string): void;
-
-	/**
-	 * Called when the mouse leaves the link.
-	 * @param event The mouse event triggering the callback.
-	 * @param text The text of the link.
-	 */
-	leave?(event: MouseEvent, text: string): void;
-
-	/**
-	 * Called when the link is released and no longer used by xterm.js.
-	 */
-	dispose?(): void;
-}
-
-interface ILinkDecorations {
-	/**
-	 * Whether the cursor is set to pointer.
-	 */
-	pointerCursor: boolean;
-
-	/**
-	 * Whether the underline is visible
-	 */
-	underline: boolean;
-}
-
 /**
  * A range within a buffer.
  */
@@ -983,21 +913,6 @@ export type IBufferRange = {
 	 */
 	end: IBufferCellPosition;
 };
-
-/**
- * A position within a buffer.
- */
-interface IBufferCellPosition {
-	/**
-	 * The x position within the buffer (1-based).
-	 */
-	x: number;
-
-	/**
-	 * The y position within the buffer (1-based).
-	 */
-	y: number;
-}
 
 export interface IBufferNamespace {
 	/**
@@ -1306,23 +1221,6 @@ export interface IParser {
 		id: IFunctionIdentifier,
 		callback: (data: string) => boolean | Promise<boolean>
 	): IDisposable;
-}
-
-/**
- * (EXPERIMENTAL) Unicode version provider.
- * Used to register custom Unicode versions with `Terminal.unicode.register`.
- */
-export interface IUnicodeVersionProvider {
-	/**
-	 * String indicating the Unicode version provided.
-	 */
-	readonly version: string;
-
-	/**
-	 * Unicode version dependent wcwidth implementation.
-	 */
-	wcwidth(codepoint: number): 0 | 1 | 2;
-	charProperties(codepoint: number, preceding: number): number;
 }
 
 /**
