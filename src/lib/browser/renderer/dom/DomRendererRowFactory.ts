@@ -13,7 +13,8 @@ import type {
 	IOptionsService
 } from '$lib/common/services/Services';
 import { channels, color } from '$lib/common/Color';
-import type { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
+import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { JoinedCellData } from '$lib/browser/services/CharacterJoinerService';
 import { treatGlyphAsBackgroundColor } from '$lib/browser/renderer/shared/RendererUtils';
@@ -53,7 +54,7 @@ export class DomRendererRowFactory {
 		private readonly _coreBrowserService: ICoreBrowserService,
 		private readonly _coreService: ICoreService,
 		private readonly _decorationService: IDecorationService,
-		private readonly _themeService: IThemeService
+		private readonly _themeService: ThemeService
 	) {}
 
 	public handleSelectionChanged(

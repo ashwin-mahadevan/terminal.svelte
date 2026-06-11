@@ -25,6 +25,7 @@ import {
 } from '$lib/common/TestUtils';
 import { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
 import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
+import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { LegacyEmitter } from '$lib/common/Event';
 import { css } from '$lib/common/Color';
 
@@ -114,6 +115,10 @@ class MockThemeService {
 	};
 }
 
+function createMockThemeService(): ThemeService {
+	return new MockThemeService() as unknown as ThemeService;
+}
+
 const TEST_STRING_CACHE = new BufferLineStringCache();
 
 class MockWidthCacheFontVariantCanvas {
@@ -167,7 +172,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
 			const widthCache = new TestWidthCache();
@@ -196,7 +201,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
 			const widthCache = new TestWidthCache();
@@ -229,7 +234,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
 			const widthCache = new TestWidthCache();
@@ -262,7 +267,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
 			const widthCache = new TestWidthCache();
@@ -297,7 +302,7 @@ describe('DomRendererRowFactory', () => {
 				coreBrowserService,
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			for (const inactiveStyle of ['outline', 'block', 'bar', 'underline', 'none']) {
 				const spans = rowFactory.createRow(
@@ -336,7 +341,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				coreService,
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const spans = rowFactory.createRow(
 				lineData,
@@ -364,7 +369,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -396,7 +401,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -428,7 +433,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -461,7 +466,7 @@ describe('DomRendererRowFactory', () => {
 						new MockCoreBrowserService(),
 						new MockCoreService(),
 						new MockDecorationService(),
-						new MockThemeService()
+						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
 					const widthCache = new TestWidthCache();
@@ -494,7 +499,7 @@ describe('DomRendererRowFactory', () => {
 						new MockCoreBrowserService(),
 						new MockCoreService(),
 						new MockDecorationService(),
-						new MockThemeService()
+						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
 					const widthCache = new TestWidthCache();
@@ -527,7 +532,7 @@ describe('DomRendererRowFactory', () => {
 						new MockCoreBrowserService(),
 						new MockCoreService(),
 						new MockDecorationService(),
-						new MockThemeService()
+						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
 					const widthCache = new TestWidthCache();
@@ -560,7 +565,7 @@ describe('DomRendererRowFactory', () => {
 						new MockCoreBrowserService(),
 						new MockCoreService(),
 						new MockDecorationService(),
-						new MockThemeService()
+						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
 					const widthCache = new TestWidthCache();
@@ -593,7 +598,7 @@ describe('DomRendererRowFactory', () => {
 						new MockCoreBrowserService(),
 						new MockCoreService(),
 						new MockDecorationService(),
-						new MockThemeService()
+						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
 					const widthCache = new TestWidthCache();
@@ -628,7 +633,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -660,7 +665,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -692,7 +697,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -743,7 +748,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -779,7 +784,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -815,7 +820,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -848,7 +853,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -881,7 +886,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -913,7 +918,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -949,7 +954,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -984,7 +989,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -1021,7 +1026,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -1054,7 +1059,7 @@ describe('DomRendererRowFactory', () => {
 					new MockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
-					new MockThemeService()
+					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
 				const widthCache = new TestWidthCache();
@@ -1090,7 +1095,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();
@@ -1119,7 +1124,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();
@@ -1151,7 +1156,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();
@@ -1186,7 +1191,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();
@@ -1225,7 +1230,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();
@@ -1261,7 +1266,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();
@@ -1298,7 +1303,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();
@@ -1379,7 +1384,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();
@@ -1416,7 +1421,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();
@@ -1454,7 +1459,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();
@@ -1489,7 +1494,7 @@ describe('DomRendererRowFactory', () => {
 				new MockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
-				new MockThemeService()
+				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
 			const widthCache = new TestWidthCache();

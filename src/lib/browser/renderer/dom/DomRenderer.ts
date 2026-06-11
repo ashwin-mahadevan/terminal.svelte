@@ -15,7 +15,8 @@ import type {
 	IRenderer,
 	IRequestRedrawEvent
 } from '$lib/browser/renderer/shared/Types';
-import type { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
+import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import type { ILinkifierEvent, ReadonlyColorSet } from '$lib/browser/Types';
 import type { Linkifier } from '$lib/browser/Linkifier';
@@ -92,7 +93,7 @@ export class DomRenderer implements IRenderer {
 		private readonly _bufferService: IBufferService,
 		private readonly _coreService: ICoreService,
 		private readonly _coreBrowserService: ICoreBrowserService,
-		private readonly _themeService: IThemeService
+		private readonly _themeService: ThemeService
 	) {
 		this._rowContainer = this._document.createElement('div');
 		this._rowContainer.classList.add(Constants.ROW_CONTAINER_CLASS);

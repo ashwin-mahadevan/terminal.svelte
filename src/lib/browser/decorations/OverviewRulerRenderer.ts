@@ -5,11 +5,8 @@
 
 import type { IColorZone } from '$lib/browser/decorations/ColorZoneStore';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
-import type {
-	ICoreBrowserService,
-	IRenderService,
-	IThemeService
-} from '$lib/browser/services/Services';
+import type { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
+import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
 	IBufferService,
@@ -78,7 +75,7 @@ export class OverviewRulerRenderer {
 		private readonly _decorationService: IDecorationService,
 		private readonly _renderService: IRenderService,
 		private readonly _optionsService: IOptionsService,
-		private readonly _themeService: IThemeService,
+		private readonly _themeService: ThemeService,
 		private readonly _coreBrowserService: ICoreBrowserService
 	) {
 		this._canvas = this._coreBrowserService.mainDocument.createElement('canvas');

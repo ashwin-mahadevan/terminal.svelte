@@ -8,7 +8,8 @@ import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { IRenderService } from '$lib/browser/services/Services';
-import type { ICoreBrowserService, IThemeService } from '$lib/browser/services/Services';
+import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
@@ -84,7 +85,7 @@ export class RenderService implements IRenderService {
 		decorationService: IDecorationService,
 		bufferService: IBufferService,
 		private readonly _coreBrowserService: ICoreBrowserService,
-		themeService: IThemeService
+		themeService: ThemeService
 	) {
 		this._pausedResizeTask = new DebouncedIdleTask();
 

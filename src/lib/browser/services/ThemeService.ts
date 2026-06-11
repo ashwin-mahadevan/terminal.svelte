@@ -4,7 +4,6 @@
  */
 
 import { ColorContrastCache } from '$lib/browser/ColorContrastCache';
-import type { IThemeService } from '$lib/browser/services/Services';
 import type { IColorSet, ReadonlyColorSet } from '$lib/browser/Types';
 import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 import { color, css, NULL_COLOR } from '$lib/common/Color';
@@ -32,7 +31,7 @@ const DEFAULT_SELECTION = {
 };
 const DEFAULT_OVERVIEW_RULER_BORDER = DEFAULT_FOREGROUND;
 
-export class ThemeService implements IThemeService {
+export class ThemeService {
 	private _colors: IColorSet;
 	private _contrastCache: ColorContrastCache = new ColorContrastCache();
 	private _halfContrastCache: ColorContrastCache = new ColorContrastCache();

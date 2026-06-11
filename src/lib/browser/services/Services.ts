@@ -4,8 +4,7 @@
  */
 
 import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
-import type { IColorSet, ILink, ReadonlyColorSet } from '$lib/browser/Types';
-import type { AllColorIndex } from '$lib/common/Types';
+import type { ILink } from '$lib/browser/Types';
 import type { IEvent } from '$lib/common/Event';
 
 export interface ICoreBrowserService {
@@ -74,19 +73,6 @@ export interface IRenderService {
 	): void;
 	handleCursorMove(): void;
 	clear(): void;
-}
-
-export interface IThemeService {
-	readonly colors: ReadonlyColorSet;
-
-	readonly onChangeColors: IEvent<ReadonlyColorSet>;
-
-	restoreColor(slot?: AllColorIndex): void;
-	/**
-	 * Allows external modifying of colors in the theme, this is used instead of {@link colors} to
-	 * prevent accidental writes.
-	 */
-	modifyColors(callback: (colors: IColorSet) => void): void;
 }
 
 export interface ILinkProvider {
