@@ -3,32 +3,12 @@
  * @license MIT
  */
 
-interface ITaskQueue {
-	/**
-	 * Adds a task to the queue which will run in a future idle callback.
-	 * To avoid perceivable stalls on the mainthread, tasks with heavy workload
-	 * should split their work into smaller pieces and return `true` to get
-	 * called again until the work is done (on falsy return value).
-	 */
-	enqueue(task: () => boolean | void): void;
-
-	/**
-	 * Flushes the queue, running all remaining tasks synchronously.
-	 */
-	flush(): void;
-
-	/**
-	 * Clears any remaining tasks from the queue, these will not be run.
-	 */
-	clear(): void;
-}
-
 interface ITaskDeadline {
 	timeRemaining(): number;
 }
 type CallbackWithDeadline = (deadline: ITaskDeadline) => void;
 
-abstract class TaskQueue implements ITaskQueue {
+abstract class TaskQueue {
 	private _tasks: (() => boolean | void)[] = [];
 	private _idleCallback?: number;
 	private _i = 0;
@@ -152,7 +132,7 @@ export const IdleTaskQueue =
  * multiple times, only the last set task will run.
  */
 export class DebouncedIdleTask {
-	private _queue: ITaskQueue;
+	private _queue: TaskQueue;
 
 	constructor() {
 		this._queue = new IdleTaskQueue();
