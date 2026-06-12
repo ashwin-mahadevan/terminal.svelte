@@ -1,15 +1,15 @@
 /// <reference lib="dom"/>
 
-import type { IEvent } from './common/Event';
-import type { Buffer } from './common/buffer/Buffer';
-import type { Marker } from './common/buffer/Marker';
+import type { IEvent } from '$lib/common/Event';
+import type { Buffer } from '$lib/common/buffer/Buffer';
+import type { Marker } from '$lib/common/buffer/Marker';
 
 // These public-API types are defined canonically elsewhere; re-export them so
 // `$lib/xterm` remains the single import surface for consumers.
-import type { IDisposable } from './common/Lifecycle';
-import type { ILink, IBufferCellPosition } from './browser/Types';
-import type { ILinkProvider } from './browser/services/Services';
-import type { IUnicodeVersionProvider } from './common/services/Services';
+import type { IDisposable } from '$lib/common/Lifecycle';
+import type { ILink, IBufferCellPosition } from '$lib/browser/Types';
+import type { ILinkProvider } from '$lib/browser/services/Services';
+import type { IUnicodeVersionProvider } from '$lib/common/services/Services';
 export type { IDisposable, ILink, ILinkProvider, IUnicodeVersionProvider };
 
 /**

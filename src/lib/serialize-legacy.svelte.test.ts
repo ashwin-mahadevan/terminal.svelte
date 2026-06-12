@@ -14,7 +14,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Terminal } from '$lib/browser/public/Terminal';
 import { CellData } from '$lib/common/buffer/CellData';
-import { serialize } from './serialize';
+import { serialize } from '$lib/serialize';
 
 function sgr(...seq: string[]): string {
 	return `\x1b[${seq.join(';')}m`;

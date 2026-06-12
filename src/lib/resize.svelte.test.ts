@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import Terminal from './terminal.svelte';
+import Terminal from '$lib/terminal.svelte';
 
 describe('terminal.svelte auto-resize', () => {
 	it('fits the terminal to its container on mount', async () => {
