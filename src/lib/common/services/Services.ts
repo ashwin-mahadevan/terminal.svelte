@@ -11,7 +11,7 @@ import type {
 	IOverviewRulerOptions
 } from '$lib/xterm';
 import type { CursorInactiveStyle, CursorStyle, IColor, IWindowOptions } from '$lib/common/Types';
-import type { LegacyEmitter, IEvent } from '$lib/common/Event';
+import type { LegacyEmitter } from '$lib/common/Event';
 
 export interface IBufferResizeEvent {
 	cols: number;
@@ -165,24 +165,6 @@ export interface IUnicodeVersionProvider {
 	charProperties(codepoint: number, preceding: UnicodeCharProperties): UnicodeCharProperties;
 }
 
-export interface IDecorationService {
-	dispose(): void;
-	readonly decorations: IterableIterator<IInternalDecoration>;
-	readonly onDecorationRegistered: IEvent<IInternalDecoration>;
-	readonly onDecorationRemoved: IEvent<IInternalDecoration>;
-	registerDecoration(decorationOptions: IDecorationOptions): IDecoration | undefined;
-	reset(): void;
-	/**
-	 * Trigger a callback over the decoration at a cell (in no particular order). This uses a callback
-	 * instead of an iterator as it's typically used in hot code paths.
-	 */
-	forEachDecorationAtCell(
-		x: number,
-		line: number,
-		layer: 'bottom' | 'top' | undefined,
-		callback: (decoration: IInternalDecoration) => void
-	): void;
-}
 export interface IInternalDecoration extends IDecoration {
 	readonly options: IDecorationOptions;
 	readonly backgroundColorRGB: IColor | undefined;

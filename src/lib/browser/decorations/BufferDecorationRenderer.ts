@@ -7,7 +7,7 @@ import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserServic
 import type { RenderService } from '$lib/browser/services/RenderService';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
-import type { IDecorationService } from '$lib/common/services/Services';
+import type { DecorationService } from '$lib/common/services/DecorationService';
 import type { BufferService } from '$lib/common/services/BufferService';
 
 export class BufferDecorationRenderer {
@@ -29,7 +29,7 @@ export class BufferDecorationRenderer {
 		private readonly _screenElement: HTMLElement,
 		private readonly _bufferService: BufferService,
 		private readonly _coreBrowserService: CoreBrowserService,
-		private readonly _decorationService: IDecorationService,
+		private readonly _decorationService: DecorationService,
 		private readonly _renderService: RenderService
 	) {
 		this._container = document.createElement('div');

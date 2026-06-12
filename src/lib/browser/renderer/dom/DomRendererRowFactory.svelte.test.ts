@@ -18,7 +18,7 @@ import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache'
 import { CellData } from '$lib/common/buffer/CellData';
 import {
 	createMockCoreService,
-	MockDecorationService,
+	createMockDecorationService,
 	createMockOptionsService,
 	createCellData,
 	NULL_CELL_DATA
@@ -175,7 +175,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
@@ -204,7 +204,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
@@ -237,7 +237,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
@@ -270,7 +270,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
@@ -305,7 +305,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				coreBrowserService as unknown as CoreBrowserService,
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			for (const inactiveStyle of ['outline', 'block', 'bar', 'underline', 'none']) {
@@ -344,7 +344,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService(),
 				createMockCoreBrowserService(),
 				coreService,
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const spans = rowFactory.createRow(
@@ -372,7 +372,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -404,7 +404,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -436,7 +436,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -469,7 +469,7 @@ describe('DomRendererRowFactory', () => {
 						createMockOptionsService({ drawBoldTextInBrightColors: true }),
 						createMockCoreBrowserService(),
 						createMockCoreService(),
-						new MockDecorationService(),
+						createMockDecorationService(),
 						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
@@ -502,7 +502,7 @@ describe('DomRendererRowFactory', () => {
 						createMockOptionsService({ drawBoldTextInBrightColors: true }),
 						createMockCoreBrowserService(),
 						createMockCoreService(),
-						new MockDecorationService(),
+						createMockDecorationService(),
 						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
@@ -535,7 +535,7 @@ describe('DomRendererRowFactory', () => {
 						createMockOptionsService({ drawBoldTextInBrightColors: true }),
 						createMockCoreBrowserService(),
 						createMockCoreService(),
-						new MockDecorationService(),
+						createMockDecorationService(),
 						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
@@ -568,7 +568,7 @@ describe('DomRendererRowFactory', () => {
 						createMockOptionsService({ drawBoldTextInBrightColors: true }),
 						createMockCoreBrowserService(),
 						createMockCoreService(),
-						new MockDecorationService(),
+						createMockDecorationService(),
 						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
@@ -601,7 +601,7 @@ describe('DomRendererRowFactory', () => {
 						createMockOptionsService({ drawBoldTextInBrightColors: true }),
 						createMockCoreBrowserService(),
 						createMockCoreService(),
-						new MockDecorationService(),
+						createMockDecorationService(),
 						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
@@ -636,7 +636,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -668,7 +668,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -700,7 +700,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -751,7 +751,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -787,7 +787,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -823,7 +823,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -856,7 +856,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -889,7 +889,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -921,7 +921,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -957,7 +957,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -992,7 +992,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -1029,7 +1029,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -1062,7 +1062,7 @@ describe('DomRendererRowFactory', () => {
 					createMockOptionsService({ drawBoldTextInBrightColors: true }),
 					createMockCoreBrowserService(),
 					createMockCoreService(),
-					new MockDecorationService(),
+					createMockDecorationService(),
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
@@ -1098,7 +1098,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
@@ -1127,7 +1127,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
@@ -1159,7 +1159,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
@@ -1194,7 +1194,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
@@ -1233,7 +1233,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
@@ -1269,7 +1269,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
@@ -1306,7 +1306,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
@@ -1387,7 +1387,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
@@ -1424,7 +1424,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
@@ -1462,7 +1462,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
@@ -1497,7 +1497,7 @@ describe('DomRendererRowFactory', () => {
 				createMockOptionsService({ drawBoldTextInBrightColors: true }),
 				createMockCoreBrowserService(),
 				createMockCoreService(),
-				new MockDecorationService(),
+				createMockDecorationService(),
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);

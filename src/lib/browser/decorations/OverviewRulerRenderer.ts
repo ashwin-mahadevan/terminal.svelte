@@ -9,7 +9,7 @@ import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserServic
 import type { RenderService } from '$lib/browser/services/RenderService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { IDecorationService } from '$lib/common/services/Services';
+import type { DecorationService } from '$lib/common/services/DecorationService';
 import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 
@@ -71,7 +71,7 @@ export class OverviewRulerRenderer {
 		private readonly _viewportElement: HTMLElement,
 		private readonly _screenElement: HTMLElement,
 		private readonly _bufferService: BufferService,
-		private readonly _decorationService: IDecorationService,
+		private readonly _decorationService: DecorationService,
 		private readonly _renderService: RenderService,
 		private readonly _optionsService: OptionsService,
 		private readonly _themeService: ThemeService,

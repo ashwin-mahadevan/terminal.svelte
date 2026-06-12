@@ -14,6 +14,7 @@ import type {
 import type { CoreService } from '$lib/common/services/CoreService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { BufferService } from '$lib/common/services/BufferService';
+import type { DecorationService } from '$lib/common/services/DecorationService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import type { Buffer } from '$lib/common/buffer/Buffer';
@@ -358,4 +359,8 @@ export class MockDecorationService {
 		callback: (decoration: IInternalDecoration) => void
 	): void {}
 	public dispose(): void {}
+}
+
+export function createMockDecorationService(): DecorationService {
+	return new MockDecorationService() as unknown as DecorationService;
 }

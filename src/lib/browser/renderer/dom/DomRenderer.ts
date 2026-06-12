@@ -23,7 +23,7 @@ import type { Linkifier } from '$lib/browser/Linkifier';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { color } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { IDecorationService } from '$lib/common/services/Services';
+import type { DecorationService } from '$lib/common/services/DecorationService';
 import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
@@ -86,7 +86,7 @@ export class DomRenderer implements IRenderer {
 		private readonly _helperContainer: HTMLElement,
 		private readonly _linkifier2: Linkifier,
 		private readonly _characterJoinerService: CharacterJoinerService,
-		private readonly _decorationService: IDecorationService,
+		private readonly _decorationService: DecorationService,
 		private readonly _optionsService: OptionsService,
 		private readonly _bufferService: BufferService,
 		private readonly _coreService: CoreService,
