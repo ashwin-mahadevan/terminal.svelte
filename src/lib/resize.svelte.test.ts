@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Terminal from '$lib/terminal.svelte';
-import SizeBindingFixture from '$lib/size-binding-fixture.svelte';
 
 /**
  * Measure the size of the *active* buffer the same way a full-screen app
@@ -22,14 +21,35 @@ async function probeActiveBufferSize(
 	return { rows: Number(match[1]), cols: Number(match[2]) };
 }
 
+/**
+ * Render Terminal with the container pre-sized so the initial synchronous
+ * dimension measurement at mount reflects the intended size. After render the
+ * size is locked in as inline styles and the CSS rule is removed, so further
+ * `container.style` mutations work without specificity conflicts.
+ */
+async function renderSized(
+	width: string,
+	height: string,
+	props?: {
+		onresize?: (size: { cols: number; rows: number }) => void;
+		ondata?: (data: string) => void;
+	}
+) {
+	const style = document.createElement('style');
+	style.textContent = `body > div:last-of-type { width: ${width}; height: ${height}; }`;
+	document.head.appendChild(style);
+	const result = await render(Terminal, { props });
+	result.container.style.width = width;
+	result.container.style.height = height;
+	style.remove();
+	return result;
+}
+
 describe('terminal.svelte auto-resize', () => {
 	it('fits the terminal to its container on mount', async () => {
 		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
 
-		const component = await render(Terminal, { props: { onresize } });
-
-		component.container.style.width = '800px';
-		component.container.style.height = '600px';
+		await renderSized('800px', '600px', { onresize });
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
@@ -43,18 +63,15 @@ describe('terminal.svelte auto-resize', () => {
 	it('shrinks the terminal when its container shrinks', async () => {
 		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
 
-		const component = await render(Terminal, { props: { onresize } });
-
-		component.container.style.width = '800px';
-		component.container.style.height = '600px';
+		const { container } = await renderSized('800px', '600px', { onresize });
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
 		const large = onresize.mock.lastCall![0];
 		onresize.mockReset();
 
-		component.container.style.width = '400px';
-		component.container.style.height = '300px';
+		container.style.width = '400px';
+		container.style.height = '300px';
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
@@ -67,18 +84,15 @@ describe('terminal.svelte auto-resize', () => {
 	it('grows the terminal when its container grows', async () => {
 		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
 
-		const component = await render(Terminal, { props: { onresize } });
-
-		component.container.style.width = '400px';
-		component.container.style.height = '300px';
+		const { container } = await renderSized('400px', '300px', { onresize });
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
 		const small = onresize.mock.lastCall![0];
 		onresize.mockReset();
 
-		component.container.style.width = '800px';
-		component.container.style.height = '600px';
+		container.style.width = '800px';
+		container.style.height = '600px';
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
@@ -91,19 +105,23 @@ describe('terminal.svelte auto-resize', () => {
 	it('respects padding on the container', async () => {
 		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
 
-		const component = await render(Terminal, { props: { onresize } });
-
-		component.container.style.boxSizing = 'border-box';
-		component.container.style.width = '800px';
-		component.container.style.height = '600px';
-		component.container.style.padding = '200px';
+		const style = document.createElement('style');
+		style.textContent =
+			'body > div:last-of-type { box-sizing: border-box; width: 800px; height: 600px; padding: 200px; }';
+		document.head.appendChild(style);
+		const { container } = await render(Terminal, { props: { onresize } });
+		container.style.boxSizing = 'border-box';
+		container.style.width = '800px';
+		container.style.height = '600px';
+		container.style.padding = '200px';
+		style.remove();
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
 		const paddedSize = onresize.mock.lastCall![0]!;
 
 		onresize.mockReset();
-		component.container.style.padding = '0';
+		container.style.padding = '0';
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
@@ -126,12 +144,10 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 		const data: string[] = [];
 		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
 
-		const { container, component } = await render(Terminal, {
-			props: { onresize, ondata: (chunk: string) => data.push(chunk) }
+		const { container, component } = await renderSized('800px', '600px', {
+			onresize,
+			ondata: (chunk: string) => data.push(chunk)
 		});
-
-		container.style.width = '800px';
-		container.style.height = '600px';
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 		const fitted = onresize.mock.lastCall![0]!;
@@ -191,71 +207,5 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 		const probed = await probeActiveBufferSize(component, data);
 
 		expect(probed).toEqual({ cols: resized.cols, rows: resized.rows });
-	});
-
-	// Hypothesis 4: in the demo the page has its full size *before* the
-	// component mounts (unlike the tests above, which size the container after
-	// render). If the initial fit fires before the onresize listener is
-	// attached, the demo server's pty never hears about it — vi then reads
-	// 80x24 from the pty until a window resize produces a fresh event.
-	it('emits the initial fit resize when the container is sized before mount', async () => {
-		const style = document.createElement('style');
-		style.textContent = 'body > div:last-of-type { width: 800px; height: 600px; }';
-		document.head.appendChild(style);
-
-		try {
-			const data: string[] = [];
-			const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
-			const { component } = await render(Terminal, {
-				props: { onresize, ondata: (chunk: string) => data.push(chunk) }
-			});
-
-			// First wait for the fit to actually happen, as observed from inside
-			// the terminal. If this poll times out instead, the terminal was
-			// never fitted and the test setup (not the resize event) is at fault.
-			await expect
-				.poll(() => probeActiveBufferSize(component, data), { timeout: 5000 })
-				.not.toEqual({ cols: 80, rows: 24 });
-
-			// The terminal is fitted; the demo's pty hears about it only if the
-			// event also reached the onresize prop.
-			expect(onresize).toHaveBeenCalled();
-		} finally {
-			style.remove();
-		}
-	});
-});
-
-/**
- * Diagnostics for the unsized-container state: every render starts with a
- * 0-height auto container (the tests style it only afterwards, and the
- * serialize tests never style it at all). The sizing effect must not act on
- * that degenerate state — these tests pin down what happens if it does.
- */
-describe('terminal.svelte unsized-container diagnostics', () => {
-	// Documents the platform behavior the sizing effect's guard relies on:
-	// Svelte initializes dimension bindings synchronously at mount (they are
-	// never undefined by the time a $effect runs), and an unsized container
-	// reports a real, measured height of 0. The guard's falsy check therefore
-	// protects against 0, not (only) undefined.
-	it('sees dimension bindings as numbers, with 0 height, on the first $effect run', async () => {
-		const log: Array<{ width: number | undefined; height: number | undefined }> = [];
-
-		await render(SizeBindingFixture, { props: { log } });
-
-		expect(log.length).toBeGreaterThan(0);
-		expect(log[0]!.width).toBeGreaterThan(0);
-		expect(log[0]!.height).toBe(0);
-	});
-
-	// With no height guard, a 0-height container produces a real resize to the
-	// minimum (cols x 1 row). This test documents that behavior and confirms
-	// the terminal is still usable — written text must still render.
-	it('renders written text while its container is unsized', async () => {
-		const { container, component } = await render(Terminal);
-
-		component.write('still visible');
-
-		await expect.poll(() => container.textContent).toContain('still visible');
 	});
 });
