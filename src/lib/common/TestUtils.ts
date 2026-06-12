@@ -9,11 +9,11 @@ import type {
 	UnicodeCharWidth,
 	IUnicodeVersionProvider,
 	IInternalDecoration,
-	IBufferResizeEvent,
-	IBufferService
+	IBufferResizeEvent
 } from '$lib/common/services/Services';
 import type { CoreService } from '$lib/common/services/CoreService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
+import type { BufferService } from '$lib/common/services/BufferService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import type { Buffer } from '$lib/common/buffer/Buffer';
@@ -51,7 +51,7 @@ export const NULL_CELL_DATA = Object.freeze(
 	createCellData(DEFAULT_ATTR, NULL_CELL_CHAR, NULL_CELL_WIDTH)
 );
 
-export class MockBufferService implements IBufferService {
+export class MockBufferService {
 	// TODO: Fix this upstream type error.
 
 	public get buffer(): Buffer {
@@ -69,7 +69,8 @@ export class MockBufferService implements IBufferService {
 		public rows: number,
 		optionsService: OptionsService = createMockOptionsService()
 	) {
-		this.buffers = new BufferSet(optionsService, this);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		this.buffers = new BufferSet(optionsService, this as any);
 		// Listen to buffer activation events and automatically fire scroll events
 		this.buffers.onBufferActivate((e) => {
 			this._onScroll.fire(e.activeBuffer.ydisp);
@@ -106,6 +107,14 @@ export class MockBufferService implements IBufferService {
 		this.rows = rows;
 	}
 	public reset(): void {}
+}
+
+export function createMockBufferService(
+	cols: number,
+	rows: number,
+	optionsService?: OptionsService
+): BufferService {
+	return new MockBufferService(cols, rows, optionsService) as unknown as BufferService;
 }
 
 export class MockMouseStateService {

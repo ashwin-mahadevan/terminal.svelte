@@ -7,7 +7,7 @@ import { MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IAttributeData } from '$lib/common/Types';
 import { Buffer } from '$lib/common/buffer/Buffer';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -36,7 +36,7 @@ export class BufferSet {
 	 */
 	constructor(
 		private readonly _optionsService: OptionsService,
-		private readonly _bufferService: IBufferService
+		private readonly _bufferService: BufferService
 	) {
 		this.reset();
 		this._scrollbackListener = this._optionsService.onSpecificOptionChange('scrollback', () =>

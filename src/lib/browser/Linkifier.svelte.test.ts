@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Linkifier } from '$lib/browser/Linkifier';
-import { MockBufferService } from '$lib/common/TestUtils';
+import { createMockBufferService } from '$lib/common/TestUtils';
 import type { ILink } from '$lib/browser/Types';
 import { LinkProviderService } from '$lib/browser/services/LinkProviderService';
 
@@ -57,7 +57,7 @@ describe('Linkifier2', () => {
 
 	it('onShowLinkUnderline event range is correct', () =>
 		new Promise<void>((done) => {
-			const bufferService = new MockBufferService(100, 10);
+			const bufferService = createMockBufferService(100, 10);
 			const linkifier = new TestLinkifier2(
 				document.createElement('div'),
 				null!,
@@ -91,7 +91,7 @@ describe('Linkifier2', () => {
 
 	it('onHideLinkUnderline event range is correct', () =>
 		new Promise<void>((done) => {
-			const bufferService = new MockBufferService(100, 10);
+			const bufferService = createMockBufferService(100, 10);
 			const linkifier = new TestLinkifier2(
 				document.createElement('div'),
 				null!,
@@ -125,7 +125,7 @@ describe('Linkifier2', () => {
 
 	it('onShowLinkUnderline event range is correct for wrapped links', () =>
 		new Promise<void>((done) => {
-			const bufferService = new MockBufferService(100, 10);
+			const bufferService = createMockBufferService(100, 10);
 			const linkifier = new TestLinkifier2(
 				document.createElement('div'),
 				null!,
@@ -159,7 +159,7 @@ describe('Linkifier2', () => {
 
 	it('onHideLinkUnderline event range is correct for wrapped links', () =>
 		new Promise<void>((done) => {
-			const bufferService = new MockBufferService(100, 10);
+			const bufferService = createMockBufferService(100, 10);
 			const linkifier = new TestLinkifier2(
 				document.createElement('div'),
 				null!,

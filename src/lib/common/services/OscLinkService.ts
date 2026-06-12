@@ -2,7 +2,7 @@
  * Copyright (c) 2022 The xterm.js authors. All rights reserved.
  * @license MIT
  */
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { IMarker, IOscLinkData } from '$lib/common/Types';
 
 export class OscLinkService {
@@ -22,7 +22,7 @@ export class OscLinkService {
 	 */
 	private _dataByLinkId: Map<number, IOscLinkEntryNoId | IOscLinkEntryWithId> = new Map();
 
-	constructor(private readonly _bufferService: IBufferService) {}
+	constructor(private readonly _bufferService: BufferService) {}
 
 	public registerLink(data: IOscLinkData): number {
 		const buffer = this._bufferService.buffer;

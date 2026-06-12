@@ -8,9 +8,9 @@ import {
 	NULL_CELL_CODE,
 	WHITESPACE_CELL_CODE
 } from '$lib/common/buffer/Constants';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 
-export function updateWindowsModeWrappedState(bufferService: IBufferService): void {
+export function updateWindowsModeWrappedState(bufferService: BufferService): void {
 	// Winpty does not support wraparound mode which means that lines will never
 	// be marked as wrapped. This causes issues for things like copying a line
 	// retaining the wrapped new line characters or if consumers are listening

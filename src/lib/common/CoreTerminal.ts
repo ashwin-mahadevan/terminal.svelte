@@ -22,7 +22,6 @@
  */
 
 import type { ITerminalOptions } from '$lib/common/services/Services';
-import type { IBufferService } from '$lib/common/services/Services';
 import { BufferService, BufferServiceConstants } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import type { IAttributeData } from '$lib/common/Types';
@@ -51,7 +50,7 @@ let hasWriteSyncWarnHappened = false;
 
 export abstract class CoreTerminal {
 	protected readonly _store = new DisposableStore();
-	protected readonly _bufferService: IBufferService;
+	protected readonly _bufferService: BufferService;
 	protected readonly _charsetService: CharsetService;
 	protected readonly _oscLinkService: OscLinkService;
 

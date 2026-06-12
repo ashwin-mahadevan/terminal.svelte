@@ -10,30 +10,8 @@ import type {
 	IWindowsPty,
 	IOverviewRulerOptions
 } from '$lib/xterm';
-import type {
-	CursorInactiveStyle,
-	CursorStyle,
-	IAttributeData,
-	IColor,
-	IWindowOptions
-} from '$lib/common/Types';
-import type { Buffer } from '$lib/common/buffer/Buffer';
-import type { BufferSet } from '$lib/common/buffer/BufferSet';
+import type { CursorInactiveStyle, CursorStyle, IColor, IWindowOptions } from '$lib/common/Types';
 import type { LegacyEmitter, IEvent } from '$lib/common/Event';
-
-export interface IBufferService {
-	readonly cols: number;
-	readonly rows: number;
-	readonly buffer: Buffer;
-	readonly buffers: BufferSet;
-	isUserScrolling: boolean;
-	onResize: IEvent<IBufferResizeEvent>;
-	onScroll: IEvent<number>;
-	scroll(eraseAttr: IAttributeData, isWrapped?: boolean): void;
-	scrollLines(disp: number, suppressScrollEvent?: boolean): void;
-	resize(cols: number, rows: number): void;
-	reset(): void;
-}
 
 export interface IBufferResizeEvent {
 	cols: number;

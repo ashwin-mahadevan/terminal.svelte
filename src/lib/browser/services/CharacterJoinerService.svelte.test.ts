@@ -8,13 +8,13 @@ import { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerSer
 import { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
 import { CellData } from '$lib/common/buffer/CellData';
-import { MockBufferService, createCellData } from '$lib/common/TestUtils';
+import { createMockBufferService, createCellData } from '$lib/common/TestUtils';
 
 const TEST_STRING_CACHE = new BufferLineStringCache();
 
 describe('CharacterJoinerService', () => {
 	function createService(): CharacterJoinerService {
-		const bufferService = new MockBufferService(16, 10);
+		const bufferService = createMockBufferService(16, 10);
 		const lines = bufferService.buffer.lines;
 		lines.set(0, lineData([['a -> b -> c -> d']]));
 		lines.set(1, lineData([['a -> b => c -> d']]));

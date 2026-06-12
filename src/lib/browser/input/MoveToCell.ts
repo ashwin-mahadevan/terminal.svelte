@@ -4,7 +4,7 @@
  */
 
 import { C0 } from '$lib/common/data/EscapeSequences';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 
 const enum Direction {
 	UP = 'A',
@@ -21,7 +21,7 @@ const enum Direction {
 export function moveToCellSequence(
 	targetX: number,
 	targetY: number,
-	bufferService: IBufferService,
+	bufferService: BufferService,
 	applicationCursor: boolean
 ): string {
 	const startX = bufferService.buffer.x;
@@ -57,14 +57,14 @@ export function moveToCellSequence(
  */
 // TODO: Fix this upstream type error.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function colsFromRowBeginning(currX: number, bufferService: IBufferService): number {
+function colsFromRowBeginning(currX: number, bufferService: BufferService): number {
 	return currX - 1;
 }
 
 /**
  * Find the number of cols from a col to row end.
  */
-function colsFromRowEnd(currX: number, bufferService: IBufferService): number {
+function colsFromRowEnd(currX: number, bufferService: BufferService): number {
 	return bufferService.cols - currX;
 }
 
@@ -78,7 +78,7 @@ function resetStartingRow(
 	startY: number,
 	targetX: number,
 	targetY: number,
-	bufferService: IBufferService,
+	bufferService: BufferService,
 	applicationCursor: boolean
 ): string {
 	if (moveToRequestedRow(startY, targetY, bufferService, applicationCursor).length === 0) {
@@ -104,7 +104,7 @@ function resetStartingRow(
 function moveToRequestedRow(
 	startY: number,
 	targetY: number,
-	bufferService: IBufferService,
+	bufferService: BufferService,
 	applicationCursor: boolean
 ): string {
 	const startRow = startY - wrappedRowsForRow(startY, bufferService);
@@ -123,7 +123,7 @@ function moveToRequestedCol(
 	startY: number,
 	targetX: number,
 	targetY: number,
-	bufferService: IBufferService,
+	bufferService: BufferService,
 	applicationCursor: boolean
 ): string {
 	let startRow;
@@ -158,7 +158,7 @@ function moveToRequestedCol(
  * Calculates the number of wrapped rows between the unwrapped starting and
  * ending rows. These rows need to ignored since the cursor skips over them.
  */
-function wrappedRowsCount(startY: number, targetY: number, bufferService: IBufferService): number {
+function wrappedRowsCount(startY: number, targetY: number, bufferService: BufferService): number {
 	let wrappedRows = 0;
 	const startRow = startY - wrappedRowsForRow(startY, bufferService);
 	const endRow = targetY - wrappedRowsForRow(targetY, bufferService);
@@ -178,7 +178,7 @@ function wrappedRowsCount(startY: number, targetY: number, bufferService: IBuffe
  * Calculates the number of wrapped rows that make up a given row.
  * @param currentRow The row to determine how many wrapped rows make it up
  */
-function wrappedRowsForRow(currentRow: number, bufferService: IBufferService): number {
+function wrappedRowsForRow(currentRow: number, bufferService: BufferService): number {
 	let rowCount = 0;
 	let line = bufferService.buffer.lines.get(currentRow);
 	let lineWraps = line?.isWrapped;
@@ -204,7 +204,7 @@ function horizontalDirection(
 	startY: number,
 	targetX: number,
 	targetY: number,
-	bufferService: IBufferService,
+	bufferService: BufferService,
 	applicationCursor: boolean
 ): Direction {
 	let startRow;
@@ -246,7 +246,7 @@ function bufferLine(
 	endCol: number,
 	endRow: number,
 	forward: boolean,
-	bufferService: IBufferService
+	bufferService: BufferService
 ): string {
 	let currentCol = startCol;
 	let currentRow = startRow;

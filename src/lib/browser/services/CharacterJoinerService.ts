@@ -9,7 +9,7 @@ import type { ICharacterJoiner } from '$lib/browser/Types';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import { WHITESPACE_CELL_CHAR, Content } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 
 export class JoinedCellData extends AttributeData implements ICellData {
 	private _width: number;
@@ -63,7 +63,7 @@ export class CharacterJoinerService {
 	private _nextCharacterJoinerId: number = 0;
 	private _workCell: CellData = new CellData();
 
-	constructor(private _bufferService: IBufferService) {}
+	constructor(private _bufferService: BufferService) {}
 
 	public register(handler: (text: string) => [number, number][]): number {
 		const joiner: ICharacterJoiner = {

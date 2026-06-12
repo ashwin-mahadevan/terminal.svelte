@@ -8,7 +8,6 @@ import type { IAttributeData } from '$lib/common/Types';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { Buffer } from '$lib/common/buffer/Buffer';
-import type { IBufferService } from '$lib/common/services/Services';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -18,7 +17,7 @@ export const enum BufferServiceConstants {
 	MINIMUM_ROWS = 1
 }
 
-export class BufferService implements IBufferService {
+export class BufferService {
 	// TODO: Fix this upstream type error.
 
 	public cols: number;

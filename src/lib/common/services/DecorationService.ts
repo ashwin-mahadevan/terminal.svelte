@@ -9,7 +9,7 @@ import { css } from '$lib/common/Color';
 import { DisposableStore, MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import { SortedList } from '$lib/common/SortedList';
 import type { IColor } from '$lib/common/Types';
 import type { IDecoration, IDecorationOptions } from '$lib/xterm';
@@ -43,7 +43,7 @@ export class DecorationService {
 		return this._decorations.values();
 	}
 
-	constructor(private readonly _bufferService: IBufferService) {
+	constructor(private readonly _bufferService: BufferService) {
 		this._decorations = new SortedList((e) => e?.marker.line);
 
 		this._bufferActivateListener = this._bufferService.buffers.onBufferActivate(() => {

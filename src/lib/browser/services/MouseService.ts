@@ -4,7 +4,7 @@
  */
 
 import { addDisposableListener } from '$lib/browser/Dom';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import type { MouseStateService } from '$lib/common/services/MouseStateService';
@@ -47,7 +47,7 @@ export class MouseService {
 		private readonly _mouseCoordsService: MouseCoordsService,
 		private readonly _mouseStateService: MouseStateService,
 		private readonly _coreService: CoreService,
-		private readonly _bufferService: IBufferService,
+		private readonly _bufferService: BufferService,
 		private readonly _optionsService: OptionsService,
 		private readonly _selectionService: SelectionService,
 		private readonly _coreBrowserService: CoreBrowserService

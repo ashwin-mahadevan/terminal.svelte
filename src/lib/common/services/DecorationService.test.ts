@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { DecorationLineCache, DecorationService } from '$lib/common/services/DecorationService';
-import { MockBufferService, createMockOptionsService } from '$lib/common/TestUtils';
+import { createMockBufferService, createMockOptionsService } from '$lib/common/TestUtils';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import { Marker } from '$lib/common/buffer/Marker';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
@@ -15,7 +15,7 @@ function createFakeMarker(line: number): Marker {
 }
 
 function createDecorationService(): DecorationService {
-	const bufferService = new MockBufferService(80, 24, createMockOptionsService());
+	const bufferService = createMockBufferService(80, 24, createMockOptionsService());
 	return new DecorationService(bufferService);
 }
 
@@ -101,7 +101,7 @@ describe('DecorationService', () => {
 		});
 
 		it('should find multi-line decoration when single-line decorations exist on other lines', () => {
-			const bufferService = new MockBufferService(80, 24, createMockOptionsService());
+			const bufferService = createMockBufferService(80, 24, createMockOptionsService());
 			const serviceWithBuffer = new DecorationService(bufferService);
 			const buffer = bufferService.buffer;
 			(buffer as Buffer).fillViewportRows();
@@ -151,7 +151,7 @@ describe('DecorationService', () => {
 
 	describe('line index maintenance', () => {
 		it('should keep lookups correct after buffer trim', () => {
-			const bufferService = new MockBufferService(
+			const bufferService = createMockBufferService(
 				80,
 				5,
 				createMockOptionsService({ scrollback: 0 })
@@ -172,7 +172,7 @@ describe('DecorationService', () => {
 		});
 
 		it('should remove decoration from line index when marker is trimmed off buffer', () => {
-			const bufferService = new MockBufferService(
+			const bufferService = createMockBufferService(
 				80,
 				5,
 				createMockOptionsService({ scrollback: 0 })
@@ -195,7 +195,7 @@ describe('DecorationService', () => {
 		});
 
 		it('should keep multi-line decoration indexed after line insert', async () => {
-			const bufferService = new MockBufferService(
+			const bufferService = createMockBufferService(
 				80,
 				10,
 				createMockOptionsService({ scrollback: 100 })

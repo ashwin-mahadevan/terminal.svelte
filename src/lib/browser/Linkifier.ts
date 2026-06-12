@@ -13,7 +13,7 @@ import type {
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { dispose } from '$lib/common/Lifecycle';
 
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { RenderService } from './services/RenderService';
 import type { MouseCoordsService } from './services/MouseCoordsService';
 import type { LinkProviderService } from './services/LinkProviderService';
@@ -51,7 +51,7 @@ export class Linkifier {
 		private readonly _element: HTMLElement,
 		private readonly _mouseCoordsService: MouseCoordsService,
 		private readonly _renderService: RenderService,
-		private readonly _bufferService: IBufferService,
+		private readonly _bufferService: BufferService,
 		private readonly _linkProviderService: LinkProviderService
 	) {
 		// Listen to resize to catch the case where it's resized and the cursor is out of the viewport.

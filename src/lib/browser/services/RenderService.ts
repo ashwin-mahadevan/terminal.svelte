@@ -12,7 +12,8 @@ import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
-import type { IBufferService, IDecorationService } from '$lib/common/services/Services';
+import type { IDecorationService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -79,7 +80,7 @@ export class RenderService {
 		private readonly _optionsService: OptionsService,
 		private readonly _coreService: CoreService,
 		decorationService: IDecorationService,
-		bufferService: IBufferService,
+		bufferService: BufferService,
 		private readonly _coreBrowserService: CoreBrowserService,
 		themeService: ThemeService
 	) {

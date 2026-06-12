@@ -4,13 +4,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { MockBufferService } from '$lib/common/TestUtils';
+import { createMockBufferService } from '$lib/common/TestUtils';
 import { moveToCellSequence } from '$lib/browser/input/MoveToCell';
 
 describe('MoveToCell', () => {
 	describe('normal buffer', () => {
 		it('should use the right directional escape sequences', () => {
-			const bufferService = new MockBufferService(5, 5);
+			const bufferService = createMockBufferService(5, 5);
 			bufferService.buffer.x = 3;
 			bufferService.buffer.y = 3;
 			expect(moveToCellSequence(1, 3, bufferService, false)).toBe('\x1b[D\x1b[D');
@@ -19,7 +19,7 @@ describe('MoveToCell', () => {
 			expect(moveToCellSequence(5, 3, bufferService, false)).toBe('\x1b[C\x1b[C');
 		});
 		it('should wrap around entire row instead of doing up and down when the Y value differs', () => {
-			const bufferService = new MockBufferService(5, 5);
+			const bufferService = createMockBufferService(5, 5);
 			bufferService.buffer.x = 3;
 			bufferService.buffer.y = 3;
 			expect(moveToCellSequence(1, 1, bufferService, false)).toBe(
@@ -72,7 +72,7 @@ describe('MoveToCell', () => {
 			);
 		});
 		it('should use the correct character for application cursor', () => {
-			const bufferService = new MockBufferService(5, 5);
+			const bufferService = createMockBufferService(5, 5);
 			bufferService.buffer.x = 3;
 			bufferService.buffer.y = 3;
 			expect(moveToCellSequence(3, 1, bufferService, true)).toBe(
@@ -90,7 +90,7 @@ describe('MoveToCell', () => {
 
 	describe('alt buffer', () => {
 		it('should move the cursor across rows', () => {
-			const bufferService = new MockBufferService(5, 5);
+			const bufferService = createMockBufferService(5, 5);
 			bufferService.buffers.activateAltBuffer();
 			bufferService.buffer.x = 3;
 			bufferService.buffer.y = 3;

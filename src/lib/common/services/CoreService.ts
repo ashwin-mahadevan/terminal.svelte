@@ -4,7 +4,7 @@
  */
 
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -54,7 +54,7 @@ export class CoreService {
 	public readonly onRequestScrollToBottom = this._onRequestScrollToBottom.event;
 
 	constructor(
-		private readonly _bufferService: IBufferService,
+		private readonly _bufferService: BufferService,
 		private readonly _optionsService: OptionsService
 	) {
 		this.isCursorInitialized = _optionsService.rawOptions.showCursorImmediately ?? false;

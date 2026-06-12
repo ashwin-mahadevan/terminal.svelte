@@ -8,7 +8,7 @@ import type { RenderService } from '$lib/browser/services/RenderService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import type { MouseStateService } from '$lib/common/services/MouseStateService';
@@ -49,7 +49,7 @@ export class Viewport {
 	constructor(
 		element: HTMLElement,
 		screenElement: HTMLElement,
-		private readonly _bufferService: IBufferService,
+		private readonly _bufferService: BufferService,
 		coreBrowserService: CoreBrowserService,
 		private readonly _coreService: CoreService,
 		mouseStateService: MouseStateService,

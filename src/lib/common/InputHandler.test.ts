@@ -14,7 +14,7 @@ import { Attributes, BgFlags, UnderlineStyle } from '$lib/common/buffer/Constant
 import { AttributeData, ExtendedAttrs } from '$lib/common/buffer/AttributeData';
 import { Params } from '$lib/common/parser/Params';
 import {
-	MockBufferService,
+	createMockBufferService,
 	createMockOptionsService,
 	MockMouseStateService,
 	MockCharsetService,
@@ -23,7 +23,7 @@ import {
 	extendedAttributes,
 	createMockCoreService
 } from '$lib/common/TestUtils';
-import type { IBufferService } from '$lib/common/services/Services';
+
 import type { CharsetService } from '$lib/common/services/CharsetService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
@@ -33,11 +33,11 @@ import { OscLinkService } from '$lib/common/services/OscLinkService';
 import type { UnicodeService } from '$lib/common/services/UnicodeService';
 import type { MouseStateService } from '$lib/common/services/MouseStateService';
 
-function getCursor(bufferService: IBufferService): number[] {
+function getCursor(bufferService: BufferService): number[] {
 	return [bufferService.buffer.x, bufferService.buffer.y];
 }
 
-function getLines(bufferService: IBufferService, limit: number = bufferService.rows): string[] {
+function getLines(bufferService: BufferService, limit: number = bufferService.rows): string[] {
 	const res: string[] = [];
 	for (let i = 0; i < limit; ++i) {
 		const line = bufferService.buffer.lines.get(i);
@@ -79,7 +79,7 @@ class TestInputHandler extends InputHandler {
 }
 
 describe('InputHandler', () => {
-	let bufferService: IBufferService;
+	let bufferService: BufferService;
 	let coreService: CoreService;
 	let optionsService: OptionsService;
 	let oscLinkService: OscLinkService;
@@ -369,7 +369,7 @@ describe('InputHandler', () => {
 		it('should toggle bracketedPasteMode', () => {
 			const coreService = createMockCoreService();
 			const inputHandler = new TestInputHandler(
-				new MockBufferService(80, 30),
+				createMockBufferService(80, 30),
 				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				createMockOptionsService(),
@@ -388,7 +388,7 @@ describe('InputHandler', () => {
 			const coreService = createMockCoreService();
 			const optionsService = createMockOptionsService();
 			const inputHandler = new TestInputHandler(
-				new MockBufferService(80, 30),
+				createMockBufferService(80, 30),
 				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
@@ -408,7 +408,7 @@ describe('InputHandler', () => {
 			const optionsService = createMockOptionsService();
 			optionsService.rawOptions.vtExtensions = { colorSchemeQuery: false };
 			const inputHandler = new TestInputHandler(
-				new MockBufferService(80, 30),
+				createMockBufferService(80, 30),
 				new MockCharsetService() as unknown as CharsetService,
 				coreService,
 				optionsService,
@@ -422,7 +422,7 @@ describe('InputHandler', () => {
 		});
 	});
 	describe('regression tests', () => {
-		function termContent(bufferService: IBufferService, trim: boolean): string[] {
+		function termContent(bufferService: BufferService, trim: boolean): string[] {
 			const result = [];
 			for (let i = 0; i < bufferService.rows; ++i)
 				result.push(bufferService.buffer.lines.get(i)!.translateToString(trim));
@@ -430,7 +430,7 @@ describe('InputHandler', () => {
 		}
 
 		it('insertChars', async () => {
-			const bufferService = new MockBufferService(80, 30);
+			const bufferService = createMockBufferService(80, 30);
 			const inputHandler = new TestInputHandler(
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
@@ -485,7 +485,7 @@ describe('InputHandler', () => {
 			expect(line1.translateToString(true)).toBe('a'.repeat(bufferService.cols - 10));
 		});
 		it('deleteChars', async () => {
-			const bufferService = new MockBufferService(80, 30);
+			const bufferService = createMockBufferService(80, 30);
 			const inputHandler = new TestInputHandler(
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
@@ -543,7 +543,7 @@ describe('InputHandler', () => {
 			expect(line1.translateToString(true)).toBe('a'.repeat(bufferService.cols - 10));
 		});
 		it('eraseInLine', async () => {
-			const bufferService = new MockBufferService(80, 30);
+			const bufferService = createMockBufferService(80, 30);
 			const inputHandler = new TestInputHandler(
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
@@ -584,7 +584,7 @@ describe('InputHandler', () => {
 			);
 		});
 		it('eraseInLine reflow', async () => {
-			const bufferService = new MockBufferService(80, 30);
+			const bufferService = createMockBufferService(80, 30);
 			const inputHandler = new TestInputHandler(
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
@@ -664,7 +664,7 @@ describe('InputHandler', () => {
 			expect(bufferService.rows * 2 + 2).toBe(bufferService.buffer.lines.length);
 		});
 		it('eraseInDisplay', async () => {
-			const bufferService = new MockBufferService(80, 7);
+			const bufferService = createMockBufferService(80, 7);
 			const inputHandler = new TestInputHandler(
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
@@ -788,7 +788,7 @@ describe('InputHandler', () => {
 	describe('print', () => {
 		it('should not cause an infinite loop (regression test)', () => {
 			const inputHandler = new TestInputHandler(
-				new MockBufferService(80, 30),
+				createMockBufferService(80, 30),
 				new MockCharsetService() as unknown as CharsetService,
 				createMockCoreService(),
 				createMockOptionsService(),
@@ -817,11 +817,11 @@ describe('InputHandler', () => {
 	});
 
 	describe('alt screen', () => {
-		let bufferService: IBufferService;
+		let bufferService: BufferService;
 		let handler: TestInputHandler;
 
 		beforeEach(() => {
-			bufferService = new MockBufferService(80, 30);
+			bufferService = createMockBufferService(80, 30);
 			handler = new TestInputHandler(
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
@@ -2849,7 +2849,7 @@ describe('InputHandler', () => {
 	});
 
 	describe('InputHandler - kitty keyboard', () => {
-		let bufferService: IBufferService;
+		let bufferService: BufferService;
 		let coreService: CoreService;
 		let optionsService: OptionsService;
 		let inputHandler: TestInputHandler;
@@ -2906,7 +2906,7 @@ describe('InputHandler', () => {
 	});
 
 	describe('InputHandler - async handlers', () => {
-		let bufferService: IBufferService;
+		let bufferService: BufferService;
 		let coreService: CoreService;
 		let optionsService: OptionsService;
 		let inputHandler: TestInputHandler;

@@ -4,7 +4,7 @@
  */
 
 import type { RenderService } from '$lib/browser/services/RenderService';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import { C0 } from '$lib/common/data/EscapeSequences';
 
@@ -58,7 +58,7 @@ export class CompositionHelper {
 	constructor(
 		private readonly _textarea: HTMLTextAreaElement,
 		private readonly _compositionView: HTMLElement,
-		private readonly _bufferService: IBufferService,
+		private readonly _bufferService: BufferService,
 		private readonly _coreService: CoreService,
 		private readonly _renderService: RenderService
 	) {

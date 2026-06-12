@@ -10,8 +10,9 @@ import {
 } from '$lib/browser/services/MouseService';
 import { MouseStateService } from '$lib/common/services/MouseStateService';
 import { CoreMouseAction, CoreMouseButton } from '$lib/common/Types';
-import type { IBufferService } from '$lib/common/services/Services';
+
 import type { CoreService } from '$lib/common/services/CoreService';
+import type { BufferService } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
 
@@ -54,7 +55,7 @@ function toBytes(s: string | undefined): number[] {
 }
 
 // Minimal mocks for deps that MouseService touches in these tests
-const bufferService: IBufferService = {
+const bufferService: BufferService = {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	buffer: { hasScrollback: true } as any,

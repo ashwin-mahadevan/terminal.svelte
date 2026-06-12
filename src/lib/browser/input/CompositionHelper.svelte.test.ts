@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { CompositionHelper } from '$lib/browser/input/CompositionHelper';
-import { createMockCoreService, MockBufferService } from '$lib/common/TestUtils';
+import { createMockCoreService, createMockBufferService } from '$lib/common/TestUtils';
 
 // NOTE: $lib/browser/TestUtils currently fails to import under
 // verbatimModuleSyntax (its `$lib/xterm` type-only import is not elided), so the
@@ -61,7 +61,7 @@ function setupCompositionHelper() {
 	coreService.triggerDataEvent = (text: string) => {
 		state.handledText += text;
 	};
-	const bufferService = new MockBufferService(10, 5);
+	const bufferService = createMockBufferService(10, 5);
 	const compositionHelper = new CompositionHelper(
 		textarea,
 		compositionView,

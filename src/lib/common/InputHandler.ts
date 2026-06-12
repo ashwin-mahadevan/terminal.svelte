@@ -33,7 +33,7 @@ import { CellData } from '$lib/common/buffer/CellData';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { CharsetService } from '$lib/common/services/CharsetService';
 import type { OscLinkService } from '$lib/common/services/OscLinkService';
 import type { MouseStateService } from '$lib/common/services/MouseStateService';
@@ -203,7 +203,7 @@ export class InputHandler {
 	};
 
 	constructor(
-		private readonly _bufferService: IBufferService,
+		private readonly _bufferService: BufferService,
 		private readonly _charsetService: CharsetService,
 		private readonly _coreService: CoreService,
 		private readonly _optionsService: OptionsService,
@@ -4039,7 +4039,7 @@ class DirtyRowTracker {
 	public start!: number;
 	public end!: number;
 
-	constructor(private readonly _bufferService: IBufferService) {
+	constructor(private readonly _bufferService: BufferService) {
 		this.clearRange();
 	}
 

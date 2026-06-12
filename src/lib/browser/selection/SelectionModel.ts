@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 
 /**
  * Represents a selection within the buffer. This model only cares about column
@@ -32,7 +32,7 @@ export class SelectionModel {
 	 */
 	public selectionEnd: [number, number] | undefined;
 
-	constructor(private _bufferService: IBufferService) {}
+	constructor(private _bufferService: BufferService) {}
 
 	/**
 	 * Clears the current selection.

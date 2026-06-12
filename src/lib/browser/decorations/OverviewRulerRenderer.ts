@@ -9,7 +9,8 @@ import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserServic
 import type { RenderService } from '$lib/browser/services/RenderService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { IBufferService, IDecorationService } from '$lib/common/services/Services';
+import type { IDecorationService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 
 const enum Constants {
@@ -69,7 +70,7 @@ export class OverviewRulerRenderer {
 	constructor(
 		private readonly _viewportElement: HTMLElement,
 		private readonly _screenElement: HTMLElement,
-		private readonly _bufferService: IBufferService,
+		private readonly _bufferService: BufferService,
 		private readonly _decorationService: IDecorationService,
 		private readonly _renderService: RenderService,
 		private readonly _optionsService: OptionsService,

@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { SelectionService, SelectionMode } from '$lib/browser/services/SelectionService';
 import type { SelectionModel } from '$lib/browser/selection/SelectionModel';
 import {
-	MockBufferService,
+	createMockBufferService,
 	createMockOptionsService,
 	MockCoreService,
 	MockMouseStateService,
@@ -15,7 +15,7 @@ import {
 } from '$lib/common/TestUtils';
 import { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
-import type { IBufferService } from '$lib/common/services/Services';
+import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { RenderService } from '$lib/browser/services/RenderService';
@@ -52,7 +52,7 @@ const TEST_STRING_CACHE = new BufferLineStringCache();
 
 class TestSelectionService extends SelectionService {
 	constructor(
-		bufferService: IBufferService,
+		bufferService: BufferService,
 		optionsService: OptionsService,
 		renderService: RenderService,
 		public readonly mouseStateService: MockMouseStateService
@@ -124,7 +124,7 @@ describe('SelectionService', () => {
 		it('should expand selection for normal width chars', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -156,7 +156,7 @@ describe('SelectionService', () => {
 		it('should expand selection for whitespace', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -184,7 +184,7 @@ describe('SelectionService', () => {
 		it('should expand selection for wide characters', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -255,7 +255,7 @@ describe('SelectionService', () => {
 		it('should select up to non-path characters that are commonly adjacent to paths', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -305,7 +305,7 @@ describe('SelectionService', () => {
 		it('should expand upwards or downards for wrapped lines', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -330,7 +330,7 @@ describe('SelectionService', () => {
 		it('should expand both upwards and downwards for word wrapped over many lines', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -372,7 +372,7 @@ describe('SelectionService', () => {
 			it('should treat a single emoji as a word when wrapped in spaces', () => {
 				const optionsService = createMockOptionsService();
 				const mouseStateService = new MockMouseStateService();
-				const bufferService = new MockBufferService(20, 20, optionsService);
+				const bufferService = createMockBufferService(20, 20, optionsService);
 				const buffer = bufferService.buffer;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -396,7 +396,7 @@ describe('SelectionService', () => {
 			it('should treat multiple emojis as a word when wrapped in spaces', () => {
 				const optionsService = createMockOptionsService();
 				const mouseStateService = new MockMouseStateService();
-				const bufferService = new MockBufferService(20, 20, optionsService);
+				const bufferService = createMockBufferService(20, 20, optionsService);
 				const buffer = bufferService.buffer;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -422,7 +422,7 @@ describe('SelectionService', () => {
 			it('should treat emojis using the zero-width-joiner as a single word', () => {
 				const optionsService = createMockOptionsService();
 				const mouseStateService = new MockMouseStateService();
-				const bufferService = new MockBufferService(20, 20, optionsService);
+				const bufferService = createMockBufferService(20, 20, optionsService);
 				const buffer = bufferService.buffer;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -455,7 +455,7 @@ describe('SelectionService', () => {
 			it('should treat emojis and characters joined together as a word', () => {
 				const optionsService = createMockOptionsService();
 				const mouseStateService = new MockMouseStateService();
-				const bufferService = new MockBufferService(20, 20, optionsService);
+				const bufferService = createMockBufferService(20, 20, optionsService);
 				const buffer = bufferService.buffer;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -501,7 +501,7 @@ describe('SelectionService', () => {
 			it('should treat complex emojis and characters joined together as a word', () => {
 				const optionsService = createMockOptionsService();
 				const mouseStateService = new MockMouseStateService();
-				const bufferService = new MockBufferService(20, 20, optionsService);
+				const bufferService = createMockBufferService(20, 20, optionsService);
 				const buffer = bufferService.buffer;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -572,7 +572,7 @@ describe('SelectionService', () => {
 		it('should select the entire line', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -597,7 +597,7 @@ describe('SelectionService', () => {
 		it('should select the entire wrapped line', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -628,7 +628,7 @@ describe('SelectionService', () => {
 		it('should select the entire buffer, beyond the viewport', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -656,7 +656,7 @@ describe('SelectionService', () => {
 		it('should select a single line', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -680,7 +680,7 @@ describe('SelectionService', () => {
 		it('should select multiple lines', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -706,7 +706,7 @@ describe('SelectionService', () => {
 		it('should select the to the start when requesting a negative row', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -729,7 +729,7 @@ describe('SelectionService', () => {
 		it('should select the to the end when requesting beyond the final row', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -755,7 +755,7 @@ describe('SelectionService', () => {
 		it('should return whether there is a selection', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -785,7 +785,7 @@ describe('SelectionService', () => {
 		it('should select a column of text', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -813,7 +813,7 @@ describe('SelectionService', () => {
 		it('should select a column of text without chopping up double width characters', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -841,7 +841,7 @@ describe('SelectionService', () => {
 		it('should select a column of text with single character emojis', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -869,7 +869,7 @@ describe('SelectionService', () => {
 		it('should select a column of text with double character emojis', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			const buffer = bufferService.buffer;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -901,7 +901,7 @@ describe('SelectionService', () => {
 		it('should return whether coords are in the selection', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -927,7 +927,7 @@ describe('SelectionService', () => {
 		it('should force selection without alt when mouseEventsRequireAlt is enabled', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -948,7 +948,7 @@ describe('SelectionService', () => {
 		it('should take precedence over macOptionClickForcesSelection', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
-			const bufferService = new MockBufferService(20, 20, optionsService);
+			const bufferService = createMockBufferService(20, 20, optionsService);
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;

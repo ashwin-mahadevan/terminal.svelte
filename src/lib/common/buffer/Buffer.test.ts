@@ -6,8 +6,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Buffer } from '$lib/common/buffer/Buffer';
 import { CircularList } from '$lib/common/CircularList';
-import { createMockOptionsService, MockBufferService, createCellData } from '$lib/common/TestUtils';
+import {
+	createMockOptionsService,
+	createMockBufferService,
+	createCellData
+} from '$lib/common/TestUtils';
 import type { OptionsService } from '$lib/common/services/OptionsService';
+import type { BufferService } from '$lib/common/services/BufferService';
 import { BufferLine, DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
 import { CellData } from '$lib/common/buffer/CellData';
@@ -30,12 +35,12 @@ class TestBuffer extends Buffer {
 
 describe('Buffer', () => {
 	let optionsService: OptionsService;
-	let bufferService: MockBufferService;
+	let bufferService: BufferService;
 	let buffer: TestBuffer;
 
 	beforeEach(() => {
 		optionsService = createMockOptionsService({ scrollback: INIT_SCROLLBACK });
-		bufferService = new MockBufferService(INIT_COLS, INIT_ROWS);
+		bufferService = createMockBufferService(INIT_COLS, INIT_ROWS);
 		buffer = new TestBuffer(true, optionsService, bufferService);
 	});
 
