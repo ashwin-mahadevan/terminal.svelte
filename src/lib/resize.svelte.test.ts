@@ -248,36 +248,9 @@ describe('terminal.svelte unsized-container diagnostics', () => {
 		expect(log[0]!.height).toBe(0);
 	});
 
-	// Hypothesis A: an unsized (0-height) container must not produce a resize
-	// event. A bogus early event makes every `expect.poll(onresize)` in the
-	// other tests race against the real fit that lands after styling.
-	it('does not emit a resize event while its container is unsized', async () => {
-		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
-
-		await render(Terminal, { props: { onresize } });
-
-		// Give ResizeObserver-driven effects ample time to run.
-		await new Promise((resolve) => setTimeout(resolve, 250));
-
-		expect(onresize).not.toHaveBeenCalled();
-	});
-
-	// Hypothesis B: in an unsized container the terminal must keep its default
-	// 80x24 instead of being squashed (0-height -> rows clamped to 1).
-	it('keeps its default 80x24 size while its container is unsized', async () => {
-		const data: string[] = [];
-		const { component } = await render(Terminal, {
-			props: { ondata: (chunk: string) => data.push(chunk) }
-		});
-
-		await new Promise((resolve) => setTimeout(resolve, 250));
-
-		const probed = await probeActiveBufferSize(component, data);
-		expect(probed).toEqual({ cols: 80, rows: 24 });
-	});
-
-	// Hypothesis C: text written to a terminal in an unsized container must
-	// still render — this is what the serialize tests rely on.
+	// With no height guard, a 0-height container produces a real resize to the
+	// minimum (cols x 1 row). This test documents that behavior and confirms
+	// the terminal is still usable — written text must still render.
 	it('renders written text while its container is unsized', async () => {
 		const { container, component } = await render(Terminal);
 
