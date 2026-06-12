@@ -9,7 +9,7 @@ import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { IBufferService } from '$lib/common/services/Services';
-import type { IOptionsService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -40,7 +40,7 @@ export class BufferService implements IBufferService {
 	private _cachedBlankLine: BufferLine | undefined;
 	private readonly _bufferActivateListener: IDisposable;
 
-	constructor(optionsService: IOptionsService) {
+	constructor(optionsService: OptionsService) {
 		this.cols = Math.max(optionsService.rawOptions.cols || 0, BufferServiceConstants.MINIMUM_COLS);
 		this.rows = Math.max(optionsService.rawOptions.rows || 0, BufferServiceConstants.MINIMUM_ROWS);
 		this.buffers = new BufferSet(optionsService, this);

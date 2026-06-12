@@ -31,7 +31,7 @@ import {
 } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
-import type { IOptionsService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import type { IBufferService } from '$lib/common/services/Services';
 import type { CharsetService } from '$lib/common/services/CharsetService';
@@ -206,7 +206,7 @@ export class InputHandler {
 		private readonly _bufferService: IBufferService,
 		private readonly _charsetService: CharsetService,
 		private readonly _coreService: CoreService,
-		private readonly _optionsService: IOptionsService,
+		private readonly _optionsService: OptionsService,
 		private readonly _oscLinkService: OscLinkService,
 		private readonly _mouseStateService: MouseStateService,
 		private readonly _unicodeService: UnicodeService,

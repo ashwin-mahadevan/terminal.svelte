@@ -4,7 +4,7 @@
  */
 
 import type { SelectionService } from '$lib/browser/services/SelectionService';
-import type { IOptionsService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 
 /**
@@ -50,7 +50,7 @@ export function handlePasteEvent(
 	ev: ClipboardEvent,
 	textarea: HTMLTextAreaElement,
 	coreService: CoreService,
-	optionsService: IOptionsService
+	optionsService: OptionsService
 ): void {
 	ev.stopPropagation();
 	if (ev.clipboardData) {
@@ -63,7 +63,7 @@ export function paste(
 	text: string,
 	textarea: HTMLTextAreaElement,
 	coreService: CoreService,
-	optionsService: IOptionsService
+	optionsService: OptionsService
 ): void {
 	text = prepareTextForTerminal(text);
 	text = bracketTextForPaste(

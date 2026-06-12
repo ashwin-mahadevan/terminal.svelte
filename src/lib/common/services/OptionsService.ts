@@ -6,7 +6,7 @@
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { isMac } from '$lib/common/Platform';
 import type { CursorStyle } from '$lib/common/Types';
-import type { FontWeight, IOptionsService, ITerminalOptions } from '$lib/common/services/Services';
+import type { FontWeight, ITerminalOptions } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
 export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
@@ -70,7 +70,7 @@ const FONT_WEIGHT_OPTIONS: Extract<FontWeight, string>[] = [
 	'900'
 ];
 
-export class OptionsService implements IOptionsService {
+export class OptionsService {
 	public readonly rawOptions: Required<ITerminalOptions>;
 	public options: Required<ITerminalOptions>;
 
@@ -107,7 +107,7 @@ export class OptionsService implements IOptionsService {
 
 	public onSpecificOptionChange<T extends keyof ITerminalOptions>(
 		key: T,
-		listener: (value: ITerminalOptions[T]) => void
+		listener: (value: Required<ITerminalOptions>[T]) => void
 	): IDisposable {
 		return this.onOptionChange((eventKey) => {
 			if (eventKey === key) {

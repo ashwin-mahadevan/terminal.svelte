@@ -10,7 +10,7 @@ import {
 } from '$lib/browser/services/MouseService';
 import { MouseStateService } from '$lib/common/services/MouseStateService';
 import { CoreMouseAction, CoreMouseButton } from '$lib/common/Types';
-import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
 import type { CoreService } from '$lib/common/services/CoreService';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
@@ -64,7 +64,7 @@ const bufferService: IBufferService = {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
-const optionsService: IOptionsService = {
+const optionsService: OptionsService = {
 	rawOptions: {
 		fastScrollSensitivity: 1,
 		scrollSensitivity: 1

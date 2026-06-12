@@ -28,7 +28,8 @@ import {
 } from '$lib/common/buffer/Constants';
 import { Marker } from '$lib/common/buffer/Marker';
 import { DEFAULT_CHARSET } from '$lib/common/data/Charsets';
-import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 
 const MAX_BUFFER_SIZE = 4294967295; // 2^32 - 1
 
@@ -78,7 +79,7 @@ export class Buffer {
 
 	constructor(
 		private _hasScrollback: boolean,
-		private _optionsService: IOptionsService,
+		private _optionsService: OptionsService,
 		private _bufferService: IBufferService
 	) {
 		this._cols = this._bufferService.cols;

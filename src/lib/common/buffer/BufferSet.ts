@@ -7,7 +7,8 @@ import { MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IAttributeData } from '$lib/common/Types';
 import { Buffer } from '$lib/common/buffer/Buffer';
-import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 import { LegacyEmitter } from '$lib/common/Event';
 
 /**
@@ -34,7 +35,7 @@ export class BufferSet {
 	 * Create a new BufferSet for the given terminal.
 	 */
 	constructor(
-		private readonly _optionsService: IOptionsService,
+		private readonly _optionsService: OptionsService,
 		private readonly _bufferService: IBufferService
 	) {
 		this.reset();

@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
 import type { ILink } from '$lib/browser/Types';
-import { createCellData, MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
+import { createCellData, MockBufferService, createMockOptionsService } from '$lib/common/TestUtils';
 import type { OscLinkService } from '$lib/common/services/OscLinkService';
 import type { IOscLinkData } from '$lib/common/Types';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
@@ -54,7 +54,7 @@ function getLinks(provider: OscLinkProvider, y: number): Promise<ILink[]> {
 
 describe('OscLinkProvider', () => {
 	it('expands a wrapped link range backward to the previous line', async () => {
-		const optionsService = new MockOptionsService();
+		const optionsService = createMockOptionsService();
 		const bufferService = new MockBufferService(5, 5, optionsService);
 		const provider = new OscLinkProvider(
 			bufferService,
@@ -78,7 +78,7 @@ describe('OscLinkProvider', () => {
 	});
 
 	it('expands a wrapped link range forward when a link ends at line boundary', async () => {
-		const optionsService = new MockOptionsService();
+		const optionsService = createMockOptionsService();
 		const bufferService = new MockBufferService(5, 5, optionsService);
 		const provider = new OscLinkProvider(
 			bufferService,
@@ -101,7 +101,7 @@ describe('OscLinkProvider', () => {
 	});
 
 	it('does not merge wrapped links with different url ids', async () => {
-		const optionsService = new MockOptionsService();
+		const optionsService = createMockOptionsService();
 		const bufferService = new MockBufferService(5, 5, optionsService);
 		const provider = new OscLinkProvider(
 			bufferService,

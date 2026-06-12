@@ -12,11 +12,8 @@ import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
-import type {
-	IBufferService,
-	IDecorationService,
-	IOptionsService
-} from '$lib/common/services/Services';
+import type { IBufferService, IDecorationService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -79,7 +76,7 @@ export class RenderService {
 		terminal: CoreBrowserTerminal,
 		private _rowCount: number,
 		screenElement: HTMLElement,
-		private readonly _optionsService: IOptionsService,
+		private readonly _optionsService: OptionsService,
 		private readonly _coreService: CoreService,
 		decorationService: IDecorationService,
 		bufferService: IBufferService,

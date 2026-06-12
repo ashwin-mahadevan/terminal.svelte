@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
 	IDecoration,
 	IDecorationOptions,
@@ -41,45 +40,6 @@ export interface IBufferResizeEvent {
 	rows: number;
 	colsChanged: boolean;
 	rowsChanged: boolean;
-}
-
-export interface IOptionsService {
-	/**
-	 * Read only access to the raw options object, this is an internal-only fast path for accessing
-	 * single options without any validation as we trust TypeScript to enforce correct usage
-	 * internally.
-	 */
-	readonly rawOptions: Required<ITerminalOptions>;
-
-	/**
-	 * Options as exposed through the public API, this property uses getters and setters with
-	 * validation which makes it safer but slower. {@link rawOptions} should be used for pretty much
-	 * all internal usage for performance reasons.
-	 */
-	readonly options: Required<ITerminalOptions>;
-
-	/**
-	 * Adds an event listener for when any option changes.
-	 */
-	readonly onOptionChange: IEvent<keyof ITerminalOptions>;
-
-	/**
-	 * Adds an event listener for when a specific option changes, this is a convenience method that is
-	 * preferred over {@link onOptionChange} when only a single option is being listened to.
-	 */
-
-	onSpecificOptionChange<T extends keyof ITerminalOptions>(
-		key: T,
-		listener: (arg1: Required<ITerminalOptions>[T]) => void
-	): IDisposable;
-
-	/**
-	 * Adds an event listener for when a set of specific options change, this is a convenience method
-	 * that is preferred over {@link onOptionChange} when multiple options are being listened to and
-	 * handled the same way.
-	 */
-
-	onMultipleOptionChange(keys: (keyof ITerminalOptions)[], listener: () => void): IDisposable;
 }
 
 export type FontWeight =

@@ -6,13 +6,13 @@
 import { describe, it, expect } from 'vitest';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import { Buffer } from '$lib/common/buffer/Buffer';
-import { MockOptionsService, MockBufferService, createCellData } from '$lib/common/TestUtils';
+import { createMockOptionsService, MockBufferService, createCellData } from '$lib/common/TestUtils';
 
 describe('BufferSet', () => {
 	describe('constructor', () => {
 		it('should create two different buffers: alt and normal', () => {
 			const bufferSet = new BufferSet(
-				new MockOptionsService({ scrollback: 1000 }),
+				createMockOptionsService({ scrollback: 1000 }),
 				new MockBufferService(80, 24)
 			);
 			expect(bufferSet.normal).toBeInstanceOf(Buffer);
@@ -24,7 +24,7 @@ describe('BufferSet', () => {
 	describe('activateNormalBuffer', () => {
 		it('should set the normal buffer as the currently active buffer', () => {
 			const bufferSet = new BufferSet(
-				new MockOptionsService({ scrollback: 1000 }),
+				createMockOptionsService({ scrollback: 1000 }),
 				new MockBufferService(80, 24)
 			);
 			bufferSet.activateNormalBuffer();
@@ -35,7 +35,7 @@ describe('BufferSet', () => {
 	describe('activateAltBuffer', () => {
 		it('should set the alt buffer as the currently active buffer', () => {
 			const bufferSet = new BufferSet(
-				new MockOptionsService({ scrollback: 1000 }),
+				createMockOptionsService({ scrollback: 1000 }),
 				new MockBufferService(80, 24)
 			);
 			bufferSet.activateAltBuffer();
@@ -46,7 +46,7 @@ describe('BufferSet', () => {
 	describe('cursor handling when swapping buffers', () => {
 		it('should keep the cursor stationary when activating alt buffer', () => {
 			const bufferSet = new BufferSet(
-				new MockOptionsService({ scrollback: 1000 }),
+				createMockOptionsService({ scrollback: 1000 }),
 				new MockBufferService(80, 24)
 			);
 			bufferSet.normal.x = 0;
@@ -62,7 +62,7 @@ describe('BufferSet', () => {
 		});
 		it('should keep the cursor stationary when activating normal buffer', () => {
 			const bufferSet = new BufferSet(
-				new MockOptionsService({ scrollback: 1000 }),
+				createMockOptionsService({ scrollback: 1000 }),
 				new MockBufferService(80, 24)
 			);
 			bufferSet.normal.x = 0;
@@ -81,7 +81,7 @@ describe('BufferSet', () => {
 	describe('markers', () => {
 		it('should clear the markers when the buffer is switched', () => {
 			const bufferSet = new BufferSet(
-				new MockOptionsService({ scrollback: 1000 }),
+				createMockOptionsService({ scrollback: 1000 }),
 				new MockBufferService(80, 24)
 			);
 			bufferSet.activateAltBuffer();
@@ -95,7 +95,7 @@ describe('BufferSet', () => {
 	describe('lifecycle', () => {
 		it('should dispose previous buffers on reset', () => {
 			const bufferSet = new BufferSet(
-				new MockOptionsService({ scrollback: 1000 }),
+				createMockOptionsService({ scrollback: 1000 }),
 				new MockBufferService(80, 24)
 			);
 			// TODO: Fix this upstream type error.
@@ -117,7 +117,7 @@ describe('BufferSet', () => {
 
 		it('should dispose both buffers when disposed', () => {
 			const bufferSet = new BufferSet(
-				new MockOptionsService({ scrollback: 1000 }),
+				createMockOptionsService({ scrollback: 1000 }),
 				new MockBufferService(80, 24)
 			);
 			// TODO: Fix this upstream type error.

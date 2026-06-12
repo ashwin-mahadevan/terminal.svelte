@@ -10,10 +10,10 @@ import type {
 	IUnicodeVersionProvider,
 	IInternalDecoration,
 	IBufferResizeEvent,
-	IBufferService,
-	IOptionsService
+	IBufferService
 } from '$lib/common/services/Services';
 import type { CoreService } from '$lib/common/services/CoreService';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import type { Buffer } from '$lib/common/buffer/Buffer';
@@ -67,7 +67,7 @@ export class MockBufferService implements IBufferService {
 	constructor(
 		public cols: number,
 		public rows: number,
-		optionsService: IOptionsService = new MockOptionsService()
+		optionsService: OptionsService = createMockOptionsService()
 	) {
 		this.buffers = new BufferSet(optionsService, this);
 		// Listen to buffer activation events and automatically fire scroll events
@@ -213,7 +213,7 @@ export function createMockCoreService(): CoreService {
 	return new MockCoreService() as unknown as CoreService;
 }
 
-export class MockOptionsService implements IOptionsService {
+export class MockOptionsService {
 	// TODO: Fix this upstream type error.
 
 	public readonly rawOptions: Required<ITerminalOptions> = structuredClone(DEFAULT_OPTIONS);
@@ -259,6 +259,10 @@ export class MockOptionsService implements IOptionsService {
 			this.options[key] = options[key];
 		}
 	}
+}
+
+export function createMockOptionsService(testOptions?: Partial<ITerminalOptions>): OptionsService {
+	return new MockOptionsService(testOptions) as unknown as OptionsService;
 }
 
 export class MockOscLinkService {

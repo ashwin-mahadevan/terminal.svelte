@@ -8,7 +8,8 @@ import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { INVERTED_DEFAULT_COLOR } from '$lib/browser/renderer/shared/Constants';
 import { WHITESPACE_CELL_CHAR, Attributes } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { IDecorationService, IOptionsService } from '$lib/common/services/Services';
+import type { IDecorationService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import { channels, color } from '$lib/common/Color';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
@@ -48,7 +49,7 @@ export class DomRendererRowFactory {
 	constructor(
 		private readonly _document: Document,
 		private readonly _characterJoinerService: CharacterJoinerService,
-		private readonly _optionsService: IOptionsService,
+		private readonly _optionsService: OptionsService,
 		private readonly _coreBrowserService: CoreBrowserService,
 		private readonly _coreService: CoreService,
 		private readonly _decorationService: IDecorationService,

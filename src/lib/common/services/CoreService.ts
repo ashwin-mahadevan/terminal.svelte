@@ -4,7 +4,8 @@
  */
 
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
-import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 import { LegacyEmitter } from '$lib/common/Event';
 
 const DEFAULT_MODES: IModes = Object.freeze({
@@ -54,7 +55,7 @@ export class CoreService {
 
 	constructor(
 		private readonly _bufferService: IBufferService,
-		private readonly _optionsService: IOptionsService
+		private readonly _optionsService: OptionsService
 	) {
 		this.isCursorInitialized = _optionsService.rawOptions.showCursorImmediately ?? false;
 		this.modes = structuredClone(DEFAULT_MODES);

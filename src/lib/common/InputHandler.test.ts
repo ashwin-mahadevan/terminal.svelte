@@ -15,7 +15,7 @@ import { AttributeData, ExtendedAttrs } from '$lib/common/buffer/AttributeData';
 import { Params } from '$lib/common/parser/Params';
 import {
 	MockBufferService,
-	MockOptionsService,
+	createMockOptionsService,
 	MockMouseStateService,
 	MockCharsetService,
 	MockUnicodeService,
@@ -26,6 +26,7 @@ import {
 import type { IBufferService } from '$lib/common/services/Services';
 import type { CharsetService } from '$lib/common/services/CharsetService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 import { BufferService } from '$lib/common/services/BufferService';
 import { CoreService } from '$lib/common/services/CoreService';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
@@ -80,12 +81,12 @@ class TestInputHandler extends InputHandler {
 describe('InputHandler', () => {
 	let bufferService: IBufferService;
 	let coreService: CoreService;
-	let optionsService: MockOptionsService;
+	let optionsService: OptionsService;
 	let oscLinkService: OscLinkService;
 	let inputHandler: TestInputHandler;
 
 	beforeEach(() => {
-		optionsService = new MockOptionsService();
+		optionsService = createMockOptionsService();
 		bufferService = new BufferService(optionsService);
 		bufferService.resize(80, 30);
 		coreService = new CoreService(bufferService, optionsService);
@@ -371,7 +372,7 @@ describe('InputHandler', () => {
 				new MockBufferService(80, 30),
 				new MockCharsetService() as unknown as CharsetService,
 				coreService,
-				new MockOptionsService(),
+				createMockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService() as unknown as MouseStateService,
 				new MockUnicodeService() as unknown as UnicodeService
@@ -385,7 +386,7 @@ describe('InputHandler', () => {
 		});
 		it('should toggle colorSchemeUpdates (DECSET 2031)', () => {
 			const coreService = createMockCoreService();
-			const optionsService = new MockOptionsService();
+			const optionsService = createMockOptionsService();
 			const inputHandler = new TestInputHandler(
 				new MockBufferService(80, 30),
 				new MockCharsetService() as unknown as CharsetService,
@@ -404,7 +405,7 @@ describe('InputHandler', () => {
 		});
 		it('should not toggle colorSchemeUpdates when colorSchemeQuery is disabled', () => {
 			const coreService = createMockCoreService();
-			const optionsService = new MockOptionsService();
+			const optionsService = createMockOptionsService();
 			optionsService.rawOptions.vtExtensions = { colorSchemeQuery: false };
 			const inputHandler = new TestInputHandler(
 				new MockBufferService(80, 30),
@@ -434,7 +435,7 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
 				createMockCoreService(),
-				new MockOptionsService(),
+				createMockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService() as unknown as MouseStateService,
 				new MockUnicodeService() as unknown as UnicodeService
@@ -489,7 +490,7 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
 				createMockCoreService(),
-				new MockOptionsService(),
+				createMockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService() as unknown as MouseStateService,
 				new MockUnicodeService() as unknown as UnicodeService
@@ -547,7 +548,7 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
 				createMockCoreService(),
-				new MockOptionsService(),
+				createMockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService() as unknown as MouseStateService,
 				new MockUnicodeService() as unknown as UnicodeService
@@ -588,7 +589,7 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
 				createMockCoreService(),
-				new MockOptionsService(),
+				createMockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService() as unknown as MouseStateService,
 				new MockUnicodeService() as unknown as UnicodeService
@@ -637,7 +638,7 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
 				createMockCoreService(),
-				new MockOptionsService({ scrollOnEraseInDisplay: true }),
+				createMockOptionsService({ scrollOnEraseInDisplay: true }),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService() as unknown as MouseStateService,
 				new MockUnicodeService() as unknown as UnicodeService
@@ -668,7 +669,7 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
 				createMockCoreService(),
-				new MockOptionsService(),
+				createMockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService() as unknown as MouseStateService,
 				new MockUnicodeService() as unknown as UnicodeService
@@ -790,7 +791,7 @@ describe('InputHandler', () => {
 				new MockBufferService(80, 30),
 				new MockCharsetService() as unknown as CharsetService,
 				createMockCoreService(),
-				new MockOptionsService(),
+				createMockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService() as unknown as MouseStateService,
 				new MockUnicodeService() as unknown as UnicodeService
@@ -825,7 +826,7 @@ describe('InputHandler', () => {
 				bufferService,
 				new MockCharsetService() as unknown as CharsetService,
 				createMockCoreService(),
-				new MockOptionsService(),
+				createMockOptionsService(),
 				new MockOscLinkService() as unknown as OscLinkService,
 				new MockMouseStateService() as unknown as MouseStateService,
 				new MockUnicodeService() as unknown as UnicodeService
@@ -2850,11 +2851,11 @@ describe('InputHandler', () => {
 	describe('InputHandler - kitty keyboard', () => {
 		let bufferService: IBufferService;
 		let coreService: CoreService;
-		let optionsService: MockOptionsService;
+		let optionsService: OptionsService;
 		let inputHandler: TestInputHandler;
 
 		beforeEach(() => {
-			optionsService = new MockOptionsService({ vtExtensions: { kittyKeyboard: true } });
+			optionsService = createMockOptionsService({ vtExtensions: { kittyKeyboard: true } });
 			bufferService = new BufferService(optionsService);
 			bufferService.resize(80, 30);
 			coreService = new CoreService(bufferService, optionsService);
@@ -2907,11 +2908,11 @@ describe('InputHandler', () => {
 	describe('InputHandler - async handlers', () => {
 		let bufferService: IBufferService;
 		let coreService: CoreService;
-		let optionsService: MockOptionsService;
+		let optionsService: OptionsService;
 		let inputHandler: TestInputHandler;
 
 		beforeEach(() => {
-			optionsService = new MockOptionsService();
+			optionsService = createMockOptionsService();
 			bufferService = new BufferService(optionsService);
 			bufferService.resize(80, 30);
 			coreService = new CoreService(bufferService, optionsService);

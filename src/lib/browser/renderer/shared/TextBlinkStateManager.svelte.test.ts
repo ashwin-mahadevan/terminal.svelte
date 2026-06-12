@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
-import { MockOptionsService } from '$lib/common/TestUtils';
+import { createMockOptionsService } from '$lib/common/TestUtils';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -47,7 +47,7 @@ function createManager(duration: number): {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		mainDocument: {} as any
 	} as unknown as CoreBrowserService;
-	const optionsService = new MockOptionsService({ blinkIntervalDuration: duration });
+	const optionsService = createMockOptionsService({ blinkIntervalDuration: duration });
 	const manager = new TextBlinkStateManager(
 		() => {
 			renderCount++;

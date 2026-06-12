@@ -5,7 +5,7 @@
 
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { IOptionsService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 
 export class TextBlinkStateManager {
 	private _intervalDuration: number = 0;
@@ -18,7 +18,7 @@ export class TextBlinkStateManager {
 	constructor(
 		private readonly _renderCallback: () => void,
 		private readonly _coreBrowserService: CoreBrowserService,
-		private readonly _optionsService: IOptionsService
+		private readonly _optionsService: OptionsService
 	) {
 		this._blinkIntervalListener = this._optionsService.onSpecificOptionChange(
 			'blinkIntervalDuration',

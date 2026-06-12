@@ -8,7 +8,8 @@ import type { RenderService } from '$lib/browser/services/RenderService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import { CoreMouseEventType } from '$lib/common/Types';
@@ -53,7 +54,7 @@ export class Viewport {
 		private readonly _coreService: CoreService,
 		mouseStateService: MouseStateService,
 		themeService: ThemeService,
-		private readonly _optionsService: IOptionsService,
+		private readonly _optionsService: OptionsService,
 		private readonly _renderService: RenderService
 	) {
 		this._scrollable = new Scrollable({

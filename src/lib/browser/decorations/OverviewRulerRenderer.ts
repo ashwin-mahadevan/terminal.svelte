@@ -9,11 +9,8 @@ import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserServic
 import type { RenderService } from '$lib/browser/services/RenderService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type {
-	IBufferService,
-	IDecorationService,
-	IOptionsService
-} from '$lib/common/services/Services';
+import type { IBufferService, IDecorationService } from '$lib/common/services/Services';
+import type { OptionsService } from '$lib/common/services/OptionsService';
 
 const enum Constants {
 	OVERVIEW_RULER_BORDER_WIDTH = 1
@@ -75,7 +72,7 @@ export class OverviewRulerRenderer {
 		private readonly _bufferService: IBufferService,
 		private readonly _decorationService: IDecorationService,
 		private readonly _renderService: RenderService,
-		private readonly _optionsService: IOptionsService,
+		private readonly _optionsService: OptionsService,
 		private readonly _themeService: ThemeService,
 		private readonly _coreBrowserService: CoreBrowserService
 	) {
