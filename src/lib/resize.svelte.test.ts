@@ -22,10 +22,13 @@ async function probeActiveBufferSize(
 }
 
 /**
- * Render Terminal with the container pre-sized so the initial synchronous
- * dimension measurement at mount reflects the intended size. After render the
- * size is locked in as inline styles and the CSS rule is removed, so further
- * `container.style` mutations work without specificity conflicts.
+ * Render Terminal into a pre-sized container so the initial synchronous
+ * dimension measurement at mount reflects the intended size.
+ *
+ * Passing `target` to render() makes the library mount into that element
+ * directly (setup.js:69) rather than creating a fresh div, so
+ * `result.container` is the same pre-sized element and further
+ * `container.style` mutations in the test body work normally.
  */
 async function renderSized(
 	width: string,
@@ -35,14 +38,11 @@ async function renderSized(
 		ondata?: (data: string) => void;
 	}
 ) {
-	const style = document.createElement('style');
-	style.textContent = `body > div:last-of-type { width: ${width}; height: ${height}; }`;
-	document.head.appendChild(style);
-	const result = await render(Terminal, { props });
-	result.container.style.width = width;
-	result.container.style.height = height;
-	style.remove();
-	return result;
+	const container = document.createElement('div');
+	container.style.width = width;
+	container.style.height = height;
+	document.body.appendChild(container);
+	return render(Terminal, { target: container, props });
 }
 
 describe('terminal.svelte auto-resize', () => {
@@ -105,16 +105,13 @@ describe('terminal.svelte auto-resize', () => {
 	it('respects padding on the container', async () => {
 		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
 
-		const style = document.createElement('style');
-		style.textContent =
-			'body > div:last-of-type { box-sizing: border-box; width: 800px; height: 600px; padding: 200px; }';
-		document.head.appendChild(style);
-		const { container } = await render(Terminal, { props: { onresize } });
+		const container = document.createElement('div');
 		container.style.boxSizing = 'border-box';
 		container.style.width = '800px';
 		container.style.height = '600px';
 		container.style.padding = '200px';
-		style.remove();
+		document.body.appendChild(container);
+		await render(Terminal, { target: container, props: { onresize } });
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
