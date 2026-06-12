@@ -14,7 +14,7 @@ import type {
 	IOptionsService
 } from '$lib/common/services/Services';
 import { channels, color } from '$lib/common/Color';
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { JoinedCellData } from '$lib/browser/services/CharacterJoinerService';
@@ -52,7 +52,7 @@ export class DomRendererRowFactory {
 		private readonly _document: Document,
 		private readonly _characterJoinerService: CharacterJoinerService,
 		private readonly _optionsService: IOptionsService,
-		private readonly _coreBrowserService: ICoreBrowserService,
+		private readonly _coreBrowserService: CoreBrowserService,
 		private readonly _coreService: ICoreService,
 		private readonly _decorationService: IDecorationService,
 		private readonly _themeService: ThemeService

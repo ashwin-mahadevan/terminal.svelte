@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
 import { MockOptionsService } from '$lib/common/TestUtils';
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import { LegacyEmitter } from '$lib/common/Event';
 
 class FakeWindow {
@@ -33,7 +33,9 @@ function createManager(duration: number): {
 } {
 	const fakeWindow = new FakeWindow();
 	let renderCount = 0;
-	const coreBrowserService: ICoreBrowserService = {
+	// TODO: Fix this upstream type error.
+
+	const coreBrowserService = {
 		isFocused: true,
 		dpr: 1,
 		onDprChange: new LegacyEmitter<number>().event,
@@ -44,7 +46,7 @@ function createManager(duration: number): {
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		mainDocument: {} as any
-	};
+	} as unknown as CoreBrowserService;
 	const optionsService = new MockOptionsService({ blinkIntervalDuration: duration });
 	const manager = new TextBlinkStateManager(
 		() => {

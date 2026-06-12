@@ -11,7 +11,8 @@ import { CoreMouseAction, CoreMouseButton, CoreMouseEventType } from '$lib/commo
 import { C0 } from '$lib/common/data/EscapeSequences';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
-import type { IMouseServiceTarget, ICoreBrowserService } from './Services';
+import type { IMouseServiceTarget } from './Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { RenderService } from '$lib/browser/services/RenderService';
 import type { MouseCoordsService } from '$lib/browser/services/MouseCoordsService';
 import type { SelectionService } from '$lib/browser/services/SelectionService';
@@ -47,7 +48,7 @@ export class MouseService {
 		private readonly _bufferService: IBufferService,
 		private readonly _optionsService: IOptionsService,
 		private readonly _selectionService: SelectionService,
-		private readonly _coreBrowserService: ICoreBrowserService
+		private readonly _coreBrowserService: CoreBrowserService
 	) {}
 
 	public bindMouse(

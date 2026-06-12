@@ -8,7 +8,7 @@ import type { IRenderDebouncer } from '$lib/browser/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { RenderService } from '$lib/browser/services/RenderService';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import { addDisposableListener } from '$lib/browser/Dom';
@@ -68,7 +68,7 @@ export class AccessibilityManager {
 
 	constructor(
 		private readonly _terminal: CoreBrowserTerminal,
-		private readonly _coreBrowserService: ICoreBrowserService,
+		private readonly _coreBrowserService: CoreBrowserService,
 		private readonly _renderService: RenderService
 	) {
 		const doc = this._coreBrowserService.mainDocument;

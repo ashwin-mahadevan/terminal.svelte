@@ -59,7 +59,6 @@ import { MouseCoordsService } from '$lib/browser/services/MouseCoordsService';
 import { MouseEventCssClasses, MouseService } from '$lib/browser/services/MouseService';
 import { RenderService } from '$lib/browser/services/RenderService';
 import { SelectionService } from '$lib/browser/services/SelectionService';
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
 import { ThemeService } from '$lib/browser/services/ThemeService';
 import { KeyboardService } from '$lib/browser/services/KeyboardService';
 import { channels, color, rgb } from '$lib/common/Color';
@@ -112,7 +111,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private readonly _linkProviderService: LinkProviderService;
 
 	// Optional browser services
-	private _coreBrowserService: ICoreBrowserService | undefined;
+	private _coreBrowserService: CoreBrowserService | undefined;
 	private _mouseCoordsService: MouseCoordsService | undefined;
 	private _mouseService: MouseService | undefined;
 	private _renderService: RenderService | undefined;

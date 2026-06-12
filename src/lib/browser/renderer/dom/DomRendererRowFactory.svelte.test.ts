@@ -5,6 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { DomRendererRowFactory } from '$lib/browser/renderer/dom/DomRendererRowFactory';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import {
 	DEFAULT_ATTR,
 	FgFlags,
@@ -68,6 +69,10 @@ class MockCoreBrowserService {
 		throw Error('Document object not available in tests');
 	}
 	public dpr: number = 1;
+}
+
+function createMockCoreBrowserService(): CoreBrowserService {
+	return new MockCoreBrowserService() as unknown as CoreBrowserService;
 }
 
 class MockThemeService {
@@ -168,7 +173,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -197,7 +202,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -230,7 +235,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -263,7 +268,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -298,7 +303,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				coreBrowserService,
+				coreBrowserService as unknown as CoreBrowserService,
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -337,7 +342,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService(),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				coreService,
 				new MockDecorationService(),
 				createMockThemeService()
@@ -365,7 +370,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -397,7 +402,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -429,7 +434,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -462,7 +467,7 @@ describe('DomRendererRowFactory', () => {
 						document,
 						createMockCharacterJoinerService(),
 						new MockOptionsService({ drawBoldTextInBrightColors: true }),
-						new MockCoreBrowserService(),
+						createMockCoreBrowserService(),
 						new MockCoreService(),
 						new MockDecorationService(),
 						createMockThemeService()
@@ -495,7 +500,7 @@ describe('DomRendererRowFactory', () => {
 						document,
 						createMockCharacterJoinerService(),
 						new MockOptionsService({ drawBoldTextInBrightColors: true }),
-						new MockCoreBrowserService(),
+						createMockCoreBrowserService(),
 						new MockCoreService(),
 						new MockDecorationService(),
 						createMockThemeService()
@@ -528,7 +533,7 @@ describe('DomRendererRowFactory', () => {
 						document,
 						createMockCharacterJoinerService(),
 						new MockOptionsService({ drawBoldTextInBrightColors: true }),
-						new MockCoreBrowserService(),
+						createMockCoreBrowserService(),
 						new MockCoreService(),
 						new MockDecorationService(),
 						createMockThemeService()
@@ -561,7 +566,7 @@ describe('DomRendererRowFactory', () => {
 						document,
 						createMockCharacterJoinerService(),
 						new MockOptionsService({ drawBoldTextInBrightColors: true }),
-						new MockCoreBrowserService(),
+						createMockCoreBrowserService(),
 						new MockCoreService(),
 						new MockDecorationService(),
 						createMockThemeService()
@@ -594,7 +599,7 @@ describe('DomRendererRowFactory', () => {
 						document,
 						createMockCharacterJoinerService(),
 						new MockOptionsService({ drawBoldTextInBrightColors: true }),
-						new MockCoreBrowserService(),
+						createMockCoreBrowserService(),
 						new MockCoreService(),
 						new MockDecorationService(),
 						createMockThemeService()
@@ -629,7 +634,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -661,7 +666,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -693,7 +698,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -744,7 +749,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -780,7 +785,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -816,7 +821,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -849,7 +854,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -882,7 +887,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -914,7 +919,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -950,7 +955,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -985,7 +990,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -1022,7 +1027,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -1055,7 +1060,7 @@ describe('DomRendererRowFactory', () => {
 					document,
 					createMockCharacterJoinerService(),
 					new MockOptionsService({ drawBoldTextInBrightColors: true }),
-					new MockCoreBrowserService(),
+					createMockCoreBrowserService(),
 					new MockCoreService(),
 					new MockDecorationService(),
 					createMockThemeService()
@@ -1091,7 +1096,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -1120,7 +1125,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -1152,7 +1157,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -1187,7 +1192,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -1226,7 +1231,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -1262,7 +1267,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -1299,7 +1304,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -1380,7 +1385,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -1417,7 +1422,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -1455,7 +1460,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()
@@ -1490,7 +1495,7 @@ describe('DomRendererRowFactory', () => {
 				document,
 				createMockCharacterJoinerService(),
 				new MockOptionsService({ drawBoldTextInBrightColors: true }),
-				new MockCoreBrowserService(),
+				createMockCoreBrowserService(),
 				new MockCoreService(),
 				new MockDecorationService(),
 				createMockThemeService()

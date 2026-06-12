@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { RenderService } from '$lib/browser/services/RenderService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
@@ -48,7 +48,7 @@ export class Viewport {
 		element: HTMLElement,
 		screenElement: HTMLElement,
 		private readonly _bufferService: IBufferService,
-		coreBrowserService: ICoreBrowserService,
+		coreBrowserService: CoreBrowserService,
 		private readonly _coreService: ICoreService,
 		mouseStateService: MouseStateService,
 		themeService: ThemeService,

@@ -3,13 +3,12 @@
  * @license MIT
  */
 
-import type { ICoreBrowserService } from './Services';
 import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 import { MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 
-export class CoreBrowserService implements ICoreBrowserService {
+export class CoreBrowserService {
 	private _isFocused = false;
 	private _cachedIsFocused: boolean | undefined = undefined;
 	private readonly _screenDprMonitor: ScreenDprMonitor;

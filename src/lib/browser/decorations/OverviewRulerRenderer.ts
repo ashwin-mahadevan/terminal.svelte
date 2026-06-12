@@ -5,7 +5,7 @@
 
 import type { IColorZone } from '$lib/browser/decorations/ColorZoneStore';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { RenderService } from '$lib/browser/services/RenderService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -77,7 +77,7 @@ export class OverviewRulerRenderer {
 		private readonly _renderService: RenderService,
 		private readonly _optionsService: IOptionsService,
 		private readonly _themeService: ThemeService,
-		private readonly _coreBrowserService: ICoreBrowserService
+		private readonly _coreBrowserService: CoreBrowserService
 	) {
 		this._canvas = this._coreBrowserService.mainDocument.createElement('canvas');
 		this._canvas.classList.add('xterm-decoration-overview-ruler');

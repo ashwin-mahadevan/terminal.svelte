@@ -4,7 +4,7 @@
  */
 
 import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 
 /**
  * Debounces calls to render terminal rows using animation frames.
@@ -18,7 +18,7 @@ export class RenderDebouncer implements IRenderDebouncerWithCallback {
 
 	constructor(
 		private _renderCallback: (start: number, end: number) => void,
-		private readonly _coreBrowserService: ICoreBrowserService
+		private readonly _coreBrowserService: CoreBrowserService
 	) {}
 
 	public dispose(): void {

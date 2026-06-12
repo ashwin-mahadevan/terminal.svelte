@@ -15,7 +15,7 @@ import type {
 	IRenderer,
 	IRequestRedrawEvent
 } from '$lib/browser/renderer/shared/Types';
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import type { ILinkifierEvent, ReadonlyColorSet } from '$lib/browser/Types';
@@ -92,7 +92,7 @@ export class DomRenderer implements IRenderer {
 		private readonly _optionsService: IOptionsService,
 		private readonly _bufferService: IBufferService,
 		private readonly _coreService: ICoreService,
-		private readonly _coreBrowserService: ICoreBrowserService,
+		private readonly _coreBrowserService: CoreBrowserService,
 		private readonly _themeService: ThemeService
 	) {
 		this._rowContainer = this._document.createElement('div');
@@ -762,7 +762,7 @@ class CursorBlinkStateManager {
 
 	constructor(
 		private readonly _rowContainer: HTMLElement,
-		private readonly _coreBrowserService: ICoreBrowserService
+		private readonly _coreBrowserService: CoreBrowserService
 	) {
 		if (this._coreBrowserService.isFocused) {
 			this._resetIdleTimer();

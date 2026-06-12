@@ -7,7 +7,7 @@ import { RenderDebouncer } from '$lib/browser/RenderDebouncer';
 import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -83,7 +83,7 @@ export class RenderService {
 		private readonly _coreService: ICoreService,
 		decorationService: IDecorationService,
 		bufferService: IBufferService,
-		private readonly _coreBrowserService: ICoreBrowserService,
+		private readonly _coreBrowserService: CoreBrowserService,
 		themeService: ThemeService
 	) {
 		this._pausedResizeTask = new DebouncedIdleTask();
@@ -409,7 +409,7 @@ class SynchronizedOutputHandler {
 	private _isBuffering: boolean = false;
 
 	constructor(
-		private readonly _coreBrowserService: ICoreBrowserService,
+		private readonly _coreBrowserService: CoreBrowserService,
 		private readonly _coreService: ICoreService,
 		private readonly _onTimeout: () => void
 	) {}

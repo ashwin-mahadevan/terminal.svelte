@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { RenderService } from '$lib/browser/services/RenderService';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
@@ -27,7 +27,7 @@ export class BufferDecorationRenderer {
 	constructor(
 		private readonly _screenElement: HTMLElement,
 		private readonly _bufferService: IBufferService,
-		private readonly _coreBrowserService: ICoreBrowserService,
+		private readonly _coreBrowserService: CoreBrowserService,
 		private readonly _decorationService: IDecorationService,
 		private readonly _renderService: RenderService
 	) {

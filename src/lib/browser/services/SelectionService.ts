@@ -12,7 +12,7 @@ import type {
 	ISelectionRedrawRequestEvent,
 	ISelectionRequestScrollLinesEvent
 } from '$lib/browser/selection/Types';
-import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { RenderService } from '$lib/browser/services/RenderService';
 import type { MouseCoordsService } from '$lib/browser/services/MouseCoordsService';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -141,7 +141,7 @@ export class SelectionService {
 		private readonly _optionsService: IOptionsService,
 		private readonly _mouseStateService: MouseStateService,
 		private readonly _renderService: RenderService,
-		private readonly _coreBrowserService: ICoreBrowserService
+		private readonly _coreBrowserService: CoreBrowserService
 	) {
 		// Init listeners
 		this._mouseMoveListener = (event) => this._handleMouseMove(event as MouseEvent);
