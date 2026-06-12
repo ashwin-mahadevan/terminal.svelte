@@ -40,7 +40,7 @@ import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { OscHandler } from '$lib/common/parser/OscParser';
 import { DcsHandler } from '$lib/common/parser/DcsParser';
 import { ApcHandler } from '$lib/common/parser/ApcParser';
-import type { IBuffer } from '$lib/common/buffer/Types';
+import type { Buffer } from '$lib/common/buffer/Buffer';
 import { parseColor } from '$lib/common/input/XParseColor';
 import { LegacyEmitter } from '$lib/common/Event';
 import { XTERM_VERSION } from '$lib/common/Version';
@@ -154,7 +154,7 @@ export class InputHandler {
 	}
 	private _eraseAttrDataInternal: IAttributeData = DEFAULT_ATTR_DATA.clone();
 
-	private _activeBuffer: IBuffer;
+	private _activeBuffer: Buffer;
 	private _bufferActivateListener!: IDisposable;
 
 	private readonly _onRequestBell = new LegacyEmitter<void>();

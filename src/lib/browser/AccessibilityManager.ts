@@ -10,7 +10,7 @@ import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { ICoreBrowserService } from '$lib/browser/services/Services';
 import type { RenderService } from '$lib/browser/services/RenderService';
-import type { IBuffer } from '$lib/common/buffer/Types';
+import type { Buffer } from '$lib/common/buffer/Buffer';
 import { addDisposableListener } from '$lib/browser/Dom';
 
 const enum Constants {
@@ -211,7 +211,7 @@ export class AccessibilityManager {
 	}
 
 	private _renderRows(start: number, end: number): void {
-		const buffer: IBuffer = this._terminal.buffer;
+		const buffer: Buffer = this._terminal.buffer;
 		const setSize = buffer.lines.length.toString();
 		for (let i = start; i <= end; i++) {
 			const line = buffer.lines.get(buffer.ydisp + i);

@@ -16,7 +16,7 @@ import type {
 } from '$lib/common/services/Services';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
-import type { IBuffer } from '$lib/common/buffer/Types';
+import type { Buffer } from '$lib/common/buffer/Buffer';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { CoreMouseEventType } from '$lib/common/Types';
 import type {
@@ -54,7 +54,7 @@ export const NULL_CELL_DATA = Object.freeze(
 export class MockBufferService implements IBufferService {
 	// TODO: Fix this upstream type error.
 
-	public get buffer(): IBuffer {
+	public get buffer(): Buffer {
 		return this.buffers.active;
 	}
 	// TODO: Fix this upstream type error.

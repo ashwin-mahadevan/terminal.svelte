@@ -68,7 +68,7 @@ import * as Browser from '$lib/common/Platform';
 import type { IColorEvent } from '$lib/common/Types';
 import { ColorRequestType, KeyboardResultType, SpecialColorIndex } from '$lib/common/Types';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
-import type { IBuffer } from '$lib/common/buffer/Types';
+import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { Marker } from '$lib/common/buffer/Marker';
 import { C0, C1ESCAPED } from '$lib/common/data/EscapeSequences';
 import { toRgbString } from '$lib/common/input/XParseColor';
@@ -373,7 +373,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	/**
 	 * Convenience property to active buffer.
 	 */
-	public get buffer(): IBuffer {
+	public get buffer(): Buffer {
 		return this.buffers.active;
 	}
 

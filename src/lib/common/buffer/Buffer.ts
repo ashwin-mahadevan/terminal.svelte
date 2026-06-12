@@ -27,7 +27,6 @@ import {
 	WHITESPACE_CELL_WIDTH
 } from '$lib/common/buffer/Constants';
 import { Marker } from '$lib/common/buffer/Marker';
-import type { IBuffer } from '$lib/common/buffer/Types';
 import { DEFAULT_CHARSET } from '$lib/common/data/Charsets';
 import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
 
@@ -40,7 +39,7 @@ const MAX_BUFFER_SIZE = 4294967295; // 2^32 - 1
  *   - cursor position
  *   - scroll position
  */
-export class Buffer implements IBuffer {
+export class Buffer {
 	public lines: CircularList<BufferLine>;
 	public ydisp: number = 0;
 	public ybase: number = 0;

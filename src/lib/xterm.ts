@@ -1,7 +1,7 @@
 /// <reference lib="dom"/>
 
 import type { IEvent } from './common/Event';
-import type { IBuffer } from './common/buffer/Types';
+import type { Buffer } from './common/buffer/Buffer';
 import type { Marker } from './common/buffer/Marker';
 
 // These public-API types are defined canonically elsewhere; re-export them so
@@ -918,24 +918,24 @@ export interface IBufferNamespace {
 	/**
 	 * The active buffer, this will either be the normal or alternate buffers.
 	 */
-	readonly active: IBuffer;
+	readonly active: Buffer;
 
 	/**
 	 * The normal buffer.
 	 */
-	readonly normal: IBuffer;
+	readonly normal: Buffer;
 
 	/**
 	 * The alternate buffer, this becomes the active buffer when an application
 	 * enters this mode via DECSET (`CSI ? 4 7 h`)
 	 */
-	readonly alternate: IBuffer;
+	readonly alternate: Buffer;
 
 	/**
 	 * Adds an event listener for when the active buffer changes.
 	 * @returns an `IDisposable` to stop listening.
 	 */
-	onBufferChange: IEvent<IBuffer>;
+	onBufferChange: IEvent<Buffer>;
 }
 
 /**

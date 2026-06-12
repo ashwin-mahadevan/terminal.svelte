@@ -7,7 +7,6 @@ import { MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IAttributeData } from '$lib/common/Types';
 import { Buffer } from '$lib/common/buffer/Buffer';
-import type { IBuffer } from '$lib/common/buffer/Types';
 import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -23,8 +22,8 @@ export class BufferSet {
 	private readonly _altBuffer = new MutableDisposable<Buffer>();
 
 	private readonly _onBufferActivate = new LegacyEmitter<{
-		activeBuffer: IBuffer;
-		inactiveBuffer: IBuffer;
+		activeBuffer: Buffer;
+		inactiveBuffer: Buffer;
 	}>();
 	public readonly onBufferActivate = this._onBufferActivate.event;
 

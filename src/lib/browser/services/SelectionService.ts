@@ -22,7 +22,7 @@ import type { ICellData } from '$lib/common/Types';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { getRangeLength } from '$lib/common/buffer/BufferRange';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { IBuffer } from '$lib/common/buffer/Types';
+import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { IBufferService, ICoreService, IOptionsService } from '$lib/common/services/Services';
 import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -876,7 +876,7 @@ export class SelectionService {
 		this._onSelectionChange.fire();
 	}
 
-	private _handleBufferActivate(e: { activeBuffer: IBuffer; inactiveBuffer: IBuffer }): void {
+	private _handleBufferActivate(e: { activeBuffer: Buffer; inactiveBuffer: Buffer }): void {
 		this.clearSelection();
 		// Only adjust the selection on trim, shiftElements is rarely used (only in
 		// reverseIndex) and delete in a splice is only ever used when the same

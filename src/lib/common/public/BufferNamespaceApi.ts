@@ -4,13 +4,13 @@
  */
 
 import type { IBufferNamespace as IBufferNamespaceApi } from '$lib/xterm';
-import type { IBuffer } from '$lib/common/buffer/Types';
+import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { CoreTerminal } from '$lib/common/CoreTerminal';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { LegacyEmitter } from '$lib/common/Event';
 
 export class BufferNamespaceApi implements IBufferNamespaceApi {
-	private readonly _onBufferChange = new LegacyEmitter<IBuffer>();
+	private readonly _onBufferChange = new LegacyEmitter<Buffer>();
 	public readonly onBufferChange = this._onBufferChange.event;
 
 	private readonly _bufferActivateListener: IDisposable;
@@ -25,13 +25,13 @@ export class BufferNamespaceApi implements IBufferNamespaceApi {
 		this._onBufferChange.dispose();
 		this._bufferActivateListener.dispose();
 	}
-	public get active(): IBuffer {
+	public get active(): Buffer {
 		return this._core.buffers.active;
 	}
-	public get normal(): IBuffer {
+	public get normal(): Buffer {
 		return this._core.buffers.normal;
 	}
-	public get alternate(): IBuffer {
+	public get alternate(): Buffer {
 		return this._core.buffers.alt;
 	}
 }

@@ -7,7 +7,7 @@ import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IAttributeData } from '$lib/common/Types';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
-import type { IBuffer } from '$lib/common/buffer/Types';
+import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { IBufferService } from '$lib/common/services/Services';
 import type { IOptionsService } from '$lib/common/services/Services';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
@@ -32,7 +32,7 @@ export class BufferService implements IBufferService {
 	private readonly _onScroll = new LegacyEmitter<number>();
 	public readonly onScroll = this._onScroll.event;
 
-	public get buffer(): IBuffer {
+	public get buffer(): Buffer {
 		return this.buffers.active;
 	}
 

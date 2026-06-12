@@ -7,7 +7,7 @@
 
 import type { IBufferCell, IBufferRange } from '$lib/xterm';
 import type { Terminal } from '$lib/browser/public/Terminal';
-import type { IBuffer } from '$lib/common/buffer/Types';
+import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { Marker } from '$lib/common/buffer/Marker';
 import type { IAttributeData } from '$lib/common/Types';
 import { UnderlineStyle } from '$lib/common/buffer/Constants';
@@ -55,7 +55,7 @@ function constrain(value: number, low: number, high: number): number {
 
 // TODO: Refine this template class later
 abstract class BaseSerializeHandler {
-	constructor(protected readonly _buffer: IBuffer) {}
+	constructor(protected readonly _buffer: Buffer) {}
 
 	public serialize(range: IBufferRange, excludeFinalCursorPosition?: boolean): string {
 		// we need two of them to flip between old and new cell
@@ -205,7 +205,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 	private _lastContentCursorCol: number = 0;
 
 	constructor(
-		buffer: IBuffer,
+		buffer: Buffer,
 		private readonly _terminal: Terminal
 	) {
 		super(buffer);
@@ -575,7 +575,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 
 function _serializeBufferByScrollback(
 	terminal: Terminal,
-	buffer: IBuffer,
+	buffer: Buffer,
 	scrollback?: number
 ): string {
 	const maxRows = buffer.lines.length;
@@ -594,7 +594,7 @@ function _serializeBufferByScrollback(
 
 function _serializeBufferByRange(
 	terminal: Terminal,
-	buffer: IBuffer,
+	buffer: Buffer,
 	range: ISerializeRange,
 	excludeFinalCursorPosition: boolean
 ): string {
