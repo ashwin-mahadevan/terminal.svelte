@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { io } from 'socket.io-client';
-	import type { Socket } from 'socket.io-client';
 	import Terminal from '$lib/terminal.svelte';
+	import { browser } from '$app/environment';
 
 	let terminal: Terminal;
-	let socket: Socket;
+
+	const socket = browser as true && io();
 
 	function write(chunk: string) {
 		terminal.write(chunk);
 	}
 
 	$effect(() => {
-		socket = io();
 		socket.on('output', write);
 		return () => socket.off('output', write);
 	});
@@ -20,7 +20,10 @@
 <Terminal
 	bind:this={terminal}
 	ondata={(data) => socket.emit('input', data)}
-	onresize={({ cols, rows }) => socket.emit('resize', cols, rows)}
+	onresize={({ cols, rows }) => {
+		console.log(rows, cols);
+		socket.emit('resize', cols, rows);
+	}}
 />
 
 <style>

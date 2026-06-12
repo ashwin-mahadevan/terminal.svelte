@@ -8,6 +8,7 @@
 	import type { IProgressState } from '$lib/progress';
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
+	import { browser } from '$app/environment';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -17,10 +18,11 @@
 
 	const { ondata, onresize, onprogress }: Props = $props();
 
-	let terminal: Terminal;
+	const terminal = (browser && new Terminal()) as Terminal;
+
 	let element: HTMLDivElement;
-	let clientWidth = $state<number>();
-	let clientHeight = $state<number>();
+	let clientWidth = $state<number>()!;
+	let clientHeight = $state<number>()!;
 
 	// Cell size, measured from a hidden CSS-styled element. `measureWidth` is
 	// the width of MEASURE_COLS glyphs (divided out for sub-pixel precision,
@@ -28,19 +30,27 @@
 	// `bind:clientWidth` is backed by a ResizeObserver, so these re-fire when
 	// an async web font finishes loading and reflows the element.
 	const MEASURE_COLS = 32;
-	let measureWidth = $state<number>();
-	let measureHeight = $state<number>();
+	let measureWidth = $state<number>()!;
+	let measureHeight = $state<number>()!;
 
 	onMount(() => {
-		terminal = new Terminal();
 		terminal.open(element);
-
 		return () => terminal.dispose();
 	});
 
 	$effect(() => {
-		if (!clientWidth || !clientHeight || !terminal || !measureWidth || !measureHeight) return;
+		if (!ondata) return;
+		const disposable = terminal.onData(ondata);
+		return () => disposable.dispose();
+	});
 
+	$effect(() => {
+		if (!onresize) return;
+		const disposable = terminal.onResize(onresize);
+		return () => disposable.dispose();
+	});
+
+	$effect(() => {
 		terminal.setCharSize(measureWidth / MEASURE_COLS, measureHeight);
 
 		const showScrollbar = terminal.options.scrollbar?.showScrollbar ?? true;
@@ -82,18 +92,6 @@
 			}
 			return true;
 		});
-		return () => disposable.dispose();
-	});
-
-	$effect(() => {
-		if (!ondata) return;
-		const disposable = terminal.onData(ondata);
-		return () => disposable.dispose();
-	});
-
-	$effect(() => {
-		if (!onresize) return;
-		const disposable = terminal.onResize(onresize);
 		return () => disposable.dispose();
 	});
 
