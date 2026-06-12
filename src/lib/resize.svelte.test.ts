@@ -2,6 +2,25 @@ import { describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Terminal from '$lib/terminal.svelte';
 
+/**
+ * Measure the size of the *active* buffer the same way a full-screen app
+ * experiences it: move the cursor far past the bottom-right corner (CUP
+ * clamps to the buffer edge), then ask for the cursor position (DSR 6).
+ * The `CSI <row> ; <col> R` response therefore reports rows;cols.
+ */
+async function probeActiveBufferSize(
+	component: { write: (data: string) => void },
+	data: string[]
+): Promise<{ cols: number; rows: number }> {
+	data.length = 0;
+	component.write('\x1b[999;999H\x1b[6n');
+	// eslint-disable-next-line no-control-regex
+	await expect.poll(() => data.join('')).toMatch(/\x1b\[\d+;\d+R/);
+	// eslint-disable-next-line no-control-regex
+	const match = data.join('').match(/\x1b\[(\d+);(\d+)R/)!;
+	return { rows: Number(match[1]), cols: Number(match[2]) };
+}
+
 describe('terminal.svelte auto-resize', () => {
 	it('fits the terminal to its container on mount', async () => {
 		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
@@ -91,5 +110,117 @@ describe('terminal.svelte auto-resize', () => {
 
 		expect(paddedSize.cols).toBeLessThan(unpaddedSize.cols);
 		expect(paddedSize.rows).toBeLessThan(unpaddedSize.rows);
+	});
+});
+
+/**
+ * Diagnostics for: vi (alt buffer) appears as 80x24 in the demo until the
+ * browser window is resized once, even though the terminal itself renders
+ * at the right size on page load.
+ *
+ * Each test pins down one hypothesis; the name says what failing means.
+ */
+describe('terminal.svelte alt-buffer sizing diagnostics', () => {
+	async function renderFitted() {
+		const data: string[] = [];
+		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
+
+		const { container, component } = await render(Terminal, {
+			props: { onresize, ondata: (chunk: string) => data.push(chunk) }
+		});
+
+		container.style.width = '800px';
+		container.style.height = '600px';
+
+		await expect.poll(() => onresize).toHaveBeenCalled();
+		const fitted = onresize.mock.lastCall![0]!;
+
+		return { container, component, data, onresize, fitted };
+	}
+
+	// Baseline: validates the DSR probe itself. If this fails, the probe is
+	// wrong and the other tests prove nothing.
+	it('normal buffer reports the fitted size to a cursor-position query', async () => {
+		const { component, data, fitted } = await renderFitted();
+
+		const probed = await probeActiveBufferSize(component, data);
+
+		expect(probed).toEqual({ cols: fitted.cols, rows: fitted.rows });
+	});
+
+	// Hypothesis 1: the alt buffer is never resized, so when vi activates it
+	// (DECSET 1049) it is still at the default 80x24.
+	it('alt buffer reports the fitted size, not 80x24, when activated after the fit', async () => {
+		const { component, data, fitted } = await renderFitted();
+
+		component.write('\x1b[?1049h');
+		const probed = await probeActiveBufferSize(component, data);
+
+		expect(probed).toEqual({ cols: fitted.cols, rows: fitted.rows });
+	});
+
+	// Hypothesis 2: activating the alt buffer emits a bogus resize (e.g. back
+	// to 80x24), which the demo would forward to the pty.
+	it('activating the alt buffer does not emit a resize event', async () => {
+		const { component, data, onresize } = await renderFitted();
+		onresize.mockReset();
+
+		component.write('\x1b[?1049h');
+		// The probe round-trip guarantees the write above has been processed.
+		await probeActiveBufferSize(component, data);
+
+		expect(onresize).not.toHaveBeenCalled();
+	});
+
+	// Hypothesis 3: resizes that happen while the alt buffer is active are not
+	// applied to it (the demo recovers on window resize, so this one likely
+	// passes — failing here would point at the opposite bug).
+	it('resizing while the alt buffer is active resizes the alt buffer', async () => {
+		const { container, component, data, onresize } = await renderFitted();
+
+		component.write('\x1b[?1049h');
+		await probeActiveBufferSize(component, data);
+		onresize.mockReset();
+
+		container.style.width = '400px';
+		container.style.height = '300px';
+		await expect.poll(() => onresize).toHaveBeenCalled();
+
+		const resized = onresize.mock.lastCall![0]!;
+		const probed = await probeActiveBufferSize(component, data);
+
+		expect(probed).toEqual({ cols: resized.cols, rows: resized.rows });
+	});
+
+	// Hypothesis 4: in the demo the page has its full size *before* the
+	// component mounts (unlike the tests above, which size the container after
+	// render). If the initial fit fires before the onresize listener is
+	// attached, the demo server's pty never hears about it — vi then reads
+	// 80x24 from the pty until a window resize produces a fresh event.
+	it('emits the initial fit resize when the container is sized before mount', async () => {
+		const style = document.createElement('style');
+		style.textContent = 'body > div:last-of-type { width: 800px; height: 600px; }';
+		document.head.appendChild(style);
+
+		try {
+			const data: string[] = [];
+			const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
+			const { component } = await render(Terminal, {
+				props: { onresize, ondata: (chunk: string) => data.push(chunk) }
+			});
+
+			// First wait for the fit to actually happen, as observed from inside
+			// the terminal. If this poll times out instead, the terminal was
+			// never fitted and the test setup (not the resize event) is at fault.
+			await expect
+				.poll(() => probeActiveBufferSize(component, data), { timeout: 5000 })
+				.not.toEqual({ cols: 80, rows: 24 });
+
+			// The terminal is fitted; the demo's pty hears about it only if the
+			// event also reached the onresize prop.
+			expect(onresize).toHaveBeenCalled();
+		} finally {
+			style.remove();
+		}
 	});
 });
