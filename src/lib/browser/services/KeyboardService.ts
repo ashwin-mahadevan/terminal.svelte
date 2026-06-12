@@ -11,7 +11,8 @@ import {
 } from '$lib/common/input/KittyKeyboard';
 import { Win32InputMode } from '$lib/common/input/Win32InputMode';
 import { isMac } from '$lib/common/Platform';
-import type { ICoreService, IOptionsService } from '$lib/common/services/Services';
+import type { IOptionsService } from '$lib/common/services/Services';
+import type { CoreService } from '$lib/common/services/CoreService';
 import type { IKeyboardResult } from '$lib/common/Types';
 
 export class KeyboardService {
@@ -19,7 +20,7 @@ export class KeyboardService {
 	private _kittyKeyboard: KittyKeyboard | undefined;
 
 	constructor(
-		private readonly _coreService: ICoreService,
+		private readonly _coreService: CoreService,
 		private readonly _optionsService: IOptionsService
 	) {}
 

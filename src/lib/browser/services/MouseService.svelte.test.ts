@@ -10,7 +10,8 @@ import {
 } from '$lib/browser/services/MouseService';
 import { MouseStateService } from '$lib/common/services/MouseStateService';
 import { CoreMouseAction, CoreMouseButton } from '$lib/common/Types';
-import type { IBufferService, ICoreService, IOptionsService } from '$lib/common/services/Services';
+import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
+import type { CoreService } from '$lib/common/services/CoreService';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
 
@@ -107,7 +108,7 @@ function createTestMouseTargetElement(): HTMLElement {
 describe('MouseService _triggerMouseEvent', () => {
 	let mouseService: MouseService;
 	let mouseStateService: MouseStateService;
-	let coreService: ICoreService;
+	let coreService: CoreService;
 	let reports: string[];
 
 	beforeEach(() => {

@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { CompositionHelper } from '$lib/browser/input/CompositionHelper';
-import { MockCoreService, MockBufferService } from '$lib/common/TestUtils';
+import { createMockCoreService, MockBufferService } from '$lib/common/TestUtils';
 
 // NOTE: $lib/browser/TestUtils currently fails to import under
 // verbatimModuleSyntax (its `$lib/xterm` type-only import is not elided), so the
@@ -57,7 +57,7 @@ function setupCompositionHelper() {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} as any;
 	const state = { handledText: '' };
-	const coreService = new MockCoreService();
+	const coreService = createMockCoreService();
 	coreService.triggerDataEvent = (text: string) => {
 		state.handledText += text;
 	};

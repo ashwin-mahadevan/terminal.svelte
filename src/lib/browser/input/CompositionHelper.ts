@@ -4,7 +4,8 @@
  */
 
 import type { RenderService } from '$lib/browser/services/RenderService';
-import type { IBufferService, ICoreService } from '$lib/common/services/Services';
+import type { IBufferService } from '$lib/common/services/Services';
+import type { CoreService } from '$lib/common/services/CoreService';
 import { C0 } from '$lib/common/data/EscapeSequences';
 
 interface IPosition {
@@ -58,7 +59,7 @@ export class CompositionHelper {
 		private readonly _textarea: HTMLTextAreaElement,
 		private readonly _compositionView: HTMLElement,
 		private readonly _bufferService: IBufferService,
-		private readonly _coreService: ICoreService,
+		private readonly _coreService: CoreService,
 		private readonly _renderService: RenderService
 	) {
 		this._isComposing = false;

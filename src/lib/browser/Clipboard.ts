@@ -4,7 +4,8 @@
  */
 
 import type { SelectionService } from '$lib/browser/services/SelectionService';
-import type { ICoreService, IOptionsService } from '$lib/common/services/Services';
+import type { IOptionsService } from '$lib/common/services/Services';
+import type { CoreService } from '$lib/common/services/CoreService';
 
 /**
  * Prepares text to be pasted into the terminal by normalizing the line endings
@@ -48,7 +49,7 @@ export function copyHandler(ev: ClipboardEvent, selectionService: SelectionServi
 export function handlePasteEvent(
 	ev: ClipboardEvent,
 	textarea: HTMLTextAreaElement,
-	coreService: ICoreService,
+	coreService: CoreService,
 	optionsService: IOptionsService
 ): void {
 	ev.stopPropagation();
@@ -61,7 +62,7 @@ export function handlePasteEvent(
 export function paste(
 	text: string,
 	textarea: HTMLTextAreaElement,
-	coreService: ICoreService,
+	coreService: CoreService,
 	optionsService: IOptionsService
 ): void {
 	text = prepareTextForTerminal(text);

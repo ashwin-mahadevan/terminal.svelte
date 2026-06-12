@@ -4,7 +4,6 @@
  */
 
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
-import type { ICoreService } from '$lib/common/services/Services';
 import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -35,7 +34,7 @@ const DEFAULT_KITTY_KEYBOARD_STATE = (): IKittyKeyboardState => ({
 	altStack: []
 });
 
-export class CoreService implements ICoreService {
+export class CoreService {
 	// TODO: Fix this upstream type error.
 
 	public isCursorInitialized: boolean;

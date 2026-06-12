@@ -23,7 +23,8 @@ import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { getRangeLength } from '$lib/common/buffer/BufferRange';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { Buffer } from '$lib/common/buffer/Buffer';
-import type { IBufferService, ICoreService, IOptionsService } from '$lib/common/services/Services';
+import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
+import type { CoreService } from '$lib/common/services/CoreService';
 import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -136,7 +137,7 @@ export class SelectionService {
 		private readonly _screenElement: HTMLElement,
 		private readonly _linkifier: Linkifier,
 		private readonly _bufferService: IBufferService,
-		private readonly _coreService: ICoreService,
+		private readonly _coreService: CoreService,
 		private readonly _mouseCoordsService: MouseCoordsService,
 		private readonly _optionsService: IOptionsService,
 		private readonly _mouseStateService: MouseStateService,

@@ -16,9 +16,6 @@ import type {
 	CursorStyle,
 	IAttributeData,
 	IColor,
-	IDecPrivateModes,
-	IKittyKeyboardState,
-	IModes,
 	IWindowOptions
 } from '$lib/common/Types';
 import type { Buffer } from '$lib/common/buffer/Buffer';
@@ -44,42 +41,6 @@ export interface IBufferResizeEvent {
 	rows: number;
 	colsChanged: boolean;
 	rowsChanged: boolean;
-}
-
-export interface ICoreService {
-	/**
-	 * Initially the cursor will not be visible until the first time the terminal
-	 * is focused.
-	 */
-	isCursorInitialized: boolean;
-	isCursorHidden: boolean;
-
-	readonly modes: IModes;
-	readonly decPrivateModes: IDecPrivateModes;
-	readonly kittyKeyboard: IKittyKeyboardState;
-
-	readonly onData: IEvent<string>;
-	readonly onUserInput: IEvent<void>;
-	readonly onBinary: IEvent<string>;
-	readonly onRequestScrollToBottom: IEvent<void>;
-
-	reset(): void;
-
-	/**
-	 * Triggers the onData event in the public API.
-	 * @param data The data that is being emitted.
-	 * @param wasUserInput Whether the data originated from the user (as opposed to
-	 * resulting from parsing incoming data). When true this will also:
-	 * - Scroll to the bottom of the buffer if option scrollOnUserInput is true.
-	 * - Fire the `onUserInput` event (so selection can be cleared).
-	 */
-	triggerDataEvent(data: string, wasUserInput?: boolean): void;
-
-	/**
-	 * Triggers the onBinary event in the public API.
-	 * @param data The data that is being emitted.
-	 */
-	triggerBinaryEvent(data: string): void;
 }
 
 export interface IOptionsService {

@@ -14,10 +14,10 @@ import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
 import type {
 	IBufferService,
-	ICoreService,
 	IDecorationService,
 	IOptionsService
 } from '$lib/common/services/Services';
+import type { CoreService } from '$lib/common/services/CoreService';
 import { LegacyEmitter } from '$lib/common/Event';
 
 interface ISelectionState {
@@ -80,7 +80,7 @@ export class RenderService {
 		private _rowCount: number,
 		screenElement: HTMLElement,
 		private readonly _optionsService: IOptionsService,
-		private readonly _coreService: ICoreService,
+		private readonly _coreService: CoreService,
 		decorationService: IDecorationService,
 		bufferService: IBufferService,
 		private readonly _coreBrowserService: CoreBrowserService,
@@ -410,7 +410,7 @@ class SynchronizedOutputHandler {
 
 	constructor(
 		private readonly _coreBrowserService: CoreBrowserService,
-		private readonly _coreService: ICoreService,
+		private readonly _coreService: CoreService,
 		private readonly _onTimeout: () => void
 	) {}
 

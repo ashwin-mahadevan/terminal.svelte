@@ -11,9 +11,9 @@ import type {
 	IInternalDecoration,
 	IBufferResizeEvent,
 	IBufferService,
-	ICoreService,
 	IOptionsService
 } from '$lib/common/services/Services';
+import type { CoreService } from '$lib/common/services/CoreService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
 import type { Buffer } from '$lib/common/buffer/Buffer';
@@ -166,7 +166,7 @@ export class MockCharsetService {
 	}
 }
 
-export class MockCoreService implements ICoreService {
+export class MockCoreService {
 	// TODO: Fix this upstream type error.
 
 	public isCursorInitialized: boolean = true;
@@ -207,6 +207,10 @@ export class MockCoreService implements ICoreService {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public triggerBinaryEvent(data: string): void {}
+}
+
+export function createMockCoreService(): CoreService {
+	return new MockCoreService() as unknown as CoreService;
 }
 
 export class MockOptionsService implements IOptionsService {

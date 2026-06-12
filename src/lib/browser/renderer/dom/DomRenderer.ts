@@ -25,10 +25,10 @@ import { color } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
 	IBufferService,
-	ICoreService,
 	IDecorationService,
 	IOptionsService
 } from '$lib/common/services/Services';
+import type { CoreService } from '$lib/common/services/CoreService';
 import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 
@@ -91,7 +91,7 @@ export class DomRenderer implements IRenderer {
 		private readonly _decorationService: IDecorationService,
 		private readonly _optionsService: IOptionsService,
 		private readonly _bufferService: IBufferService,
-		private readonly _coreService: ICoreService,
+		private readonly _coreService: CoreService,
 		private readonly _coreBrowserService: CoreBrowserService,
 		private readonly _themeService: ThemeService
 	) {
