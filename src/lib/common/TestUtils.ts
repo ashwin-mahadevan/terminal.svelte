@@ -52,9 +52,7 @@ export const NULL_CELL_DATA = Object.freeze(
 	createCellData(DEFAULT_ATTR, NULL_CELL_CHAR, NULL_CELL_WIDTH)
 );
 
-export class MockBufferService {
-	// TODO: Fix this upstream type error.
-
+class MockBufferService {
 	public get buffer(): Buffer {
 		return this.buffers.active;
 	}
@@ -223,9 +221,7 @@ export function createMockCoreService(): CoreService {
 	return new MockCoreService() as unknown as CoreService;
 }
 
-export class MockOptionsService {
-	// TODO: Fix this upstream type error.
-
+class MockOptionsService {
 	public readonly rawOptions: Required<ITerminalOptions> = structuredClone(DEFAULT_OPTIONS);
 	public options: Required<ITerminalOptions> = this.rawOptions;
 	public onOptionChange: IEvent<keyof ITerminalOptions> = new LegacyEmitter<
@@ -330,7 +326,7 @@ export class MockUnicodeService {
 	}
 }
 
-export class MockDecorationService {
+class MockDecorationService {
 	// TODO: Fix this upstream type error.
 
 	public get decorations(): IterableIterator<IInternalDecoration> {
