@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Terminal from '$lib/terminal.svelte';
+import SizeBindingFixture from '$lib/size-binding-fixture.svelte';
 
 /**
  * Measure the size of the *active* buffer the same way a full-screen app
@@ -232,6 +233,21 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
  * that degenerate state — these tests pin down what happens if it does.
  */
 describe('terminal.svelte unsized-container diagnostics', () => {
+	// Documents the platform behavior the sizing effect's guard relies on:
+	// Svelte initializes dimension bindings synchronously at mount (they are
+	// never undefined by the time a $effect runs), and an unsized container
+	// reports a real, measured height of 0. The guard's falsy check therefore
+	// protects against 0, not (only) undefined.
+	it('sees dimension bindings as numbers, with 0 height, on the first $effect run', async () => {
+		const log: Array<{ width: number | undefined; height: number | undefined }> = [];
+
+		await render(SizeBindingFixture, { props: { log } });
+
+		expect(log.length).toBeGreaterThan(0);
+		expect(log[0]!.width).toBeGreaterThan(0);
+		expect(log[0]!.height).toBe(0);
+	});
+
 	// Hypothesis A: an unsized (0-height) container must not produce a resize
 	// event. A bogus early event makes every `expect.poll(onresize)` in the
 	// other tests race against the real fit that lands after styling.
