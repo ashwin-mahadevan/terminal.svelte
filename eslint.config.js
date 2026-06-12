@@ -26,6 +26,20 @@ export default defineConfig([
 	},
 
 	{
+		files: ['**/*.ts', '**/*.js'],
+		languageOptions: {
+			parserOptions: {
+				projectService: {
+					allowDefaultProject: ['*.js', 'knip.config.ts', 'playwright.config.ts']
+				}
+			}
+		},
+		rules: {
+			'@typescript-eslint/no-floating-promises': 'warn'
+		}
+	},
+
+	{
 		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 		languageOptions: {
 			parserOptions: {
@@ -34,6 +48,9 @@ export default defineConfig([
 				parser: ts.parser,
 				svelteConfig
 			}
+		},
+		rules: {
+			'@typescript-eslint/no-floating-promises': 'warn'
 		}
 	},
 
