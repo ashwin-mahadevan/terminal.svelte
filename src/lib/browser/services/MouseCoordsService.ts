@@ -6,12 +6,12 @@
 import { getWindow } from '$lib/browser/Dom';
 import { getCoords, getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
-import type { IRenderService } from '$lib/browser/services/Services';
+import type { RenderService } from '$lib/browser/services/RenderService';
 
 export class MouseCoordsService {
 	constructor(
 		private readonly _terminal: CoreBrowserTerminal,
-		private readonly _renderService: IRenderService
+		private readonly _renderService: RenderService
 	) {}
 
 	public getCoords(

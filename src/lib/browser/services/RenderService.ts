@@ -7,7 +7,6 @@ import { RenderDebouncer } from '$lib/browser/RenderDebouncer';
 import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
-import type { IRenderService } from '$lib/browser/services/Services';
 import type { ICoreBrowserService } from '$lib/browser/services/Services';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
@@ -31,7 +30,7 @@ const enum Constants {
 	SYNCHRONIZED_OUTPUT_TIMEOUT_MS = 1000
 }
 
-export class RenderService implements IRenderService {
+export class RenderService {
 	private readonly _renderer = new MutableDisposable<IRenderer>();
 	private _renderDebouncer!: IRenderDebouncerWithCallback;
 	private _pausedResizeTask!: DebouncedIdleTask;

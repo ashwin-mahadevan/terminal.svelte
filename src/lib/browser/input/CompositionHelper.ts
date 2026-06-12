@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { IRenderService } from '$lib/browser/services/Services';
+import type { RenderService } from '$lib/browser/services/RenderService';
 import type { IBufferService, ICoreService } from '$lib/common/services/Services';
 import { C0 } from '$lib/common/data/EscapeSequences';
 
@@ -59,7 +59,7 @@ export class CompositionHelper {
 		private readonly _compositionView: HTMLElement,
 		private readonly _bufferService: IBufferService,
 		private readonly _coreService: ICoreService,
-		private readonly _renderService: IRenderService
+		private readonly _renderService: RenderService
 	) {
 		this._isComposing = false;
 		this._isSendingComposition = false;

@@ -5,7 +5,8 @@
 
 import type { IColorZone } from '$lib/browser/decorations/ColorZoneStore';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
-import type { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
+import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { RenderService } from '$lib/browser/services/RenderService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type {
@@ -73,7 +74,7 @@ export class OverviewRulerRenderer {
 		private readonly _screenElement: HTMLElement,
 		private readonly _bufferService: IBufferService,
 		private readonly _decorationService: IDecorationService,
-		private readonly _renderService: IRenderService,
+		private readonly _renderService: RenderService,
 		private readonly _optionsService: IOptionsService,
 		private readonly _themeService: ThemeService,
 		private readonly _coreBrowserService: ICoreBrowserService

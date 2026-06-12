@@ -11,8 +11,8 @@ import { CoreMouseAction, CoreMouseButton, CoreMouseEventType } from '$lib/commo
 import { C0 } from '$lib/common/data/EscapeSequences';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
-import type { IMouseServiceTarget } from './Services';
-import type { ICoreBrowserService, IRenderService } from './Services';
+import type { IMouseServiceTarget, ICoreBrowserService } from './Services';
+import type { RenderService } from '$lib/browser/services/RenderService';
 import type { MouseCoordsService } from '$lib/browser/services/MouseCoordsService';
 import type { SelectionService } from '$lib/browser/services/SelectionService';
 import type { IGestureEvent } from '$lib/browser/scrollable/touch';
@@ -40,7 +40,7 @@ export class MouseService {
 	private _altMouseCursor: AltMouseCursorController | undefined;
 
 	constructor(
-		private readonly _renderService: IRenderService,
+		private readonly _renderService: RenderService,
 		private readonly _mouseCoordsService: MouseCoordsService,
 		private readonly _mouseStateService: MouseStateService,
 		private readonly _coreService: ICoreService,

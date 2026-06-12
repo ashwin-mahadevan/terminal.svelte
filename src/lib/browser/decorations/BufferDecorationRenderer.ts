@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
+import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { RenderService } from '$lib/browser/services/RenderService';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
 import type { IBufferService, IDecorationService } from '$lib/common/services/Services';
@@ -28,7 +29,7 @@ export class BufferDecorationRenderer {
 		private readonly _bufferService: IBufferService,
 		private readonly _coreBrowserService: ICoreBrowserService,
 		private readonly _decorationService: IDecorationService,
-		private readonly _renderService: IRenderService
+		private readonly _renderService: RenderService
 	) {
 		this._container = document.createElement('div');
 		this._container.classList.add('xterm-decoration-container');

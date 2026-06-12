@@ -17,7 +17,7 @@ import { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
 import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { IRenderService } from '$lib/browser/services/Services';
+import type { RenderService } from '$lib/browser/services/RenderService';
 import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
 
@@ -53,7 +53,7 @@ class TestSelectionService extends SelectionService {
 	constructor(
 		bufferService: IBufferService,
 		optionsService: IOptionsService,
-		renderService: IRenderService,
+		renderService: RenderService,
 		public readonly mouseStateService: MockMouseStateService
 	) {
 		super(

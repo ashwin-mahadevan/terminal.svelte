@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
 import type { ILink } from '$lib/browser/Types';
 import type { IEvent } from '$lib/common/Event';
 
@@ -35,44 +34,6 @@ export interface IMouseServiceTarget {
 	screenElement: HTMLElement;
 	document: Document;
 	handleTouchScroll?(amount: number): void;
-}
-
-export interface IRenderService {
-	dispose(): void;
-
-	onDimensionsChange: IEvent<IRenderDimensions>;
-	/**
-	 * Fires when buffer changes are rendered. This does not fire when only cursor
-	 * or selections are rendered.
-	 */
-	onRenderedViewportChange: IEvent<{ start: number; end: number }>;
-	/**
-	 * Fires on render
-	 */
-	onRender: IEvent<{ start: number; end: number }>;
-	onRefreshRequest: IEvent<{ start: number; end: number }>;
-
-	dimensions: IRenderDimensions;
-
-	addRefreshCallback(callback: FrameRequestCallback): number;
-
-	refreshRows(start: number, end: number, sync?: boolean): void;
-	clearTextureAtlas(): void;
-	resize(cols: number, rows: number): void;
-	hasRenderer(): boolean;
-	setRenderer(renderer: IRenderer): void;
-	handleDevicePixelRatioChange(): void;
-	handleResize(cols: number, rows: number): void;
-	handleCharSizeChanged(): void;
-	handleBlur(): void;
-	handleFocus(): void;
-	handleSelectionChanged(
-		start: [number, number] | undefined,
-		end: [number, number] | undefined,
-		columnSelectMode: boolean
-	): void;
-	handleCursorMove(): void;
-	clear(): void;
 }
 
 export interface ILinkProvider {

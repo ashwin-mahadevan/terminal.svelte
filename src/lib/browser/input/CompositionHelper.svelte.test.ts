@@ -9,7 +9,7 @@ import { MockCoreService, MockBufferService } from '$lib/common/TestUtils';
 
 // NOTE: $lib/browser/TestUtils currently fails to import under
 // verbatimModuleSyntax (its `$lib/xterm` type-only import is not elided), so the
-// minimal IRenderService stub these tests need is inlined here instead.
+// minimal RenderService stub these tests need is inlined here instead.
 const MockRenderService = class {
 	public dimensions = {
 		css: { cell: { width: 0, height: 0 }, canvas: { width: 0, height: 0 } },

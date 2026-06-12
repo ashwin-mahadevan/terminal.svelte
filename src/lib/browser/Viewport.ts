@@ -3,7 +3,8 @@
  * @license MIT
  */
 
-import type { ICoreBrowserService, IRenderService } from '$lib/browser/services/Services';
+import type { ICoreBrowserService } from '$lib/browser/services/Services';
+import type { RenderService } from '$lib/browser/services/RenderService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -52,12 +53,12 @@ export class Viewport {
 		mouseStateService: MouseStateService,
 		themeService: ThemeService,
 		private readonly _optionsService: IOptionsService,
-		private readonly _renderService: IRenderService
+		private readonly _renderService: RenderService
 	) {
 		this._scrollable = new Scrollable({
 			forceIntegerValues: false,
 			smoothScrollDuration: this._optionsService.rawOptions.smoothScrollDuration,
-			// This is used over `IRenderService.addRefreshCallback` since it can be canceled
+			// This is used over `RenderService.addRefreshCallback` since it can be canceled
 			scheduleAtNextAnimationFrame: (cb) =>
 				scheduleAtNextAnimationFrame(coreBrowserService.window, cb)
 		});
