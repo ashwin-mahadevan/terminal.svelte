@@ -4,7 +4,8 @@
  */
 
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { IAttributeData, IBufferLine } from '$lib/common/Types';
+import type { IAttributeData } from '$lib/common/Types';
+import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { IBuffer } from '$lib/common/buffer/Types';
 import type { IBufferService } from '$lib/common/services/Services';
@@ -36,7 +37,7 @@ export class BufferService implements IBufferService {
 	}
 
 	/** An IBufferline to clone/copy from for new blank lines */
-	private _cachedBlankLine: IBufferLine | undefined;
+	private _cachedBlankLine: BufferLine | undefined;
 	private readonly _bufferActivateListener: IDisposable;
 
 	constructor(optionsService: IOptionsService) {
@@ -77,7 +78,7 @@ export class BufferService implements IBufferService {
 	public scroll(eraseAttr: IAttributeData, isWrapped: boolean = false): void {
 		const buffer = this.buffer;
 
-		let newLine: IBufferLine | undefined;
+		let newLine: BufferLine | undefined;
 		newLine = this._cachedBlankLine;
 		if (
 			!newLine ||

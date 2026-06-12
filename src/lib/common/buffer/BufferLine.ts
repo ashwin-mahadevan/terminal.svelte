@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { CharData, IAttributeData, IBufferLine, ICellData } from '$lib/common/Types';
+import type { CharData, IAttributeData, ICellData } from '$lib/common/Types';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import type { ExtendedAttrs } from '$lib/common/buffer/AttributeData';
 import type { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
@@ -78,7 +78,7 @@ export interface IBufferLineStringCacheEntry {
  * (if only one particular value is needed) or `loadCell`. For `loadCell` in a loop
  * memory allocs / GC pressure can be greatly reduced by reusing the CellData object.
  */
-export class BufferLine implements IBufferLine {
+export class BufferLine {
 	protected _data: Uint32Array;
 	protected _combined: { [index: number]: string } = {};
 	protected _extendedAttrs: { [index: number]: ExtendedAttrs | undefined } = {};
@@ -496,7 +496,7 @@ export class BufferLine implements IBufferLine {
 	}
 
 	/** create a new clone */
-	public clone(): IBufferLine {
+	public clone(): BufferLine {
 		const newLine = new BufferLine(this._stringCache, 0, undefined, false);
 		newLine._data = new Uint32Array(this._data);
 		newLine.length = this.length;

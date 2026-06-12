@@ -151,51 +151,6 @@ export interface ICellData extends IAttributeData {
 	getAsCharData(): CharData;
 }
 
-/**
- * Interface for a line in the terminal buffer.
- */
-export interface IBufferLine {
-	length: number;
-	isWrapped: boolean;
-	get(index: number): CharData;
-	set(index: number, value: CharData): void;
-	loadCell(index: number, cell: ICellData): ICellData;
-	setCell(index: number, cell: ICellData): void;
-	setCellFromCodepoint(
-		index: number,
-		codePoint: number,
-		width: number,
-		attrs: IAttributeData
-	): void;
-	addCodepointToCell(index: number, codePoint: number, width: number): void;
-	insertCells(pos: number, n: number, ch: ICellData): void;
-	deleteCells(pos: number, n: number, fill: ICellData): void;
-	replaceCells(start: number, end: number, fill: ICellData, respectProtect?: boolean): void;
-	resize(cols: number, fill: ICellData): boolean;
-	cleanupMemory(): number;
-	fill(fillCellData: ICellData, respectProtect?: boolean): void;
-	copyFrom(line: IBufferLine): void;
-	clone(): IBufferLine;
-	getTrimmedLength(): number;
-	getNoBgTrimmedLength(): number;
-	translateToString(
-		trimRight?: boolean,
-		startCol?: number,
-		endCol?: number,
-		outColumns?: number[]
-	): string;
-
-	/* direct access to cell attrs */
-	getWidth(index: number): number;
-	hasWidth(index: number): number;
-	getFg(index: number): number;
-	getBg(index: number): number;
-	hasContent(index: number): number;
-	getCodePoint(index: number): number;
-	isCombined(index: number): number;
-	getString(index: number): string;
-}
-
 export interface IMarker {
 	dispose(): void;
 	readonly id: number;

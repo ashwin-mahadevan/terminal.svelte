@@ -5,7 +5,7 @@
 
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import type { CircularList } from '$lib/common/CircularList';
-import type { IBufferLine, ICellData } from '$lib/common/Types';
+import type { ICellData } from '$lib/common/Types';
 
 export interface INewLayoutResult {
 	layout: number[];
@@ -23,7 +23,7 @@ export interface INewLayoutResult {
  * @param reflowCursorLine Whether to reflow the line containing the cursor.
  */
 export function reflowLargerGetLinesToRemove(
-	lines: CircularList<IBufferLine>,
+	lines: CircularList<BufferLine>,
 	oldCols: number,
 	newCols: number,
 	bufferAbsoluteY: number,
@@ -133,7 +133,7 @@ export function reflowLargerGetLinesToRemove(
  * @param toRemove The indexes to remove.
  */
 export function reflowLargerCreateNewLayout(
-	lines: CircularList<IBufferLine>,
+	lines: CircularList<BufferLine>,
 	toRemove: number[]
 ): INewLayoutResult {
 	const layout: number[] = [];
@@ -171,7 +171,7 @@ export function reflowLargerCreateNewLayout(
  * @param newLayout The new layout to apply.
  */
 export function reflowLargerApplyNewLayout(
-	lines: CircularList<IBufferLine>,
+	lines: CircularList<BufferLine>,
 	newLayout: number[]
 ): void {
 	// Record original lines so they don't get overridden when we rearrange the list

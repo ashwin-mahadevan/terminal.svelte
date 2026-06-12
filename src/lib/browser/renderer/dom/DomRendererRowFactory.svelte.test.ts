@@ -14,7 +14,6 @@ import {
 } from '$lib/common/buffer/Constants';
 import { BufferLine, DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
-import type { IBufferLine } from '$lib/common/Types';
 import { CellData } from '$lib/common/buffer/CellData';
 import {
 	MockCoreService,
@@ -1527,7 +1526,7 @@ describe('DomRendererRowFactory', () => {
 		return element.innerHTML;
 	}
 
-	function createEmptyLineData(cols: number): IBufferLine {
+	function createEmptyLineData(cols: number): BufferLine {
 		const lineData = new BufferLine(TEST_STRING_CACHE, cols);
 		for (let i = 0; i < cols; i++) {
 			lineData.setCell(i, NULL_CELL_DATA);

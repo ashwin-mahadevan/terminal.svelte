@@ -7,7 +7,6 @@ import { describe, it, expect } from 'vitest';
 import { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
-import type { IBufferLine } from '$lib/common/Types';
 import { CellData } from '$lib/common/buffer/CellData';
 import { MockBufferService, createCellData } from '$lib/common/TestUtils';
 
@@ -296,7 +295,7 @@ describe('CharacterJoinerService', () => {
 
 type IPartialLineData = [string] | [string, number];
 
-function lineData(data: IPartialLineData[]): IBufferLine {
+function lineData(data: IPartialLineData[]): BufferLine {
 	const tline = new BufferLine(TEST_STRING_CACHE, 0);
 	for (let i = 0; i < data.length; ++i) {
 		const line = data[i][0];

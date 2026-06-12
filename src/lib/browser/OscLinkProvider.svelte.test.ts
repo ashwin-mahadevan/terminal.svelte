@@ -8,7 +8,8 @@ import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
 import type { ILink } from '$lib/browser/Types';
 import { createCellData, MockBufferService, MockOptionsService } from '$lib/common/TestUtils';
 import type { OscLinkService } from '$lib/common/services/OscLinkService';
-import type { IBufferLine, IOscLinkData } from '$lib/common/Types';
+import type { IOscLinkData } from '$lib/common/Types';
+import type { BufferLine } from '$lib/common/buffer/BufferLine';
 
 class TestOscLinkService {
 	// TODO: Fix this upstream type error.
@@ -26,7 +27,7 @@ class TestOscLinkService {
 	}
 }
 
-function setText(line: IBufferLine | undefined, x: number, text: string): void {
+function setText(line: BufferLine | undefined, x: number, text: string): void {
 	if (!line) {
 		throw new Error('Missing buffer line');
 	}
@@ -35,7 +36,7 @@ function setText(line: IBufferLine | undefined, x: number, text: string): void {
 	}
 }
 
-function setUrl(line: IBufferLine | undefined, x: number, text: string, linkId: number): void {
+function setUrl(line: BufferLine | undefined, x: number, text: string, linkId: number): void {
 	if (!line) {
 		throw new Error('Missing buffer line');
 	}

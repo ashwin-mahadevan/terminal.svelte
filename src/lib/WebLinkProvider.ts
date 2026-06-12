@@ -4,7 +4,7 @@
  */
 
 import type { ILinkProvider, ILink, IViewportRange } from '$lib/xterm';
-import type { IBufferLine } from '$lib/common/Types';
+import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import type { Terminal } from '$lib/browser/public/Terminal';
 import { CellData } from '$lib/common/buffer/CellData';
 
@@ -150,7 +150,7 @@ class LinkComputer {
 		lineIndex: number,
 		terminal: Terminal
 	): [string[], number] {
-		let line: IBufferLine | undefined;
+		let line: BufferLine | undefined;
 		let topIdx = lineIndex;
 		let bottomIdx = lineIndex;
 		let length;

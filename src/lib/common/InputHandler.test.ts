@@ -5,8 +5,9 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { InputHandler } from '$lib/common/InputHandler';
-import type { IBufferLine, IAttributeData, IColorEvent } from '$lib/common/Types';
+import type { IAttributeData, IColorEvent } from '$lib/common/Types';
 import { ColorRequestType, SpecialColorIndex } from '$lib/common/Types';
+import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import { CellData } from '$lib/common/buffer/CellData';
 import { Attributes, BgFlags, UnderlineStyle } from '$lib/common/buffer/Constants';
@@ -444,7 +445,7 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('1234567890');
 			await inputHandler.parseP('a'.repeat(bufferService.cols - 10));
 			await inputHandler.parseP('1234567890');
-			const line1: IBufferLine = bufferService.buffer.lines.get(0)!;
+			const line1: BufferLine = bufferService.buffer.lines.get(0)!;
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '1234567890'
 			);
@@ -499,7 +500,7 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('1234567890');
 			await inputHandler.parseP('a'.repeat(bufferService.cols - 10));
 			await inputHandler.parseP('1234567890');
-			const line1: IBufferLine = bufferService.buffer.lines.get(0)!;
+			const line1: BufferLine = bufferService.buffer.lines.get(0)!;
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '1234567890'
 			);

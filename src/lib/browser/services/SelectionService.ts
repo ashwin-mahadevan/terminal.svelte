@@ -17,7 +17,8 @@ import type { MouseCoordsService } from '$lib/browser/services/MouseCoordsServic
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { MutableDisposable } from '$lib/common/Lifecycle';
 import * as Browser from '$lib/common/Platform';
-import type { IBufferLine, ICellData } from '$lib/common/Types';
+import type { ICellData } from '$lib/common/Types';
+import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { getRangeLength } from '$lib/common/buffer/BufferRange';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { IBuffer } from '$lib/common/buffer/Types';
@@ -889,7 +890,7 @@ export class SelectionService {
 	 * @param bufferLine The buffer line to use.
 	 * @param x The x index in the buffer line to convert.
 	 */
-	private _convertViewportColToCharacterIndex(bufferLine: IBufferLine, x: number): number {
+	private _convertViewportColToCharacterIndex(bufferLine: BufferLine, x: number): number {
 		let charIndex = x;
 		for (let i = 0; x >= i; i++) {
 			const length = bufferLine.loadCell(i, this._workCell).getChars().length;

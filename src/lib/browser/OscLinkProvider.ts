@@ -6,7 +6,7 @@
 import type { IBufferRange, ILink } from '$lib/browser/Types';
 import type { ILinkProvider } from '$lib/browser/services/Services';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { IBufferLine } from '$lib/common/Types';
+import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import type { IBufferService, IOptionsService } from '$lib/common/services/Services';
 import type { OscLinkService } from '$lib/common/services/OscLinkService';
 
@@ -181,7 +181,7 @@ export class OscLinkProvider implements ILinkProvider {
 		};
 	}
 
-	private _hasUrlId(line: IBufferLine, x: number, linkId: number): boolean {
+	private _hasUrlId(line: BufferLine, x: number, linkId: number): boolean {
 		const cell = this._workCell;
 		line.loadCell(x, cell);
 		return !!cell.hasExtendedAttrs() && cell.extended.urlId === linkId;

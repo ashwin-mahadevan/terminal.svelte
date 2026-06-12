@@ -3,7 +3,8 @@
  * @license MIT
  */
 
-import type { IBufferLine, ICellData, CharData } from '$lib/common/Types';
+import type { ICellData, CharData } from '$lib/common/Types';
+import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import type { ICharacterJoiner } from '$lib/browser/Types';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import { WHITESPACE_CELL_CHAR, Content } from '$lib/common/buffer/Constants';
@@ -172,7 +173,7 @@ export class CharacterJoinerService {
 		line: string,
 		startIndex: number,
 		endIndex: number,
-		lineData: IBufferLine,
+		lineData: BufferLine,
 		startCol: number
 	): [number, number][] {
 		const text = line.substring(startIndex, endIndex);
@@ -210,7 +211,7 @@ export class CharacterJoinerService {
 	 */
 	private _stringRangesToCellRanges(
 		ranges: [number, number][],
-		line: IBufferLine,
+		line: BufferLine,
 		startCol: number
 	): void {
 		let currentRangeIndex = 0;

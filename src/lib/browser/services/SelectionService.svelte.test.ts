@@ -6,7 +6,6 @@
 import { describe, it, expect } from 'vitest';
 import { SelectionService, SelectionMode } from '$lib/browser/services/SelectionService';
 import type { SelectionModel } from '$lib/browser/selection/SelectionModel';
-import type { IBufferLine } from '$lib/common/Types';
 import {
 	MockBufferService,
 	MockOptionsService,
@@ -106,7 +105,7 @@ class TestSelectionService extends SelectionService {
 }
 
 describe('SelectionService', () => {
-	function stringToRow(text: string): IBufferLine {
+	function stringToRow(text: string): BufferLine {
 		const result = new BufferLine(TEST_STRING_CACHE, text.length);
 		for (let i = 0; i < text.length; i++) {
 			result.setCell(i, createCellData(0, text.charAt(i), 1));
@@ -114,7 +113,7 @@ describe('SelectionService', () => {
 		return result;
 	}
 
-	function stringArrayToRow(chars: string[]): IBufferLine {
+	function stringArrayToRow(chars: string[]): BufferLine {
 		const line = new BufferLine(TEST_STRING_CACHE, chars.length);
 		chars.map((c, idx) => line.setCell(idx, createCellData(0, c, 1)));
 		return line;

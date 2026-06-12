@@ -3,7 +3,8 @@
  * @license MIT
  */
 
-import type { IBufferLine, ICellData, IColor } from '$lib/common/Types';
+import type { ICellData, IColor } from '$lib/common/Types';
+import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { INVERTED_DEFAULT_COLOR } from '$lib/browser/renderer/shared/Constants';
 import { WHITESPACE_CELL_CHAR, Attributes } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
@@ -68,7 +69,7 @@ export class DomRendererRowFactory {
 	}
 
 	public createRow(
-		lineData: IBufferLine,
+		lineData: BufferLine,
 		row: number,
 		isCursorRow: boolean,
 		cursorStyle: string | undefined,

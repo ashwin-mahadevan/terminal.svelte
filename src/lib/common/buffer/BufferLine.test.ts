@@ -17,7 +17,7 @@ import {
 import { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { CharData, IBufferLine, ICellData } from '$lib/common/Types';
+import type { CharData, ICellData } from '$lib/common/Types';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import { createCellData, NULL_CELL_DATA, extendedAttributes } from '$lib/common/TestUtils';
 
@@ -205,7 +205,7 @@ describe('CellData', () => {
 
 describe('BufferLine', () => {
 	it('ctor', () => {
-		let line: IBufferLine = new TestBufferLine(0);
+		let line: BufferLine = new TestBufferLine(0);
 		expect(line.length).toBe(0);
 		expect(line.isWrapped).toBe(false);
 		line = new TestBufferLine(10);

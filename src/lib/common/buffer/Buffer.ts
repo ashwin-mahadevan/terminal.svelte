@@ -6,7 +6,7 @@
 import type { IInsertEvent } from '$lib/common/CircularList';
 import { CircularList } from '$lib/common/CircularList';
 import { IdleTaskQueue } from '$lib/common/TaskQueue';
-import type { IAttributeData, IBufferLine, ICellData, ICharset } from '$lib/common/Types';
+import type { IAttributeData, ICellData, ICharset } from '$lib/common/Types';
 import { ExtendedAttrs } from '$lib/common/buffer/AttributeData';
 import { BufferLine, DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
@@ -41,7 +41,7 @@ const MAX_BUFFER_SIZE = 4294967295; // 2^32 - 1
  *   - scroll position
  */
 export class Buffer implements IBuffer {
-	public lines: CircularList<IBufferLine>;
+	public lines: CircularList<BufferLine>;
 	public ydisp: number = 0;
 	public ybase: number = 0;
 	public y: number = 0;
@@ -84,7 +84,7 @@ export class Buffer implements IBuffer {
 	) {
 		this._cols = this._bufferService.cols;
 		this._rows = this._bufferService.rows;
-		this.lines = new CircularList<IBufferLine>(this._getCorrectBufferLength(this._rows));
+		this.lines = new CircularList<BufferLine>(this._getCorrectBufferLength(this._rows));
 		this.scrollTop = 0;
 		this.scrollBottom = this._rows - 1;
 		this.setupTabStops();
@@ -124,7 +124,7 @@ export class Buffer implements IBuffer {
 		return this._whitespaceCell;
 	}
 
-	public getBlankLine(attr: IAttributeData, isWrapped?: boolean): IBufferLine {
+	public getBlankLine(attr: IAttributeData, isWrapped?: boolean): BufferLine {
 		return new BufferLine(
 			this._stringCache,
 			this._bufferService.cols,
@@ -180,7 +180,7 @@ export class Buffer implements IBuffer {
 		this.ybase = 0;
 		this.y = 0;
 		this.x = 0;
-		this.lines = new CircularList<IBufferLine>(this._getCorrectBufferLength(this._rows));
+		this.lines = new CircularList<BufferLine>(this._getCorrectBufferLength(this._rows));
 		this.scrollTop = 0;
 		this.scrollBottom = this._rows - 1;
 		this.setupTabStops();

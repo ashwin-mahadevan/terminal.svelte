@@ -3,12 +3,13 @@
  * @license MIT
  */
 
-import type { IAttributeData, IBufferLine, ICellData, ICharset } from '$lib/common/Types';
+import type { IAttributeData, ICellData, ICharset } from '$lib/common/Types';
 import type { CircularList } from '$lib/common/CircularList';
+import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import type { Marker } from '$lib/common/buffer/Marker';
 
 export interface IBuffer {
-	readonly lines: CircularList<IBufferLine>;
+	readonly lines: CircularList<BufferLine>;
 	ydisp: number;
 	ybase: number;
 	y: number;
@@ -38,7 +39,7 @@ export interface IBuffer {
 	getWrappedRangeForLine(y: number): { first: number; last: number };
 	nextStop(x?: number): number;
 	prevStop(x?: number): number;
-	getBlankLine(attr: IAttributeData, isWrapped?: boolean): IBufferLine;
+	getBlankLine(attr: IAttributeData, isWrapped?: boolean): BufferLine;
 	getNullCell(attr?: IAttributeData): ICellData;
 	getWhitespaceCell(attr?: IAttributeData): ICellData;
 	addMarker(y: number): Marker;
