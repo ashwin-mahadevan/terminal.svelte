@@ -95,38 +95,33 @@
 		value: 0
 	});
 
-	function parseProgress(
-		st: string,
-		pr: number,
-		previous: { state: 0 | 1 | 2 | 3 | 4; value: number }
-	): { state: 0 | 1 | 2 | 3 | 4; value: number } | undefined {
-		switch (st) {
-			case '0':
-				return { state: 0, value: 0 };
-			case '1':
-				return { state: 1, value: Math.min(Math.max(pr, 0), 100) };
-			case '2':
-				if (pr === 0) return { state: 2, value: previous.value };
-				return { state: 2, value: Math.min(Math.max(pr, 0), 100) };
-			case '3':
-				return { state: 3, value: previous.value };
-			case '4':
-				if (pr === 0) return { state: 4, value: previous.value };
-				return { state: 4, value: Math.min(Math.max(pr, 0), 100) };
-			default:
-				return undefined;
-		}
-	}
-
 	function handleProgress(data: string) {
 		const m = data.match(/^4;(\d+)(?:;(\d*))?$/);
 		if (!m) return false;
-		const next = parseProgress(m[1], m[2] ? parseInt(m[2], 10) : 0, progress);
-		if (next) {
-			progress.state = next.state;
-			progress.value = next.value;
+		const pr = m[2] ? parseInt(m[2], 10) : 0;
+		switch (m[1]) {
+			case '0':
+				progress.state = 0;
+				progress.value = 0;
+				return true;
+			case '1':
+				progress.state = 1;
+				progress.value = Math.min(Math.max(pr, 0), 100);
+				return true;
+			case '2':
+				progress.state = 2;
+				if (pr !== 0) progress.value = Math.min(Math.max(pr, 0), 100);
+				return true;
+			case '3':
+				progress.state = 3;
+				return true;
+			case '4':
+				progress.state = 4;
+				if (pr !== 0) progress.value = Math.min(Math.max(pr, 0), 100);
+				return true;
+			default:
+				return false;
 		}
-		return true;
 	}
 
 	$effect(() => terminal.parser.registerOscHandler(9, handleProgress).dispose);
