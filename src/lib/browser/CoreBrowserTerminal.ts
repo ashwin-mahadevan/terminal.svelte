@@ -780,22 +780,24 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			console.error('onWillOpen handler threw an exception', e);
 		}
 		if (!this._renderService.hasRenderer()) {
-			this._renderService.setRenderer(new DomRenderer(
-				this,
-				this._document!,
-				this.element!,
-				this.screenElement!,
-				this._viewportElement!,
-				this._helperContainer!,
-				this.linkifier!,
-				this._characterJoinerService!,
-				this._decorationService,
-				this.optionsService,
-				this._bufferService,
-				this.coreService,
-				this._coreBrowserService!,
-				this._themeService!
-			));
+			this._renderService.setRenderer(
+				new DomRenderer(
+					this,
+					this._document!,
+					this.element!,
+					this.screenElement!,
+					this._viewportElement!,
+					this._helperContainer!,
+					this.linkifier!,
+					this._characterJoinerService!,
+					this._decorationService,
+					this.optionsService,
+					this._bufferService,
+					this.coreService,
+					this._coreBrowserService!,
+					this._themeService!
+				)
+			);
 		}
 
 		this._store.add(
