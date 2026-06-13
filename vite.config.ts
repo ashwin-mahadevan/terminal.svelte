@@ -60,7 +60,11 @@ export default defineConfig({
 						provider: playwright({
 							contextOptions: { permissions: ['clipboard-read', 'clipboard-write'] }
 						}),
-						instances: [{ browser: 'chromium', headless: true }]
+						instances: [{ browser: 'chromium', headless: true }],
+						viewport: {
+							width: 1920,
+							height: 1080
+						}
 					},
 					include: ['src/lib/**/*.svelte.test.ts']
 				}
