@@ -96,24 +96,26 @@
 	});
 
 	function parseProgress(
-		st: number,
+		st: string,
 		pr: number,
 		previous: { state: 0 | 1 | 2 | 3 | 4; value: number }
 	): { state: 0 | 1 | 2 | 3 | 4; value: number } | undefined {
 		let next: { state: 0 | 1 | 2 | 3 | 4; value: number };
 		switch (st) {
-			case 0:
-				next = { state: st, value: 0 };
+			case '0':
+				next = { state: 0, value: 0 };
 				break;
-			case 1:
-				next = { state: st, value: pr };
+			case '1':
+				next = { state: 1, value: pr };
 				break;
-			case 2:
-			case 4:
-				next = { state: st, value: pr || previous.value };
+			case '2':
+				next = { state: 2, value: pr || previous.value };
 				break;
-			case 3:
-				next = { state: st, value: previous.value };
+			case '3':
+				next = { state: 3, value: previous.value };
+				break;
+			case '4':
+				next = { state: 4, value: pr || previous.value };
 				break;
 			default:
 				return undefined;
@@ -124,7 +126,7 @@
 	function handleProgress(data: string) {
 		const m = data.match(/^4;(\d+)(?:;(\d*))?$/);
 		if (!m) return false;
-		const next = parseProgress(parseInt(m[1], 10), m[2] ? parseInt(m[2], 10) : 0, progress);
+		const next = parseProgress(m[1], m[2] ? parseInt(m[2], 10) : 0, progress);
 		if (next) {
 			progress.state = next.state;
 			progress.value = next.value;
