@@ -650,33 +650,8 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		compositionView: HTMLDivElement,
 		scrollableContainer: HTMLDivElement
 	): void {
-		if (!parent) {
-			throw new Error('Terminal requires a parent element.');
-		}
-
-		if (!parent.isConnected) {
-			console.debug('Terminal.open was called on an element that was not attached to the DOM');
-		}
-
-		// If the terminal is already opened
-		if (this.element?.ownerDocument.defaultView && this._coreBrowserService) {
-			// Adjust the window if needed
-			if (this.element.ownerDocument.defaultView !== this._coreBrowserService.window) {
-				this._coreBrowserService.window = this.element.ownerDocument.defaultView;
-			}
-			return;
-		}
-
 		this._document = parent.ownerDocument;
-		if (this.options.documentOverride && this.options.documentOverride instanceof Document) {
-			this._document = this.optionsService.rawOptions.documentOverride as Document;
-		}
 
-		// Use the parent directly as the terminal's root element. Upstream xterm.js
-		// creates its own wrapper div because consumers may call open() on an
-		// arbitrary element it doesn't control; here we own the host element, so we
-		// apply the terminal's fixed state (classes, dir) to it directly and save a
-		// level of DOM nesting.
 		this.element = parent;
 		this.element.dir = 'ltr'; // xterm.css assumes LTR
 		this.element.classList.add('xterm');

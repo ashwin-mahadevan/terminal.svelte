@@ -19,7 +19,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	cursorWidth: 1,
 	cursorInactiveStyle: 'outline',
 	drawBoldTextInBrightColors: true,
-	documentOverride: null,
 	fastScrollSensitivity: 5,
 	fontWeight: 'normal',
 	fontWeightBold: 'bold',
@@ -99,7 +98,6 @@ export class OptionsService {
 		// Clear out options that could link outside xterm.js as they could easily cause an embedder
 		// memory leak
 		this.rawOptions.linkHandler = null;
-		this.rawOptions.documentOverride = null;
 	}
 
 	public onSpecificOptionChange<T extends keyof ITerminalOptions>(

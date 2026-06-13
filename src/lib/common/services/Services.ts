@@ -45,9 +45,6 @@ export interface ITerminalOptions {
 	cursorWidth?: number;
 	cursorInactiveStyle?: CursorInactiveStyle;
 	disableStdin?: boolean;
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	documentOverride?: any | null;
 	drawBoldTextInBrightColors?: boolean;
 	fastScrollSensitivity?: number;
 	fontWeight?: FontWeight;
