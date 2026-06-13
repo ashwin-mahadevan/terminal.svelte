@@ -36,7 +36,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	minimumContrastRatio: 1,
 	mouseEventsRequireAlt: false,
 	disableStdin: false,
-	allowTransparency: false,
 	tabStopWidth: 8,
 	theme: {},
 	reflowCursorLine: false,

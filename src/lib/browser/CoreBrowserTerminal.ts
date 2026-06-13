@@ -653,12 +653,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._document = parent.ownerDocument;
 
 		this.element = parent;
-		this.element.classList.toggle('allow-transparency', this.options.allowTransparency);
-		this._store.add(
-			this.optionsService.onSpecificOptionChange('allowTransparency', (value) =>
-				this.element!.classList.toggle('allow-transparency', value)
-			)
-		);
 
 		// Structural elements are pre-created by the caller in their final positions.
 		this.screenElement = screen;

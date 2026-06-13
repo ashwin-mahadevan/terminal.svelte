@@ -35,7 +35,6 @@ export type FontWeight =
 	| number;
 
 export interface ITerminalOptions {
-	allowTransparency?: boolean;
 	altClickMovesCursor?: boolean;
 	cols?: number;
 	convertEol?: boolean;
