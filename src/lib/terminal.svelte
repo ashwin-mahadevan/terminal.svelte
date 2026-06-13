@@ -4,7 +4,6 @@
 	import { ViewportConstants } from '$lib/browser/shared/Constants';
 	import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
 	import { setOrReportClipboard } from '$lib/clipboard';
-	import { parseProgress } from '$lib/progress';
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
 	import { browser } from '$app/environment';
@@ -90,24 +89,70 @@
 		return () => disposable.dispose();
 	});
 
-	// ConEmu OSC 9;4 progress reporting, inlined from the upstream ProgressAddon.
-	$effect(() => {
-		const disposable = terminal.parser.registerOscHandler(9, (data) => {
-			if (!data.startsWith('4;')) return false;
-			const next = parseProgress(data, progress);
-			if (next) {
-				progress.state = next.state;
-				progress.value = next.value;
-			}
-			return true;
-		});
-		return () => disposable.dispose();
-	});
-
+	// ConEmu OSC 9;4 progress reporting.
 	export const progress = $state<{ state: 0 | 1 | 2 | 3 | 4; value: number }>({
 		state: 0,
 		value: 0
 	});
+
+	function toInt(s: string): number {
+		let v = 0;
+		for (let i = 0; i < s.length; ++i) {
+			const c = s.charCodeAt(i);
+			if (c < 0x30 || 0x39 < c) {
+				return -1;
+			}
+			v = v * 10 + c - 48;
+		}
+		return v;
+	}
+
+	function parseProgress(
+		data: string,
+		previous: { state: 0 | 1 | 2 | 3 | 4; value: number }
+	): { state: 0 | 1 | 2 | 3 | 4; value: number } | undefined {
+		const parts = data.split(';');
+		if (parts.length > 3) return undefined;
+		if (parts.length === 2) parts.push('');
+		const st = toInt(parts[1]);
+		const pr = toInt(parts[2]);
+		let next: { state: 0 | 1 | 2 | 3 | 4; value: number };
+		switch (st) {
+			case 0:
+				next = { state: st, value: 0 };
+				break;
+			case 1:
+				if (pr < 0) return undefined;
+				next = { state: st, value: pr };
+				break;
+			case 2:
+			case 4:
+				if (pr < 0) return undefined;
+				next = { state: st, value: pr || previous.value };
+				break;
+			case 3:
+				next = { state: st, value: previous.value };
+				break;
+			default:
+				return undefined;
+		}
+		return { state: next.state, value: Math.min(Math.max(next.value, 0), 100) };
+	}
+
+	function handleProgress(data: string) {
+		if (!data.startsWith('4;')) return false;
+
+		const next = parseProgress(data, progress);
+
+		if (next) {
+			progress.state = next.state;
+			progress.value = next.value;
+		}
+
+		return true;
+	}
+
+	$effect(() => terminal.parser.registerOscHandler(9, handleProgress).dispose);
 
 	export function write(data: string) {
 		return new Promise<void>((resolve) => terminal.write(data, resolve));
