@@ -39,7 +39,7 @@ import { OscLinkService } from '$lib/common/services/OscLinkService';
 import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 
 interface ITerminalScrollEvent {
 	position: number;
@@ -49,7 +49,7 @@ interface ITerminalScrollEvent {
 let hasWriteSyncWarnHappened = false;
 
 export abstract class CoreTerminal {
-	protected readonly _disposables: IDisposable[] = [];
+	protected readonly _store = new DisposableStore();
 	protected readonly _bufferService: BufferService;
 	protected readonly _charsetService: CharsetService;
 	protected readonly _oscLinkService: OscLinkService;
@@ -61,21 +61,19 @@ export abstract class CoreTerminal {
 
 	protected _inputHandler: InputHandler;
 	private _writeBuffer: WriteBuffer;
-	private _windowsWrappingHeuristics = this._register(new MutableDisposable());
+	private _windowsWrappingHeuristics = new MutableDisposable();
 
-	private readonly _onBinary = this._register(new LegacyEmitter<string>());
+	private readonly _onBinary = new LegacyEmitter<string>();
 	public readonly onBinary = this._onBinary.event;
-	private readonly _onData = this._register(new LegacyEmitter<string>());
+	private readonly _onData = new LegacyEmitter<string>();
 	public readonly onData = this._onData.event;
-	protected _onLineFeed = this._register(new LegacyEmitter<void>());
+	protected _onLineFeed = new LegacyEmitter<void>();
 	public readonly onLineFeed = this._onLineFeed.event;
-	protected readonly _onRender = this._register(
-		new LegacyEmitter<{ start: number; end: number }>()
-	);
+	protected readonly _onRender = new LegacyEmitter<{ start: number; end: number }>();
 	public readonly onRender = this._onRender.event;
-	private readonly _onResize = this._register(new LegacyEmitter<{ cols: number; rows: number }>());
+	private readonly _onResize = new LegacyEmitter<{ cols: number; rows: number }>();
 	public readonly onResize = this._onResize.event;
-	protected readonly _onWriteParsed = this._register(new LegacyEmitter<void>());
+	protected readonly _onWriteParsed = new LegacyEmitter<void>();
 	public readonly onWriteParsed = this._onWriteParsed.event;
 
 	/**
@@ -83,10 +81,10 @@ export abstract class CoreTerminal {
 	 * it's filtered out.
 	 */
 	protected _onScrollApi?: LegacyEmitter<number>;
-	protected _onScroll = this._register(new LegacyEmitter<ITerminalScrollEvent>());
+	protected _onScroll = new LegacyEmitter<ITerminalScrollEvent>();
 	public get onScroll(): IEvent<number> {
 		if (!this._onScrollApi) {
-			this._onScrollApi = this._register(new LegacyEmitter<number>());
+			this._onScrollApi = new LegacyEmitter<number>();
 			this._onScroll.event((ev) => {
 				this._onScrollApi?.fire(ev.position);
 			});
@@ -114,40 +112,38 @@ export abstract class CoreTerminal {
 
 	constructor(options: Partial<ITerminalOptions>) {
 		// Setup and initialize services
-		this.optionsService = this._register(new OptionsService(options));
-		this._bufferService = this._register(new BufferService(this.optionsService));
-		this.coreService = this._register(new CoreService(this._bufferService, this.optionsService));
-		this.mouseStateService = this._register(new MouseStateService());
-		this.unicodeService = this._register(new UnicodeService());
+		this.optionsService = new OptionsService(options);
+		this._bufferService = new BufferService(this.optionsService);
+		this.coreService = new CoreService(this._bufferService, this.optionsService);
+		this.mouseStateService = new MouseStateService();
+		this.unicodeService = new UnicodeService();
 		this._charsetService = new CharsetService();
 		this._oscLinkService = new OscLinkService(this._bufferService);
 
 		// Register input handler and handle/forward events
-		this._inputHandler = this._register(
-			new InputHandler(
-				this._bufferService,
-				this._charsetService,
-				this.coreService,
-				this.optionsService,
-				this._oscLinkService,
-				this.mouseStateService,
-				this.unicodeService
-			)
+		this._inputHandler = new InputHandler(
+			this._bufferService,
+			this._charsetService,
+			this.coreService,
+			this.optionsService,
+			this._oscLinkService,
+			this.mouseStateService,
+			this.unicodeService
 		);
-		this._register(this._inputHandler.onLineFeed((e) => this._onLineFeed.fire(e)));
+		this._store.add(this._inputHandler.onLineFeed((e) => this._onLineFeed.fire(e)));
 
 		// Setup listeners
-		this._register(this._bufferService.onResize((e) => this._onResize.fire(e)));
-		this._register(this.coreService.onData((e) => this._onData.fire(e)));
-		this._register(this.coreService.onBinary((e) => this._onBinary.fire(e)));
-		this._register(this.coreService.onRequestScrollToBottom(() => this.scrollToBottom(true)));
-		this._register(this.coreService.onUserInput(() => this._writeBuffer.handleUserInput()));
-		this._register(
+		this._store.add(this._bufferService.onResize((e) => this._onResize.fire(e)));
+		this._store.add(this.coreService.onData((e) => this._onData.fire(e)));
+		this._store.add(this.coreService.onBinary((e) => this._onBinary.fire(e)));
+		this._store.add(this.coreService.onRequestScrollToBottom(() => this.scrollToBottom(true)));
+		this._store.add(this.coreService.onUserInput(() => this._writeBuffer.handleUserInput()));
+		this._store.add(
 			this.optionsService.onMultipleOptionChange(['windowsPty'], () =>
 				this._handleWindowsPtyOptionChange()
 			)
 		);
-		this._register(
+		this._store.add(
 			this._bufferService.onScroll(() => {
 				this._onScroll.fire({ position: this._bufferService.buffer.ydisp });
 				this._inputHandler.markRangeDirty(
@@ -157,19 +153,30 @@ export abstract class CoreTerminal {
 			})
 		);
 		// Setup WriteBuffer
-		this._writeBuffer = this._register(
-			new WriteBuffer((data, promiseResult) => this._inputHandler.parse(data, promiseResult))
+		this._writeBuffer = new WriteBuffer((data, promiseResult) =>
+			this._inputHandler.parse(data, promiseResult)
 		);
-		this._register(this._writeBuffer.onWriteParsed((e) => this._onWriteParsed.fire(e)));
+		this._store.add(this._writeBuffer.onWriteParsed((e) => this._onWriteParsed.fire(e)));
 	}
 
 	public dispose(): void {
-		for (const d of this._disposables) d.dispose();
-	}
-
-	protected _register<T extends IDisposable>(o: T): T {
-		this._disposables.push(o);
-		return o;
+		this._store.dispose();
+		this._writeBuffer.dispose();
+		this._inputHandler.dispose();
+		this._windowsWrappingHeuristics.dispose();
+		this.optionsService.dispose();
+		this._bufferService.dispose();
+		this.coreService.dispose();
+		this.mouseStateService.dispose();
+		this.unicodeService.dispose();
+		this._onBinary.dispose();
+		this._onData.dispose();
+		this._onLineFeed.dispose();
+		this._onRender.dispose();
+		this._onResize.dispose();
+		this._onWriteParsed.dispose();
+		this._onScroll.dispose();
+		this._onScrollApi?.dispose();
 	}
 
 	public write(data: string | Uint8Array, callback?: () => void): void {
