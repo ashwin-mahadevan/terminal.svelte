@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Terminal from '$lib/terminal.svelte';
 
@@ -34,7 +34,6 @@ async function renderSized(
 	width: string,
 	height: string,
 	props?: {
-		onresize?: (cols: number, rows: number) => void;
 		ondata?: (data: string) => void;
 	}
 ) {
@@ -47,118 +46,65 @@ async function renderSized(
 
 describe('terminal.svelte auto-resize', () => {
 	it('fits the terminal to its container on mount', async () => {
-		const onresize = vi.fn<(cols: number, rows: number) => void>();
+		const { component } = await renderSized('800px', '600px');
 
-		await renderSized('800px', '600px', { onresize });
+		await expect.poll(() => component.dimensions.cols).toBeGreaterThan(0);
 
-		await expect.poll(() => onresize).toHaveBeenCalled();
-
-		expect(onresize.mock.lastCall).toHaveLength(2);
-		const [cols, rows] = onresize.mock.lastCall!;
-
-		expect(cols).toBeGreaterThan(0);
-		expect(rows).toBeGreaterThan(0);
+		expect(component.dimensions.cols).toBeGreaterThan(0);
+		expect(component.dimensions.rows).toBeGreaterThan(0);
 	});
 
 	it('shrinks the terminal when its container shrinks', async () => {
-		const onresize = vi.fn<(cols: number, rows: number) => void>();
+		const { container, component } = await renderSized('800px', '600px');
 
-		const { container } = await renderSized('800px', '600px', { onresize });
+		await expect.poll(() => component.dimensions.cols).toBeGreaterThan(0);
 
-		await expect.poll(() => onresize).toHaveBeenCalled();
-
-		const [largeCols, largeRows] = onresize.mock.lastCall!;
-		onresize.mockReset();
+		const { cols: largeCols, rows: largeRows } = component.dimensions;
 
 		container.style.width = '400px';
 		container.style.height = '300px';
 
-		await expect.poll(() => onresize).toHaveBeenCalled();
+		await expect.poll(() => component.dimensions.cols).toBeLessThan(largeCols);
 
-		const [smallCols, smallRows] = onresize.mock.lastCall!;
-
-		expect(smallCols).toBeLessThan(largeCols);
-		expect(smallRows).toBeLessThan(largeRows);
+		expect(component.dimensions.cols).toBeLessThan(largeCols);
+		expect(component.dimensions.rows).toBeLessThan(largeRows);
 	});
 
 	it('grows the terminal when its container grows', async () => {
-		const onresize = vi.fn<(cols: number, rows: number) => void>();
+		const { container, component } = await renderSized('400px', '300px');
 
-		const { container } = await renderSized('400px', '300px', { onresize });
+		await expect.poll(() => component.dimensions.cols).toBeGreaterThan(0);
 
-		await expect.poll(() => onresize).toHaveBeenCalled();
-
-		const [smallCols, smallRows] = onresize.mock.lastCall!;
-		onresize.mockReset();
+		const { cols: smallCols, rows: smallRows } = component.dimensions;
 
 		container.style.width = '800px';
 		container.style.height = '600px';
 
-		await expect.poll(() => onresize).toHaveBeenCalled();
+		await expect.poll(() => component.dimensions.cols).toBeGreaterThan(smallCols);
 
-		const [largeCols, largeRows] = onresize.mock.lastCall!;
-
-		expect(largeCols).toBeGreaterThan(smallCols);
-		expect(largeRows).toBeGreaterThan(smallRows);
+		expect(component.dimensions.cols).toBeGreaterThan(smallCols);
+		expect(component.dimensions.rows).toBeGreaterThan(smallRows);
 	});
 
 	it('respects padding on the container', async () => {
-		const onresize = vi.fn<(cols: number, rows: number) => void>();
-
 		const container = document.createElement('div');
 		container.style.boxSizing = 'border-box';
 		container.style.width = '800px';
 		container.style.height = '600px';
 		container.style.padding = '200px';
 		document.body.appendChild(container);
-		await render(Terminal, { target: container, props: { onresize } });
+		const { component } = await render(Terminal, { target: container });
 
-		await expect.poll(() => onresize).toHaveBeenCalled();
+		await expect.poll(() => component.dimensions.cols).toBeGreaterThan(0);
 
-		const [paddedCols, paddedRows] = onresize.mock.lastCall!;
+		const { cols: paddedCols, rows: paddedRows } = component.dimensions;
 
-		onresize.mockReset();
 		container.style.padding = '0';
 
-		await expect.poll(() => onresize).toHaveBeenCalled();
+		await expect.poll(() => component.dimensions.cols).toBeGreaterThan(paddedCols);
 
-		const [unpaddedCols, unpaddedRows] = onresize.mock.lastCall!;
-
-		expect(paddedCols).toBeLessThan(unpaddedCols);
-		expect(paddedRows).toBeLessThan(unpaddedRows);
-	});
-
-	it('replacing onresize stops calling the old callback', async () => {
-		const onresize1 = vi.fn<(cols: number, rows: number) => void>();
-		const onresize2 = vi.fn<(cols: number, rows: number) => void>();
-
-		const { container, rerender } = await renderSized('800px', '600px', { onresize: onresize1 });
-
-		await expect.poll(() => onresize1).toHaveBeenCalled();
-		onresize1.mockReset();
-
-		await rerender({ onresize: onresize2 });
-		container.style.width = '400px';
-		container.style.height = '300px';
-
-		await expect.poll(() => onresize2).toHaveBeenCalled();
-		expect(onresize1).not.toHaveBeenCalled();
-	});
-
-	it('unsetting onresize stops calling the old callback', async () => {
-		const onresize = vi.fn<(cols: number, rows: number) => void>();
-
-		const { container, component, rerender } = await renderSized('800px', '600px', { onresize });
-
-		await expect.poll(() => onresize).toHaveBeenCalled();
-		onresize.mockReset();
-
-		await rerender({ onresize: undefined });
-		container.style.width = '400px';
-		container.style.height = '300px';
-		await component.write('\r\n');
-
-		expect(onresize).not.toHaveBeenCalled();
+		expect(component.dimensions.cols).toBeGreaterThan(paddedCols);
+		expect(component.dimensions.rows).toBeGreaterThan(paddedRows);
 	});
 });
 
@@ -172,18 +118,15 @@ describe('terminal.svelte auto-resize', () => {
 describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 	async function renderFitted() {
 		const data: string[] = [];
-		const onresize = vi.fn<(cols: number, rows: number) => void>();
 
 		const { container, component } = await renderSized('800px', '600px', {
-			onresize,
 			ondata: (chunk: string) => data.push(chunk)
 		});
 
-		await expect.poll(() => onresize).toHaveBeenCalled();
-		const [fittedCols, fittedRows] = onresize.mock.lastCall!;
-		const fitted = { cols: fittedCols, rows: fittedRows };
+		await expect.poll(() => component.dimensions.cols).toBeGreaterThan(0);
+		const fitted = { cols: component.dimensions.cols, rows: component.dimensions.rows };
 
-		return { container, component, data, onresize, fitted };
+		return { container, component, data, fitted };
 	}
 
 	// Baseline: validates the DSR probe itself. If this fails, the probe is
@@ -210,33 +153,32 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 	// Hypothesis 2: activating the alt buffer emits a bogus resize (e.g. back
 	// to 80x24), which the demo would forward to the pty.
 	it('activating the alt buffer does not emit a resize event', async () => {
-		const { component, data, onresize } = await renderFitted();
-		onresize.mockReset();
+		const { component, data } = await renderFitted();
+		const dimsBefore = { ...component.dimensions };
 
 		await component.write('\x1b[?1049h');
 		// The probe round-trip guarantees the write above has been processed.
 		await probeActiveBufferSize(component, data);
 
-		expect(onresize).not.toHaveBeenCalled();
+		expect(component.dimensions).toEqual(dimsBefore);
 	});
 
 	// Hypothesis 3: resizes that happen while the alt buffer is active are not
 	// applied to it (the demo recovers on window resize, so this one likely
 	// passes — failing here would point at the opposite bug).
 	it('resizing while the alt buffer is active resizes the alt buffer', async () => {
-		const { container, component, data, onresize } = await renderFitted();
+		const { container, component, data } = await renderFitted();
 
 		await component.write('\x1b[?1049h');
 		await probeActiveBufferSize(component, data);
-		onresize.mockReset();
 
+		const { cols: prevCols } = component.dimensions;
 		container.style.width = '400px';
 		container.style.height = '300px';
-		await expect.poll(() => onresize).toHaveBeenCalled();
+		await expect.poll(() => component.dimensions.cols).toBeLessThan(prevCols);
 
-		const [resizedCols, resizedRows] = onresize.mock.lastCall!;
 		const probed = await probeActiveBufferSize(component, data);
 
-		expect(probed).toEqual({ cols: resizedCols, rows: resizedRows });
+		expect(probed).toEqual({ cols: component.dimensions.cols, rows: component.dimensions.rows });
 	});
 });

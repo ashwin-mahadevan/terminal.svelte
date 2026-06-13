@@ -10,11 +10,10 @@
 
 	type Props = {
 		ondata?: (data: string) => void;
-		onresize?: (cols: number, rows: number) => void;
 		onbell?: () => void;
 	};
 
-	const { ondata, onresize, onbell }: Props = $props();
+	const { ondata, onbell }: Props = $props();
 
 	const terminal = (browser && new CoreBrowserTerminal()) as CoreBrowserTerminal;
 
@@ -48,12 +47,6 @@
 	});
 
 	$effect(() => {
-		if (!onresize) return;
-		const disposable = terminal.onResize(({ cols, rows }) => onresize(cols, rows));
-		return () => disposable.dispose();
-	});
-
-	$effect(() => {
 		if (!onbell) return;
 		const disposable = terminal.onBell(onbell);
 		return () => disposable.dispose();
@@ -67,11 +60,17 @@
 			terminal.options.scrollback === 0 || !showScrollbar
 				? 0
 				: (terminal.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
-		terminal.resize(
-			Math.max(2, Math.floor((clientWidth - scrollbarWidth) / terminal.dimensions!.css.cell.width)),
-			Math.max(1, Math.floor(clientHeight / terminal!.dimensions!.css.cell.height))
+		const cols = Math.max(
+			2,
+			Math.floor((clientWidth - scrollbarWidth) / terminal.dimensions!.css.cell.width)
 		);
+		const rows = Math.max(1, Math.floor(clientHeight / terminal!.dimensions!.css.cell.height));
+		terminal.resize(cols, rows);
+		dimensions.cols = cols;
+		dimensions.rows = rows;
 	});
+
+	export const dimensions = $state<{ cols: number; rows: number }>({ cols: 0, rows: 0 });
 
 	// OSC 52 clipboard read/report, inlined from the upstream ClipboardAddon.
 	$effect(() => {

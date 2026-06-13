@@ -15,16 +15,14 @@
 		socket.on('output', write);
 		return () => socket.off('output', write);
 	});
+
+	$effect(() => {
+		if (!terminal?.dimensions.cols) return;
+		socket.emit('resize', terminal.dimensions.cols, terminal.dimensions.rows);
+	});
 </script>
 
-<Terminal
-	bind:this={terminal}
-	ondata={(data) => socket.emit('input', data)}
-	onresize={(cols, rows) => {
-		console.log(rows, cols);
-		socket.emit('resize', cols, rows);
-	}}
-/>
+<Terminal bind:this={terminal} ondata={(data) => socket.emit('input', data)} />
 
 <style>
 	:global(html, body) {
