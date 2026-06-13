@@ -169,11 +169,8 @@ export class DomRenderer {
 		const dpr = this._coreBrowserService.dpr;
 		this.dimensions.device.char.width = this._terminal.charWidth * dpr;
 		this.dimensions.device.char.height = Math.ceil(this._terminal.charHeight * dpr);
-		this.dimensions.device.cell.width =
-			this.dimensions.device.char.width + Math.round(this._optionsService.rawOptions.letterSpacing);
-		this.dimensions.device.cell.height = Math.floor(
-			this.dimensions.device.char.height * this._optionsService.rawOptions.lineHeight
-		);
+		this.dimensions.device.cell.width = this.dimensions.device.char.width;
+		this.dimensions.device.cell.height = this.dimensions.device.char.height;
 		this.dimensions.device.char.left = 0;
 		this.dimensions.device.char.top = 0;
 		this.dimensions.device.canvas.width =

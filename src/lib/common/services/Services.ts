@@ -53,8 +53,6 @@ export interface ITerminalOptions {
 	fontWeight?: FontWeight;
 	fontWeightBold?: FontWeight;
 	ignoreBracketedPasteMode?: boolean;
-	letterSpacing?: number;
-	lineHeight?: number;
 	linkHandler?: ILinkHandler | null;
 	macOptionIsMeta?: boolean;
 	macOptionClickForcesSelection?: boolean;

@@ -125,8 +125,6 @@ export class RenderService {
 		this._glyphOptionChangeListener = this._optionsService.onMultipleOptionChange(
 			[
 				'drawBoldTextInBrightColors',
-				'letterSpacing',
-				'lineHeight',
 				'fontWeight',
 				'fontWeightBold',
 				'minimumContrastRatio',

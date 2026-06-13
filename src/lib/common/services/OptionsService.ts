@@ -24,8 +24,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	fontWeight: 'normal',
 	fontWeightBold: 'bold',
 	ignoreBracketedPasteMode: false,
-	lineHeight: 1.0,
-	letterSpacing: 0,
 	linkHandler: null,
 	scrollback: 1000,
 	scrollbar: { showScrollbar: true },
@@ -194,7 +192,6 @@ export class OptionsService {
 			case 'cursorWidth':
 				value = Math.floor(value);
 			// Fall through for bounds check
-			case 'lineHeight':
 			case 'tabStopWidth':
 				if (value < 1) {
 					throw new Error(`${key} cannot be less than 1, value: ${value}`);
