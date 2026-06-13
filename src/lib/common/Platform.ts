@@ -32,16 +32,6 @@ export const isFirefox = userAgent.includes('Firefox');
 export const isChrome = userAgent.includes('Chrome');
 export const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
 
-interface IZoomWindow {
-	devicePixelRatio?: number;
-}
-
-// TODO: Fix this upstream type error.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function getZoomFactor(_targetWindow: IZoomWindow): number {
-	return 1;
-}
-
 // Find the users platform. We use this to interpret the meta key
 // and ISO third level shifts.
 // http://stackoverflow.com/q/19877924/577598

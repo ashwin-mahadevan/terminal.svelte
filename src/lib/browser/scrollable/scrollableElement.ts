@@ -93,13 +93,7 @@ class MouseWheelClassifier {
 	}
 
 	public acceptStandardWheelEvent(e: StandardWheelEvent): void {
-		if (platform.isChrome) {
-			const targetWindow = dom.getWindow(e.browserEvent);
-			const pageZoomFactor = platform.getZoomFactor(targetWindow);
-			this.accept(Date.now(), e.deltaX * pageZoomFactor, e.deltaY * pageZoomFactor);
-		} else {
-			this.accept(Date.now(), e.deltaX, e.deltaY);
-		}
+		this.accept(Date.now(), e.deltaX, e.deltaY);
 	}
 
 	public accept(timestamp: number, deltaX: number, deltaY: number): void {
