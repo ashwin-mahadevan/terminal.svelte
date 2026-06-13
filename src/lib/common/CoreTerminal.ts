@@ -57,18 +57,8 @@ export abstract class CoreTerminal {
 	private _writeBuffer: WriteBuffer;
 	private _windowsWrappingHeuristics = new MutableDisposable();
 
-	private readonly _onBinary = new LegacyEmitter<string>();
-	public readonly onBinary = this._onBinary.event;
-	private readonly _onData = new LegacyEmitter<string>();
-	public readonly onData = this._onData.event;
-	protected _onLineFeed = new LegacyEmitter<void>();
-	public readonly onLineFeed = this._onLineFeed.event;
 	protected readonly _onRender = new LegacyEmitter<{ start: number; end: number }>();
 	public readonly onRender = this._onRender.event;
-	private readonly _onResize = new LegacyEmitter<{ cols: number; rows: number }>();
-	public readonly onResize = this._onResize.event;
-	protected readonly _onWriteParsed = new LegacyEmitter<void>();
-	public readonly onWriteParsed = this._onWriteParsed.event;
 
 	/**
 	 * Internally we track the source of the scroll but this is meaningless outside the library so
@@ -115,12 +105,7 @@ export abstract class CoreTerminal {
 			this.mouseStateService,
 			this.unicodeService
 		);
-		this._store.add(this.inputHandler.onLineFeed((e) => this._onLineFeed.fire(e)));
-
 		// Setup listeners
-		this._store.add(this.bufferService.onResize((e) => this._onResize.fire(e)));
-		this._store.add(this.coreService.onData((e) => this._onData.fire(e)));
-		this._store.add(this.coreService.onBinary((e) => this._onBinary.fire(e)));
 		this._store.add(this.coreService.onRequestScrollToBottom(() => this.scrollToBottom(true)));
 		this._store.add(this.coreService.onUserInput(() => this._writeBuffer.handleUserInput()));
 		this._store.add(
@@ -141,7 +126,6 @@ export abstract class CoreTerminal {
 		this._writeBuffer = new WriteBuffer((data, promiseResult) =>
 			this.inputHandler.parse(data, promiseResult)
 		);
-		this._store.add(this._writeBuffer.onWriteParsed((e) => this._onWriteParsed.fire(e)));
 	}
 
 	public dispose(): void {
@@ -154,12 +138,7 @@ export abstract class CoreTerminal {
 		this.coreService.dispose();
 		this.mouseStateService.dispose();
 		this.unicodeService.dispose();
-		this._onBinary.dispose();
-		this._onData.dispose();
-		this._onLineFeed.dispose();
 		this._onRender.dispose();
-		this._onResize.dispose();
-		this._onWriteParsed.dispose();
 		this._onScroll.dispose();
 		this._onScrollApi?.dispose();
 	}
@@ -257,7 +236,7 @@ export abstract class CoreTerminal {
 		if (!this._windowsWrappingHeuristics.value) {
 			const disposables: IDisposable[] = [];
 			disposables.push(
-				this.onLineFeed(updateWindowsModeWrappedState.bind(null, this.bufferService))
+				this.inputHandler.onLineFeed(updateWindowsModeWrappedState.bind(null, this.bufferService))
 			);
 			disposables.push(
 				this.inputHandler.registerCsiHandler({ final: 'H' }, () => {

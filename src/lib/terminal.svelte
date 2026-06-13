@@ -47,7 +47,7 @@
 
 	$effect(() => {
 		if (!ondata) return;
-		const disposable = terminal.onData(ondata);
+		const disposable = terminal.coreService.onData(ondata);
 		return () => disposable.dispose();
 	});
 

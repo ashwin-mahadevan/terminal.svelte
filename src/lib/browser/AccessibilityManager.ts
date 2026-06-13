@@ -122,12 +122,12 @@ export class AccessibilityManager {
 			this._terminal.element.insertAdjacentElement('afterbegin', this._accessibilityContainer);
 		}
 
-		this._resizeListener = this._terminal.onResize((e) => this._handleResize(e.rows));
+		this._resizeListener = this._terminal.bufferService.onResize((e) => this._handleResize(e.rows));
 		this._renderListener = this._terminal.onRender((e) => this._refreshRows(e.start, e.end));
 		this._scrollListener = this._terminal.onScroll(() => this._refreshRows());
 		// Line feed is an issue as the prompt won't be read out after a command is run
 		this._a11yCharListener = this._terminal.onA11yChar((char) => this._handleChar(char));
-		this._lineFeedListener = this._terminal.onLineFeed(() => this._handleChar('\n'));
+		this._lineFeedListener = this._terminal.inputHandler.onLineFeed(() => this._handleChar('\n'));
 		this._a11yTabListener = this._terminal.onA11yTab((spaceCount) => this._handleTab(spaceCount));
 		this._keyListener = this._terminal.onKey((e) => this._handleKey(e.key));
 		this._blurListener = this._terminal.onBlur(() => this._clearLiveRegion());

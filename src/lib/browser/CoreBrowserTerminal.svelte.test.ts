@@ -97,7 +97,7 @@ describe('CoreBrowserTerminal', () => {
 		});
 		it('should fire the onData evnet', () =>
 			new Promise<void>((done) => {
-				term.onData((e) => {
+				term.coreService.onData((e) => {
 					expect(e).toBe('fake');
 					done();
 				});
@@ -121,7 +121,7 @@ describe('CoreBrowserTerminal', () => {
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				let fired = false;
-				term.onLineFeed(() => {
+				term.inputHandler.onLineFeed(() => {
 					fired = true;
 					expect(fired).toBe(true);
 					r();
@@ -187,7 +187,7 @@ describe('CoreBrowserTerminal', () => {
 			}));
 		it('should fire the onResize event', () =>
 			new Promise<void>((done) => {
-				term.onResize((e) => {
+				term.bufferService.onResize((e) => {
 					expect(typeof e.cols).toBe('number');
 					expect(typeof e.rows).toBe('number');
 					done();
@@ -321,7 +321,7 @@ describe('CoreBrowserTerminal', () => {
 		});
 		it('should fire data event', () =>
 			new Promise<void>((done) => {
-				term.onData((e) => {
+				term.coreService.onData((e) => {
 					expect(e).toBe('foo');
 					done();
 				});
@@ -329,7 +329,7 @@ describe('CoreBrowserTerminal', () => {
 			}));
 		it('should sanitize \\n chars', () =>
 			new Promise<void>((done) => {
-				term.onData((e) => {
+				term.coreService.onData((e) => {
 					expect(e).toBe('\rfoo\rbar\r');
 					done();
 				});
@@ -339,7 +339,7 @@ describe('CoreBrowserTerminal', () => {
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
-				term.onData((e) => {
+				term.coreService.onData((e) => {
 					expect(e).toBe('\x1b[200~foo\x1b[201~');
 					r();
 				});

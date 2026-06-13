@@ -732,7 +732,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				})
 			)
 		);
-		this.onResize((e) => this._renderService!.resize(e.cols, e.rows));
+		this.bufferService.onResize((e) => this._renderService!.resize(e.cols, e.rows));
 
 		this._compositionHelper = new CompositionHelper(
 			this.textarea,
@@ -784,7 +784,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			})
 		);
 		this._store.add(
-			this.onResize(() => {
+			this.bufferService.onResize(() => {
 				this._renderService!.handleResize(this.bufferService.cols, this.bufferService.rows);
 				this._syncTextArea();
 			})
