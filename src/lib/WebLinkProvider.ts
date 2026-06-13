@@ -3,10 +3,12 @@
  * @license MIT
  */
 
-import type { ILinkProvider, ILink, IViewportRange } from '$lib/xterm';
+import type { IViewportRange } from '$lib/xterm';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { CellData } from '$lib/common/buffer/CellData';
+import type { ILinkProvider } from './browser/services/Services';
+import type { ILink } from './browser/Types';
 
 export interface ILinkProviderOptions {
 	hover?(event: MouseEvent, text: string, location: IViewportRange): void;

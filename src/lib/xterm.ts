@@ -1,39 +1,9 @@
 /// <reference lib="dom"/>
 
 import type { IEvent } from '$lib/common/Event';
-import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { Marker } from '$lib/common/buffer/Marker';
-
-// These public-API types are defined canonically elsewhere; re-export them so
-// `$lib/xterm` remains the single import surface for consumers.
-import type { IDisposable } from '$lib/common/Lifecycle';
-import type { ILink, IBufferCellPosition } from '$lib/browser/Types';
-import type { ILinkProvider } from '$lib/browser/services/Services';
-import type { IUnicodeVersionProvider } from '$lib/common/services/Services';
-export type { IDisposable, ILink, ILinkProvider, IUnicodeVersionProvider };
-
-/**
- * An object containing additional options for the terminal that can only be
- * set on start up.
- */
-export type ITerminalInitOnlyOptions = {
-	/**
-	 * The number of columns in the terminal.
-	 */
-	cols?: number;
-
-	/**
-	 * The number of rows in the terminal.
-	 */
-	rows?: number;
-
-	/**
-	 * Whether to show the cursor immediately when the terminal is created.
-	 * When false (default), the cursor will not be visible until the terminal
-	 * is focused for the first time.
-	 */
-	showCursorImmediately?: boolean;
-};
+import type { IBufferCellPosition } from '$lib/browser/Types';
+import type { IDisposable } from './common/Lifecycle';
 
 /**
  * Pty information for Windows.
@@ -155,22 +125,6 @@ export type IDecorationOptions = {
 };
 
 /**
- * The set of localizable strings.
- */
-export type ILocalizableStrings = {
-	/**
-	 * The aria label for the underlying input textarea for the terminal.
-	 */
-	promptLabel: string;
-
-	/**
-	 * Announcement for when line reading is suppressed due to too many lines
-	 * being printed to the terminal when `screenReaderMode` is enabled.
-	 */
-	tooMuchOutput: string;
-};
-
-/**
  * Options for configuring the overview ruler rendered beside the scrollbar.
  */
 export type IOverviewRulerOptions = {
@@ -276,30 +230,6 @@ export type IBufferRange = {
 	 */
 	end: IBufferCellPosition;
 };
-
-export interface IBufferNamespace {
-	/**
-	 * The active buffer, this will either be the normal or alternate buffers.
-	 */
-	readonly active: Buffer;
-
-	/**
-	 * The normal buffer.
-	 */
-	readonly normal: Buffer;
-
-	/**
-	 * The alternate buffer, this becomes the active buffer when an application
-	 * enters this mode via DECSET (`CSI ? 4 7 h`)
-	 */
-	readonly alternate: Buffer;
-
-	/**
-	 * Adds an event listener for when the active buffer changes.
-	 * @returns an `IDisposable` to stop listening.
-	 */
-	onBufferChange: IEvent<Buffer>;
-}
 
 /**
  * Represents a single cell in the terminal's buffer.
@@ -584,26 +514,6 @@ export interface IParser {
 		id: IFunctionIdentifier,
 		callback: (data: string) => boolean | Promise<boolean>
 	): IDisposable;
-}
-
-/**
- * (EXPERIMENTAL) Unicode handling interface.
- */
-export interface IUnicodeHandling {
-	/**
-	 * Register a custom Unicode version provider.
-	 */
-	register(provider: IUnicodeVersionProvider): void;
-
-	/**
-	 * Registered Unicode versions.
-	 */
-	readonly versions: ReadonlyArray<string>;
-
-	/**
-	 * Getter/setter for active Unicode version.
-	 */
-	activeVersion: string;
 }
 
 /**

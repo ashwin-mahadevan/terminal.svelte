@@ -21,12 +21,11 @@
  *   http://linux.die.net/man/7/urxvt
  */
 
+import type { ILinkProvider } from '$lib/browser/services/Services';
 import type { ITerminalOptions } from '$lib/common/services/Services';
 import type {
 	IDecoration,
 	IDecorationOptions,
-	IDisposable,
-	ILinkProvider,
 	IModes,
 	IParser,
 	IRenderDimensions as IRenderDimensionsApi
@@ -1042,7 +1041,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this.mouseStateService.setCustomWheelEventHandler(customWheelEventHandler);
 	}
 
-	public registerLinkProvider(linkProvider: ILinkProvider): IDisposable {
+	public registerLinkProvider(linkProvider: ILinkProvider) {
 		return this._linkProviderService.registerLinkProvider(linkProvider);
 	}
 

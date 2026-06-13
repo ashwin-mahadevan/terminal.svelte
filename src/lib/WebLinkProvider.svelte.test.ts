@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
-import type { ILink, ILinkProvider } from '$lib/xterm';
+import type { ILinkProvider } from './browser/services/Services';
+import type { ILink } from './browser/Types';
 
 /**
  * Migrated from xterm.js addon-web-links/test/WebLinksAddon.test.ts.
