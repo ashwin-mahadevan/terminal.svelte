@@ -145,4 +145,28 @@ describe('progress (OSC 9;4)', () => {
 		await component.write('\x1b]9;4;1;7\x1b\\');
 		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 7 });
 	});
+
+	it('replacing onprogress stops calling the old callback', async () => {
+		const onprogress1 = vi.fn<(p: IProgressState) => void>();
+		const onprogress2 = vi.fn<(p: IProgressState) => void>();
+		const { component, rerender } = await render(Terminal, { props: { onprogress: onprogress1 } });
+		await component.write('\x1b]9;4;1;50\x1b\\');
+		expect(onprogress1).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 50 });
+		onprogress1.mockReset();
+		await rerender({ onprogress: onprogress2 });
+		await component.write('\x1b]9;4;1;75\x1b\\');
+		expect(onprogress2).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 75 });
+		expect(onprogress1).not.toHaveBeenCalled();
+	});
+
+	it('unsetting onprogress stops calling the old callback', async () => {
+		const onprogress = vi.fn<(p: IProgressState) => void>();
+		const { component, rerender } = await render(Terminal, { props: { onprogress } });
+		await component.write('\x1b]9;4;1;50\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 50 });
+		onprogress.mockReset();
+		await rerender({ onprogress: undefined });
+		await component.write('\x1b]9;4;1;75\x1b\\');
+		expect(onprogress).not.toHaveBeenCalled();
+	});
 });

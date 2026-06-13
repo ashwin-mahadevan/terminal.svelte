@@ -127,6 +127,39 @@ describe('terminal.svelte auto-resize', () => {
 		expect(paddedSize.cols).toBeLessThan(unpaddedSize.cols);
 		expect(paddedSize.rows).toBeLessThan(unpaddedSize.rows);
 	});
+
+	it('replacing onresize stops calling the old callback', async () => {
+		const onresize1 = vi.fn<(size: { cols: number; rows: number }) => void>();
+		const onresize2 = vi.fn<(size: { cols: number; rows: number }) => void>();
+
+		const { container, rerender } = await renderSized('800px', '600px', { onresize: onresize1 });
+
+		await expect.poll(() => onresize1).toHaveBeenCalled();
+		onresize1.mockReset();
+
+		await rerender({ onresize: onresize2 });
+		container.style.width = '400px';
+		container.style.height = '300px';
+
+		await expect.poll(() => onresize2).toHaveBeenCalled();
+		expect(onresize1).not.toHaveBeenCalled();
+	});
+
+	it('unsetting onresize stops calling the old callback', async () => {
+		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
+
+		const { container, component, rerender } = await renderSized('800px', '600px', { onresize });
+
+		await expect.poll(() => onresize).toHaveBeenCalled();
+		onresize.mockReset();
+
+		await rerender({ onresize: undefined });
+		container.style.width = '400px';
+		container.style.height = '300px';
+		await component.write('\r\n');
+
+		expect(onresize).not.toHaveBeenCalled();
+	});
 });
 
 /**
