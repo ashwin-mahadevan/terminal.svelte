@@ -7,6 +7,7 @@
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
 	import { browser } from '$app/environment';
+	import { Progress } from '$lib/progress.svelte';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -89,56 +90,17 @@
 	});
 
 	/** ConEmu OSC 9;4 progress state. */
-	export const progress = $state<{
-		/**
-		 * REMOVE (0):
-		 * Hides the progress indicator and resets the value to 0.
-		 *
-		 * SET (1):
-		 * Shows a normal progress bar at the given percentage.
-		 *
-		 * ERROR (2):
-		 * Shows the progress bar in an error state, retaining the previous value if none is provided.
-		 *
-		 * INDETERMINATE (3):
-		 * Shows an indeterminate/spinning indicator; value is ignored.
-		 *
-		 * PAUSE (4):
-		 * Shows the progress bar in a paused state, retaining the previous value if none is provided.
-		 */
-		type: 0 | 1 | 2 | 3 | 4;
-		value: number;
-	}>({ type: 0, value: 0 });
+	export const progress = new Progress();
 
 	function handleProgress(data: string) {
 		const match = data.match(/^4;(\d+)(?:;(\d*))?$/);
 		if (!match) return false;
 
-		const state = match[1]!;
+		const type = parseInt(match[1]!);
 		const value = parseInt(match[2]!) || 0;
-		switch (state) {
-			case '0':
-				progress.type = 0;
-				progress.value = 0;
-				return true;
-			case '1':
-				progress.type = 1;
-				progress.value = Math.min(Math.max(value, 0), 100);
-				return true;
-			case '2':
-				progress.type = 2;
-				if (value !== 0) progress.value = Math.min(Math.max(value, 0), 100);
-				return true;
-			case '3':
-				progress.type = 3;
-				return true;
-			case '4':
-				progress.type = 4;
-				if (value !== 0) progress.value = Math.min(Math.max(value, 0), 100);
-				return true;
-			default:
-				return true;
-		}
+		if (type < 0 || type > 4) return true;
+		progress.handle(type as 0 | 1 | 2 | 3 | 4, value);
+		return true;
 	}
 
 	$effect(() => terminal.parser.registerOscHandler(9, handleProgress).dispose);
