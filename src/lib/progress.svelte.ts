@@ -1,8 +1,8 @@
-export const PROGRESS_STATE_REMOVE = 0 as const;
-export const PROGRESS_STATE_SET = 1 as const;
-export const PROGRESS_STATE_ERROR = 2 as const;
-export const PROGRESS_STATE_INDETERMINATE = 3 as const;
-export const PROGRESS_STATE_PAUSE = 4 as const;
+export const PROGRESS_STATE_REMOVE = '0' as const;
+export const PROGRESS_STATE_SET = '1' as const;
+export const PROGRESS_STATE_ERROR = '2' as const;
+export const PROGRESS_STATE_INDETERMINATE = '3' as const;
+export const PROGRESS_STATE_PAUSE = '4' as const;
 
 export type ProgressState =
 	| typeof PROGRESS_STATE_REMOVE

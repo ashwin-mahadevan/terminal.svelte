@@ -97,10 +97,8 @@
 		const match = data.match(/^4;(\d+)(?:;(\d*))?$/);
 		if (!match) return false;
 
-		const type = parseInt(match[1]!);
 		const value = parseInt(match[2]!) || 0;
-		if (type < 0 || type > 4) return true;
-		progress.handle(type as ProgressState, value);
+		progress.handle(match[1]! as ProgressState, value);
 		return true;
 	}
 
