@@ -21,6 +21,11 @@
 	const terminal = (browser && new CoreBrowserTerminal()) as CoreBrowserTerminal;
 
 	let element: HTMLDivElement;
+	let scrollableEl: HTMLDivElement;
+	let screenEl: HTMLDivElement;
+	let helpersEl: HTMLDivElement;
+	let textareaEl: HTMLTextAreaElement;
+	let compositionEl: HTMLDivElement;
 	let clientWidth = $state<number>()!;
 	let clientHeight = $state<number>()!;
 
@@ -34,7 +39,13 @@
 	let measureHeight = $state<number>()!;
 
 	onMount(() => {
-		terminal.open(element);
+		terminal.open(element, {
+			screen: screenEl,
+			helpers: helpersEl,
+			textarea: textareaEl,
+			compositionView: compositionEl,
+			scrollableContainer: scrollableEl
+		});
 		return () => terminal.dispose();
 	});
 
@@ -105,6 +116,14 @@
 </script>
 
 <div style:height="100%" bind:this={element} bind:clientWidth bind:clientHeight>
+	<div bind:this={scrollableEl}>
+		<div class="xterm-screen" bind:this={screenEl}>
+			<div class="xterm-helpers" bind:this={helpersEl}>
+				<textarea bind:this={textareaEl}></textarea>
+				<div bind:this={compositionEl}></div>
+			</div>
+		</div>
+	</div>
 	<span
 		aria-hidden="true"
 		style:position="absolute"

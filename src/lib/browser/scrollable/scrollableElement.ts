@@ -198,7 +198,8 @@ export class SmoothScrollableElement extends Widget {
 	public constructor(
 		element: HTMLElement,
 		options: IScrollableElementCreationOptions,
-		scrollable?: Scrollable
+		scrollable?: Scrollable,
+		container?: HTMLElement
 	) {
 		super();
 		options = options ?? {};
@@ -242,11 +243,13 @@ export class SmoothScrollableElement extends Widget {
 			new HorizontalScrollbar(this._scrollable, this._options, scrollbarHost)
 		);
 
-		this._domNode = document.createElement('div');
+		this._domNode = container ?? document.createElement('div');
 		this._domNode.className = 'xterm-scrollable-element ' + this._options.className;
 		this._domNode.setAttribute('role', 'presentation');
 		this._domNode.style.position = 'relative';
-		this._domNode.appendChild(element);
+		if (!container) {
+			this._domNode.appendChild(element);
+		}
 		this._domNode.appendChild(this._horizontalScrollbar.domNode.domNode);
 		this._domNode.appendChild(this._verticalScrollbar.domNode.domNode);
 

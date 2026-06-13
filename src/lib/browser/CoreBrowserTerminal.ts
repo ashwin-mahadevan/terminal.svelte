@@ -642,7 +642,16 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 *
 	 * @param parent The element to create the terminal within.
 	 */
-	public open(parent: HTMLElement): void {
+	public open(
+		parent: HTMLElement,
+		elements?: {
+			screen: HTMLDivElement;
+			helpers: HTMLDivElement;
+			textarea: HTMLTextAreaElement;
+			compositionView: HTMLDivElement;
+			scrollableContainer: HTMLDivElement;
+		}
+	): void {
 		if (!parent) {
 			throw new Error('Terminal requires a parent element.');
 		}
@@ -680,48 +689,67 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			)
 		);
 
-		// Performance: Use a document fragment to build the terminal
-		// screen and helper elements detached from the DOM
-		const fragment = this._document.createDocumentFragment();
+		if (elements) {
+			// Structural elements were pre-created by the Svelte component in their
+			// final positions — nothing to build or append here.
+			this.screenElement = elements.screen;
+			this._helperContainer = elements.helpers;
+			this.textarea = elements.textarea;
+			this._compositionView = elements.compositionView;
+		} else {
+			// Performance: Use a document fragment to build the terminal
+			// screen and helper elements detached from the DOM
+			const fragment = this._document.createDocumentFragment();
 
-		this.screenElement = this._document.createElement('div');
-		this.screenElement.classList.add('xterm-screen');
+			this.screenElement = this._document.createElement('div');
+			this.screenElement.classList.add('xterm-screen');
+			// Create the container that will hold helpers like the textarea for
+			// capturing DOM Events. Then produce the helpers.
+			this._helperContainer = this._document.createElement('div');
+			this._helperContainer.classList.add('xterm-helpers');
+			this.screenElement.appendChild(this._helperContainer);
+			fragment.appendChild(this.screenElement);
+
+			this.textarea = this._document.createElement('textarea');
+			this.textarea.classList.add('xterm-helper-textarea');
+			this._helperContainer.appendChild(this.textarea);
+
+			this._compositionView = this._document.createElement('div');
+			this._compositionView.classList.add('composition-view');
+			this._helperContainer.appendChild(this._compositionView);
+
+			this.element.appendChild(fragment);
+		}
+
 		this._store.add(
 			addDisposableListener(this.screenElement, 'mousemove', (ev: MouseEvent) =>
 				this.updateCursorStyle(ev)
 			)
 		);
-		// Create the container that will hold helpers like the textarea for
-		// capturing DOM Events. Then produce the helpers.
-		this._helperContainer = this._document.createElement('div');
-		this._helperContainer.classList.add('xterm-helpers');
-		this.screenElement.appendChild(this._helperContainer);
-		fragment.appendChild(this.screenElement);
 
-		const textarea = (this.textarea = this._document.createElement('textarea'));
-		this.textarea.classList.add('xterm-helper-textarea');
-		this.textarea.setAttribute('aria-label', Strings.promptLabel.get());
+		const textarea = this.textarea;
+		textarea.setAttribute('aria-label', Strings.promptLabel.get());
 		if (!Browser.isChromeOS) {
 			// ChromeVox on ChromeOS does not like this. See
 			// https://issuetracker.google.com/issues/260170397
-			this.textarea.setAttribute('aria-multiline', 'false');
+			textarea.setAttribute('aria-multiline', 'false');
 		}
-		this.textarea.setAttribute('autocorrect', 'off');
-		this.textarea.setAttribute('autocapitalize', 'off');
-		this.textarea.setAttribute('spellcheck', 'false');
-		this.textarea.tabIndex = 0;
+		textarea.setAttribute('autocorrect', 'off');
+		textarea.setAttribute('autocapitalize', 'off');
+		textarea.setAttribute('spellcheck', 'false');
+		textarea.tabIndex = 0;
 		this._store.add(
 			this.optionsService.onSpecificOptionChange(
 				'disableStdin',
 				() => (textarea.readOnly = this.optionsService.rawOptions.disableStdin)
 			)
 		);
-		this.textarea.readOnly = this.optionsService.rawOptions.disableStdin;
+		textarea.readOnly = this.optionsService.rawOptions.disableStdin;
 
 		// Register the core browser service before the generic textarea handlers are registered so it
 		// handles them first. Otherwise the renderers may use the wrong focus state.
 		this._coreBrowserService = new CoreBrowserService(
-			this.textarea,
+			textarea,
 			parent.ownerDocument.defaultView ?? window,
 			// Force unsafe null in node.js environment for tests
 			// TODO: Fix this upstream type error.
@@ -730,12 +758,9 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		);
 
 		this._store.add(
-			addDisposableListener(this.textarea, 'focus', (ev: FocusEvent) =>
-				this._handleTextAreaFocus(ev)
-			)
+			addDisposableListener(textarea, 'focus', (ev: FocusEvent) => this._handleTextAreaFocus(ev))
 		);
-		this._store.add(addDisposableListener(this.textarea, 'blur', () => this._handleTextAreaBlur()));
-		this._helperContainer.appendChild(this.textarea);
+		this._store.add(addDisposableListener(textarea, 'blur', () => this._handleTextAreaBlur()));
 
 		this._themeService = new ThemeService(this.optionsService);
 
@@ -782,8 +807,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		);
 		this.onResize((e) => this._renderService!.resize(e.cols, e.rows));
 
-		this._compositionView = this._document.createElement('div');
-		this._compositionView.classList.add('composition-view');
 		this._compositionHelper = new CompositionHelper(
 			this.textarea,
 			this._compositionView,
@@ -791,7 +814,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			this.coreService,
 			this._renderService
 		);
-		this._helperContainer.appendChild(this._compositionView);
 
 		this._mouseCoordsService = new MouseCoordsService(this, this._renderService);
 
@@ -802,9 +824,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			this._bufferService,
 			this._linkProviderService
 		));
-
-		// Performance: Add viewport and helper elements from the fragment
-		this.element.appendChild(fragment);
 
 		try {
 			this._onWillOpen.fire(this.element);
@@ -849,6 +868,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._viewport = new Viewport(
 			this.element,
 			this.screenElement,
+			elements?.scrollableContainer,
 			this._bufferService,
 			this._coreBrowserService,
 			this.coreService,
