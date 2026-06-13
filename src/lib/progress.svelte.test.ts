@@ -1,18 +1,3 @@
-/**
- * Copyright (c) 2024 The xterm.js authors. All rights reserved.
- * @license MIT
- *
- * Migrated from xterm.js addon-progress/test/ProgressAddon.test.ts.
- *
- * The upstream Playwright harness loaded the addon, wrote ConEmu OSC 9;4
- * progress sequences via ctx.proxy.write and collected emitted progress states
- * through page.evaluate. The addon is now inlined into terminal.svelte, which
- * parses the sequences with `parseProgress` and reports each new state through
- * the `onprogress` prop. We render the component, collect those states into an
- * array, and write the sequences in-process — the array is the same stack of
- * states the upstream `onChange` event produced.
- */
-
 import { describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Terminal from '$lib/terminal.svelte';
