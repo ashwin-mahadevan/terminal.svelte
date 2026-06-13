@@ -5,7 +5,8 @@
  * (EXPERIMENTAL) This Addon is still under development
  */
 
-import type { IBufferCell, IBufferRange } from '$lib/xterm';
+import type { IBufferCell } from '$lib/xterm';
+import type { IBufferRange } from '$lib/browser/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { Marker } from '$lib/common/buffer/Marker';

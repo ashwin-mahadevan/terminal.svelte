@@ -4,7 +4,8 @@
  */
 
 import type { Params } from '$lib/common/parser/Params';
-import type { IFunctionIdentifier, IParser } from '$lib/xterm';
+import type { IParser } from '$lib/xterm';
+import type { IFunctionIdentifier } from '$lib/common/parser/Types';
 import type { CoreTerminal } from '$lib/common/CoreTerminal';
 
 export class ParserApi implements IParser {

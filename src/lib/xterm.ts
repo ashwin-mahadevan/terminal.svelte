@@ -2,7 +2,8 @@
 
 import type { IEvent } from '$lib/common/Event';
 import type { Marker } from '$lib/common/buffer/Marker';
-import type { IBufferCellPosition } from '$lib/browser/Types';
+import type { IBufferRange } from '$lib/browser/Types';
+import type { IFunctionIdentifier } from '$lib/common/parser/Types';
 import type { IDisposable } from './common/Lifecycle';
 
 /**
@@ -217,21 +218,6 @@ export interface ILinkHandler {
 }
 
 /**
- * A range within a buffer.
- */
-export type IBufferRange = {
-	/**
-	 * The start position of the range.
-	 */
-	start: IBufferCellPosition;
-
-	/**
-	 * The end position of the range.
-	 */
-	end: IBufferCellPosition;
-};
-
-/**
  * Represents a single cell in the terminal's buffer.
  */
 export type IBufferCell = {
@@ -355,50 +341,6 @@ export type IBufferCell = {
 	 * underline variant offsets.
 	 */
 	attributesEquals(other: IBufferCell): boolean;
-};
-
-/**
- * Data type to register a CSI, DCS or ESC callback in the parser
- * in the form:
- *    ESC I..I F
- *    CSI Prefix P..P I..I F
- *    DCS Prefix P..P I..I F data_bytes ST
- *
- * with these rules/restrictions:
- * - prefix can only be used with CSI and DCS
- * - only one leading prefix byte is recognized by the parser
- *   before any other parameter bytes (P..P)
- * - intermediate bytes are recognized up to 2
- *
- * For custom sequences make sure to read ECMA-48 and the resources at
- * vt100.net to not clash with existing sequences or reserved address space.
- * General recommendations:
- * - use private address space (see ECMA-48)
- * - use max one intermediate byte (technically not limited by the spec,
- *   in practice there are no sequences with more than one intermediate byte,
- *   thus parsers might get confused with more intermediates)
- * - test against other common emulators to check whether they escape/ignore
- *   the sequence correctly
- *
- * Notes: OSC command registration is handled differently (see addOscHandler)
- *        APC, PM or SOS is currently not supported.
- */
-export type IFunctionIdentifier = {
-	/**
-	 * Optional prefix byte, must be in range \x3c .. \x3f.
-	 * Usable in CSI and DCS.
-	 */
-	prefix?: string;
-	/**
-	 * Optional intermediate bytes, must be in range \x20 .. \x2f.
-	 * Usable in CSI, DCS, ESC and APC.
-	 */
-	intermediates?: string;
-	/**
-	 * Final byte, must be in range \x40 .. \x7e for CSI and DCS,
-	 * \x30 .. \x7e for ESC and APC.
-	 */
-	final: string;
 };
 
 /**
@@ -579,55 +521,4 @@ export type IModes = {
 	 * Auto-Wrap Mode (DECAWM): `CSI ? 7 h`
 	 */
 	readonly wraparoundMode: boolean;
-};
-
-/**
- * An object containing a width and height in pixels.
- */
-type IDimensions = {
-	width: number;
-	height: number;
-};
-
-/**
- * An object containing a top and left offset.
- */
-type IOffset = {
-	top: number;
-	left: number;
-};
-
-export type IRenderDimensions = {
-	/**
-	 * Dimensions measured in CSS pixels (ie. device pixels / device pixel
-	 * ratio).
-	 */
-	css: {
-		/**
-		 * The dimensions of the canvas which is the full terminal size.
-		 */
-		canvas: IDimensions;
-		/**
-		 * The dimensions of a single cell.
-		 */
-		cell: IDimensions;
-	};
-	/**
-	 * Dimensions measured in actual pixels as rendered to the device.
-	 */
-	device: {
-		/**
-		 * The dimensions of the canvas which is the full terminal size.
-		 */
-		canvas: IDimensions;
-		/**
-		 * The dimensions of a single cell.
-		 */
-		cell: IDimensions;
-		/**
-		 * The dimensions of a single character within a cell, including its
-		 * offset within the cell.
-		 */
-		char: IDimensions & IOffset;
-	};
 };

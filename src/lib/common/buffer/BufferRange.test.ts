@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { getRangeLength } from '$lib/common/buffer/BufferRange';
-import type { IBufferRange } from '$lib/xterm';
+import type { IBufferRange } from '$lib/browser/Types';
 
 describe('BufferRange', () => {
 	describe('getRangeLength', () => {

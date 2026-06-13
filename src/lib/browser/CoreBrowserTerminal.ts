@@ -23,13 +23,8 @@
 
 import type { ILinkProvider } from '$lib/browser/services/Services';
 import type { ITerminalOptions } from '$lib/common/services/Services';
-import type {
-	IDecoration,
-	IDecorationOptions,
-	IModes,
-	IParser,
-	IRenderDimensions as IRenderDimensionsApi
-} from '$lib/xterm';
+import type { IDecoration, IDecorationOptions, IModes, IParser } from '$lib/xterm';
+import type { IRenderDimensions as IRenderDimensionsApi } from '$lib/browser/renderer/shared/Types';
 import { ParserApi } from '$lib/common/public/ParserApi';
 import {
 	copyHandler,

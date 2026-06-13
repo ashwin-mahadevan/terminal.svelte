@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { IBufferRange } from '$lib/xterm';
+import type { IBufferRange } from '$lib/browser/Types';
 
 export function getRangeLength(range: IBufferRange, bufferCols: number): number {
 	if (range.start.y > range.end.y) {
