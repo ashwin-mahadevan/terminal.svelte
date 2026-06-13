@@ -90,7 +90,7 @@
 		return () => disposable.dispose();
 	});
 
-	/** ConEmu OSC 9;4 progress state. */
+	/** ConEmu OSC 9;4 progress. */
 	export const progress = new Progress();
 
 	function handleProgress(data: string) {
