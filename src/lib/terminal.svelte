@@ -88,35 +88,37 @@
 		return () => disposable.dispose();
 	});
 
-	// ConEmu OSC 9;4 progress reporting.
+	// ConEmu OSC 9;4 progress state.
 	export const progress = $state<{ state: 0 | 1 | 2 | 3 | 4; value: number }>({
 		state: 0,
 		value: 0
 	});
 
 	function handleProgress(data: string) {
-		const m = data.match(/^4;(\d+)(?:;(\d*))?$/);
-		if (!m) return false;
-		const pr = m[2] ? parseInt(m[2], 10) : 0;
-		switch (m[1]) {
+		const match = data.match(/^4;(\d+)(?:;(\d*))?$/);
+		if (!match) return false;
+		
+		const state = match[1]!;
+		const value = parseInt(match[2]!) || 0;
+		switch (state) {
 			case '0':
 				progress.state = 0;
 				progress.value = 0;
 				return true;
 			case '1':
 				progress.state = 1;
-				progress.value = Math.min(Math.max(pr, 0), 100);
+				progress.value = Math.min(Math.max(value, 0), 100);
 				return true;
 			case '2':
 				progress.state = 2;
-				if (pr !== 0) progress.value = Math.min(Math.max(pr, 0), 100);
+				if (value !== 0) progress.value = Math.min(Math.max(value, 0), 100);
 				return true;
 			case '3':
 				progress.state = 3;
 				return true;
 			case '4':
 				progress.state = 4;
-				if (pr !== 0) progress.value = Math.min(Math.max(pr, 0), 100);
+				if (value !== 0) progress.value = Math.min(Math.max(value, 0), 100);
 				return true;
 			default:
 				return true;
