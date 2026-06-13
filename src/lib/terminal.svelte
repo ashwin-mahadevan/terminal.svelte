@@ -12,8 +12,8 @@
 
 	type Props = {
 		ondata?: (data: string) => void;
-		onresize?: (size: { cols: number; rows: number }) => void;
-		onprogress?: (progress: IProgressState) => void;
+		onresize?: (cols: number, rows: number) => void;
+		onprogress?: (state: number, value: number) => void;
 		onbell?: () => void;
 	};
 
@@ -52,7 +52,7 @@
 
 	$effect(() => {
 		if (!onresize) return;
-		const disposable = terminal.onResize(onresize);
+		const disposable = terminal.onResize(({ cols, rows }) => onresize(cols, rows));
 		return () => disposable.dispose();
 	});
 
@@ -100,7 +100,7 @@
 			const next = parseProgress(data, progress);
 			if (next) {
 				progress = next;
-				onprogress?.(next);
+				onprogress?.(next.state, next.value);
 			}
 			return true;
 		});

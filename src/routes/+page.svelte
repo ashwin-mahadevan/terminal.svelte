@@ -20,7 +20,7 @@
 <Terminal
 	bind:this={terminal}
 	ondata={(data) => socket.emit('input', data)}
-	onresize={({ cols, rows }) => {
+	onresize={(cols, rows) => {
 		console.log(rows, cols);
 		socket.emit('resize', cols, rows);
 	}}

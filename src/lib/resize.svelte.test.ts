@@ -34,7 +34,7 @@ async function renderSized(
 	width: string,
 	height: string,
 	props?: {
-		onresize?: (size: { cols: number; rows: number }) => void;
+		onresize?: (cols: number, rows: number) => void;
 		ondata?: (data: string) => void;
 	}
 ) {
@@ -47,27 +47,27 @@ async function renderSized(
 
 describe('terminal.svelte auto-resize', () => {
 	it('fits the terminal to its container on mount', async () => {
-		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
+		const onresize = vi.fn<(cols: number, rows: number) => void>();
 
 		await renderSized('800px', '600px', { onresize });
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
-		expect(onresize.mock.lastCall).toHaveLength(1);
-		const size = onresize.mock.lastCall![0]!;
+		expect(onresize.mock.lastCall).toHaveLength(2);
+		const [cols, rows] = onresize.mock.lastCall!;
 
-		expect(size.cols).toBeGreaterThan(0);
-		expect(size.rows).toBeGreaterThan(0);
+		expect(cols).toBeGreaterThan(0);
+		expect(rows).toBeGreaterThan(0);
 	});
 
 	it('shrinks the terminal when its container shrinks', async () => {
-		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
+		const onresize = vi.fn<(cols: number, rows: number) => void>();
 
 		const { container } = await renderSized('800px', '600px', { onresize });
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
-		const large = onresize.mock.lastCall![0];
+		const [largeCols, largeRows] = onresize.mock.lastCall!;
 		onresize.mockReset();
 
 		container.style.width = '400px';
@@ -75,20 +75,20 @@ describe('terminal.svelte auto-resize', () => {
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
-		const small = onresize.mock.lastCall![0];
+		const [smallCols, smallRows] = onresize.mock.lastCall!;
 
-		expect(small.cols).toBeLessThan(large.cols);
-		expect(small.rows).toBeLessThan(large.rows);
+		expect(smallCols).toBeLessThan(largeCols);
+		expect(smallRows).toBeLessThan(largeRows);
 	});
 
 	it('grows the terminal when its container grows', async () => {
-		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
+		const onresize = vi.fn<(cols: number, rows: number) => void>();
 
 		const { container } = await renderSized('400px', '300px', { onresize });
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
-		const small = onresize.mock.lastCall![0];
+		const [smallCols, smallRows] = onresize.mock.lastCall!;
 		onresize.mockReset();
 
 		container.style.width = '800px';
@@ -96,14 +96,14 @@ describe('terminal.svelte auto-resize', () => {
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
-		const large = onresize.mock.lastCall![0];
+		const [largeCols, largeRows] = onresize.mock.lastCall!;
 
-		expect(large.cols).toBeGreaterThan(small.cols);
-		expect(large.rows).toBeGreaterThan(small.rows);
+		expect(largeCols).toBeGreaterThan(smallCols);
+		expect(largeRows).toBeGreaterThan(smallRows);
 	});
 
 	it('respects padding on the container', async () => {
-		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
+		const onresize = vi.fn<(cols: number, rows: number) => void>();
 
 		const container = document.createElement('div');
 		container.style.boxSizing = 'border-box';
@@ -115,22 +115,22 @@ describe('terminal.svelte auto-resize', () => {
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
-		const paddedSize = onresize.mock.lastCall![0]!;
+		const [paddedCols, paddedRows] = onresize.mock.lastCall!;
 
 		onresize.mockReset();
 		container.style.padding = '0';
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
-		const unpaddedSize = onresize.mock.lastCall![0]!;
+		const [unpaddedCols, unpaddedRows] = onresize.mock.lastCall!;
 
-		expect(paddedSize.cols).toBeLessThan(unpaddedSize.cols);
-		expect(paddedSize.rows).toBeLessThan(unpaddedSize.rows);
+		expect(paddedCols).toBeLessThan(unpaddedCols);
+		expect(paddedRows).toBeLessThan(unpaddedRows);
 	});
 
 	it('replacing onresize stops calling the old callback', async () => {
-		const onresize1 = vi.fn<(size: { cols: number; rows: number }) => void>();
-		const onresize2 = vi.fn<(size: { cols: number; rows: number }) => void>();
+		const onresize1 = vi.fn<(cols: number, rows: number) => void>();
+		const onresize2 = vi.fn<(cols: number, rows: number) => void>();
 
 		const { container, rerender } = await renderSized('800px', '600px', { onresize: onresize1 });
 
@@ -146,7 +146,7 @@ describe('terminal.svelte auto-resize', () => {
 	});
 
 	it('unsetting onresize stops calling the old callback', async () => {
-		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
+		const onresize = vi.fn<(cols: number, rows: number) => void>();
 
 		const { container, component, rerender } = await renderSized('800px', '600px', { onresize });
 
@@ -172,7 +172,7 @@ describe('terminal.svelte auto-resize', () => {
 describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 	async function renderFitted() {
 		const data: string[] = [];
-		const onresize = vi.fn<(size: { cols: number; rows: number }) => void>();
+		const onresize = vi.fn<(cols: number, rows: number) => void>();
 
 		const { container, component } = await renderSized('800px', '600px', {
 			onresize,
@@ -180,7 +180,8 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 		});
 
 		await expect.poll(() => onresize).toHaveBeenCalled();
-		const fitted = onresize.mock.lastCall![0]!;
+		const [fittedCols, fittedRows] = onresize.mock.lastCall!;
+		const fitted = { cols: fittedCols, rows: fittedRows };
 
 		return { container, component, data, onresize, fitted };
 	}
@@ -233,9 +234,9 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 		container.style.height = '300px';
 		await expect.poll(() => onresize).toHaveBeenCalled();
 
-		const resized = onresize.mock.lastCall![0]!;
+		const [resizedCols, resizedRows] = onresize.mock.lastCall!;
 		const probed = await probeActiveBufferSize(component, data);
 
-		expect(probed).toEqual({ cols: resized.cols, rows: resized.rows });
+		expect(probed).toEqual({ cols: resizedCols, rows: resizedRows });
 	});
 });
