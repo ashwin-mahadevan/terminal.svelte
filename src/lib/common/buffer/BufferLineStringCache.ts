@@ -4,8 +4,7 @@
  */
 
 import type { IBufferLineStringCacheEntry } from '$lib/common/buffer/BufferLine';
-import { disposableTimeout } from '$lib/common/Async';
-import { MutableDisposable } from '$lib/common/Lifecycle';
+import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 
 const enum Constants {
@@ -58,7 +57,7 @@ export class BufferLineStringCache {
 	}
 
 	private _scheduleClearTimeout(timeoutMs: number): void {
-		this._clearTimeout.value = disposableTimeout(() => {
+		const timer = setTimeout(() => {
 			const elapsed = Date.now() - this._lastAccessTimestamp;
 			if (elapsed >= Constants.CACHE_TTL_MS) {
 				this.clear();
@@ -66,5 +65,6 @@ export class BufferLineStringCache {
 			}
 			this._scheduleClearTimeout(Constants.CACHE_TTL_MS - elapsed);
 		}, timeoutMs);
+		this._clearTimeout.value = toDisposable(() => clearTimeout(timer));
 	}
 }

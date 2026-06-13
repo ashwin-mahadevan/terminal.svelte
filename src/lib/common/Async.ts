@@ -5,34 +5,6 @@
  * Minimal async helpers for xterm.js core.
  */
 
-import type { DisposableStore, IDisposable } from '$lib/common/Lifecycle';
-import { toDisposable } from '$lib/common/Lifecycle';
-
-/**
- * Creates a timeout that can be disposed using its returned value.
- * @param handler The timeout handler.
- * @param timeout An optional timeout in milliseconds.
- * @param store An optional {@link DisposableStore} that will have the timeout disposable managed
- * automatically.
- */
-export function disposableTimeout(
-	handler: () => void,
-	timeout = 0,
-	store?: DisposableStore
-): IDisposable {
-	const timer = setTimeout(() => {
-		handler();
-		if (store) {
-			disposable.dispose();
-		}
-	}, timeout);
-	const disposable = toDisposable(() => {
-		clearTimeout(timer);
-	});
-	store?.add(disposable);
-	return disposable;
-}
-
 export class TimeoutTimer {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
