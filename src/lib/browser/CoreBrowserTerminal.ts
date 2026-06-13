@@ -89,9 +89,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _helperContainer: HTMLElement | undefined;
 	private _compositionView: HTMLElement | undefined;
 
-	private readonly _linkifier: MutableDisposable<Linkifier> = this._store.add(
-		new MutableDisposable()
-	);
+	private readonly _linkifier = new MutableDisposable<Linkifier>();
 	public get linkifier(): Linkifier | undefined {
 		return this._linkifier.value;
 	}
@@ -146,46 +144,42 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _unprocessedDeadKey: boolean = false;
 
 	private _compositionHelper: ICompositionHelper | undefined;
-	private _accessibilityManager: MutableDisposable<AccessibilityManager> = this._store.add(
-		new MutableDisposable()
-	);
+	private _accessibilityManager = new MutableDisposable<AccessibilityManager>();
 
-	private readonly _onCursorMove = this._store.add(new LegacyEmitter<void>());
+	private readonly _onCursorMove = new LegacyEmitter<void>();
 	public readonly onCursorMove = this._onCursorMove.event;
-	private readonly _onKey = this._store.add(
-		new LegacyEmitter<{ key: string; domEvent: KeyboardEvent }>()
-	);
+	private readonly _onKey = new LegacyEmitter<{ key: string; domEvent: KeyboardEvent }>();
 	public readonly onKey = this._onKey.event;
-	private readonly _onSelectionChange = this._store.add(new LegacyEmitter<void>());
+	private readonly _onSelectionChange = new LegacyEmitter<void>();
 	public readonly onSelectionChange = this._onSelectionChange.event;
-	private readonly _onTitleChange = this._store.add(new LegacyEmitter<string>());
+	private readonly _onTitleChange = new LegacyEmitter<string>();
 	public readonly onTitleChange = this._onTitleChange.event;
-	private readonly _onBell = this._store.add(new LegacyEmitter<void>());
+	private readonly _onBell = new LegacyEmitter<void>();
 	public readonly onBell = this._onBell.event;
 
-	private _onFocus = this._store.add(new LegacyEmitter<void>());
+	private _onFocus = new LegacyEmitter<void>();
 	public get onFocus(): IEvent<void> {
 		return this._onFocus.event;
 	}
-	private _onBlur = this._store.add(new LegacyEmitter<void>());
+	private _onBlur = new LegacyEmitter<void>();
 	public get onBlur(): IEvent<void> {
 		return this._onBlur.event;
 	}
-	private _onA11yCharEmitter = this._store.add(new LegacyEmitter<string>());
+	private _onA11yCharEmitter = new LegacyEmitter<string>();
 	public get onA11yChar(): IEvent<string> {
 		return this._onA11yCharEmitter.event;
 	}
-	private _onA11yTabEmitter = this._store.add(new LegacyEmitter<number>());
+	private _onA11yTabEmitter = new LegacyEmitter<number>();
 	public get onA11yTab(): IEvent<number> {
 		return this._onA11yTabEmitter.event;
 	}
-	private _onWillOpen = this._store.add(new LegacyEmitter<HTMLElement>());
+	private _onWillOpen = new LegacyEmitter<HTMLElement>();
 	public get onWillOpen(): IEvent<HTMLElement> {
 		return this._onWillOpen.event;
 	}
-	private readonly _onDimensionsChange = this._store.add(new LegacyEmitter<IRenderDimensionsApi>());
+	private readonly _onDimensionsChange = new LegacyEmitter<IRenderDimensionsApi>();
 	public readonly onDimensionsChange = this._onDimensionsChange.event;
-	private readonly _onCharSizeChange = this._store.add(new LegacyEmitter<void>());
+	private readonly _onCharSizeChange = new LegacyEmitter<void>();
 	public readonly onCharSizeChange = this._onCharSizeChange.event;
 
 	// Pixel size of a single cell, measured externally by the host (see
@@ -285,6 +279,29 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				this._viewportElement?.remove();
 			})
 		);
+	}
+
+	public override dispose(): void {
+		super.dispose();
+		this._linkifier.dispose();
+		this._accessibilityManager.dispose();
+		this._coreBrowserService?.dispose();
+		this._renderService?.dispose();
+		this._viewport?.dispose();
+		this._selectionService?.dispose();
+		this._overviewRulerRenderer?.dispose();
+		this._onCursorMove.dispose();
+		this._onKey.dispose();
+		this._onSelectionChange.dispose();
+		this._onTitleChange.dispose();
+		this._onBell.dispose();
+		this._onFocus.dispose();
+		this._onBlur.dispose();
+		this._onA11yCharEmitter.dispose();
+		this._onA11yTabEmitter.dispose();
+		this._onWillOpen.dispose();
+		this._onDimensionsChange.dispose();
+		this._onCharSizeChange.dispose();
 	}
 
 	/**
@@ -671,15 +688,13 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		// Register the core browser service before the generic textarea handlers are registered so it
 		// handles them first. Otherwise the renderers may use the wrong focus state.
-		this._coreBrowserService = this._store.add(
-			new CoreBrowserService(
-				this.textarea,
-				parent.ownerDocument.defaultView ?? window,
-				// Force unsafe null in node.js environment for tests
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				(this._document ?? typeof window !== 'undefined') ? window.document : (null as any)
-			)
+		this._coreBrowserService = new CoreBrowserService(
+			this.textarea,
+			parent.ownerDocument.defaultView ?? window,
+			// Force unsafe null in node.js environment for tests
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(this._document ?? typeof window !== 'undefined') ? window.document : (null as any)
 		);
 
 		this._store.add(
@@ -706,18 +721,16 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		this._characterJoinerService = new CharacterJoinerService(this._bufferService);
 
-		this._renderService = this._store.add(
-			new RenderService(
-				this,
-				this.rows,
-				this.screenElement,
-				this.optionsService,
-				this.coreService,
-				this._decorationService,
-				this._bufferService,
-				this._coreBrowserService,
-				this._themeService
-			)
+		this._renderService = new RenderService(
+			this,
+			this.rows,
+			this.screenElement,
+			this.optionsService,
+			this.coreService,
+			this._decorationService,
+			this._bufferService,
+			this._coreBrowserService,
+			this._themeService
 		);
 		this._store.add(this._renderService.onRenderedViewportChange((e) => this._onRender.fire(e)));
 		this._store.add(
@@ -750,14 +763,12 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		this._mouseCoordsService = new MouseCoordsService(this, this._renderService);
 
-		const linkifier = (this._linkifier.value = this._store.add(
-			new Linkifier(
-				this.screenElement,
-				this._mouseCoordsService,
-				this._renderService,
-				this._bufferService,
-				this._linkProviderService
-			)
+		const linkifier = (this._linkifier.value = new Linkifier(
+			this.screenElement,
+			this._mouseCoordsService,
+			this._renderService,
+			this._bufferService,
+			this._linkProviderService
 		));
 
 		// Performance: Add viewport and helper elements from the fragment
@@ -802,18 +813,16 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._store.add(this.onBlur(() => this._renderService!.handleBlur()));
 		this._store.add(this.onFocus(() => this._renderService!.handleFocus()));
 
-		this._viewport = this._store.add(
-			new Viewport(
-				this.element,
-				this.screenElement,
-				this._bufferService,
-				this._coreBrowserService,
-				this.coreService,
-				this.mouseStateService,
-				this._themeService,
-				this.optionsService,
-				this._renderService
-			)
+		this._viewport = new Viewport(
+			this.element,
+			this.screenElement,
+			this._bufferService,
+			this._coreBrowserService,
+			this.coreService,
+			this.mouseStateService,
+			this._themeService,
+			this.optionsService,
+			this._renderService
 		);
 		this._store.add(
 			this._viewport.onRequestScrollLines((e) => {
@@ -822,19 +831,17 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			})
 		);
 
-		this._selectionService = this._store.add(
-			new SelectionService(
-				this.element,
-				this.screenElement,
-				linkifier,
-				this._bufferService,
-				this.coreService,
-				this._mouseCoordsService,
-				this.optionsService,
-				this.mouseStateService,
-				this._renderService,
-				this._coreBrowserService
-			)
+		this._selectionService = new SelectionService(
+			this.element,
+			this.screenElement,
+			linkifier,
+			this._bufferService,
+			this.coreService,
+			this._mouseCoordsService,
+			this.optionsService,
+			this.mouseStateService,
+			this._renderService,
+			this._coreBrowserService
 		);
 		this._mouseService = new MouseService(
 			this._renderService,
@@ -926,17 +933,15 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		const showScrollbar = this.options.scrollbar?.showScrollbar ?? true;
 		const overviewRulerWidth = this.options.scrollbar?.width;
 		if (showScrollbar && overviewRulerWidth) {
-			this._overviewRulerRenderer = this._store.add(
-				new OverviewRulerRenderer(
-					this._viewportElement,
-					this.screenElement,
-					this._bufferService,
-					this._decorationService,
-					this._renderService,
-					this.optionsService,
-					this._themeService,
-					this._coreBrowserService
-				)
+			this._overviewRulerRenderer = new OverviewRulerRenderer(
+				this._viewportElement,
+				this.screenElement,
+				this._bufferService,
+				this._decorationService,
+				this._renderService,
+				this.optionsService,
+				this._themeService,
+				this._coreBrowserService
 			);
 		}
 		this.optionsService.onSpecificOptionChange('scrollbar', (value) => {
@@ -947,17 +952,15 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				this._viewportElement &&
 				this.screenElement
 			) {
-				this._overviewRulerRenderer = this._store.add(
-					new OverviewRulerRenderer(
-						this._viewportElement,
-						this.screenElement,
-						this._bufferService,
-						this._decorationService,
-						this._renderService!,
-						this.optionsService,
-						this._themeService!,
-						this._coreBrowserService!
-					)
+				this._overviewRulerRenderer = new OverviewRulerRenderer(
+					this._viewportElement,
+					this.screenElement,
+					this._bufferService,
+					this._decorationService,
+					this._renderService!,
+					this.optionsService,
+					this._themeService!,
+					this._coreBrowserService!
 				);
 			}
 		});
