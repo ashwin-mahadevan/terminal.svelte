@@ -5,7 +5,7 @@
 
 	let terminal: Terminal;
 
-	const socket = browser as true && io();
+	const socket = (browser as true) && io();
 
 	function write(chunk: string) {
 		terminal.write(chunk);

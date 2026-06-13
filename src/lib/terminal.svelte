@@ -96,7 +96,7 @@
 	});
 
 	export function write(data: string) {
-		terminal.write(data);
+		return new Promise<void>((resolve) => terminal.write(data, resolve));
 	}
 
 	export function serialize(options?: ISerializeOptions): string {
