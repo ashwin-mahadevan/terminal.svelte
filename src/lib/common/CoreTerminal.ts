@@ -30,9 +30,6 @@ import { MouseStateService } from '$lib/common/services/MouseStateService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { CharsetService } from '$lib/common/services/CharsetService';
 import { updateWindowsModeWrappedState } from '$lib/common/WindowsMode';
-import type { IFunctionIdentifier } from '$lib/common/parser/Types';
-import type { Params } from '$lib/common/parser/Params';
-import type { BufferSet } from '$lib/common/buffer/BufferSet';
 import { InputHandler } from '$lib/common/InputHandler';
 import { WriteBuffer } from '$lib/common/input/WriteBuffer';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
@@ -47,16 +44,16 @@ interface ITerminalScrollEvent {
 
 export abstract class CoreTerminal {
 	protected readonly _store = new DisposableStore();
-	protected readonly _bufferService: BufferService;
-	protected readonly _charsetService: CharsetService;
-	protected readonly _oscLinkService: OscLinkService;
+	public readonly bufferService: BufferService;
+	public readonly charsetService: CharsetService;
+	public readonly oscLinkService: OscLinkService;
 
 	public readonly mouseStateService: MouseStateService;
 	public readonly coreService: CoreService;
 	public readonly unicodeService: UnicodeService;
 	public readonly optionsService: OptionsService;
 
-	protected _inputHandler: InputHandler;
+	public inputHandler: InputHandler;
 	private _writeBuffer: WriteBuffer;
 	private _windowsWrappingHeuristics = new MutableDisposable();
 
@@ -89,15 +86,6 @@ export abstract class CoreTerminal {
 		return this._onScrollApi.event;
 	}
 
-	public get cols(): number {
-		return this._bufferService.cols;
-	}
-	public get rows(): number {
-		return this._bufferService.rows;
-	}
-	public get buffers(): BufferSet {
-		return this._bufferService.buffers;
-	}
 	public get options(): Required<ITerminalOptions> {
 		return this.optionsService.options;
 	}
@@ -110,27 +98,27 @@ export abstract class CoreTerminal {
 	constructor(options: Partial<ITerminalOptions>) {
 		// Setup and initialize services
 		this.optionsService = new OptionsService(options);
-		this._bufferService = new BufferService(this.optionsService);
-		this.coreService = new CoreService(this._bufferService, this.optionsService);
+		this.bufferService = new BufferService(this.optionsService);
+		this.coreService = new CoreService(this.bufferService, this.optionsService);
 		this.mouseStateService = new MouseStateService();
 		this.unicodeService = new UnicodeService();
-		this._charsetService = new CharsetService();
-		this._oscLinkService = new OscLinkService(this._bufferService);
+		this.charsetService = new CharsetService();
+		this.oscLinkService = new OscLinkService(this.bufferService);
 
 		// Register input handler and handle/forward events
-		this._inputHandler = new InputHandler(
-			this._bufferService,
-			this._charsetService,
+		this.inputHandler = new InputHandler(
+			this.bufferService,
+			this.charsetService,
 			this.coreService,
 			this.optionsService,
-			this._oscLinkService,
+			this.oscLinkService,
 			this.mouseStateService,
 			this.unicodeService
 		);
-		this._store.add(this._inputHandler.onLineFeed((e) => this._onLineFeed.fire(e)));
+		this._store.add(this.inputHandler.onLineFeed((e) => this._onLineFeed.fire(e)));
 
 		// Setup listeners
-		this._store.add(this._bufferService.onResize((e) => this._onResize.fire(e)));
+		this._store.add(this.bufferService.onResize((e) => this._onResize.fire(e)));
 		this._store.add(this.coreService.onData((e) => this._onData.fire(e)));
 		this._store.add(this.coreService.onBinary((e) => this._onBinary.fire(e)));
 		this._store.add(this.coreService.onRequestScrollToBottom(() => this.scrollToBottom(true)));
@@ -141,17 +129,17 @@ export abstract class CoreTerminal {
 			)
 		);
 		this._store.add(
-			this._bufferService.onScroll(() => {
-				this._onScroll.fire({ position: this._bufferService.buffer.ydisp });
-				this._inputHandler.markRangeDirty(
-					this._bufferService.buffer.scrollTop,
-					this._bufferService.buffer.scrollBottom
+			this.bufferService.onScroll(() => {
+				this._onScroll.fire({ position: this.bufferService.buffer.ydisp });
+				this.inputHandler.markRangeDirty(
+					this.bufferService.buffer.scrollTop,
+					this.bufferService.buffer.scrollBottom
 				);
 			})
 		);
 		// Setup WriteBuffer
 		this._writeBuffer = new WriteBuffer((data, promiseResult) =>
-			this._inputHandler.parse(data, promiseResult)
+			this.inputHandler.parse(data, promiseResult)
 		);
 		this._store.add(this._writeBuffer.onWriteParsed((e) => this._onWriteParsed.fire(e)));
 	}
@@ -159,10 +147,10 @@ export abstract class CoreTerminal {
 	public dispose(): void {
 		this._store.dispose();
 		this._writeBuffer.dispose();
-		this._inputHandler.dispose();
+		this.inputHandler.dispose();
 		this._windowsWrappingHeuristics.dispose();
 		this.optionsService.dispose();
-		this._bufferService.dispose();
+		this.bufferService.dispose();
 		this.coreService.dispose();
 		this.mouseStateService.dispose();
 		this.unicodeService.dispose();
@@ -196,7 +184,7 @@ export abstract class CoreTerminal {
 		// writes are processed with incorrect dimensions
 		this._writeBuffer.flushSync();
 
-		this._bufferService.resize(x, y);
+		this.bufferService.resize(x, y);
 	}
 
 	/**
@@ -205,7 +193,7 @@ export abstract class CoreTerminal {
 	 * @param isWrapped Whether the new line is wrapped from the previous line.
 	 */
 	public scroll(eraseAttr: IAttributeData, isWrapped: boolean = false): void {
-		this._bufferService.scroll(eraseAttr, isWrapped);
+		this.bufferService.scroll(eraseAttr, isWrapped);
 	}
 
 	/**
@@ -216,68 +204,28 @@ export abstract class CoreTerminal {
 	 * originally.
 	 */
 	public scrollLines(disp: number, suppressScrollEvent?: boolean): void {
-		this._bufferService.scrollLines(disp, suppressScrollEvent);
+		this.bufferService.scrollLines(disp, suppressScrollEvent);
 	}
 
 	public scrollPages(pageCount: number): void {
-		this.scrollLines(pageCount * (this.rows - 1));
+		this.scrollLines(pageCount * (this.bufferService.rows - 1));
 	}
 
 	public scrollToTop(): void {
-		this.scrollLines(-this._bufferService.buffer.ydisp);
+		this.scrollLines(-this.bufferService.buffer.ydisp);
 	}
 
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public scrollToBottom(disableSmoothScroll?: boolean): void {
-		this.scrollLines(this._bufferService.buffer.ybase - this._bufferService.buffer.ydisp);
+		this.scrollLines(this.bufferService.buffer.ybase - this.bufferService.buffer.ydisp);
 	}
 
 	public scrollToLine(line: number): void {
-		const scrollAmount = line - this._bufferService.buffer.ydisp;
+		const scrollAmount = line - this.bufferService.buffer.ydisp;
 		if (scrollAmount !== 0) {
 			this.scrollLines(scrollAmount);
 		}
-	}
-
-	/** Add handler for ESC escape sequence. See xterm.d.ts for details. */
-	public registerEscHandler(
-		id: IFunctionIdentifier,
-		callback: () => boolean | Promise<boolean>
-	): IDisposable {
-		return this._inputHandler.registerEscHandler(id, callback);
-	}
-
-	/** Add handler for DCS escape sequence. See xterm.d.ts for details. */
-	public registerDcsHandler(
-		id: IFunctionIdentifier,
-		callback: (data: string, param: Params) => boolean | Promise<boolean>
-	): IDisposable {
-		return this._inputHandler.registerDcsHandler(id, callback);
-	}
-
-	/** Add handler for CSI escape sequence. See xterm.d.ts for details. */
-	public registerCsiHandler(
-		id: IFunctionIdentifier,
-		callback: (params: Params) => boolean | Promise<boolean>
-	): IDisposable {
-		return this._inputHandler.registerCsiHandler(id, callback);
-	}
-
-	/** Add handler for OSC escape sequence. See xterm.d.ts for details. */
-	public registerOscHandler(
-		ident: number,
-		callback: (data: string) => boolean | Promise<boolean>
-	): IDisposable {
-		return this._inputHandler.registerOscHandler(ident, callback);
-	}
-
-	/** Add handler for APC escape sequence. See xterm.d.ts for details. */
-	public registerApcHandler(
-		id: IFunctionIdentifier,
-		callback: (data: string) => boolean | Promise<boolean>
-	): IDisposable {
-		return this._inputHandler.registerApcHandler(id, callback);
 	}
 
 	protected _setup(): void {
@@ -285,9 +233,9 @@ export abstract class CoreTerminal {
 	}
 
 	public reset(): void {
-		this._inputHandler.reset();
-		this._bufferService.reset();
-		this._charsetService.reset();
+		this.inputHandler.reset();
+		this.bufferService.reset();
+		this.charsetService.reset();
 		this.coreService.reset();
 		this.mouseStateService.reset();
 	}
@@ -309,11 +257,11 @@ export abstract class CoreTerminal {
 		if (!this._windowsWrappingHeuristics.value) {
 			const disposables: IDisposable[] = [];
 			disposables.push(
-				this.onLineFeed(updateWindowsModeWrappedState.bind(null, this._bufferService))
+				this.onLineFeed(updateWindowsModeWrappedState.bind(null, this.bufferService))
 			);
 			disposables.push(
-				this.registerCsiHandler({ final: 'H' }, () => {
-					updateWindowsModeWrappedState(this._bufferService);
+				this.inputHandler.registerCsiHandler({ final: 'H' }, () => {
+					updateWindowsModeWrappedState(this.bufferService);
 					return false;
 				})
 			);

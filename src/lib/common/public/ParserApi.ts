@@ -15,7 +15,9 @@ export class ParserApi implements IParser {
 		id: IFunctionIdentifier,
 		callback: (params: (number | number[])[]) => boolean | Promise<boolean>
 	) {
-		return this._core.registerCsiHandler(id, (params: Params) => callback(params.toArray()));
+		return this._core.inputHandler.registerCsiHandler(id, (params: Params) =>
+			callback(params.toArray())
+		);
 	}
 	public addCsiHandler(
 		id: IFunctionIdentifier,
@@ -27,7 +29,7 @@ export class ParserApi implements IParser {
 		id: IFunctionIdentifier,
 		callback: (data: string, param: (number | number[])[]) => boolean | Promise<boolean>
 	) {
-		return this._core.registerDcsHandler(id, (data: string, params: Params) =>
+		return this._core.inputHandler.registerDcsHandler(id, (data: string, params: Params) =>
 			callback(data, params.toArray())
 		);
 	}
@@ -38,13 +40,13 @@ export class ParserApi implements IParser {
 		return this.registerDcsHandler(id, callback);
 	}
 	public registerEscHandler(id: IFunctionIdentifier, handler: () => boolean | Promise<boolean>) {
-		return this._core.registerEscHandler(id, handler);
+		return this._core.inputHandler.registerEscHandler(id, handler);
 	}
 	public addEscHandler(id: IFunctionIdentifier, handler: () => boolean | Promise<boolean>) {
 		return this.registerEscHandler(id, handler);
 	}
 	public registerOscHandler(ident: number, callback: (data: string) => boolean | Promise<boolean>) {
-		return this._core.registerOscHandler(ident, callback);
+		return this._core.inputHandler.registerOscHandler(ident, callback);
 	}
 	public addOscHandler(ident: number, callback: (data: string) => boolean | Promise<boolean>) {
 		return this.registerOscHandler(ident, callback);
@@ -53,6 +55,6 @@ export class ParserApi implements IParser {
 		id: IFunctionIdentifier,
 		callback: (data: string) => boolean | Promise<boolean>
 	) {
-		return this._core.registerApcHandler(id, callback);
+		return this._core.inputHandler.registerApcHandler(id, callback);
 	}
 }

@@ -159,13 +159,16 @@ class LinkComputer {
 		let content;
 		const lines: string[] = [];
 
-		if ((line = terminal.buffers.active.lines.get(lineIndex))) {
+		if ((line = terminal.bufferService.buffers.active.lines.get(lineIndex))) {
 			const currentContent = line.translateToString(true);
 
 			// expand top, stop on whitespaces or length > 2048
 			if (line.isWrapped && currentContent[0] !== ' ') {
 				length = 0;
-				while ((line = terminal.buffers.active.lines.get(--topIdx)) && length < 2048) {
+				while (
+					(line = terminal.bufferService.buffers.active.lines.get(--topIdx)) &&
+					length < 2048
+				) {
 					content = line.translateToString(true);
 					length += content.length;
 					lines.push(content);
@@ -182,7 +185,7 @@ class LinkComputer {
 			// expand bottom, stop on whitespaces or length > 2048
 			length = 0;
 			while (
-				(line = terminal.buffers.active.lines.get(++bottomIdx)) &&
+				(line = terminal.bufferService.buffers.active.lines.get(++bottomIdx)) &&
 				line.isWrapped &&
 				length < 2048
 			) {
@@ -208,7 +211,7 @@ class LinkComputer {
 		rowIndex: number,
 		stringIndex: number
 	): [number, number] {
-		const buf = terminal.buffers.active;
+		const buf = terminal.bufferService.buffers.active;
 		const cell = new CellData();
 		let start = rowIndex;
 		while (stringIndex) {

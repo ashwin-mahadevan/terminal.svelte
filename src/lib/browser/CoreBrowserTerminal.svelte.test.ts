@@ -273,24 +273,24 @@ describe('CoreBrowserTerminal', () => {
 			expect(term.buffer.y).toBe(0);
 			expect(term.buffer.ybase).toBe(0);
 			expect(term.buffer.ydisp).toBe(0);
-			expect(term.buffer.lines.length).toBe(term.rows);
+			expect(term.buffer.lines.length).toBe(term.bufferService.rows);
 			expect(term.buffer.lines.get(0)).toEqual(promptLine);
-			for (let i = 1; i < term.rows; i++) {
+			for (let i = 1; i < term.bufferService.rows; i++) {
 				expect(term.buffer.lines.get(i)).toEqual(term.buffer.getBlankLine(DEFAULT_ATTR_DATA));
 			}
 		});
 		it('should clear a buffer larger than rows', async () => {
 			// Fill the buffer with dummy rows
-			await term.writeP('test\n'.repeat(term.rows * 2));
+			await term.writeP('test\n'.repeat(term.bufferService.rows * 2));
 
 			const promptLine = term.buffer.lines.get(term.buffer.ybase + term.buffer.y);
 			term.clear();
 			expect(term.buffer.y).toBe(0);
 			expect(term.buffer.ybase).toBe(0);
 			expect(term.buffer.ydisp).toBe(0);
-			expect(term.buffer.lines.length).toBe(term.rows);
+			expect(term.buffer.lines.length).toBe(term.bufferService.rows);
 			expect(term.buffer.lines.get(0)).toEqual(promptLine);
-			for (let i = 1; i < term.rows; i++) {
+			for (let i = 1; i < term.bufferService.rows; i++) {
 				expect(term.buffer.lines.get(i)).toEqual(term.buffer.getBlankLine(DEFAULT_ATTR_DATA));
 			}
 		});
@@ -301,9 +301,9 @@ describe('CoreBrowserTerminal', () => {
 			expect(term.buffer.y).toBe(0);
 			expect(term.buffer.ybase).toBe(0);
 			expect(term.buffer.ydisp).toBe(0);
-			expect(term.buffer.lines.length).toBe(term.rows);
+			expect(term.buffer.lines.length).toBe(term.bufferService.rows);
 			expect(term.buffer.lines.get(0)).toEqual(promptLine);
-			for (let i = 1; i < term.rows; i++) {
+			for (let i = 1; i < term.bufferService.rows; i++) {
 				expect(term.buffer.lines.get(i)).toEqual(term.buffer.getBlankLine(DEFAULT_ATTR_DATA));
 			}
 		});
@@ -396,24 +396,24 @@ describe('CoreBrowserTerminal', () => {
 
 		describe('scrollPages', () => {
 			it('should scroll a single page', async () => {
-				for (let i = 0; i < term.rows * 3; i++) {
+				for (let i = 0; i < term.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				const startYDisp = term.rows * 2 + 1;
+				const startYDisp = term.bufferService.rows * 2 + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollPages(-1);
-				expect(term.buffer.ydisp).toBe(startYDisp - (term.rows - 1));
+				expect(term.buffer.ydisp).toBe(startYDisp - (term.bufferService.rows - 1));
 				term.scrollPages(1);
 				expect(term.buffer.ydisp).toBe(startYDisp);
 			});
 			it('should scroll a multiple pages', async () => {
-				for (let i = 0; i < term.rows * 3; i++) {
+				for (let i = 0; i < term.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				const startYDisp = term.rows * 2 + 1;
+				const startYDisp = term.bufferService.rows * 2 + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollPages(-2);
-				expect(term.buffer.ydisp).toBe(startYDisp - (term.rows - 1) * 2);
+				expect(term.buffer.ydisp).toBe(startYDisp - (term.bufferService.rows - 1) * 2);
 				term.scrollPages(2);
 				expect(term.buffer.ydisp).toBe(startYDisp);
 			});
@@ -421,7 +421,7 @@ describe('CoreBrowserTerminal', () => {
 
 		describe('scrollToTop', () => {
 			beforeEach(async () => {
-				for (let i = 0; i < term.rows * 3; i++) {
+				for (let i = 0; i < term.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
 			});
@@ -434,10 +434,10 @@ describe('CoreBrowserTerminal', () => {
 
 		describe('scrollToBottom', () => {
 			it('should scroll to the bottom', async () => {
-				for (let i = 0; i < term.rows * 3; i++) {
+				for (let i = 0; i < term.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				const startYDisp = term.rows * 2 + 1;
+				const startYDisp = term.bufferService.rows * 2 + 1;
 				term.scrollLines(-1);
 				term.scrollToBottom();
 				expect(term.buffer.ydisp).toBe(startYDisp);
@@ -452,10 +452,10 @@ describe('CoreBrowserTerminal', () => {
 
 		describe('scrollToLine', () => {
 			it('should scroll to requested line', async () => {
-				for (let i = 0; i < term.rows * 3; i++) {
+				for (let i = 0; i < term.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				const startYDisp = term.rows * 2 + 1;
+				const startYDisp = term.bufferService.rows * 2 + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollToLine(0);
 				expect(term.buffer.ydisp).toBe(0);
@@ -467,10 +467,10 @@ describe('CoreBrowserTerminal', () => {
 				expect(term.buffer.ydisp).toBe(20);
 			});
 			it('should not scroll beyond boundary lines', async () => {
-				for (let i = 0; i < term.rows * 3; i++) {
+				for (let i = 0; i < term.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				const startYDisp = term.rows * 2 + 1;
+				const startYDisp = term.bufferService.rows * 2 + 1;
 				expect(term.buffer.ydisp).toBe(startYDisp);
 				term.scrollToLine(-1);
 				expect(term.buffer.ydisp).toBe(0);
@@ -499,8 +499,8 @@ describe('CoreBrowserTerminal', () => {
 
 			it('should not scroll down, when a custom keydown handler prevents the event', async () => {
 				// Add some output to the terminal
-				await term.writeP('test\r\n'.repeat(term.rows * 3));
-				const startYDisp = term.rows * 2 + 1;
+				await term.writeP('test\r\n'.repeat(term.bufferService.rows * 3));
+				const startYDisp = term.bufferService.rows * 2 + 1;
 				term.attachCustomKeyEventHandler(() => {
 					return false;
 				});
@@ -521,7 +521,7 @@ describe('CoreBrowserTerminal', () => {
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				(term as any).textarea = { value: '' };
 
-				await term.writeP('test\r\n'.repeat(term.rows * 3));
+				await term.writeP('test\r\n'.repeat(term.bufferService.rows * 3));
 				const startYDisp = term.buffer.ydisp;
 				term.scrollLines(-1);
 				const scrolledYDisp = term.buffer.ydisp;
@@ -988,20 +988,20 @@ describe('CoreBrowserTerminal', () => {
 					values.push(high + String.fromCharCode(j));
 				}
 				await term.writeP(
-					values.map((value, idx) => `\x1b[${idx + 1};${term.cols}H${value}`).join('')
+					values.map((value, idx) => `\x1b[${idx + 1};${term.bufferService.cols}H${value}`).join('')
 				);
 				for (let idx = 0; idx < values.length; idx++) {
 					const expected = values[idx];
 					expect(
 						term.buffer.lines
 							.get(idx)!
-							.loadCell(term.cols - 1, cell)
+							.loadCell(term.bufferService.cols - 1, cell)
 							.getChars()
 					).toBe(expected);
 					expect(
 						term.buffer.lines
 							.get(idx)!
-							.loadCell(term.cols - 1, cell)
+							.loadCell(term.bufferService.cols - 1, cell)
 							.getChars().length
 					).toBe(2);
 					expect(
@@ -1015,13 +1015,15 @@ describe('CoreBrowserTerminal', () => {
 			it(`${range}: 2 characters per cell over line end with autowrap`, async (): Promise<void> => {
 				const high = String.fromCharCode(0xd800);
 				const cell = new CellData();
-				term.resize(term.cols, 40);
+				term.resize(term.bufferService.cols, 40);
 				const values: string[] = [];
 				for (let j = i; j <= i + 0xf; j++) {
 					values.push(high + String.fromCharCode(j));
 				}
 				await term.writeP(
-					values.map((value, idx) => `\x1b[${idx * 2 + 1};${term.cols}H` + 'a' + value).join('')
+					values
+						.map((value, idx) => `\x1b[${idx * 2 + 1};${term.bufferService.cols}H` + 'a' + value)
+						.join('')
 				);
 				for (let idx = 0; idx < values.length; idx++) {
 					const expected = values[idx];
@@ -1029,7 +1031,7 @@ describe('CoreBrowserTerminal', () => {
 					expect(
 						term.buffer.lines
 							.get(row)!
-							.loadCell(term.cols - 1, cell)
+							.loadCell(term.bufferService.cols - 1, cell)
 							.getChars()
 					).toBe('a');
 					expect(
@@ -1065,20 +1067,22 @@ describe('CoreBrowserTerminal', () => {
 				}
 				await term.writeP(
 					'\x1b[?7l' +
-						values.map((value, idx) => `\x1b[${idx + 1};${term.cols}H` + 'a' + value).join('')
+						values
+							.map((value, idx) => `\x1b[${idx + 1};${term.bufferService.cols}H` + 'a' + value)
+							.join('')
 				);
 				for (let idx = 0; idx < values.length; idx++) {
 					const expected = values[idx];
 					expect(
 						term.buffer.lines
 							.get(idx)!
-							.loadCell(term.cols - 1, cell)
+							.loadCell(term.bufferService.cols - 1, cell)
 							.getChars()
 					).toBe(expected);
 					expect(
 						term.buffer.lines
 							.get(idx)!
-							.loadCell(term.cols - 1, cell)
+							.loadCell(term.bufferService.cols - 1, cell)
 							.getChars().length
 					).toBe(2);
 					expect(
@@ -1123,9 +1127,9 @@ describe('CoreBrowserTerminal', () => {
 			expect(cell.getWidth()).toBe(1);
 		});
 		it('café - end of line', async () => {
-			term.buffer.x = term.cols - 1 - 3;
+			term.buffer.x = term.bufferService.cols - 1 - 3;
 			await term.writeP('café');
-			term.buffer.lines.get(0)!.loadCell(term.cols - 1, cell);
+			term.buffer.lines.get(0)!.loadCell(term.bufferService.cols - 1, cell);
 			expect(cell.getChars()).toBe('é');
 			expect(cell.getChars().length).toBe(2);
 			expect(cell.getWidth()).toBe(1);
@@ -1136,7 +1140,7 @@ describe('CoreBrowserTerminal', () => {
 		});
 		it('multiple combined é', async () => {
 			await term.writeP('é'.repeat(99));
-			for (let i = 0; i < term.cols; ++i) {
+			for (let i = 0; i < term.bufferService.cols; ++i) {
 				term.buffer.lines.get(0)!.loadCell(i, cell);
 				expect(cell.getChars()).toBe('é');
 				expect(cell.getChars().length).toBe(2);
@@ -1149,7 +1153,7 @@ describe('CoreBrowserTerminal', () => {
 		});
 		it('multiple surrogate with combined', async () => {
 			await term.writeP('𐀀́'.repeat(99));
-			for (let i = 0; i < term.cols; ++i) {
+			for (let i = 0; i < term.bufferService.cols; ++i) {
 				term.buffer.lines.get(0)!.loadCell(i, cell);
 				expect(cell.getChars()).toBe('𐀀́');
 				expect(cell.getChars().length).toBe(3);
@@ -1181,7 +1185,7 @@ describe('CoreBrowserTerminal', () => {
 		});
 		it('line of ￥ even', async () => {
 			await term.writeP('￥'.repeat(49));
-			for (let i = 0; i < term.cols; ++i) {
+			for (let i = 0; i < term.bufferService.cols; ++i) {
 				term.buffer.lines.get(0)!.loadCell(i, cell);
 				if (i % 2) {
 					expect(cell.getChars()).toBe('');
@@ -1201,7 +1205,7 @@ describe('CoreBrowserTerminal', () => {
 		it('line of ￥ odd', async () => {
 			term.buffer.x = 1;
 			await term.writeP('￥'.repeat(49));
-			for (let i = 1; i < term.cols - 1; ++i) {
+			for (let i = 1; i < term.bufferService.cols - 1; ++i) {
 				term.buffer.lines.get(0)!.loadCell(i, cell);
 				if (!(i % 2)) {
 					expect(cell.getChars()).toBe('');
@@ -1213,7 +1217,7 @@ describe('CoreBrowserTerminal', () => {
 					expect(cell.getWidth()).toBe(2);
 				}
 			}
-			term.buffer.lines.get(0)!.loadCell(term.cols - 1, cell);
+			term.buffer.lines.get(0)!.loadCell(term.bufferService.cols - 1, cell);
 			expect(cell.getChars()).toBe('');
 			expect(cell.getChars().length).toBe(0);
 			expect(cell.getWidth()).toBe(1);
@@ -1225,7 +1229,7 @@ describe('CoreBrowserTerminal', () => {
 		it('line of ￥ with combining odd', async () => {
 			term.buffer.x = 1;
 			await term.writeP('￥́'.repeat(49));
-			for (let i = 1; i < term.cols - 1; ++i) {
+			for (let i = 1; i < term.bufferService.cols - 1; ++i) {
 				term.buffer.lines.get(0)!.loadCell(i, cell);
 				if (!(i % 2)) {
 					expect(cell.getChars()).toBe('');
@@ -1237,7 +1241,7 @@ describe('CoreBrowserTerminal', () => {
 					expect(cell.getWidth()).toBe(2);
 				}
 			}
-			term.buffer.lines.get(0)!.loadCell(term.cols - 1, cell);
+			term.buffer.lines.get(0)!.loadCell(term.bufferService.cols - 1, cell);
 			expect(cell.getChars()).toBe('');
 			expect(cell.getChars().length).toBe(0);
 			expect(cell.getWidth()).toBe(1);
@@ -1248,7 +1252,7 @@ describe('CoreBrowserTerminal', () => {
 		});
 		it('line of ￥ with combining even', async () => {
 			await term.writeP('￥́'.repeat(49));
-			for (let i = 0; i < term.cols; ++i) {
+			for (let i = 0; i < term.bufferService.cols; ++i) {
 				term.buffer.lines.get(0)!.loadCell(i, cell);
 				if (i % 2) {
 					expect(cell.getChars()).toBe('');
@@ -1268,7 +1272,7 @@ describe('CoreBrowserTerminal', () => {
 		it('line of surrogate fullwidth with combining odd', async () => {
 			term.buffer.x = 1;
 			await term.writeP('𠹭́'.repeat(49));
-			for (let i = 1; i < term.cols - 1; ++i) {
+			for (let i = 1; i < term.bufferService.cols - 1; ++i) {
 				term.buffer.lines.get(0)!.loadCell(i, cell);
 				if (!(i % 2)) {
 					expect(cell.getChars()).toBe('');
@@ -1280,7 +1284,7 @@ describe('CoreBrowserTerminal', () => {
 					expect(cell.getWidth()).toBe(2);
 				}
 			}
-			term.buffer.lines.get(0)!.loadCell(term.cols - 1, cell);
+			term.buffer.lines.get(0)!.loadCell(term.bufferService.cols - 1, cell);
 			expect(cell.getChars()).toBe('');
 			expect(cell.getChars().length).toBe(0);
 			expect(cell.getWidth()).toBe(1);
@@ -1291,7 +1295,7 @@ describe('CoreBrowserTerminal', () => {
 		});
 		it('line of surrogate fullwidth with combining even', async () => {
 			await term.writeP('𠹭́'.repeat(49));
-			for (let i = 0; i < term.cols; ++i) {
+			for (let i = 0; i < term.bufferService.cols; ++i) {
 				term.buffer.lines.get(0)!.loadCell(i, cell);
 				if (i % 2) {
 					expect(cell.getChars()).toBe('');
@@ -1322,7 +1326,7 @@ describe('CoreBrowserTerminal', () => {
 			term.buffer.y = 0;
 			term.write('\x1b[4h');
 			await term.writeP('abcde');
-			expect(term.buffer.lines.get(0)!.length).toBe(term.cols);
+			expect(term.buffer.lines.get(0)!.length).toBe(term.bufferService.cols);
 			expect(term.buffer.lines.get(0)!.loadCell(10, cell).getChars()).toBe('a');
 			expect(term.buffer.lines.get(0)!.loadCell(14, cell).getChars()).toBe('e');
 			expect(term.buffer.lines.get(0)!.loadCell(15, cell).getChars()).toBe('0');
@@ -1334,7 +1338,7 @@ describe('CoreBrowserTerminal', () => {
 			term.buffer.y = 0;
 			term.write('\x1b[4h');
 			await term.writeP('￥￥￥');
-			expect(term.buffer.lines.get(0)!.length).toBe(term.cols);
+			expect(term.buffer.lines.get(0)!.length).toBe(term.bufferService.cols);
 			expect(term.buffer.lines.get(0)!.loadCell(10, cell).getChars()).toBe('￥');
 			expect(term.buffer.lines.get(0)!.loadCell(11, cell).getChars()).toBe('');
 			expect(term.buffer.lines.get(0)!.loadCell(14, cell).getChars()).toBe('￥');
@@ -1347,12 +1351,12 @@ describe('CoreBrowserTerminal', () => {
 			term.buffer.y = 0;
 			term.write('\x1b[4h');
 			await term.writeP('a');
-			expect(term.buffer.lines.get(0)!.length).toBe(term.cols);
+			expect(term.buffer.lines.get(0)!.length).toBe(term.bufferService.cols);
 			expect(term.buffer.lines.get(0)!.loadCell(10, cell).getChars()).toBe('a');
 			expect(term.buffer.lines.get(0)!.loadCell(11, cell).getChars()).toBe('￥');
 			expect(term.buffer.lines.get(0)!.loadCell(79, cell).getChars()).toBe(''); // fullwidth char got replaced
 			await term.writeP('b');
-			expect(term.buffer.lines.get(0)!.length).toBe(term.cols);
+			expect(term.buffer.lines.get(0)!.length).toBe(term.bufferService.cols);
 			expect(term.buffer.lines.get(0)!.loadCell(11, cell).getChars()).toBe('b');
 			expect(term.buffer.lines.get(0)!.loadCell(12, cell).getChars()).toBe('￥');
 			expect(term.buffer.lines.get(0)!.loadCell(79, cell).getChars()).toBe(''); // empty cell after fullwidth
@@ -1439,15 +1443,25 @@ describe('CoreBrowserTerminal', () => {
 			const disposeStack: IMarker[] = [];
 			term.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('\x1b[r0\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('1\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('2\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('3\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('4');
 			for (let i = 0; i < markers.length; ++i) {
 				const marker = markers[i];
@@ -1461,15 +1475,25 @@ describe('CoreBrowserTerminal', () => {
 			const disposeStack: IMarker[] = [];
 			term.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('\x1b[r0\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('1\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('2\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('3\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('4');
 			for (let i = 0; i < markers.length; ++i) {
 				const marker = markers[i];
@@ -1495,15 +1519,25 @@ describe('CoreBrowserTerminal', () => {
 			const disposeStack: IMarker[] = [];
 			term.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('\x1b[r0\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('1\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('2\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('3\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('4');
 			for (let i = 0; i < markers.length; ++i) {
 				const marker = markers[i];
@@ -1519,15 +1553,25 @@ describe('CoreBrowserTerminal', () => {
 			const disposeStack: IMarker[] = [];
 			term.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('\x1b[r0\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('1\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('2\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('3\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('4');
 			for (let i = 0; i < markers.length; ++i) {
 				const marker = markers[i];
@@ -1544,15 +1588,25 @@ describe('CoreBrowserTerminal', () => {
 			const disposeStack: IMarker[] = [];
 			term.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('\x1b[r0\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('1\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('2\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('3\r\n');
-			markers.push(term.buffers.active.addMarker(term.buffers.active.y));
+			markers.push(
+				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+			);
 			await term.writeP('4');
 			for (let i = 0; i < markers.length; ++i) {
 				const marker = markers[i];

@@ -79,7 +79,7 @@ export class AccessibilityManager {
 		this._rowContainer.setAttribute('role', 'list');
 		this._rowContainer.classList.add('xterm-accessibility-tree');
 		this._rowElements = [];
-		for (let i = 0; i < this._terminal.rows; i++) {
+		for (let i = 0; i < this._terminal.bufferService.rows; i++) {
 			this._rowElements[i] = this._createAccessibilityTreeNode();
 			this._rowContainer.appendChild(this._rowElements[i]);
 		}
@@ -207,7 +207,7 @@ export class AccessibilityManager {
 	}
 
 	private _refreshRows(start?: number, end?: number): void {
-		this._liveRegionDebouncer.refresh(start, end, this._terminal.rows);
+		this._liveRegionDebouncer.refresh(start, end, this._terminal.bufferService.rows);
 	}
 
 	private _renderRows(start: number, end: number): void {
@@ -393,7 +393,7 @@ export class AccessibilityManager {
 			}
 
 			let column = offset < columns.length ? columns[offset] : columns.slice(-1)[0] + 1;
-			if (column >= this._terminal.cols) {
+			if (column >= this._terminal.bufferService.cols) {
 				++row;
 				column = 0;
 			}
@@ -421,7 +421,7 @@ export class AccessibilityManager {
 		this._terminal.select(
 			beginRowColumn.column,
 			beginRowColumn.row,
-			(endRowColumn.row - beginRowColumn.row) * this._terminal.cols -
+			(endRowColumn.row - beginRowColumn.row) * this._terminal.bufferService.cols -
 				beginRowColumn.column +
 				endRowColumn.column
 		);
@@ -435,7 +435,7 @@ export class AccessibilityManager {
 		);
 
 		// Grow rows as required
-		for (let i = this._rowContainer.children.length; i < this._terminal.rows; i++) {
+		for (let i = this._rowContainer.children.length; i < this._terminal.bufferService.rows; i++) {
 			this._rowElements[i] = this._createAccessibilityTreeNode();
 			this._rowContainer.appendChild(this._rowElements[i]);
 		}
@@ -470,10 +470,10 @@ export class AccessibilityManager {
 		Object.assign(this._accessibilityContainer.style, {
 			width: `${this._renderService.dimensions.css.canvas.width}px`
 		});
-		if (this._rowElements.length !== this._terminal.rows) {
-			this._handleResize(this._terminal.rows);
+		if (this._rowElements.length !== this._terminal.bufferService.rows) {
+			this._handleResize(this._terminal.bufferService.rows);
 		}
-		for (let i = 0; i < this._terminal.rows; i++) {
+		for (let i = 0; i < this._terminal.bufferService.rows; i++) {
 			this._refreshRowDimensions(this._rowElements[i]);
 			this._alignRowWidth(this._rowElements[i]);
 		}

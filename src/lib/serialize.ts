@@ -237,7 +237,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 		// handle row separator
 		if (!isLastRow) {
 			// Enable BCE
-			if (row - this._firstRow >= this._terminal.rows) {
+			if (row - this._firstRow >= this._terminal.bufferService.rows) {
 				this._buffer.lines
 					.get(this._cursorStyleRow)
 					?.loadCell(this._cursorStyleCol, this._backgroundCell);
@@ -515,7 +515,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 
 		// the fixup is only required for data without scrollback
 		// because it will always be placed at last line otherwise
-		if (this._buffer.lines.length - this._firstRow <= this._terminal.rows) {
+		if (this._buffer.lines.length - this._firstRow <= this._terminal.bufferService.rows) {
 			rowEnd = this._lastContentCursorRow + 1 - this._firstRow;
 			this._lastCursorCol = this._lastContentCursorCol;
 			this._lastCursorRow = this._lastContentCursorRow;
@@ -564,7 +564,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 		// likely be the only consumer
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const curAttrData: IAttributeData = (this._terminal as any)._inputHandler._curAttrData;
+		const curAttrData: IAttributeData = (this._terminal as any).inputHandler._curAttrData;
 		const sgrSeq = this._diffStyle(curAttrData, this._cursorStyle);
 		if (sgrSeq.length > 0) {
 			content += `\u001b[${sgrSeq.join(';')}m`;
@@ -581,7 +581,9 @@ function _serializeBufferByScrollback(
 ): string {
 	const maxRows = buffer.lines.length;
 	const correctRows =
-		scrollback === undefined ? maxRows : constrain(scrollback + terminal.rows, 0, maxRows);
+		scrollback === undefined
+			? maxRows
+			: constrain(scrollback + terminal.bufferService.rows, 0, maxRows);
 	return _serializeBufferByRange(
 		terminal,
 		buffer,
@@ -603,7 +605,10 @@ function _serializeBufferByRange(
 	return handler.serialize(
 		{
 			start: { x: 0, y: typeof range.start === 'number' ? range.start : range.start.line },
-			end: { x: terminal.cols, y: typeof range.end === 'number' ? range.end : range.end.line }
+			end: {
+				x: terminal.bufferService.cols,
+				y: typeof range.end === 'number' ? range.end : range.end.line
+			}
 		},
 		excludeFinalCursorPosition
 	);
@@ -622,7 +627,7 @@ function _serializeScrollRegion(terminal: CoreBrowserTerminal): string {
 	const scrollBottom: number = buffer.scrollBottom;
 
 	// Only serialize if scroll region is not the default (full terminal size)
-	if (scrollTop !== 0 || scrollBottom !== terminal.rows - 1) {
+	if (scrollTop !== 0 || scrollBottom !== terminal.bufferService.rows - 1) {
 		// DECSTBM uses 1-based indices: CSI Ps ; Ps r
 		return `\x1b[${scrollTop + 1};${scrollBottom + 1}r`;
 	}
@@ -677,15 +682,19 @@ function _serializeModes(terminal: CoreBrowserTerminal): string {
 export function serialize(terminal: CoreBrowserTerminal, options?: ISerializeOptions): string {
 	// Normal buffer
 	let content = options?.range
-		? _serializeBufferByRange(terminal, terminal.buffers.normal, options.range, true)
-		: _serializeBufferByScrollback(terminal, terminal.buffers.normal, options?.scrollback);
+		? _serializeBufferByRange(terminal, terminal.bufferService.buffers.normal, options.range, true)
+		: _serializeBufferByScrollback(
+				terminal,
+				terminal.bufferService.buffers.normal,
+				options?.scrollback
+			);
 
 	// Alternate buffer
 	if (!options?.excludeAltBuffer) {
-		if (terminal.buffers.active === terminal.buffers.alt) {
+		if (terminal.bufferService.buffers.active === terminal.bufferService.buffers.alt) {
 			const alternativeScreenContent = _serializeBufferByScrollback(
 				terminal,
-				terminal.buffers.alt,
+				terminal.bufferService.buffers.alt,
 				undefined
 			);
 			content += `\u001b[?1049h\u001b[H${alternativeScreenContent}`;
