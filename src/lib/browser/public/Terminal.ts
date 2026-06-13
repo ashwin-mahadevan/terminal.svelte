@@ -74,12 +74,6 @@ export class Terminal {
 		}
 	}
 
-	private _checkProposedApi(): void {
-		if (!this._core.optionsService.rawOptions.allowProposedApi) {
-			throw new Error('You must set the allowProposedApi option to true to use proposed API');
-		}
-	}
-
 	public get onBell(): IEvent<void> {
 		return this._core.onBell;
 	}
@@ -130,7 +124,6 @@ export class Terminal {
 		return (this._parser ??= new ParserApi(this._core));
 	}
 	public get unicode(): IUnicodeHandling {
-		this._checkProposedApi();
 		return new UnicodeApi(this._core);
 	}
 	public get textarea(): HTMLTextAreaElement | undefined {

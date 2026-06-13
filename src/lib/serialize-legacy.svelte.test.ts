@@ -54,7 +54,7 @@ describe('SerializeAddon', () => {
 	} {
 		const el = document.createElement('div');
 		document.body.appendChild(el);
-		const term = new Terminal({ ...opts, allowProposedApi: true });
+		const term = new Terminal(opts);
 		term.open(el);
 		return { term, el };
 	}
