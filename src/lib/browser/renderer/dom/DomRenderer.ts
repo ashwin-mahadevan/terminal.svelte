@@ -78,7 +78,6 @@ export class DomRenderer {
 		private readonly _document: Document,
 		private readonly _element: HTMLElement,
 		private readonly _screenElement: HTMLElement,
-		private readonly _viewportElement: HTMLElement,
 		private readonly _helperContainer: HTMLElement,
 		private readonly _linkifier2: Linkifier,
 		private readonly _characterJoinerService: CharacterJoinerService,
@@ -204,7 +203,6 @@ export class DomRenderer {
 
 		this._dimensionsStyleElement.textContent = styles;
 
-		this._selectionContainer.style.height = this._viewportElement.style.height;
 		this._screenElement.style.width = `${this.dimensions.css.canvas.width}px`;
 		this._screenElement.style.height = `${this.dimensions.css.canvas.height}px`;
 	}

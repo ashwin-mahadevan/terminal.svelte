@@ -88,7 +88,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	public screenElement: HTMLElement | undefined;
 
 	private _document: Document | undefined;
-	private _viewportElement: HTMLElement | undefined;
 	private _helperContainer: HTMLElement | undefined;
 	private _compositionView: HTMLElement | undefined;
 
@@ -312,9 +311,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				this._customKeyEventHandler = undefined;
 				// The root element is the caller-owned host (see open()), so we must not
 				// remove it — its owner (e.g. Svelte unmounting the component) discards
-				// it along with every child we inserted. We only drop the one child that
-				// no sub-service cleans up itself.
-				this._viewportElement?.remove();
+				// it along with every child we inserted.
 			})
 		);
 	}
@@ -684,11 +681,8 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		);
 
 		// Performance: Use a document fragment to build the terminal
-		// viewport and helper elements detached from the DOM
+		// screen and helper elements detached from the DOM
 		const fragment = this._document.createDocumentFragment();
-		this._viewportElement = this._document.createElement('div');
-		this._viewportElement.classList.add('xterm-viewport');
-		fragment.appendChild(this._viewportElement);
 
 		this.screenElement = this._document.createElement('div');
 		this.screenElement.classList.add('xterm-screen');
@@ -824,7 +818,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 					this._document!,
 					this.element!,
 					this.screenElement!,
-					this._viewportElement!,
 					this._helperContainer!,
 					this.linkifier!,
 					this._characterJoinerService!,
@@ -974,7 +967,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		const overviewRulerWidth = this.options.scrollbar?.width;
 		if (showScrollbar && overviewRulerWidth) {
 			this._overviewRulerRenderer = new OverviewRulerRenderer(
-				this._viewportElement,
+				this.element!,
 				this.screenElement,
 				this._bufferService,
 				this._decorationService,
@@ -986,14 +979,9 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 		this.optionsService.onSpecificOptionChange('scrollbar', (value) => {
 			const shouldShow = (value?.showScrollbar ?? true) && !!value?.width;
-			if (
-				!this._overviewRulerRenderer &&
-				shouldShow &&
-				this._viewportElement &&
-				this.screenElement
-			) {
+			if (!this._overviewRulerRenderer && shouldShow && this.element && this.screenElement) {
 				this._overviewRulerRenderer = new OverviewRulerRenderer(
-					this._viewportElement,
+					this.element,
 					this.screenElement,
 					this._bufferService,
 					this._decorationService,

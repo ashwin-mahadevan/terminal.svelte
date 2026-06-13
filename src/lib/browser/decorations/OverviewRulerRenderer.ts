@@ -68,7 +68,7 @@ export class OverviewRulerRenderer {
 	private _lastKnownBufferLength: number = 0;
 
 	constructor(
-		private readonly _viewportElement: HTMLElement,
+		private readonly _element: HTMLElement,
 		private readonly _screenElement: HTMLElement,
 		private readonly _bufferService: BufferService,
 		private readonly _decorationService: DecorationService,
@@ -80,7 +80,7 @@ export class OverviewRulerRenderer {
 		this._canvas = this._coreBrowserService.mainDocument.createElement('canvas');
 		this._canvas.classList.add('xterm-decoration-overview-ruler');
 		this._refreshCanvasDimensions();
-		this._viewportElement.parentElement?.insertBefore(this._canvas, this._viewportElement);
+		this._element.prepend(this._canvas);
 
 		const ctx = this._canvas.getContext('2d');
 		if (!ctx) {
