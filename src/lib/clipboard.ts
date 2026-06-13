@@ -3,14 +3,17 @@
  * @license MIT
  */
 
-import type { Terminal } from '$lib/browser/public/Terminal';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 
 /**
  * Handle an OSC 52 clipboard sequence. A `?` payload reports the clipboard back
  * to the application; any other payload is treated as base64 and written to the
  * clipboard, clearing it when the payload is not valid base64.
  */
-export function setOrReportClipboard(terminal: Terminal, data: string): boolean | Promise<boolean> {
+export function setOrReportClipboard(
+	terminal: CoreBrowserTerminal,
+	data: string
+): boolean | Promise<boolean> {
 	const [selection, payload] = data.split(';');
 	if (payload === undefined) return true;
 

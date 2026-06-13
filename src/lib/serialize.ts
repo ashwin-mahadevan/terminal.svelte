@@ -6,7 +6,7 @@
  */
 
 import type { IBufferCell, IBufferRange } from '$lib/xterm';
-import type { Terminal } from '$lib/browser/public/Terminal';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { Marker } from '$lib/common/buffer/Marker';
 import type { IAttributeData } from '$lib/common/Types';
@@ -206,7 +206,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 
 	constructor(
 		buffer: Buffer,
-		private readonly _terminal: Terminal
+		private readonly _terminal: CoreBrowserTerminal
 	) {
 		super(buffer);
 	}
@@ -563,7 +563,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 		// likely be the only consumer
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const curAttrData: IAttributeData = (this._terminal as any)._core._inputHandler._curAttrData;
+		const curAttrData: IAttributeData = (this._terminal as any)._inputHandler._curAttrData;
 		const sgrSeq = this._diffStyle(curAttrData, this._cursorStyle);
 		if (sgrSeq.length > 0) {
 			content += `\u001b[${sgrSeq.join(';')}m`;
@@ -574,7 +574,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 }
 
 function _serializeBufferByScrollback(
-	terminal: Terminal,
+	terminal: CoreBrowserTerminal,
 	buffer: Buffer,
 	scrollback?: number
 ): string {
@@ -593,7 +593,7 @@ function _serializeBufferByScrollback(
 }
 
 function _serializeBufferByRange(
-	terminal: Terminal,
+	terminal: CoreBrowserTerminal,
 	buffer: Buffer,
 	range: ISerializeRange,
 	excludeFinalCursorPosition: boolean
@@ -612,11 +612,11 @@ function _serializeBufferByRange(
  * Serializes the scroll region (DECSTBM) if it's not set to the full terminal size.
  * Uses internal API access since scroll region is not exposed in the public API.
  */
-function _serializeScrollRegion(terminal: Terminal): string {
+function _serializeScrollRegion(terminal: CoreBrowserTerminal): string {
 	// HACK: Internal API access since scroll region is not exposed in the public API
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const buffer = (terminal as any)._core.buffer;
+	const buffer = (terminal as any).buffer;
 	const scrollTop: number = buffer.scrollTop;
 	const scrollBottom: number = buffer.scrollBottom;
 
@@ -629,7 +629,7 @@ function _serializeScrollRegion(terminal: Terminal): string {
 	return '';
 }
 
-function _serializeModes(terminal: Terminal): string {
+function _serializeModes(terminal: CoreBrowserTerminal): string {
 	let content = '';
 	const modes = terminal.modes;
 
@@ -673,18 +673,18 @@ function _serializeModes(terminal: Terminal): string {
 	return content;
 }
 
-export function serialize(terminal: Terminal, options?: ISerializeOptions): string {
+export function serialize(terminal: CoreBrowserTerminal, options?: ISerializeOptions): string {
 	// Normal buffer
 	let content = options?.range
-		? _serializeBufferByRange(terminal, terminal.buffer.normal, options.range, true)
-		: _serializeBufferByScrollback(terminal, terminal.buffer.normal, options?.scrollback);
+		? _serializeBufferByRange(terminal, terminal.buffers.normal, options.range, true)
+		: _serializeBufferByScrollback(terminal, terminal.buffers.normal, options?.scrollback);
 
 	// Alternate buffer
 	if (!options?.excludeAltBuffer) {
-		if (terminal.buffer.active === terminal.buffer.alternate) {
+		if (terminal.buffers.active === terminal.buffers.alt) {
 			const alternativeScreenContent = _serializeBufferByScrollback(
 				terminal,
-				terminal.buffer.alternate,
+				terminal.buffers.alt,
 				undefined
 			);
 			content += `\u001b[?1049h\u001b[H${alternativeScreenContent}`;

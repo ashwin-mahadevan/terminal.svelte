@@ -5,7 +5,7 @@
 
 import type { ILinkProvider, ILink, IViewportRange } from '$lib/xterm';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
-import type { Terminal } from '$lib/browser/public/Terminal';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { CellData } from '$lib/common/buffer/CellData';
 
 export interface ILinkProviderOptions {
@@ -47,7 +47,7 @@ export function handleLink(event: MouseEvent, uri: string): void {
 
 export class WebLinkProvider implements ILinkProvider {
 	constructor(
-		private readonly _terminal: Terminal,
+		private readonly _terminal: CoreBrowserTerminal,
 		private readonly _regex: RegExp,
 		private readonly _handler: (event: MouseEvent, uri: string) => void,
 		private readonly _options: ILinkProviderOptions = {}
@@ -91,7 +91,7 @@ class LinkComputer {
 	public static computeLink(
 		y: number,
 		regex: RegExp,
-		terminal: Terminal,
+		terminal: CoreBrowserTerminal,
 		activate: (event: MouseEvent, uri: string) => void
 	): ILink[] {
 		const rex = new RegExp(regex.source, (regex.flags || '') + 'g');
@@ -148,7 +148,7 @@ class LinkComputer {
 	 */
 	private static _getWindowedLineStrings(
 		lineIndex: number,
-		terminal: Terminal
+		terminal: CoreBrowserTerminal
 	): [string[], number] {
 		let line: BufferLine | undefined;
 		let topIdx = lineIndex;
@@ -157,13 +157,13 @@ class LinkComputer {
 		let content;
 		const lines: string[] = [];
 
-		if ((line = terminal.buffer.active.lines.get(lineIndex))) {
+		if ((line = terminal.buffers.active.lines.get(lineIndex))) {
 			const currentContent = line.translateToString(true);
 
 			// expand top, stop on whitespaces or length > 2048
 			if (line.isWrapped && currentContent[0] !== ' ') {
 				length = 0;
-				while ((line = terminal.buffer.active.lines.get(--topIdx)) && length < 2048) {
+				while ((line = terminal.buffers.active.lines.get(--topIdx)) && length < 2048) {
 					content = line.translateToString(true);
 					length += content.length;
 					lines.push(content);
@@ -180,7 +180,7 @@ class LinkComputer {
 			// expand bottom, stop on whitespaces or length > 2048
 			length = 0;
 			while (
-				(line = terminal.buffer.active.lines.get(++bottomIdx)) &&
+				(line = terminal.buffers.active.lines.get(++bottomIdx)) &&
 				line.isWrapped &&
 				length < 2048
 			) {
@@ -201,12 +201,12 @@ class LinkComputer {
 	 * or [-1, -1] in case the lookup ran into a non-existing line.
 	 */
 	private static _mapStrIdx(
-		terminal: Terminal,
+		terminal: CoreBrowserTerminal,
 		lineIndex: number,
 		rowIndex: number,
 		stringIndex: number
 	): [number, number] {
-		const buf = terminal.buffer.active;
+		const buf = terminal.buffers.active;
 		const cell = new CellData();
 		let start = rowIndex;
 		while (stringIndex) {

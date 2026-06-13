@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Terminal } from '$lib/browser/public/Terminal';
+	import { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 	import { ViewportConstants } from '$lib/browser/shared/Constants';
 	import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
 	import { setOrReportClipboard } from '$lib/clipboard';
@@ -18,7 +18,7 @@
 
 	const { ondata, onresize, onprogress }: Props = $props();
 
-	const terminal = (browser && new Terminal()) as Terminal;
+	const terminal = (browser && new CoreBrowserTerminal()) as CoreBrowserTerminal;
 
 	let element: HTMLDivElement;
 	let clientWidth = $state<number>()!;

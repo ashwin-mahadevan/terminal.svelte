@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Terminal } from '$lib/browser/public/Terminal';
+import { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
 import type { ILink, ILinkProvider } from '$lib/xterm';
 
@@ -22,14 +22,14 @@ import type { ILink, ILinkProvider } from '$lib/xterm';
  */
 
 describe('WebLinkProvider', () => {
-	let term: Terminal;
+	let term: CoreBrowserTerminal;
 	let element: HTMLElement;
 	let provider: ILinkProvider;
 
 	beforeEach(() => {
 		element = document.createElement('div');
 		document.body.appendChild(element);
-		term = new Terminal({ cols: 40, rows: 10 });
+		term = new CoreBrowserTerminal({ cols: 40, rows: 10 });
 		term.open(element);
 		provider = new WebLinkProvider(term, strictUrlRegex, handleLink);
 	});

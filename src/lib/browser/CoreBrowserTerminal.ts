@@ -27,8 +27,11 @@ import type {
 	IDecorationOptions,
 	IDisposable,
 	ILinkProvider,
+	IModes,
+	IParser,
 	IRenderDimensions as IRenderDimensionsApi
 } from '$lib/xterm';
+import { ParserApi } from '$lib/common/public/ParserApi';
 import {
 	copyHandler,
 	handlePasteEvent,
@@ -213,6 +216,41 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				cell: { ...dimensions.device.cell },
 				char: { ...dimensions.device.char }
 			}
+		};
+	}
+
+	public readonly parser: IParser = new ParserApi(this);
+
+	public get modes(): IModes {
+		const m = this.coreService.decPrivateModes;
+		let mouseTrackingMode: IModes['mouseTrackingMode'] = 'none';
+		switch (this.mouseStateService.activeProtocol) {
+			case 'X10':
+				mouseTrackingMode = 'x10';
+				break;
+			case 'VT200':
+				mouseTrackingMode = 'vt200';
+				break;
+			case 'DRAG':
+				mouseTrackingMode = 'drag';
+				break;
+			case 'ANY':
+				mouseTrackingMode = 'any';
+				break;
+		}
+		return {
+			applicationCursorKeysMode: m.applicationCursorKeys,
+			applicationKeypadMode: m.applicationKeypad,
+			bracketedPasteMode: m.bracketedPasteMode,
+			insertMode: this.coreService.modes.insertMode,
+			mouseTrackingMode,
+			originMode: m.origin,
+			reverseWraparoundMode: m.reverseWraparound,
+			sendFocusMode: m.sendFocus,
+			showCursor: !this.coreService.isCursorHidden,
+			synchronizedOutputMode: m.synchronizedOutput,
+			win32InputMode: m.win32InputMode,
+			wraparoundMode: m.wraparound
 		};
 	}
 

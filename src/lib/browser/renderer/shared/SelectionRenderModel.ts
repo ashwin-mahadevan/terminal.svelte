@@ -4,7 +4,6 @@
  */
 
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
-import type { Terminal } from '$lib/browser/public/Terminal';
 
 export class SelectionRenderModel {
 	public hasSelection!: boolean;
@@ -72,11 +71,11 @@ export class SelectionRenderModel {
 		this.endCol = end[0];
 	}
 
-	public isCellSelected(terminal: Terminal, x: number, y: number): boolean {
+	public isCellSelected(terminal: CoreBrowserTerminal, x: number, y: number): boolean {
 		if (!this.hasSelection) {
 			return false;
 		}
-		y -= terminal.buffer.active.ydisp;
+		y -= terminal.buffers.active.ydisp;
 		if (this.columnSelectMode) {
 			if (this.startCol <= this.endCol) {
 				return (

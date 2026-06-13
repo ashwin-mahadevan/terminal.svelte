@@ -5,14 +5,14 @@
  * Component-test port of the xterm.js addon-serialize tests. The upstream tests
  * came in two flavours:
  *   - addons/addon-serialize/src/test.ts (jsdom unit tests that
- *     construct `Terminal` from `browser/public/Terminal` directly)
+ *     construct `CoreBrowserTerminal` from `browser/public/CoreBrowserTerminal` directly)
  *   - addons/addon-serialize/test/test.ts (Playwright harness
  *     round-trip tests driven via `ctx.page.evaluate`)
  * Both are reproduced here as self-contained component tests in real Chromium.
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Terminal } from '$lib/browser/public/Terminal';
+import { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { CellData } from '$lib/common/buffer/CellData';
 import { serialize } from '$lib/serialize';
 
@@ -20,7 +20,7 @@ function sgr(...seq: string[]): string {
 	return `\x1b[${seq.join(';')}m`;
 }
 
-function writeP(terminal: Terminal, data: string | Uint8Array): Promise<void> {
+function writeP(terminal: CoreBrowserTerminal, data: string | Uint8Array): Promise<void> {
 	return new Promise((r) => terminal.write(data, r));
 }
 
@@ -46,23 +46,23 @@ function digitsString(length: number, from: number = 0, prefix: string = ''): st
 
 describe('SerializeAddon', () => {
 	let element: HTMLDivElement;
-	let terminal: Terminal;
+	let terminal: CoreBrowserTerminal;
 
 	function makeTerminal(opts: { cols: number; rows: number }): {
-		term: Terminal;
+		term: CoreBrowserTerminal;
 		el: HTMLDivElement;
 	} {
 		const el = document.createElement('div');
 		document.body.appendChild(el);
-		const term = new Terminal(opts);
+		const term = new CoreBrowserTerminal(opts);
 		term.open(el);
 		return { term, el };
 	}
 
 	// Extra terminals/elements registered for cleanup (deserialize round-trips).
-	let extras: Array<{ term: Terminal; el: HTMLElement }> = [];
+	let extras: Array<{ term: CoreBrowserTerminal; el: HTMLElement }> = [];
 
-	function track(term: Terminal, el: HTMLElement): void {
+	function track(term: CoreBrowserTerminal, el: HTMLElement): void {
 		extras.push({ term, el });
 	}
 
@@ -145,7 +145,7 @@ describe('SerializeAddon', () => {
 		});
 
 		describe('scroll region', () => {
-			let scrollTerminal: Terminal;
+			let scrollTerminal: CoreBrowserTerminal;
 
 			beforeEach(() => {
 				const made = makeTerminal({ cols: 10, rows: 5 });
@@ -157,7 +157,7 @@ describe('SerializeAddon', () => {
 				await writeP(scrollTerminal, '\x1b[2;4r');
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const buffer = (scrollTerminal as any)._core.buffer;
+				const buffer = (scrollTerminal as any).buffer;
 				expect(buffer.scrollTop).toBe(1);
 				expect(buffer.scrollBottom).toBe(3);
 				const result = serialize(scrollTerminal);
@@ -178,7 +178,7 @@ describe('SerializeAddon', () => {
 				await writeP(made.term, serialized);
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const buffer = (made.term as any)._core.buffer;
+				const buffer = (made.term as any).buffer;
 				expect(buffer.scrollTop).toBe(1);
 				expect(buffer.scrollBottom).toBe(3);
 			});
@@ -222,7 +222,7 @@ describe('SerializeAddon', () => {
 	// dedicated 10x10 terminal to match the upstream `openTerminal({ rows: 10,
 	// cols: 10 })` setup.
 	describe('round-trip (10x10)', () => {
-		let bigTerminal: Terminal;
+		let bigTerminal: CoreBrowserTerminal;
 
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -244,12 +244,12 @@ describe('SerializeAddon', () => {
 
 		async function testNormalScreenEqual(str: string): Promise<void> {
 			await writeP(bigTerminal, str);
-			const original = inspectBuffer(bigTerminal.buffer.normal);
+			const original = inspectBuffer(bigTerminal.buffers.normal);
 
 			const result = serialize(bigTerminal);
 			bigTerminal.reset();
 			await writeP(bigTerminal, result);
-			const restored = inspectBuffer(bigTerminal.buffer.normal);
+			const restored = inspectBuffer(bigTerminal.buffers.normal);
 
 			expect(restored).toBe(original);
 		}
@@ -267,19 +267,19 @@ describe('SerializeAddon', () => {
 
 		it('produce different output when we call test util with different text', async () => {
 			await writeP(bigTerminal, '12345');
-			const buffer1 = inspectBuffer(bigTerminal.buffer.normal);
+			const buffer1 = inspectBuffer(bigTerminal.buffers.normal);
 			bigTerminal.reset();
 			await writeP(bigTerminal, '67890');
-			const buffer2 = inspectBuffer(bigTerminal.buffer.normal);
+			const buffer2 = inspectBuffer(bigTerminal.buffers.normal);
 			expect(buffer1).not.toBe(buffer2);
 		});
 
 		it('produce different output when we call test util with different line wrap', async () => {
 			await writeP(bigTerminal, '1234567890\r\n12345');
-			const buffer3 = inspectBuffer(bigTerminal.buffer.normal);
+			const buffer3 = inspectBuffer(bigTerminal.buffers.normal);
 			bigTerminal.reset();
 			await writeP(bigTerminal, '123456789012345');
-			const buffer4 = inspectBuffer(bigTerminal.buffer.normal);
+			const buffer4 = inspectBuffer(bigTerminal.buffers.normal);
 			expect(buffer3).not.toBe(buffer4);
 		});
 
@@ -400,7 +400,7 @@ describe('SerializeAddon', () => {
 
 		it('buffer cell attributesEquals compares underline style and color', async () => {
 			const firstTwoCellsEqual = (): boolean => {
-				const line = bigTerminal.buffer.active.lines.get(0)!;
+				const line = bigTerminal.buffers.active.lines.get(0)!;
 				const cell0 = new CellData();
 				const cell1 = new CellData();
 				line.loadCell(0, cell0);
@@ -597,7 +597,7 @@ describe('SerializeAddon', () => {
 			const lines = [`1${SMCUP}${CUP}2`];
 			const expected = [`1${SMCUP}${CUP}2`];
 			await writeP(bigTerminal, lines.join('\r\n'));
-			expect(bigTerminal.buffer.active).toBe(bigTerminal.buffer.alternate);
+			expect(bigTerminal.buffers.active).toBe(bigTerminal.buffers.alt);
 			expect(serialize(bigTerminal)).toBe(expected.join('\r\n'));
 		});
 
@@ -607,7 +607,7 @@ describe('SerializeAddon', () => {
 			const lines = [`1${SMCUP}2${RMCUP}`];
 			const expected = [`1`];
 			await writeP(bigTerminal, lines.join('\r\n'));
-			expect(bigTerminal.buffer.active).toBe(bigTerminal.buffer.normal);
+			expect(bigTerminal.buffers.active).toBe(bigTerminal.buffers.normal);
 			expect(serialize(bigTerminal)).toBe(expected.join('\r\n'));
 		});
 
