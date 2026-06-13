@@ -22,7 +22,7 @@ describe('progress (OSC 9;4)', () => {
 	it('initial value is 0: error before any set preserves 0', async () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
-		component.write('\x1b]9;4;2\x1b\\');
+		await component.write('\x1b]9;4;2\x1b\\');
 		await expect.poll(() => onprogress.mock.calls.map((c) => c[0])).toEqual([{ state: 2, value: 0 }]);
 	});
 
@@ -30,9 +30,9 @@ describe('progress (OSC 9;4)', () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// no value
-		component.write('\x1b]9;4;0\x1b\\');
+		await component.write('\x1b]9;4;0\x1b\\');
 		// value ignored
-		component.write('\x1b]9;4;0;12\x1b\\');
+		await component.write('\x1b]9;4;0;12\x1b\\');
 		await expect
 			.poll(() => onprogress.mock.calls.map((c) => c[0]))
 			.toEqual([
@@ -44,9 +44,9 @@ describe('progress (OSC 9;4)', () => {
 	it('state 1: set', async () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
-		component.write('\x1b]9;4;1;10\x1b\\');
-		component.write('\x1b]9;4;1;50\x1b\\');
-		component.write('\x1b]9;4;1;23\x1b\\');
+		await component.write('\x1b]9;4;1;10\x1b\\');
+		await component.write('\x1b]9;4;1;50\x1b\\');
+		await component.write('\x1b]9;4;1;23\x1b\\');
 		await expect
 			.poll(() => onprogress.mock.calls.map((c) => c[0]))
 			.toEqual([
@@ -60,11 +60,11 @@ describe('progress (OSC 9;4)', () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// missing progress value defaults to 0
-		component.write('\x1b]9;4;1\x1b\\');
+		await component.write('\x1b]9;4;1\x1b\\');
 		// malformed progress value gets ignored
-		component.write('\x1b]9;4;1;12x\x1b\\');
+		await component.write('\x1b]9;4;1;12x\x1b\\');
 		// out of bounds gets clamped to 100
-		component.write('\x1b]9;4;1;123\x1b\\');
+		await component.write('\x1b]9;4;1;123\x1b\\');
 		await expect
 			.poll(() => onprogress.mock.calls.map((c) => c[0]))
 			.toEqual([
@@ -77,11 +77,11 @@ describe('progress (OSC 9;4)', () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// set value to 12
-		component.write('\x1b]9;4;1;12\x1b\\');
+		await component.write('\x1b]9;4;1;12\x1b\\');
 		// omitted/empty/0 value emits previous value
-		component.write('\x1b]9;4;2\x1b\\');
-		component.write('\x1b]9;4;2;\x1b\\');
-		component.write('\x1b]9;4;2;0\x1b\\');
+		await component.write('\x1b]9;4;2\x1b\\');
+		await component.write('\x1b]9;4;2;\x1b\\');
+		await component.write('\x1b]9;4;2;0\x1b\\');
 		await expect
 			.poll(() => onprogress.mock.calls.map((c) => c[0]))
 			.toEqual([
@@ -96,10 +96,10 @@ describe('progress (OSC 9;4)', () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// set value to 12
-		component.write('\x1b]9;4;1;12\x1b\\');
+		await component.write('\x1b]9;4;1;12\x1b\\');
 		// new value updates clamped
-		component.write('\x1b]9;4;2;25\x1b\\');
-		component.write('\x1b]9;4;2;123\x1b\\');
+		await component.write('\x1b]9;4;2;25\x1b\\');
+		await component.write('\x1b]9;4;2;123\x1b\\');
 		await expect
 			.poll(() => onprogress.mock.calls.map((c) => c[0]))
 			.toEqual([
@@ -113,10 +113,10 @@ describe('progress (OSC 9;4)', () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// set value to 12
-		component.write('\x1b]9;4;1;12\x1b\\');
+		await component.write('\x1b]9;4;1;12\x1b\\');
 		// value untouched
-		component.write('\x1b]9;4;3\x1b\\');
-		component.write('\x1b]9;4;3;123\x1b\\');
+		await component.write('\x1b]9;4;3\x1b\\');
+		await component.write('\x1b]9;4;3;123\x1b\\');
 		await expect
 			.poll(() => onprogress.mock.calls.map((c) => c[0]))
 			.toEqual([
@@ -130,11 +130,11 @@ describe('progress (OSC 9;4)', () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// set value to 12
-		component.write('\x1b]9;4;1;12\x1b\\');
+		await component.write('\x1b]9;4;1;12\x1b\\');
 		// omitted/empty/0 value emits previous value
-		component.write('\x1b]9;4;4\x1b\\');
-		component.write('\x1b]9;4;4;\x1b\\');
-		component.write('\x1b]9;4;4;0\x1b\\');
+		await component.write('\x1b]9;4;4\x1b\\');
+		await component.write('\x1b]9;4;4;\x1b\\');
+		await component.write('\x1b]9;4;4;0\x1b\\');
 		await expect
 			.poll(() => onprogress.mock.calls.map((c) => c[0]))
 			.toEqual([
@@ -149,10 +149,10 @@ describe('progress (OSC 9;4)', () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// set value to 12
-		component.write('\x1b]9;4;1;12\x1b\\');
+		await component.write('\x1b]9;4;1;12\x1b\\');
 		// new value updates clamped
-		component.write('\x1b]9;4;4;25\x1b\\');
-		component.write('\x1b]9;4;4;123\x1b\\');
+		await component.write('\x1b]9;4;4;25\x1b\\');
+		await component.write('\x1b]9;4;4;123\x1b\\');
 		await expect
 			.poll(() => onprogress.mock.calls.map((c) => c[0]))
 			.toEqual([
@@ -166,11 +166,11 @@ describe('progress (OSC 9;4)', () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// illegal state
-		component.write('\x1b]9;4;5;12\x1b\\');
+		await component.write('\x1b]9;4;5;12\x1b\\');
 		// illegal chars in value
-		component.write('\x1b]9;4;1; 123xxxx\x1b\\');
+		await component.write('\x1b]9;4;1; 123xxxx\x1b\\');
 		// a valid sequence afterwards proves the invalid ones emitted nothing
-		component.write('\x1b]9;4;1;7\x1b\\');
+		await component.write('\x1b]9;4;1;7\x1b\\');
 		await expect.poll(() => onprogress.mock.calls.map((c) => c[0])).toEqual([{ state: 1, value: 7 }]);
 	});
 });

@@ -13,7 +13,7 @@ async function probeActiveBufferSize(
 	data: string[]
 ): Promise<{ cols: number; rows: number }> {
 	data.length = 0;
-	component.write('\x1b[999;999H\x1b[6n');
+	await component.write('\x1b[999;999H\x1b[6n');
 	// eslint-disable-next-line no-control-regex
 	await expect.poll(() => data.join('')).toMatch(/\x1b\[\d+;\d+R/);
 	// eslint-disable-next-line no-control-regex
@@ -167,7 +167,7 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 	it('alt buffer reports the fitted size, not 80x24, when activated after the fit', async () => {
 		const { component, data, fitted } = await renderFitted();
 
-		component.write('\x1b[?1049h');
+		await component.write('\x1b[?1049h');
 		const probed = await probeActiveBufferSize(component, data);
 
 		expect(probed).toEqual({ cols: fitted.cols, rows: fitted.rows });
@@ -179,7 +179,7 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 		const { component, data, onresize } = await renderFitted();
 		onresize.mockReset();
 
-		component.write('\x1b[?1049h');
+		await component.write('\x1b[?1049h');
 		// The probe round-trip guarantees the write above has been processed.
 		await probeActiveBufferSize(component, data);
 
@@ -192,7 +192,7 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 	it('resizing while the alt buffer is active resizes the alt buffer', async () => {
 		const { container, component, data, onresize } = await renderFitted();
 
-		component.write('\x1b[?1049h');
+		await component.write('\x1b[?1049h');
 		await probeActiveBufferSize(component, data);
 		onresize.mockReset();
 
