@@ -9,6 +9,7 @@
 	import { browser } from '$app/environment';
 	import { Progress } from '$lib/progress.svelte';
 	import type { ProgressState } from '$lib/progress.svelte';
+	import { Emulator } from './emulator.svelte';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -18,6 +19,8 @@
 	const { ondata, onbell }: Props = $props();
 
 	const terminal = (browser && new CoreBrowserTerminal()) as CoreBrowserTerminal;
+
+	export const emulator = new Emulator(new Progress());
 
 	let element: HTMLDivElement;
 	let scrollableEl: HTMLDivElement;
@@ -68,11 +71,9 @@
 		);
 		const rows = Math.max(1, Math.floor(clientHeight / terminal!.dimensions!.css.cell.height));
 		terminal.resize(cols, rows);
-		dimensions.cols = cols;
-		dimensions.rows = rows;
+		emulator.columns = cols;
+		emulator.rows = rows;
 	});
-
-	export const dimensions = $state<{ cols: number; rows: number }>({ cols: 80, rows: 24 });
 
 	// OSC 52 clipboard read/report, inlined from the upstream ClipboardAddon.
 	$effect(() => {
@@ -90,14 +91,11 @@
 		return () => disposable.dispose();
 	});
 
-	/** ConEmu OSC 9;4 progress. */
-	export const progress = new Progress();
-
 	function handleProgress(data: string) {
 		const match = data.match(/^4;(\d+)(?:;(\d*))?$/);
 		if (!match) return false;
 
-		progress.handle(match[1]! as ProgressState, parseInt(match[2]!) || 0);
+		emulator.progress.handle(match[1]! as ProgressState, parseInt(match[2]!) || 0);
 		return true;
 	}
 
