@@ -4,19 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as dom from '../Dom';
-import { DisposableStore, toDisposable } from '$lib/common/Lifecycle';
+import type { IDisposable } from '$lib/common/Lifecycle';
+import { toDisposable } from '$lib/common/Lifecycle';
 
 type PointerMoveCallback = (event: PointerEvent) => void;
 type OnStopCallback = () => void;
 
 export class GlobalPointerMoveMonitor {
-	private readonly _hooks = new DisposableStore();
+	private _hooks: IDisposable[] = [];
 	private _pointerMoveCallback: PointerMoveCallback | null = null;
 	private _onStopCallback: OnStopCallback | null = null;
 
 	public dispose(): void {
 		this.stopMonitoring(false);
-		this._hooks.dispose();
 	}
 
 	public stopMonitoring(invokeStopCallback: boolean): void {
@@ -24,7 +24,8 @@ export class GlobalPointerMoveMonitor {
 			return;
 		}
 
-		this._hooks.clear();
+		for (const d of this._hooks) d.dispose();
+		this._hooks = [];
 		this._pointerMoveCallback = null;
 		const onStopCallback = this._onStopCallback;
 		this._onStopCallback = null;
@@ -55,7 +56,7 @@ export class GlobalPointerMoveMonitor {
 
 		try {
 			initialElement.setPointerCapture(pointerId);
-			this._hooks.add(
+			this._hooks.push(
 				toDisposable(() => {
 					try {
 						initialElement.releasePointerCapture(pointerId);
@@ -68,7 +69,7 @@ export class GlobalPointerMoveMonitor {
 			eventSource = dom.getWindow(initialElement);
 		}
 
-		this._hooks.add(
+		this._hooks.push(
 			dom.addDisposableListener(eventSource, dom.eventType.POINTER_MOVE, (e) => {
 				if (e.buttons !== initialButtons) {
 					this.stopMonitoring(true);
@@ -80,7 +81,7 @@ export class GlobalPointerMoveMonitor {
 			})
 		);
 
-		this._hooks.add(
+		this._hooks.push(
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			dom.addDisposableListener(eventSource, dom.eventType.POINTER_UP, (e: PointerEvent) =>

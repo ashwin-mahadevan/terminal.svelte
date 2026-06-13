@@ -358,16 +358,17 @@ export class DecorationLineCache {
 	}
 }
 
-class Decoration extends DisposableStore implements IInternalDecoration {
+class Decoration implements IInternalDecoration {
 	public readonly marker: Marker;
 	public element: HTMLElement | undefined;
+	public isDisposed = false;
 
 	/** Start line used for line-index removal when marker.line is cleared on dispose. */
 	public _indexedStartLine: number;
 
-	public readonly onRenderEmitter = this.add(new LegacyEmitter<HTMLElement>());
+	public readonly onRenderEmitter = new LegacyEmitter<HTMLElement>();
 	public readonly onRender = this.onRenderEmitter.event;
-	private readonly _onDispose = this.add(new LegacyEmitter<void>());
+	private readonly _onDispose = new LegacyEmitter<void>();
 	public readonly onDispose = this._onDispose.event;
 
 	private _cachedBg: IColor | undefined | null = null;
@@ -395,7 +396,6 @@ class Decoration extends DisposableStore implements IInternalDecoration {
 	}
 
 	constructor(public readonly options: IDecorationOptions) {
-		super();
 		this.marker = options.marker;
 		this._indexedStartLine = options.marker.line;
 		if (this.options.overviewRulerOptions && !this.options.overviewRulerOptions.position) {
@@ -403,8 +403,10 @@ class Decoration extends DisposableStore implements IInternalDecoration {
 		}
 	}
 
-	public override dispose(): void {
+	public dispose(): void {
+		this.isDisposed = true;
 		this._onDispose.fire();
-		super.dispose();
+		this.onRenderEmitter.dispose();
+		this._onDispose.dispose();
 	}
 }

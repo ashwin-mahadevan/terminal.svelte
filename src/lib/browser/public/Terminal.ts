@@ -7,7 +7,6 @@ import type { ITerminalOptions } from '$lib/common/services/Services';
 import * as Strings from '$lib/browser/LocalizableStrings';
 import { CoreBrowserTerminal as TerminalCore } from '$lib/browser/CoreBrowserTerminal';
 import type { IBufferRange } from '$lib/browser/Types';
-import { DisposableStore } from '$lib/common/Lifecycle';
 
 import { BufferNamespaceApi } from '$lib/common/public/BufferNamespaceApi';
 import { ParserApi } from '$lib/common/public/ParserApi';
@@ -36,14 +35,13 @@ const CONSTRUCTOR_ONLY_OPTIONS = ['cols', 'rows'];
 let $value = 0;
 
 export class Terminal {
-	private readonly _store = new DisposableStore();
 	private _core: TerminalCore;
 	private _parser: IParser | undefined;
 	private _buffer: BufferNamespaceApi | undefined;
 	private _publicOptions: Required<ITerminalOptions>;
 
 	constructor(options?: ITerminalOptions & ITerminalInitOnlyOptions) {
-		this._core = this._store.add(new TerminalCore(options));
+		this._core = new TerminalCore(options);
 
 		this._publicOptions = { ...this._core.options };
 		// TODO: Fix this upstream type error.
@@ -145,7 +143,7 @@ export class Terminal {
 		return this._core.cols;
 	}
 	public get buffer(): IBufferNamespaceApi {
-		return (this._buffer ??= this._store.add(new BufferNamespaceApi(this._core)));
+		return (this._buffer ??= new BufferNamespaceApi(this._core));
 	}
 	public get markers(): ReadonlyArray<Marker> {
 		return this._core.markers;
@@ -267,7 +265,8 @@ export class Terminal {
 		this._core.selectLines(start, end);
 	}
 	public dispose(): void {
-		this._store.dispose();
+		this._buffer?.dispose();
+		this._core.dispose();
 	}
 	public scrollLines(amount: number): void {
 		this._verifyIntegers(amount);
