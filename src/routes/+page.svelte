@@ -17,7 +17,6 @@
 	});
 
 	$effect(() => {
-		if (!terminal?.dimensions.cols) return;
 		socket.emit('resize', terminal.dimensions.cols, terminal.dimensions.rows);
 	});
 </script>

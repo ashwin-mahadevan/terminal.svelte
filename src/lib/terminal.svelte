@@ -70,7 +70,7 @@
 		dimensions.rows = rows;
 	});
 
-	export const dimensions = $state<{ cols: number; rows: number }>({ cols: 0, rows: 0 });
+	export const dimensions = $state<{ cols: number; rows: number }>({ cols: 80, rows: 24 });
 
 	// OSC 52 clipboard read/report, inlined from the upstream ClipboardAddon.
 	$effect(() => {
