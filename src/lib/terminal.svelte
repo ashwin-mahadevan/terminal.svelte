@@ -120,7 +120,7 @@
 				if (pr !== 0) progress.value = Math.min(Math.max(pr, 0), 100);
 				return true;
 			default:
-				return false;
+				return true;
 		}
 	}
 
