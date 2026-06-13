@@ -109,11 +109,24 @@
 	}
 </script>
 
-<div style:height="100%" bind:this={element} bind:clientWidth bind:clientHeight>
+<div
+	class="xterm"
+	dir="ltr"
+	style:height="100%"
+	bind:this={element}
+	bind:clientWidth
+	bind:clientHeight
+>
 	<div bind:this={scrollableEl}>
 		<div class="xterm-screen" bind:this={screenEl}>
 			<div class="xterm-helpers" bind:this={helpersEl}>
-				<textarea class="xterm-helper-textarea" bind:this={textareaEl}></textarea>
+				<textarea
+					class="xterm-helper-textarea"
+					autocapitalize="off"
+					spellcheck="false"
+					tabindex="0"
+					bind:this={textareaEl}
+				></textarea>
 				<div class="composition-view" bind:this={compositionEl}></div>
 			</div>
 		</div>

@@ -653,8 +653,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._document = parent.ownerDocument;
 
 		this.element = parent;
-		this.element.dir = 'ltr'; // xterm.css assumes LTR
-		this.element.classList.add('xterm');
 		this.element.classList.toggle('allow-transparency', this.options.allowTransparency);
 		this._store.add(
 			this.optionsService.onSpecificOptionChange('allowTransparency', (value) =>
@@ -673,16 +671,13 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				this.updateCursorStyle(ev)
 			)
 		);
+		textarea.setAttribute('autocorrect', 'off');
 		textarea.setAttribute('aria-label', Strings.promptLabel.get());
 		if (!Browser.isChromeOS) {
 			// ChromeVox on ChromeOS does not like this. See
 			// https://issuetracker.google.com/issues/260170397
 			textarea.setAttribute('aria-multiline', 'false');
 		}
-		textarea.setAttribute('autocorrect', 'off');
-		textarea.setAttribute('autocapitalize', 'off');
-		textarea.setAttribute('spellcheck', 'false');
-		textarea.tabIndex = 0;
 		this._store.add(
 			this.optionsService.onSpecificOptionChange(
 				'disableStdin',
