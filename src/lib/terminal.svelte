@@ -14,9 +14,10 @@
 		ondata?: (data: string) => void;
 		onresize?: (size: { cols: number; rows: number }) => void;
 		onprogress?: (progress: IProgressState) => void;
+		onbell?: () => void;
 	};
 
-	const { ondata, onresize, onprogress }: Props = $props();
+	const { ondata, onresize, onprogress, onbell }: Props = $props();
 
 	const terminal = (browser && new CoreBrowserTerminal()) as CoreBrowserTerminal;
 
@@ -52,6 +53,12 @@
 	$effect(() => {
 		if (!onresize) return;
 		const disposable = terminal.onResize(onresize);
+		return () => disposable.dispose();
+	});
+
+	$effect(() => {
+		if (!onbell) return;
+		const disposable = terminal.onBell(onbell);
 		return () => disposable.dispose();
 	});
 
