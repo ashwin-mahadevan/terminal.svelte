@@ -23,7 +23,7 @@ describe('progress (OSC 9;4)', () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
 		await component.write('\x1b]9;4;2\x1b\\');
-		await expect.poll(() => onprogress.mock.calls.map((c) => c[0])).toEqual([{ state: 2, value: 0 }]);
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 2, value: 0 });
 	});
 
 	it('state 0: remove', async () => {
@@ -31,29 +31,24 @@ describe('progress (OSC 9;4)', () => {
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// no value
 		await component.write('\x1b]9;4;0\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 0, value: 0 });
+		onprogress.mockReset();
 		// value ignored
 		await component.write('\x1b]9;4;0;12\x1b\\');
-		await expect
-			.poll(() => onprogress.mock.calls.map((c) => c[0]))
-			.toEqual([
-				{ state: 0, value: 0 },
-				{ state: 0, value: 0 }
-			]);
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 0, value: 0 });
 	});
 
 	it('state 1: set', async () => {
 		const onprogress = vi.fn<(p: IProgressState) => void>();
 		const { component } = await render(Terminal, { props: { onprogress } });
 		await component.write('\x1b]9;4;1;10\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 10 });
+		onprogress.mockReset();
 		await component.write('\x1b]9;4;1;50\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 50 });
+		onprogress.mockReset();
 		await component.write('\x1b]9;4;1;23\x1b\\');
-		await expect
-			.poll(() => onprogress.mock.calls.map((c) => c[0]))
-			.toEqual([
-				{ state: 1, value: 10 },
-				{ state: 1, value: 50 },
-				{ state: 1, value: 23 }
-			]);
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 23 });
 	});
 
 	it('state 1: set - special sequence handling', async () => {
@@ -61,16 +56,14 @@ describe('progress (OSC 9;4)', () => {
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// missing progress value defaults to 0
 		await component.write('\x1b]9;4;1\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 0 });
+		onprogress.mockReset();
 		// malformed progress value gets ignored
 		await component.write('\x1b]9;4;1;12x\x1b\\');
+		expect(onprogress).not.toHaveBeenCalled();
 		// out of bounds gets clamped to 100
 		await component.write('\x1b]9;4;1;123\x1b\\');
-		await expect
-			.poll(() => onprogress.mock.calls.map((c) => c[0]))
-			.toEqual([
-				{ state: 1, value: 0 },
-				{ state: 1, value: 100 }
-			]);
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 100 });
 	});
 
 	it('state 2: error - preserve previous value on empty/0', async () => {
@@ -78,18 +71,17 @@ describe('progress (OSC 9;4)', () => {
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// set value to 12
 		await component.write('\x1b]9;4;1;12\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 12 });
+		onprogress.mockReset();
 		// omitted/empty/0 value emits previous value
 		await component.write('\x1b]9;4;2\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 2, value: 12 });
+		onprogress.mockReset();
 		await component.write('\x1b]9;4;2;\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 2, value: 12 });
+		onprogress.mockReset();
 		await component.write('\x1b]9;4;2;0\x1b\\');
-		await expect
-			.poll(() => onprogress.mock.calls.map((c) => c[0]))
-			.toEqual([
-				{ state: 1, value: 12 },
-				{ state: 2, value: 12 },
-				{ state: 2, value: 12 },
-				{ state: 2, value: 12 }
-			]);
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 2, value: 12 });
 	});
 
 	it('state 2: error - with new value', async () => {
@@ -97,16 +89,14 @@ describe('progress (OSC 9;4)', () => {
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// set value to 12
 		await component.write('\x1b]9;4;1;12\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 12 });
+		onprogress.mockReset();
 		// new value updates clamped
 		await component.write('\x1b]9;4;2;25\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 2, value: 25 });
+		onprogress.mockReset();
 		await component.write('\x1b]9;4;2;123\x1b\\');
-		await expect
-			.poll(() => onprogress.mock.calls.map((c) => c[0]))
-			.toEqual([
-				{ state: 1, value: 12 },
-				{ state: 2, value: 25 },
-				{ state: 2, value: 100 }
-			]);
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 2, value: 100 });
 	});
 
 	it('state 3: indeterminate - keeps value untouched', async () => {
@@ -114,16 +104,14 @@ describe('progress (OSC 9;4)', () => {
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// set value to 12
 		await component.write('\x1b]9;4;1;12\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 12 });
+		onprogress.mockReset();
 		// value untouched
 		await component.write('\x1b]9;4;3\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 3, value: 12 });
+		onprogress.mockReset();
 		await component.write('\x1b]9;4;3;123\x1b\\');
-		await expect
-			.poll(() => onprogress.mock.calls.map((c) => c[0]))
-			.toEqual([
-				{ state: 1, value: 12 },
-				{ state: 3, value: 12 },
-				{ state: 3, value: 12 }
-			]);
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 3, value: 12 });
 	});
 
 	it('state 4: pause - preserve previous value on empty/0', async () => {
@@ -131,18 +119,17 @@ describe('progress (OSC 9;4)', () => {
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// set value to 12
 		await component.write('\x1b]9;4;1;12\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 12 });
+		onprogress.mockReset();
 		// omitted/empty/0 value emits previous value
 		await component.write('\x1b]9;4;4\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 4, value: 12 });
+		onprogress.mockReset();
 		await component.write('\x1b]9;4;4;\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 4, value: 12 });
+		onprogress.mockReset();
 		await component.write('\x1b]9;4;4;0\x1b\\');
-		await expect
-			.poll(() => onprogress.mock.calls.map((c) => c[0]))
-			.toEqual([
-				{ state: 1, value: 12 },
-				{ state: 4, value: 12 },
-				{ state: 4, value: 12 },
-				{ state: 4, value: 12 }
-			]);
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 4, value: 12 });
 	});
 
 	it('state 4: pause - with new value', async () => {
@@ -150,16 +137,14 @@ describe('progress (OSC 9;4)', () => {
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// set value to 12
 		await component.write('\x1b]9;4;1;12\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 12 });
+		onprogress.mockReset();
 		// new value updates clamped
 		await component.write('\x1b]9;4;4;25\x1b\\');
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 4, value: 25 });
+		onprogress.mockReset();
 		await component.write('\x1b]9;4;4;123\x1b\\');
-		await expect
-			.poll(() => onprogress.mock.calls.map((c) => c[0]))
-			.toEqual([
-				{ state: 1, value: 12 },
-				{ state: 4, value: 25 },
-				{ state: 4, value: 100 }
-			]);
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 4, value: 100 });
 	});
 
 	it('invalid sequences should not emit anything', async () => {
@@ -167,10 +152,12 @@ describe('progress (OSC 9;4)', () => {
 		const { component } = await render(Terminal, { props: { onprogress } });
 		// illegal state
 		await component.write('\x1b]9;4;5;12\x1b\\');
+		expect(onprogress).not.toHaveBeenCalled();
 		// illegal chars in value
 		await component.write('\x1b]9;4;1; 123xxxx\x1b\\');
+		expect(onprogress).not.toHaveBeenCalled();
 		// a valid sequence afterwards proves the invalid ones emitted nothing
 		await component.write('\x1b]9;4;1;7\x1b\\');
-		await expect.poll(() => onprogress.mock.calls.map((c) => c[0])).toEqual([{ state: 1, value: 7 }]);
+		expect(onprogress).toHaveBeenCalledExactlyOnceWith({ state: 1, value: 7 });
 	});
 });
