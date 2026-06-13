@@ -23,6 +23,7 @@ function configure(server: HttpServer) {
 
 		socket.on('input', (data) => pty.write(data));
 		socket.on('resize', (columns, rows) => pty.resize(columns, rows));
+		socket.on("disconnect", () => pty.kill())
 	});
 }
 
