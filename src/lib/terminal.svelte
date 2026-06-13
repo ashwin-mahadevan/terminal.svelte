@@ -106,11 +106,13 @@
 			case '1':
 				return { state: 1, value: Math.min(Math.max(pr, 0), 100) };
 			case '2':
-				return { state: 2, value: Math.min(Math.max(pr || previous.value, 0), 100) };
+				if (pr === 0) return { state: 2, value: previous.value };
+				return { state: 2, value: Math.min(Math.max(pr, 0), 100) };
 			case '3':
 				return { state: 3, value: previous.value };
 			case '4':
-				return { state: 4, value: Math.min(Math.max(pr || previous.value, 0), 100) };
+				if (pr === 0) return { state: 4, value: previous.value };
+				return { state: 4, value: Math.min(Math.max(pr, 0), 100) };
 			default:
 				return undefined;
 		}
