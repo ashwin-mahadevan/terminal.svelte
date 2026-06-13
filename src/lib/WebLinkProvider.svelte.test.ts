@@ -29,8 +29,17 @@ describe('WebLinkProvider', () => {
 	beforeEach(() => {
 		element = document.createElement('div');
 		document.body.appendChild(element);
+		const scrollableEl = document.createElement('div');
+		const screenEl = document.createElement('div');
+		const helpersEl = document.createElement('div');
+		const textareaEl = document.createElement('textarea');
+		const compositionEl = document.createElement('div');
+		helpersEl.append(textareaEl, compositionEl);
+		screenEl.appendChild(helpersEl);
+		scrollableEl.appendChild(screenEl);
+		element.appendChild(scrollableEl);
 		term = new CoreBrowserTerminal({ cols: 40, rows: 10 });
-		term.open(element);
+		term.open(element, screenEl, helpersEl, textareaEl, compositionEl, scrollableEl);
 		provider = new WebLinkProvider(term, strictUrlRegex, handleLink);
 	});
 

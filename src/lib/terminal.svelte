@@ -39,13 +39,7 @@
 	let measureHeight = $state<number>()!;
 
 	onMount(() => {
-		terminal.open(element, {
-			screen: screenEl,
-			helpers: helpersEl,
-			textarea: textareaEl,
-			compositionView: compositionEl,
-			scrollableContainer: scrollableEl
-		});
+		terminal.open(element, screenEl, helpersEl, textareaEl, compositionEl, scrollableEl);
 		return () => terminal.dispose();
 	});
 

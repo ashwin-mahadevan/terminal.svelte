@@ -45,12 +45,10 @@ export class Viewport {
 	private _isHandlingScroll: boolean = false;
 	private _suppressOnScrollHandler: boolean = false;
 	private _needsSyncOnRender: boolean = false;
-	private _ownsScrollableContainer: boolean = false;
-
 	constructor(
 		element: HTMLElement,
 		screenElement: HTMLElement,
-		scrollableContainer: HTMLElement | undefined,
+		scrollableContainer: HTMLElement,
 		private readonly _bufferService: BufferService,
 		coreBrowserService: CoreBrowserService,
 		private readonly _coreService: CoreService,
@@ -75,7 +73,6 @@ export class Viewport {
 			}
 		);
 
-		this._ownsScrollableContainer = !scrollableContainer;
 		this._scrollableElement = new SmoothScrollableElement(
 			screenElement,
 			{
@@ -108,9 +105,6 @@ export class Viewport {
 		};
 		updateBackgroundColor();
 		this._updateBackgroundColorListener = themeService.onChangeColors(updateBackgroundColor);
-		if (this._ownsScrollableContainer) {
-			element.appendChild(this._scrollableElement.getDomNode());
-		}
 
 		this._styleElement = coreBrowserService.mainDocument.createElement('style');
 		screenElement.appendChild(this._styleElement);
@@ -153,9 +147,6 @@ export class Viewport {
 	}
 
 	public dispose(): void {
-		if (this._ownsScrollableContainer) {
-			this._scrollableElement.getDomNode().remove();
-		}
 		this._styleElement.remove();
 		this._onRequestScrollLines.dispose();
 		this._scrollable.dispose();

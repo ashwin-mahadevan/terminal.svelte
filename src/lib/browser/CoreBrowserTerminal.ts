@@ -644,13 +644,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 */
 	public open(
 		parent: HTMLElement,
-		elements?: {
-			screen: HTMLDivElement;
-			helpers: HTMLDivElement;
-			textarea: HTMLTextAreaElement;
-			compositionView: HTMLDivElement;
-			scrollableContainer: HTMLDivElement;
-		}
+		screen: HTMLDivElement,
+		helpers: HTMLDivElement,
+		textarea: HTMLTextAreaElement,
+		compositionView: HTMLDivElement,
+		scrollableContainer: HTMLDivElement
 	): void {
 		if (!parent) {
 			throw new Error('Terminal requires a parent element.');
@@ -689,45 +687,17 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			)
 		);
 
-		if (elements) {
-			// Structural elements were pre-created by the Svelte component in their
-			// final positions — nothing to build or append here.
-			this.screenElement = elements.screen;
-			this._helperContainer = elements.helpers;
-			this.textarea = elements.textarea;
-			this._compositionView = elements.compositionView;
-		} else {
-			// Performance: Use a document fragment to build the terminal
-			// screen and helper elements detached from the DOM
-			const fragment = this._document.createDocumentFragment();
-
-			this.screenElement = this._document.createElement('div');
-			this.screenElement.classList.add('xterm-screen');
-			// Create the container that will hold helpers like the textarea for
-			// capturing DOM Events. Then produce the helpers.
-			this._helperContainer = this._document.createElement('div');
-			this._helperContainer.classList.add('xterm-helpers');
-			this.screenElement.appendChild(this._helperContainer);
-			fragment.appendChild(this.screenElement);
-
-			this.textarea = this._document.createElement('textarea');
-			this.textarea.classList.add('xterm-helper-textarea');
-			this._helperContainer.appendChild(this.textarea);
-
-			this._compositionView = this._document.createElement('div');
-			this._compositionView.classList.add('composition-view');
-			this._helperContainer.appendChild(this._compositionView);
-
-			this.element.appendChild(fragment);
-		}
+		// Structural elements are pre-created by the caller in their final positions.
+		this.screenElement = screen;
+		this._helperContainer = helpers;
+		this.textarea = textarea;
+		this._compositionView = compositionView;
 
 		this._store.add(
 			addDisposableListener(this.screenElement, 'mousemove', (ev: MouseEvent) =>
 				this.updateCursorStyle(ev)
 			)
 		);
-
-		const textarea = this.textarea;
 		textarea.setAttribute('aria-label', Strings.promptLabel.get());
 		if (!Browser.isChromeOS) {
 			// ChromeVox on ChromeOS does not like this. See
@@ -868,7 +838,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._viewport = new Viewport(
 			this.element,
 			this.screenElement,
-			elements?.scrollableContainer,
+			scrollableContainer,
 			this._bufferService,
 			this._coreBrowserService,
 			this.coreService,
