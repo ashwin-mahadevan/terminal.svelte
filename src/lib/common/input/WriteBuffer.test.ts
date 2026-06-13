@@ -126,55 +126,7 @@ describe('WriteBuffer', () => {
 					done();
 				});
 			}));
-		it('writeSync', () =>
-			new Promise<void>((done) => {
-				const stack: (string | Uint8Array)[] = [];
-				const cbStack: string[] = [];
-				const wb = new WriteBuffer((data) => {
-					stack.push(data);
-				});
-				wb.write('a', () => {
-					cbStack.push('a');
-				});
-				wb.write('b', () => {
-					cbStack.push('b');
-				});
-				wb.write('c', () => {
-					cbStack.push('c');
-				});
-				wb.writeSync('d');
-				expect(stack).toEqual(['a', 'b', 'c', 'd']);
-				expect(cbStack).toEqual(['a', 'b', 'c']);
-				wb.write('x', () => {
-					cbStack.push('x');
-				});
-				wb.write('', () => {
-					expect(stack).toEqual(['a', 'b', 'c', 'd', 'x', '']);
-					expect(cbStack).toEqual(['a', 'b', 'c', 'x']);
-					done();
-				});
-			}));
-		it('writeSync called from action does not overflow callstack - issue #3265', () => {
-			const wb = new WriteBuffer((data) => {
-				const num = parseInt(data as string);
-				if (num < 10000) {
-					wb.writeSync('' + (num + 1));
-				}
-			});
-			expect(() => wb.writeSync('1')).not.toThrow();
-		});
-		it('writeSync maxSubsequentCalls argument', () => {
-			let last: string = '';
-			const wb = new WriteBuffer((data) => {
-				last = data as string;
-				const num = parseInt(data as string);
-				if (num < 1000000) {
-					wb.writeSync('' + (num + 1), 10);
-				}
-			});
-			wb.writeSync('1', 10);
-			expect(last).toBe('11'); // 1 + 10 sub calls = 11
-		});
+
 		it('flushSync processes all pending writes', () =>
 			new Promise<void>((done) => {
 				const stack: (string | Uint8Array)[] = [];
@@ -330,14 +282,5 @@ describe('WriteBuffer', () => {
 					done();
 				}, 20);
 			}));
-		it('writeSync after dispose is a no-op', () => {
-			const stack: (string | Uint8Array)[] = [];
-			const wb = new WriteBuffer((data) => {
-				stack.push(data);
-			});
-			wb.dispose();
-			wb.writeSync('a');
-			expect(stack).toEqual([]);
-		});
 	});
 });

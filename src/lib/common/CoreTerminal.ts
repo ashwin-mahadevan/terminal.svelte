@@ -45,9 +45,6 @@ interface ITerminalScrollEvent {
 	position: number;
 }
 
-// Only trigger this warning a single time per session
-let hasWriteSyncWarnHappened = false;
-
 export abstract class CoreTerminal {
 	protected readonly _store = new DisposableStore();
 	protected readonly _bufferService: BufferService;
@@ -181,23 +178,6 @@ export abstract class CoreTerminal {
 
 	public write(data: string | Uint8Array, callback?: () => void): void {
 		this._writeBuffer.write(data, callback);
-	}
-
-	/**
-	 * Write data to terminal synchonously.
-	 *
-	 * This method is unreliable with async parser handlers, thus should not
-	 * be used anymore. If you need blocking semantics on data input consider
-	 * `write` with a callback instead.
-	 *
-	 * @deprecated Unreliable, will be removed soon.
-	 */
-	public writeSync(data: string | Uint8Array, maxSubsequentCalls?: number): void {
-		if (!hasWriteSyncWarnHappened) {
-			console.warn('writeSync is unreliable and will be removed soon.');
-			hasWriteSyncWarnHappened = true;
-		}
-		this._writeBuffer.writeSync(data, maxSubsequentCalls);
 	}
 
 	public input(data: string, wasUserInput: boolean = true): void {

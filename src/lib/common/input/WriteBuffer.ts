@@ -103,55 +103,6 @@ export class WriteBuffer {
 		}
 	}
 
-	/**
-	 * @deprecated Unreliable, to be removed soon.
-	 */
-	public writeSync(data: string | Uint8Array, maxSubsequentCalls?: number): void {
-		if (this._isDisposed) {
-			return;
-		}
-		// stop writeSync recursions with maxSubsequentCalls argument
-		// This is dangerous to use as it will lose the current data chunk
-		// and return immediately.
-		if (maxSubsequentCalls !== undefined && this._syncCalls > maxSubsequentCalls) {
-			// comment next line if a whole loop block should only contain x `writeSync` calls
-			// (total flat vs. deep nested limit)
-			this._syncCalls = 0;
-			return;
-		}
-		// append chunk to buffer
-		this._pendingData += data.length;
-		this._writeBuffer.push(data);
-		this._callbacks.push(undefined);
-
-		// increase recursion counter
-		this._syncCalls++;
-		// exit early if another writeSync loop is active
-		if (this._isSyncWriting) {
-			return;
-		}
-		this._isSyncWriting = true;
-
-		// force sync processing on pending data chunks to avoid in-band data scrambling
-		// does the same as innerWrite but without event loop
-		// we have to do it here as single loop steps to not corrupt loop subject
-		// by another writeSync call triggered from _action
-		let chunk: string | Uint8Array | undefined;
-		while ((chunk = this._writeBuffer.shift())) {
-			this._action(chunk);
-			const cb = this._callbacks.shift();
-			if (cb) cb();
-		}
-		// reset to avoid reprocessing of chunks with scheduled innerWrite call
-		// stopping scheduled innerWrite by offset > length condition
-		this._pendingData = 0;
-		this._bufferOffset = 0x7fffffff;
-
-		// allow another writeSync to loop
-		this._isSyncWriting = false;
-		this._syncCalls = 0;
-	}
-
 	public write(data: string | Uint8Array, callback?: () => void): void {
 		if (this._isDisposed) {
 			return;
