@@ -100,27 +100,20 @@
 		pr: number,
 		previous: { state: 0 | 1 | 2 | 3 | 4; value: number }
 	): { state: 0 | 1 | 2 | 3 | 4; value: number } | undefined {
-		let next: { state: 0 | 1 | 2 | 3 | 4; value: number };
 		switch (st) {
 			case '0':
-				next = { state: 0, value: 0 };
-				break;
+				return { state: 0, value: 0 };
 			case '1':
-				next = { state: 1, value: pr };
-				break;
+				return { state: 1, value: Math.min(Math.max(pr, 0), 100) };
 			case '2':
-				next = { state: 2, value: pr || previous.value };
-				break;
+				return { state: 2, value: Math.min(Math.max(pr || previous.value, 0), 100) };
 			case '3':
-				next = { state: 3, value: previous.value };
-				break;
+				return { state: 3, value: previous.value };
 			case '4':
-				next = { state: 4, value: pr || previous.value };
-				break;
+				return { state: 4, value: Math.min(Math.max(pr || previous.value, 0), 100) };
 			default:
 				return undefined;
 		}
-		return { state: next.state, value: Math.min(Math.max(next.value, 0), 100) };
 	}
 
 	function handleProgress(data: string) {
