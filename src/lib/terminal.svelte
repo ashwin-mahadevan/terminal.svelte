@@ -5,7 +5,6 @@
 	import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
 	import { setOrReportClipboard } from '$lib/clipboard';
 	import { parseProgress } from '$lib/progress';
-	import type { IProgressState } from '$lib/progress';
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
 	import { browser } from '$app/environment';
@@ -13,11 +12,10 @@
 	type Props = {
 		ondata?: (data: string) => void;
 		onresize?: (cols: number, rows: number) => void;
-		onprogress?: (state: number, value: number) => void;
 		onbell?: () => void;
 	};
 
-	const { ondata, onresize, onprogress, onbell }: Props = $props();
+	const { ondata, onresize, onbell }: Props = $props();
 
 	const terminal = (browser && new CoreBrowserTerminal()) as CoreBrowserTerminal;
 
@@ -94,13 +92,10 @@
 
 	// ConEmu OSC 9;4 progress reporting, inlined from the upstream ProgressAddon.
 	$effect(() => {
-		let legacyProgress: IProgressState = { state: 0, value: 0 };
 		const disposable = terminal.parser.registerOscHandler(9, (data) => {
 			if (!data.startsWith('4;')) return false;
-			const next = parseProgress(data, legacyProgress);
+			const next = parseProgress(data, progress);
 			if (next) {
-				legacyProgress = next;
-				onprogress?.(next.state, next.value);
 				progress.state = next.state;
 				progress.value = next.value;
 			}
@@ -109,7 +104,10 @@
 		return () => disposable.dispose();
 	});
 
-	export const progress = $state({ state: 0, value: 0 });
+	export const progress = $state<{ state: 0 | 1 | 2 | 3 | 4; value: number }>({
+		state: 0,
+		value: 0
+	});
 
 	export function write(data: string) {
 		return new Promise<void>((resolve) => terminal.write(data, resolve));
