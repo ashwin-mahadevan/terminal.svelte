@@ -8,6 +8,7 @@
 	import type { ISerializeOptions } from '$lib/serialize';
 	import { browser } from '$app/environment';
 	import { Progress } from '$lib/progress.svelte';
+	import type { ProgressState } from '$lib/progress.svelte';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -99,7 +100,7 @@
 		const type = parseInt(match[1]!);
 		const value = parseInt(match[2]!) || 0;
 		if (type < 0 || type > 4) return true;
-		progress.handle(type as 0 | 1 | 2 | 3 | 4, value);
+		progress.handle(type as ProgressState, value);
 		return true;
 	}
 
