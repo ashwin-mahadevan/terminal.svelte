@@ -55,7 +55,6 @@ export interface ITerminalOptions {
 	minimumContrastRatio?: number;
 	mouseEventsRequireAlt?: boolean;
 	reflowCursorLine?: boolean;
-	rescaleOverlappingGlyphs?: boolean;
 	rightClickSelectsWord?: boolean;
 	rows?: number;
 	showCursorImmediately?: boolean;

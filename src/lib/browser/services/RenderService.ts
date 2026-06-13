@@ -123,13 +123,7 @@ export class RenderService {
 
 		// Clear the renderer when the a change that could affect glyphs occurs
 		this._glyphOptionChangeListener = this._optionsService.onMultipleOptionChange(
-			[
-				'drawBoldTextInBrightColors',
-				'fontWeight',
-				'fontWeightBold',
-				'minimumContrastRatio',
-				'rescaleOverlappingGlyphs'
-			],
+			['drawBoldTextInBrightColors', 'fontWeight', 'fontWeightBold', 'minimumContrastRatio'],
 			() => {
 				this.clear();
 				this.handleResize(bufferService.cols, bufferService.rows);
