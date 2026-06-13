@@ -671,7 +671,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				this.updateCursorStyle(ev)
 			)
 		);
-		textarea.setAttribute('autocorrect', 'off');
 		textarea.setAttribute('aria-label', Strings.promptLabel.get());
 		if (!Browser.isChromeOS) {
 			// ChromeVox on ChromeOS does not like this. See

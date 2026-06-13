@@ -122,6 +122,8 @@
 			<div class="xterm-helpers" bind:this={helpersEl}>
 				<textarea
 					class="xterm-helper-textarea"
+					// @ts-expect-error claude: autocorrect is a real but non-standard attribute not yet in TypeScript's DOM types.
+					autocorrect="off"
 					autocapitalize="off"
 					spellcheck="false"
 					tabindex="0"
