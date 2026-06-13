@@ -119,8 +119,8 @@
 	<div bind:this={scrollableEl}>
 		<div class="xterm-screen" bind:this={screenEl}>
 			<div class="xterm-helpers" bind:this={helpersEl}>
-				<textarea bind:this={textareaEl}></textarea>
-				<div bind:this={compositionEl}></div>
+				<textarea class="xterm-helper-textarea" bind:this={textareaEl}></textarea>
+				<div class="composition-view" bind:this={compositionEl}></div>
 			</div>
 		</div>
 	</div>
