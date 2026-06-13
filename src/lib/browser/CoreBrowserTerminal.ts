@@ -51,7 +51,6 @@ import { BufferDecorationRenderer } from '$lib/browser/decorations/BufferDecorat
 import { OverviewRulerRenderer } from '$lib/browser/decorations/OverviewRulerRenderer';
 import { CompositionHelper } from '$lib/browser/input/CompositionHelper';
 import { DomRenderer } from '$lib/browser/renderer/dom/DomRenderer';
-import type { IRenderer } from '$lib/browser/renderer/shared/Types';
 import { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import { LinkProviderService } from '$lib/browser/services/LinkProviderService';
@@ -968,7 +967,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		);
 	}
 
-	private _createRenderer(): IRenderer {
+	private _createRenderer() {
 		return new DomRenderer(
 			this,
 			this._document!,

@@ -10,11 +10,7 @@ import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUti
 import { createSelectionRenderModel } from '$lib/browser/renderer/shared/SelectionRenderModel';
 import type { SelectionRenderModel } from '$lib/browser/renderer/shared/SelectionRenderModel';
 import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
-import type {
-	IRenderDimensions,
-	IRenderer,
-	IRequestRedrawEvent
-} from '$lib/browser/renderer/shared/Types';
+import type { IRenderDimensions, IRequestRedrawEvent } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
@@ -47,7 +43,7 @@ let nextTerminalId = 1;
  * particularly fast and will even lack some features such as custom glyphs, hoever this is more
  * reliable as webgl may not work on some machines.
  */
-export class DomRenderer implements IRenderer {
+export class DomRenderer {
 	private _rowFactory: DomRendererRowFactory;
 	private _terminalClass: number = nextTerminalId++;
 

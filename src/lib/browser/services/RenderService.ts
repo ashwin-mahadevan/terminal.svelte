@@ -5,7 +5,7 @@
 
 import { RenderDebouncer } from '$lib/browser/RenderDebouncer';
 import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
-import type { IRenderDimensions, IRenderer } from '$lib/browser/renderer/shared/Types';
+import type { IRenderDimensions } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
@@ -17,6 +17,7 @@ import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import { LegacyEmitter } from '$lib/common/Event';
+import type { DomRenderer } from '../renderer/dom/DomRenderer';
 
 interface ISelectionState {
 	start: [number, number] | undefined;
@@ -29,7 +30,7 @@ const enum Constants {
 }
 
 export class RenderService {
-	private readonly _renderer = new MutableDisposable<IRenderer>();
+	private readonly _renderer = new MutableDisposable<DomRenderer>();
 	private _renderDebouncer!: IRenderDebouncerWithCallback;
 	private _pausedResizeTask!: DebouncedIdleTask;
 	private readonly _observerDisposable = new MutableDisposable();
@@ -310,7 +311,7 @@ export class RenderService {
 		return !!this._renderer.value;
 	}
 
-	public setRenderer(renderer: IRenderer): void {
+	public setRenderer(renderer: DomRenderer): void {
 		this._renderer.value = renderer;
 		// If the value was not set, the terminal is being disposed so ignore it
 		if (this._renderer.value) {
@@ -338,7 +339,8 @@ export class RenderService {
 		if (!this._renderer.value) {
 			return;
 		}
-		this._renderer.value.clearTextureAtlas?.();
+		// TODO: Simplify. This was commented out since we've removed WebGL support.
+		// this._renderer.value.clearTextureAtlas?.();
 		this._fullRefresh();
 	}
 
