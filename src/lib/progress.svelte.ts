@@ -1,9 +1,15 @@
+/** Hides the progress indicator and resets the value to 0. */
 export const PROGRESS_STATE_REMOVE = 0 as const;
+/** Shows a normal progress bar at the given percentage. */
 export const PROGRESS_STATE_SET = 1 as const;
+/** Shows the progress bar in an error state, retaining the previous value if none is provided. */
 export const PROGRESS_STATE_ERROR = 2 as const;
+/** Shows an indeterminate/spinning indicator; value is ignored. */
 export const PROGRESS_STATE_INDETERMINATE = 3 as const;
+/** Shows the progress bar in a paused state, retaining the previous value if none is provided. */
 export const PROGRESS_STATE_PAUSE = 4 as const;
 
+/** See {@link PROGRESS_STATE_REMOVE}, {@link PROGRESS_STATE_SET}, {@link PROGRESS_STATE_ERROR}, {@link PROGRESS_STATE_INDETERMINATE}, and {@link PROGRESS_STATE_PAUSE} values. */
 export type ProgressState =
 	| typeof PROGRESS_STATE_REMOVE
 	| typeof PROGRESS_STATE_SET
@@ -12,17 +18,6 @@ export type ProgressState =
 	| typeof PROGRESS_STATE_PAUSE;
 
 export class Progress {
-	/**
-	 * REMOVE (0): Hides the progress indicator and resets the value to 0.
-	 *
-	 * SET (1): Shows a normal progress bar at the given percentage.
-	 *
-	 * ERROR (2): Shows the progress bar in an error state, retaining the previous value if none is provided.
-	 *
-	 * INDETERMINATE (3): Shows an indeterminate/spinning indicator; value is ignored.
-	 *
-	 * PAUSE (4): Shows the progress bar in a paused state, retaining the previous value if none is provided.
-	 */
 	type = $state<ProgressState>(PROGRESS_STATE_REMOVE);
 	value = $state(0);
 
