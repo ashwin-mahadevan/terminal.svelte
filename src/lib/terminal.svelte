@@ -94,18 +94,22 @@
 
 	// ConEmu OSC 9;4 progress reporting, inlined from the upstream ProgressAddon.
 	$effect(() => {
-		let progress: IProgressState = { state: 0, value: 0 };
+		let legacyProgress: IProgressState = { state: 0, value: 0 };
 		const disposable = terminal.parser.registerOscHandler(9, (data) => {
 			if (!data.startsWith('4;')) return false;
-			const next = parseProgress(data, progress);
+			const next = parseProgress(data, legacyProgress);
 			if (next) {
-				progress = next;
+				legacyProgress = next;
 				onprogress?.(next.state, next.value);
+				progress.state = next.state;
+				progress.value = next.value;
 			}
 			return true;
 		});
 		return () => disposable.dispose();
 	});
+
+	export const progress = $state({ state: 0, value: 0 });
 
 	export function write(data: string) {
 		return new Promise<void>((resolve) => terminal.write(data, resolve));
