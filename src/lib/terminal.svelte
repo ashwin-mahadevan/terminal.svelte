@@ -7,7 +7,6 @@
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
 	import { browser } from '$app/environment';
-	import type { ProgressState } from '$lib/progress.svelte';
 	import { Emulator } from './emulator.svelte';
 
 	type Props = {
@@ -102,15 +101,7 @@
 		return () => disposable.dispose();
 	});
 
-	function handleProgress(data: string) {
-		const match = data.match(/^4;(\d+)(?:;(\d*))?$/);
-		if (!match) return false;
-
-		emulator.progress.handle(match[1]! as ProgressState, parseInt(match[2]!) || 0);
-		return true;
-	}
-
-	$effect(() => terminal.parser.registerOscHandler(9, handleProgress).dispose);
+	$effect(() => terminal.parser.registerOscHandler(9, emulator.progress.handle).dispose);
 
 	$effect(() => {
 		if (!onkey) return;

@@ -16,7 +16,13 @@ export class Progress {
 	type = $state<ProgressState>(PROGRESS_STATE_REMOVE);
 	value = $state(0);
 
-	handle(type: ProgressState, value: number): void {
+	handle = (data: string) => {
+		const match = data.match(/^4;(\d+)(?:;(\d*))?$/);
+		if (!match) return false;
+
+		const type = match[1]! as ProgressState;
+		const value = parseInt(match[2]!) || 0;
+
 		switch (type) {
 			case PROGRESS_STATE_REMOVE:
 				this.type = PROGRESS_STATE_REMOVE;
@@ -38,5 +44,6 @@ export class Progress {
 				if (value !== 0) this.value = Math.min(Math.max(value, 0), 100);
 				break;
 		}
-	}
+		return true;
+	};
 }
