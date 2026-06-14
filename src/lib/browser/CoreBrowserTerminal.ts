@@ -33,7 +33,7 @@ import {
 } from '$lib/browser/Clipboard';
 import * as Strings from '$lib/browser/LocalizableStrings';
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
-import type { CharacterJoinerHandler, CustomKeyEventHandler, IBrowser } from '$lib/browser/Types';
+import type { CharacterJoinerHandler, CustomKeyEventHandler } from '$lib/browser/Types';
 import { Viewport } from '$lib/browser/Viewport';
 import { BufferDecorationRenderer } from '$lib/browser/decorations/BufferDecorationRenderer';
 import { OverviewRulerRenderer } from '$lib/browser/decorations/OverviewRulerRenderer';
@@ -50,7 +50,6 @@ import { ThemeService } from '$lib/browser/services/ThemeService';
 import { KeyboardService } from '$lib/browser/services/KeyboardService';
 import { channels, color, rgb } from '$lib/common/Color';
 import { CoreTerminal } from '$lib/common/CoreTerminal';
-import * as Browser from '$lib/common/Platform';
 import type { IColorEvent } from '$lib/common/Types';
 import { ColorRequestType, KeyboardResultType, SpecialColorIndex } from '$lib/common/Types';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
@@ -63,6 +62,7 @@ import { Linkifier } from './Linkifier';
 import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { isChromeOS, isFirefox, isLinux, isMac, isWindows } from '$lib/common/Platform';
 
 export class CoreBrowserTerminal extends CoreTerminal {
 	public textarea: HTMLTextAreaElement | undefined;
@@ -80,10 +80,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	}
 	private _overviewRulerRenderer: OverviewRulerRenderer | undefined;
 	private _viewport: Viewport | undefined;
-
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public browser: IBrowser = Browser as any;
 
 	private _customKeyEventHandler: CustomKeyEventHandler | undefined;
 
@@ -425,7 +421,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	};
 
 	public _mouseDown = (event: MouseEvent): void => {
-		if (Browser.isFirefox && event.button === 2) {
+		if (isFirefox && event.button === 2) {
 			rightClickHandler(
 				event,
 				this.textarea!,
@@ -438,7 +434,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	};
 
 	public _contextMenu = (event: MouseEvent): void => {
-		if (!Browser.isFirefox) {
+		if (isFirefox) {
 			rightClickHandler(
 				event,
 				this.textarea!,
@@ -450,7 +446,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	};
 
 	public _auxClick = (event: MouseEvent): void => {
-		if (Browser.isLinux && event.button === 1) {
+		if (isLinux && event.button === 1) {
 			moveTextAreaUnderMouseCursor(event, this.textarea!, this.screenElement!);
 		}
 	};
@@ -512,7 +508,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this.scrollableContainer = scrollableContainer;
 
 		textarea.setAttribute('aria-label', Strings.promptLabel.get());
-		if (!Browser.isChromeOS) {
+		if (!isChromeOS) {
 			// ChromeVox on ChromeOS does not like this. See
 			// https://issuetracker.google.com/issues/260170397
 			textarea.setAttribute('aria-multiline', 'false');
@@ -809,7 +805,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		// Ignore composing with Alt key on Mac when macOptionIsMeta is enabled
 		const shouldIgnoreComposition =
-			this.browser.isMac && this.options.macOptionIsMeta && event.altKey;
+			isMac && this.options.macOptionIsMeta && event.altKey;
 
 		if (!shouldIgnoreComposition && !this._compositionHelper!.keydown(event)) {
 			if (
@@ -844,7 +840,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			this.selectionService?.selectAll();
 		}
 
-		if (this._isThirdLevelShift(this.browser, event)) {
+		if (this._isThirdLevelShift(event)) {
 			return true;
 		}
 
@@ -906,11 +902,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._keyDownHandled = true;
 	};
 
-	private _isThirdLevelShift(browser: IBrowser, ev: KeyboardEvent): boolean {
+	private _isThirdLevelShift(ev: KeyboardEvent): boolean {
 		const thirdLevelKey =
-			(browser.isMac && !this.options.macOptionIsMeta && ev.altKey && !ev.ctrlKey && !ev.metaKey) ||
-			(browser.isWindows && ev.altKey && ev.ctrlKey && !ev.metaKey) ||
-			(browser.isWindows && ev.getModifierState('AltGraph'));
+			(isMac && !this.options.macOptionIsMeta && ev.altKey && !ev.ctrlKey && !ev.metaKey) ||
+			(isWindows && ev.altKey && ev.ctrlKey && !ev.metaKey) ||
+			(isWindows && ev.getModifierState('AltGraph'));
 
 		if (ev.type === 'keypress') {
 			return thirdLevelKey;
@@ -973,7 +969,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		if (
 			!key ||
-			((ev.altKey || ev.ctrlKey || ev.metaKey) && !this._isThirdLevelShift(this.browser, ev))
+			((ev.altKey || ev.ctrlKey || ev.metaKey) && !this._isThirdLevelShift(ev))
 		) {
 			return false;
 		}
