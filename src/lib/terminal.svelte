@@ -224,6 +224,15 @@
 					spellcheck="false"
 					tabindex="0"
 					bind:this={textareaEl}
+					onkeydowncapture={terminal._keyDown}
+					onkeyupcapture={terminal._keyup}
+					onkeypresscapture={terminal._keyPress}
+					oncompositionstart={terminal._compositionStart}
+					oncompositionupdate={terminal._compositionUpdate}
+					oncompositionend={terminal._compositionEnd}
+					oninputcapture={terminal._inputEvent}
+					onfocus={terminal._handleTextAreaFocus}
+					onblur={terminal._handleTextAreaBlur}
 				></textarea>
 				<div class="composition-view" bind:this={compositionEl}></div>
 			</div>

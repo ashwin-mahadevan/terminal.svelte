@@ -376,19 +376,19 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 */
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	private _handleTextAreaFocus(ev: FocusEvent): void {
+	public _handleTextAreaFocus = (_ev: FocusEvent): void => {
 		if (this.coreService.decPrivateModes.sendFocus) {
 			this.coreService.triggerDataEvent(C0.ESC + '[I');
 		}
 		this.element!.classList.add('focus');
 		this._showCursor();
 		this._onFocus.fire();
-	}
+	};
 
 	/**
 	 * Binds the desired blur behavior on a given terminal object.
 	 */
-	private _handleTextAreaBlur(): void {
+	public _handleTextAreaBlur = (): void => {
 		// Text can safely be removed on blur. Doing it earlier could interfere with
 		// screen readers reading it out.
 		this.textarea!.value = '';
@@ -398,7 +398,26 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 		this.element!.classList.remove('focus');
 		this._onBlur.fire();
-	}
+	};
+
+	public _compositionStart = (): void => {
+		// Ensure the textarea is synced to the latest cursor location before composition begins. This
+		// is to workaround a problem where highly dynamic TUIs like agentic CLIs reprint agressively
+		// would cause the IME to appear in the wrong position. The theory is that when the IME is
+		// triggered during a partial render the textarea position becomes locked and will not move
+		// until it is hidden and a custom move occurs.
+		this._syncTextArea();
+		this._compositionHelper!.compositionstart();
+		this._compositionHelper!.updateCompositionElements();
+	};
+
+	public _compositionUpdate = (e: CompositionEvent): void => {
+		this._compositionHelper!.compositionupdate(e);
+	};
+
+	public _compositionEnd = (): void => {
+		this._compositionHelper!.compositionend();
+	};
 
 	private _syncTextArea(): void {
 		if (
@@ -436,7 +455,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 * Initialize default behavior
 	 */
 	private _initGlobal(): void {
-		this._bindKeys();
+		this._store.add(
+			this.renderService!.onRenderedViewportChange(() =>
+				this._compositionHelper!.updateCompositionElements()
+			)
+		);
 
 		// Bind clipboard functionality
 		this._store.add(
@@ -501,61 +524,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	}
 
 	/**
-	 * Apply key handling to the terminal
-	 */
-	private _bindKeys(): void {
-		this._store.add(
-			addDisposableListener(this.textarea!, 'keyup', (ev: KeyboardEvent) => this._keyUp(ev), true)
-		);
-		this._store.add(
-			addDisposableListener(
-				this.textarea!,
-				'keydown',
-				(ev: KeyboardEvent) => this._keyDown(ev),
-				true
-			)
-		);
-		this._store.add(
-			addDisposableListener(
-				this.textarea!,
-				'keypress',
-				(ev: KeyboardEvent) => this._keyPress(ev),
-				true
-			)
-		);
-		this._store.add(
-			addDisposableListener(this.textarea!, 'compositionstart', () => {
-				// Ensure the textarea is synced to the latest cursor location before composition begins. This
-				// is to workaround a problem where highly dynamic TUIs like agentic CLIs reprint agressively
-				// would cause the IME to appear in the wrong position. The theory is that when the IME is
-				// triggered during a partial render the textarea position becomes locked and will not move
-				// until it is hidden and a custom move occurs.
-				this._syncTextArea();
-				this._compositionHelper!.compositionstart();
-				this._compositionHelper!.updateCompositionElements();
-			})
-		);
-		this._store.add(
-			addDisposableListener(this.textarea!, 'compositionupdate', (e: CompositionEvent) =>
-				this._compositionHelper!.compositionupdate(e)
-			)
-		);
-		this._store.add(
-			addDisposableListener(this.textarea!, 'compositionend', () =>
-				this._compositionHelper!.compositionend()
-			)
-		);
-		this._store.add(
-			addDisposableListener(this.textarea!, 'input', (ev: InputEvent) => this._inputEvent(ev), true)
-		);
-		this._store.add(
-			this.renderService!.onRenderedViewportChange(() =>
-				this._compositionHelper!.updateCompositionElements()
-			)
-		);
-	}
-
-	/**
 	 * Opens the terminal within an element.
 	 *
 	 * @param parent The element to create the terminal within.
@@ -608,11 +576,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(this.document ?? typeof window !== 'undefined') ? window.document : (null as any)
 		);
-
-		this._store.add(
-			addDisposableListener(textarea, 'focus', (ev: FocusEvent) => this._handleTextAreaFocus(ev))
-		);
-		this._store.add(addDisposableListener(textarea, 'blur', () => this._handleTextAreaBlur()));
 
 		this.themeService = new ThemeService(this.optionsService);
 
@@ -890,7 +853,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 *
 	 * [KeyboardEvent]: https://developer.mozilla.org/en-US/docs/DOM/KeyboardEvent
 	 */
-	protected _keyDown(event: KeyboardEvent): boolean | undefined {
+	public _keyDown = (event: KeyboardEvent): boolean | undefined => {
 		this._keyDownHandled = false;
 		this._keyDownSeen = true;
 
@@ -995,7 +958,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 
 		this._keyDownHandled = true;
-	}
+	};
 
 	private _isThirdLevelShift(browser: IBrowser, ev: KeyboardEvent): boolean {
 		const thirdLevelKey =
@@ -1011,7 +974,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		return thirdLevelKey && (!ev.keyCode || ev.keyCode > 47);
 	}
 
-	protected _keyUp(ev: KeyboardEvent): void {
+	public _keyup = (ev: KeyboardEvent) => {
 		this._keyDownSeen = false;
 
 		if (this._customKeyEventHandler && this._customKeyEventHandler(ev) === false) {
@@ -1031,7 +994,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		this.updateCursorStyle(ev);
 		this._keyPressHandled = false;
-	}
+	};
 
 	/**
 	 * Handle a keypress event.
@@ -1039,7 +1002,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 *   - https://developer.mozilla.org/en-US/docs/DOM/KeyboardEvent
 	 * @param ev The keypress event to be handled.
 	 */
-	protected _keyPress(ev: KeyboardEvent): boolean {
+	public _keyPress = (ev: KeyboardEvent): boolean => {
 		let key;
 
 		this._keyPressHandled = false;
@@ -1082,7 +1045,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._unprocessedDeadKey = false;
 
 		return true;
-	}
+	};
 
 	/**
 	 * Handle an input event.
@@ -1090,7 +1053,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 *   - https://developer.mozilla.org/en-US/docs/Web/API/InputEvent
 	 * @param ev The input event to be handled.
 	 */
-	protected _inputEvent(ev: InputEvent): boolean {
+	public _inputEvent = (ev: InputEvent): boolean => {
 		// Only support emoji IMEs when screen reader mode is disabled as the event must bubble up to
 		// support reading out character input which can doubling up input characters
 		// Based on these event traces: https://github.com/xtermjs/xterm.js/issues/3679
@@ -1114,7 +1077,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 
 		return false;
-	}
+	};
 
 	/**
 	 * Resizes the terminal.

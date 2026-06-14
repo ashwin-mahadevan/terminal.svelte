@@ -19,19 +19,11 @@ import type { IMarker } from '$lib/common/Types';
 // terminal and (apart from the composition helper's `isComposing`) never have
 // their methods invoked by these tests, so trivial stubs suffice.
 class TestTerminal extends CoreBrowserTerminal {
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public keyDown(ev: any): boolean | undefined {
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return (this as any)._keyDown(ev);
+	public keyDown(ev: KeyboardEvent): boolean | undefined {
+		return this._keyDown(ev);
 	}
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public keyPress(ev: any): boolean {
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return (this as any)._keyPress(ev);
+	public keyPress(ev: KeyboardEvent): boolean {
+		return this._keyPress(ev);
 	}
 	public writeP(data: string | Uint8Array): Promise<void> {
 		return new Promise((r) => this.write(data, r));
@@ -563,9 +555,7 @@ describe('CoreBrowserTerminal', () => {
 
 				term.keyDown(evKeyDown);
 				expect(term.bufferService.buffers.active.ydisp).toBe(scrolledYDisp);
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				(term as any)._keyUp(evKeyUp);
+				term._keyup(evKeyUp);
 				expect(term.bufferService.buffers.active.ydisp).toBe(scrolledYDisp);
 			});
 		});
