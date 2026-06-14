@@ -65,6 +65,8 @@ export class DcsParser implements IDcsParser {
 				j >= 0;
 				--j
 			) {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				this._active[j].unhook(false);
 			}
 		}

@@ -91,6 +91,8 @@ describe('ApcParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				// messages from TestHandler
@@ -116,6 +118,8 @@ describe('ApcParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				// messages from fallback handler
@@ -144,6 +148,8 @@ describe('ApcParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				['th2', 'START'],
@@ -175,6 +181,8 @@ describe('ApcParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				['th2', 'START'],
@@ -207,6 +215,8 @@ describe('ApcParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				['th1', 'START'],
@@ -242,6 +252,8 @@ describe('ApcParser', () => {
 				parser.put(data, 0, data.length);
 				data = toUtf32(' the mouse!');
 				parser.put(data, 0, data.length);
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				parser.end(true);
 				expect(reports).toEqual(['Here comes the mouse!']);
 			} finally {
@@ -270,6 +282,8 @@ describe('ApcParser', () => {
 				parser.put(data, 0, data.length);
 				data = toUtf32(' the mouse!');
 				parser.put(data, 0, data.length);
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				parser.end(false);
 				expect(reports).toEqual([]);
 			} finally {
@@ -305,6 +319,8 @@ describe('ApcParser', () => {
 				parser.put(data, 0, data.length);
 				data = toUtf32(' the mouse!');
 				parser.put(data, 0, data.length);
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				parser.end(true);
 				expect(reports).toEqual([['two', 'Here comes the mouse!']]);
 				dispo.dispose();
@@ -313,6 +329,8 @@ describe('ApcParser', () => {
 				parser.put(data, 0, data.length);
 				data = toUtf32(' data');
 				parser.put(data, 0, data.length);
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				parser.end(true);
 				expect(reports).toEqual([
 					['two', 'Here comes the mouse!'],
@@ -351,6 +369,8 @@ describe('ApcParser', () => {
 				parser.put(data, 0, data.length);
 				data = toUtf32(' the mouse!');
 				parser.put(data, 0, data.length);
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				parser.end(true);
 				expect(reports).toEqual([
 					['two', 'Here comes the mouse!'],
@@ -382,6 +402,8 @@ describe('ApcParser', () => {
 				for (let i = 0; i < TEST_PAYLOAD_LIMIT; i += CHUNK_SIZE) {
 					parser.put(data, 0, data.length);
 				}
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				parser.end(true);
 				expect(reports).toEqual(['A'.repeat(TEST_PAYLOAD_LIMIT)]);
 			} finally {
@@ -412,6 +434,8 @@ describe('ApcParser', () => {
 				}
 				data = toUtf32('A');
 				parser.put(data, 0, data.length);
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				parser.end(true);
 				expect(reports).toEqual([]);
 			} finally {

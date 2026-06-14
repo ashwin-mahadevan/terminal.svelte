@@ -97,6 +97,8 @@ describe('DcsParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([
 				// messages from TestHandler
@@ -127,6 +129,8 @@ describe('DcsParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([
 				// messages from fallback handler
@@ -160,6 +164,8 @@ describe('DcsParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([
 				['th2', 'HOOK', [1, 2, 3]],
@@ -196,6 +202,8 @@ describe('DcsParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([
 				['th2', 'HOOK', [1, 2, 3]],
@@ -233,6 +241,8 @@ describe('DcsParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([
 				['th1', 'HOOK', [1, 2, 3]],
@@ -281,6 +291,8 @@ describe('DcsParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32(' the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([[[1, 2, 3], 'Here comes the mouse!']]);
 		});
@@ -307,6 +319,8 @@ describe('DcsParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32(' the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(false);
 			expect(reports).toEqual([]);
 		});
@@ -340,6 +354,8 @@ describe('DcsParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32(' the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([['two', [1, 2, 3], 'Here comes the mouse!']]);
 			dispo.dispose();
@@ -348,6 +364,8 @@ describe('DcsParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32(' data');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([
 				['two', [1, 2, 3], 'Here comes the mouse!'],
@@ -384,6 +402,8 @@ describe('DcsParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32(' the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([
 				['two', [1, 2, 3], 'Here comes the mouse!'],
@@ -413,6 +433,8 @@ describe('DcsParser', () => {
 			for (let i = 0; i < TEST_PAYLOAD_LIMIT; i += CHUNK_SIZE) {
 				parser.put(data, 0, data.length);
 			}
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([[[1, 2, 3], 'A'.repeat(TEST_PAYLOAD_LIMIT)]]);
 		}, 30000);
@@ -441,6 +463,8 @@ describe('DcsParser', () => {
 			}
 			data = toUtf32('A');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.unhook(true);
 			expect(reports).toEqual([]);
 		}, 30000);

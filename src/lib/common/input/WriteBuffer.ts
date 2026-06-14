@@ -86,6 +86,8 @@ export class WriteBuffer {
 		let didProcess = false;
 		while ((chunk = this._writeBuffer.shift())) {
 			didProcess = true;
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			this._action(chunk);
 			const cb = this._callbacks.shift();
 			if (cb) cb();
@@ -234,6 +236,8 @@ export class WriteBuffer {
 				// 1. spawn a single microtask which we allow to throw hard
 				// 2. spawn a promise immediately resolving to `true`
 				// (executed on the same queue, thus properly aligned before continuation happens)
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				result
 					.catch((err) => {
 						queueMicrotask(() => {

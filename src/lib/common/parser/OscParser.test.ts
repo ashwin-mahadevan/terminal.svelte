@@ -50,6 +50,8 @@ describe('OscParser', () => {
 			});
 			const data = toUtf32('hello world!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([]);
 		});
@@ -66,6 +68,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('34');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				[1234, 'START', undefined],
@@ -89,6 +93,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('ello');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				[1234, 'START', undefined],
@@ -113,6 +119,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				// messages from TestHandler
@@ -137,6 +145,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				// messages from fallback handler
@@ -161,6 +171,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				['th2', 1234, 'START'],
@@ -188,6 +200,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				['th2', 1234, 'START'],
@@ -216,6 +230,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32('the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				['th1', 1234, 'START'],
@@ -261,6 +277,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32(' the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([[1234, 'Here comes the mouse!']]);
 		});
@@ -284,6 +302,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32(' the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(false);
 			expect(reports).toEqual([]);
 		});
@@ -314,6 +334,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32(' the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([['two', 'Here comes the mouse!']]);
 			dispo.dispose();
@@ -322,6 +344,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32(' data');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				['two', 'Here comes the mouse!'],
@@ -355,6 +379,8 @@ describe('OscParser', () => {
 			parser.put(data, 0, data.length);
 			data = toUtf32(' the mouse!');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([
 				['two', 'Here comes the mouse!'],
@@ -383,6 +409,8 @@ describe('OscParser', () => {
 			for (let i = 0; i < TEST_PAYLOAD_LIMIT; i += CHUNK_SIZE) {
 				parser.put(data, 0, data.length);
 			}
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([[1234, 'A'.repeat(TEST_PAYLOAD_LIMIT)]]);
 		}, 30000);
@@ -410,6 +438,8 @@ describe('OscParser', () => {
 			}
 			data = toUtf32('A');
 			parser.put(data, 0, data.length);
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parser.end(true);
 			expect(reports).toEqual([]);
 		}, 30000);
@@ -607,6 +637,8 @@ describe('OscParser - async tests', () => {
 				parser.put(data, 0, data.length);
 				data = toUtf32(' the mouse!');
 				parser.put(data, 0, data.length);
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				parser.end(true);
 				await endP(parser, true);
 				expect(reports).toEqual([[1234, 'Here comes the mouse!']]);

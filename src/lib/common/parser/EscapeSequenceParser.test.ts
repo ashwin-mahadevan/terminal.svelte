@@ -259,6 +259,8 @@ testParser.setApcHandlerFallback((collectAndFlag, action, payload) => {
 function parse(parser: TestEscapeSequenceParser, data: string): void {
 	const container = new Uint32Array(data.length);
 	const decoder = new StringToUtf32();
+	// TODO: Fix this upstream type error.
+	// eslint-disable-next-line @typescript-eslint/no-floating-promises
 	parser.parse(container, decoder.decode(data, container));
 }
 
@@ -3168,6 +3170,8 @@ describe('EscapeSequenceParser - async', () => {
 			expect(parser.trackedStack.length).toBe(0); // never got paused
 		});
 		it('correct result on sync parse call', () => {
+			// TODO: Fix this upstream type error.
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			parseSync(parser, INPUT);
 			expect(callstack).toEqual(RESULT);
 			expect(parser.trackedStack.length).toBe(0);

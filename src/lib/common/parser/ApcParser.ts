@@ -78,6 +78,8 @@ export class ApcParser implements IApcParser {
 				j >= 0;
 				--j
 			) {
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				this._active[j].end(false);
 			}
 		}
