@@ -12,17 +12,10 @@ import type { SelectionRenderModel } from '$lib/browser/renderer/shared/Selectio
 import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
 import type { IRenderDimensions, IRequestRedrawEvent } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
-import type { ThemeService } from '$lib/browser/services/ThemeService';
-import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import type { ILinkifierEvent, ReadonlyColorSet } from '$lib/browser/Types';
-import type { Linkifier } from '$lib/browser/Linkifier';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { color } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { DecorationService } from '$lib/common/services/DecorationService';
-import type { BufferService } from '$lib/common/services/BufferService';
-import type { OptionsService } from '$lib/common/services/OptionsService';
-import type { CoreService } from '$lib/common/services/CoreService';
 import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 
@@ -73,71 +66,59 @@ export class DomRenderer {
 	private _hideLinkUnderlineListener!: IDisposable;
 	private _mouseDownListener!: IDisposable;
 
-	constructor(
-		private readonly _terminal: CoreBrowserTerminal,
-		private readonly _document: Document,
-		private readonly _element: HTMLElement,
-		private readonly _screenElement: HTMLElement,
-		private readonly _helperContainer: HTMLElement,
-		private readonly _linkifier2: Linkifier,
-		private readonly _characterJoinerService: CharacterJoinerService,
-		private readonly _decorationService: DecorationService,
-		private readonly _optionsService: OptionsService,
-		private readonly _bufferService: BufferService,
-		private readonly _coreService: CoreService,
-		private readonly _coreBrowserService: CoreBrowserService,
-		private readonly _themeService: ThemeService
-	) {
-		this._rowContainer = this._document.createElement('div');
+	constructor(private readonly _terminal: CoreBrowserTerminal) {
+		this._rowContainer = this._terminal.document!.createElement('div');
 		this._rowContainer.classList.add(Constants.ROW_CONTAINER_CLASS);
 		this._rowContainer.style.lineHeight = 'normal';
 		this._rowContainer.setAttribute('aria-hidden', 'true');
-		this._refreshRowElements(this._bufferService.cols, this._bufferService.rows);
-		this._selectionContainer = this._document.createElement('div');
+		this._refreshRowElements(this._terminal.bufferService.cols, this._terminal.bufferService.rows);
+		this._selectionContainer = this._terminal.document!.createElement('div');
 		this._selectionContainer.classList.add(Constants.SELECTION_CLASS);
 		this._selectionContainer.setAttribute('aria-hidden', 'true');
 
 		this.dimensions = createRenderDimensions();
 		this._updateDimensions();
-		this._optionChangeListener = this._optionsService.onOptionChange(() =>
+		this._optionChangeListener = this._terminal.optionsService.onOptionChange(() =>
 			this._handleOptionsChanged()
 		);
 
-		this._themeChangeListener = this._themeService.onChangeColors((e) => this._injectCss(e));
-		this._injectCss(this._themeService.colors);
+		this._themeChangeListener = this._terminal.themeService!.onChangeColors((e) =>
+			this._injectCss(e)
+		);
+		this._injectCss(this._terminal.themeService!.colors);
 
 		this._rowFactory = new DomRendererRowFactory(
 			document,
-			this._characterJoinerService,
-			this._optionsService,
-			this._coreBrowserService,
-			this._coreService,
-			this._decorationService,
-			this._themeService
+			this._terminal.characterJoinerService!,
+			this._terminal.optionsService,
+			this._terminal.coreBrowserService!,
+			this._terminal.coreService,
+			this._terminal.decorationService,
+			this._terminal.themeService!
 		);
 
-		this._element.classList.add(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
-		this._screenElement.appendChild(this._rowContainer);
-		this._screenElement.appendChild(this._selectionContainer);
+		this._terminal.element!.classList.add(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
+		this._terminal.screenElement!.appendChild(this._rowContainer);
+		this._terminal.screenElement!.appendChild(this._selectionContainer);
 
-		this._showLinkUnderlineListener = this._linkifier2.onShowLinkUnderline((e) =>
+		this._showLinkUnderlineListener = this._terminal.linkifier!.onShowLinkUnderline((e) =>
 			this._handleLinkHover(e)
 		);
-		this._hideLinkUnderlineListener = this._linkifier2.onHideLinkUnderline((e) =>
+		this._hideLinkUnderlineListener = this._terminal.linkifier!.onHideLinkUnderline((e) =>
 			this._handleLinkLeave(e)
 		);
 
 		this._cursorBlinkStateManager = new CursorBlinkStateManager(
 			this._rowContainer,
-			this._coreBrowserService
+			this._terminal.coreBrowserService!
 		);
-		this._mouseDownListener = addDisposableListener(this._document, 'mousedown', () =>
+		this._mouseDownListener = addDisposableListener(this._terminal.document!, 'mousedown', () =>
 			this._cursorBlinkStateManager.restartBlinkAnimation()
 		);
 		this._textBlinkStateManager = new TextBlinkStateManager(
-			() => this._onRequestRedraw.fire({ start: 0, end: this._bufferService.rows - 1 }),
-			this._coreBrowserService,
-			this._optionsService
+			() => this._onRequestRedraw.fire({ start: 0, end: this._terminal.bufferService.rows - 1 }),
+			this._terminal.coreBrowserService!,
+			this._terminal.optionsService
 		);
 
 		this._widthCache = new WidthCache();
@@ -146,7 +127,7 @@ export class DomRenderer {
 	}
 
 	public dispose(): void {
-		this._element.classList.remove(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
+		this._terminal.element!.classList.remove(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
 		// Outside influences such as React unmounts may manipulate the DOM before our disposal.
 		// https://github.com/xtermjs/xterm.js/issues/2960
 		this._rowContainer.remove();
@@ -165,7 +146,7 @@ export class DomRenderer {
 	}
 
 	private _updateDimensions(): void {
-		const dpr = this._coreBrowserService.dpr;
+		const dpr = this._terminal.coreBrowserService!.dpr;
 		this.dimensions.device.char.width = this._terminal.charWidth * dpr;
 		this.dimensions.device.char.height = Math.ceil(this._terminal.charHeight * dpr);
 		this.dimensions.device.cell.width = this.dimensions.device.char.width;
@@ -173,13 +154,15 @@ export class DomRenderer {
 		this.dimensions.device.char.left = 0;
 		this.dimensions.device.char.top = 0;
 		this.dimensions.device.canvas.width =
-			this.dimensions.device.cell.width * this._bufferService.cols;
+			this.dimensions.device.cell.width * this._terminal.bufferService.cols;
 		this.dimensions.device.canvas.height =
-			this.dimensions.device.cell.height * this._bufferService.rows;
+			this.dimensions.device.cell.height * this._terminal.bufferService.rows;
 		this.dimensions.css.canvas.width = Math.round(this.dimensions.device.canvas.width / dpr);
 		this.dimensions.css.canvas.height = Math.round(this.dimensions.device.canvas.height / dpr);
-		this.dimensions.css.cell.width = this.dimensions.css.canvas.width / this._bufferService.cols;
-		this.dimensions.css.cell.height = this.dimensions.css.canvas.height / this._bufferService.rows;
+		this.dimensions.css.cell.width =
+			this.dimensions.css.canvas.width / this._terminal.bufferService.cols;
+		this.dimensions.css.cell.height =
+			this.dimensions.css.canvas.height / this._terminal.bufferService.rows;
 
 		for (const element of this._rowElements) {
 			element.style.width = `${this.dimensions.css.canvas.width}px`;
@@ -190,8 +173,8 @@ export class DomRenderer {
 		}
 
 		if (!this._dimensionsStyleElement) {
-			this._dimensionsStyleElement = this._document.createElement('style');
-			this._screenElement.appendChild(this._dimensionsStyleElement);
+			this._dimensionsStyleElement = this._terminal.document!.createElement('style');
+			this._terminal.screenElement!.appendChild(this._dimensionsStyleElement);
 		}
 
 		const styles =
@@ -203,14 +186,14 @@ export class DomRenderer {
 
 		this._dimensionsStyleElement.textContent = styles;
 
-		this._screenElement.style.width = `${this.dimensions.css.canvas.width}px`;
-		this._screenElement.style.height = `${this.dimensions.css.canvas.height}px`;
+		this._terminal.screenElement!.style.width = `${this.dimensions.css.canvas.width}px`;
+		this._terminal.screenElement!.style.height = `${this.dimensions.css.canvas.height}px`;
 	}
 
 	private _injectCss(colors: ReadonlyColorSet): void {
 		if (!this._themeStyleElement) {
-			this._themeStyleElement = this._document.createElement('style');
-			this._screenElement.appendChild(this._themeStyleElement);
+			this._themeStyleElement = this._terminal.document!.createElement('style');
+			this._terminal.screenElement!.appendChild(this._themeStyleElement);
 		}
 
 		// Base CSS
@@ -237,10 +220,10 @@ export class DomRenderer {
 		// Text styles
 		styles +=
 			`${this._terminalSelector} span:not(.${RowCss.BOLD_CLASS}) {` +
-			` font-weight: ${this._optionsService.rawOptions.fontWeight};` +
+			` font-weight: ${this._terminal.optionsService.rawOptions.fontWeight};` +
 			`}` +
 			`${this._terminalSelector} span.${RowCss.BOLD_CLASS} {` +
-			` font-weight: ${this._optionsService.rawOptions.fontWeightBold};` +
+			` font-weight: ${this._terminal.optionsService.rawOptions.fontWeightBold};` +
 			`}` +
 			`${this._terminalSelector} span.${RowCss.ITALIC_CLASS} {` +
 			` font-style: italic;` +
@@ -301,7 +284,7 @@ export class DomRenderer {
 			` outline-offset: -1px;` +
 			`}` +
 			`${this._terminalSelector} .${Constants.ROW_CONTAINER_CLASS} .${RowCss.CURSOR_CLASS}.${RowCss.CURSOR_STYLE_BAR_CLASS} {` +
-			` box-shadow: ${this._optionsService.rawOptions.cursorWidth}px 0 0 ${colors.cursor.css} inset;` +
+			` box-shadow: ${this._terminal.optionsService.rawOptions.cursorWidth}px 0 0 ${colors.cursor.css} inset;` +
 			`}` +
 			`${this._terminalSelector} .${Constants.ROW_CONTAINER_CLASS} .${RowCss.CURSOR_CLASS}.${RowCss.CURSOR_STYLE_UNDERLINE_CLASS} {` +
 			` border-bottom: 1px ${colors.cursor.css};` +
@@ -364,7 +347,7 @@ export class DomRenderer {
 	private _refreshRowElements(cols: number, rows: number): void {
 		// Add missing elements
 		for (let i = this._rowElements.length; i <= rows; i++) {
-			const row = this._document.createElement('div');
+			const row = this._terminal.document!.createElement('div');
 			this._rowContainer.appendChild(row);
 			this._rowElements.push(row);
 			this._rowHasBlinkingCells.push(false);
@@ -404,7 +387,7 @@ export class DomRenderer {
 	 * Weight still comes from options, which drive the bold/normal CSS classes.
 	 */
 	private _refreshWidthCacheFont(): void {
-		const style = this._coreBrowserService.window.getComputedStyle(this._rowContainer);
+		const style = this._terminal.coreBrowserService!.window.getComputedStyle(this._rowContainer);
 		// Fallbacks cover the rare case where the rows are not yet laid out
 		// (e.g. detached); a real value arrives on the next char-size change.
 		const fontFamily = style.fontFamily || 'monospace';
@@ -412,21 +395,21 @@ export class DomRenderer {
 		this._widthCache.setFont(
 			fontFamily,
 			fontSize,
-			this._optionsService.rawOptions.fontWeight,
-			this._optionsService.rawOptions.fontWeightBold
+			this._terminal.optionsService.rawOptions.fontWeight,
+			this._terminal.optionsService.rawOptions.fontWeightBold
 		);
 	}
 
 	public handleBlur(): void {
 		this._rowContainer.classList.remove(Constants.FOCUS_CLASS);
 		this._cursorBlinkStateManager.pause();
-		this.renderRows(0, this._bufferService.rows - 1);
+		this.renderRows(0, this._terminal.bufferService.rows - 1);
 	}
 
 	public handleFocus(): void {
 		this._rowContainer.classList.add(Constants.FOCUS_CLASS);
 		this._cursorBlinkStateManager.resume();
-		this.renderRows(this._bufferService.buffer.y, this._bufferService.buffer.y);
+		this.renderRows(this._terminal.bufferService.buffer.y, this._terminal.bufferService.buffer.y);
 	}
 
 	public handleViewportVisibilityChange(isVisible: boolean): void {
@@ -438,7 +421,7 @@ export class DomRenderer {
 		end: [number, number] | undefined,
 		columnSelectMode: boolean
 	): void {
-		const rows = this._bufferService.rows;
+		const rows = this._terminal.bufferService.rows;
 
 		// Remove all selections
 		this._selectionContainer.replaceChildren();
@@ -477,7 +460,7 @@ export class DomRenderer {
 			newViewportEnd = viewportCappedEndRow;
 
 			// Create the selections
-			const documentFragment = this._document.createDocumentFragment();
+			const documentFragment = this._terminal.document!.createDocumentFragment();
 
 			if (columnSelectMode) {
 				const isXFlipped = start[0] > end[0];
@@ -493,7 +476,7 @@ export class DomRenderer {
 				// Draw first row
 				const startCol = viewportStartRow === viewportCappedStartRow ? start[0] : 0;
 				const endCol =
-					viewportCappedStartRow === viewportEndRow ? end[0] : this._bufferService.cols;
+					viewportCappedStartRow === viewportEndRow ? end[0] : this._terminal.bufferService.cols;
 				documentFragment.appendChild(
 					this._createSelectionElement(viewportCappedStartRow, startCol, endCol)
 				);
@@ -503,7 +486,7 @@ export class DomRenderer {
 					this._createSelectionElement(
 						viewportCappedStartRow + 1,
 						0,
-						this._bufferService.cols,
+						this._terminal.bufferService.cols,
 						middleRowsCount
 					)
 				);
@@ -511,7 +494,7 @@ export class DomRenderer {
 				if (viewportCappedStartRow !== viewportCappedEndRow) {
 					// Only draw viewportEndRow if it's not the same as viewporttartRow
 					const finalEndCol =
-						viewportEndRow === viewportCappedEndRow ? end[0] : this._bufferService.cols;
+						viewportEndRow === viewportCappedEndRow ? end[0] : this._terminal.bufferService.cols;
 					documentFragment.appendChild(
 						this._createSelectionElement(viewportCappedEndRow, 0, finalEndCol)
 					);
@@ -530,7 +513,7 @@ export class DomRenderer {
 			renderEndRow = Math.min(renderEndRow, rows - 1);
 
 			// Ensure cursor row is included when a selection is present
-			const buffer = this._bufferService.buffer;
+			const buffer = this._terminal.bufferService.buffer;
 			const cursorViewportRow = buffer.y;
 			if (
 				this._selectionRenderModel.hasSelection &&
@@ -562,7 +545,7 @@ export class DomRenderer {
 		colEnd: number,
 		rowCount: number = 1
 	): HTMLElement {
-		const element = this._document.createElement('div');
+		const element = this._terminal.document!.createElement('div');
 		const left = colStart * this.dimensions.css.cell.width;
 		let width = this.dimensions.css.cell.width * (colEnd - colStart);
 		if (left + width > this.dimensions.css.canvas.width) {
@@ -585,7 +568,7 @@ export class DomRenderer {
 		// Force a refresh
 		this._updateDimensions();
 		// Refresh CSS
-		this._injectCss(this._themeService.colors);
+		this._injectCss(this._terminal.themeService!.colors);
 		// update spacing cache
 		this._refreshWidthCacheFont();
 		this._setDefaultSpacing();
@@ -611,14 +594,16 @@ export class DomRenderer {
 	}
 
 	public renderRows(start: number, end: number): void {
-		const buffer = this._bufferService.buffer;
+		const buffer = this._terminal.bufferService.buffer;
 		const cursorAbsoluteY = buffer.ybase + buffer.y;
-		const cursorX = Math.min(buffer.x, this._bufferService.cols - 1);
+		const cursorX = Math.min(buffer.x, this._terminal.bufferService.cols - 1);
 		const cursorBlink =
-			this._coreService.decPrivateModes.cursorBlink ?? this._optionsService.rawOptions.cursorBlink;
+			this._terminal.coreService.decPrivateModes.cursorBlink ??
+			this._terminal.optionsService.rawOptions.cursorBlink;
 		const cursorStyle =
-			this._coreService.decPrivateModes.cursorStyle ?? this._optionsService.rawOptions.cursorStyle;
-		const cursorInactiveStyle = this._optionsService.rawOptions.cursorInactiveStyle;
+			this._terminal.coreService.decPrivateModes.cursorStyle ??
+			this._terminal.optionsService.rawOptions.cursorStyle;
+		const cursorInactiveStyle = this._terminal.optionsService.rawOptions.cursorInactiveStyle;
 		const rowInfo = { hasBlinkingCells: false };
 
 		for (let y = start; y <= end; y++) {
@@ -688,17 +673,17 @@ export class DomRenderer {
 		// clip coords into viewport
 		if (y < 0) x = 0;
 		if (y2 < 0) x2 = 0;
-		const maxY = this._bufferService.rows - 1;
+		const maxY = this._terminal.bufferService.rows - 1;
 		y = Math.max(Math.min(y, maxY), 0);
 		y2 = Math.max(Math.min(y2, maxY), 0);
 
-		cols = Math.min(cols, this._bufferService.cols);
-		const buffer = this._bufferService.buffer;
+		cols = Math.min(cols, this._terminal.bufferService.cols);
+		const buffer = this._terminal.bufferService.buffer;
 		const cursorAbsoluteY = buffer.ybase + buffer.y;
 		const cursorX = Math.min(buffer.x, cols - 1);
-		const cursorBlink = this._optionsService.rawOptions.cursorBlink;
-		const cursorStyle = this._optionsService.rawOptions.cursorStyle;
-		const cursorInactiveStyle = this._optionsService.rawOptions.cursorInactiveStyle;
+		const cursorBlink = this._terminal.optionsService.rawOptions.cursorBlink;
+		const cursorStyle = this._terminal.optionsService.rawOptions.cursorStyle;
+		const cursorInactiveStyle = this._terminal.optionsService.rawOptions.cursorInactiveStyle;
 		const rowInfo = { hasBlinkingCells: false };
 
 		// refresh rows within link range

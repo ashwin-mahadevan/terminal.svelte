@@ -8,8 +8,6 @@ import type { IRenderDebouncer } from '$lib/browser/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
-import type { RenderService } from '$lib/browser/services/RenderService';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import { addDisposableListener } from '$lib/browser/Dom';
 
@@ -66,12 +64,8 @@ export class AccessibilityManager {
 
 	private _charsToAnnounce: string = '';
 
-	constructor(
-		private readonly _terminal: CoreBrowserTerminal,
-		private readonly _coreBrowserService: CoreBrowserService,
-		private readonly _renderService: RenderService
-	) {
-		const doc = this._coreBrowserService.mainDocument;
+	constructor(private readonly _terminal: CoreBrowserTerminal) {
+		const doc = this._terminal.coreBrowserService!.mainDocument;
 		this._accessibilityContainer = doc.createElement('div');
 		this._accessibilityContainer.classList.add('xterm-accessibility');
 
@@ -137,13 +131,13 @@ export class AccessibilityManager {
 		);
 		this._keyListener = this._terminal.onKey((e) => this._handleKey(e.key));
 		this._blurListener = this._terminal.onBlur(() => this._clearLiveRegion());
-		this._dimensionsChangeListener = this._renderService.onDimensionsChange(() =>
+		this._dimensionsChangeListener = this._terminal.renderService!.onDimensionsChange(() =>
 			this._refreshRowsDimensions()
 		);
 		this._selectionChangeListener = addDisposableListener(doc, 'selectionchange', () =>
 			this._handleSelectionChange()
 		);
-		this._dprChangeListener = this._coreBrowserService.onDprChange(() =>
+		this._dprChangeListener = this._terminal.coreBrowserService!.onDprChange(() =>
 			this._refreshRowsDimensions()
 		);
 
@@ -322,7 +316,7 @@ export class AccessibilityManager {
 			return;
 		}
 
-		const selection = this._coreBrowserService.mainDocument.getSelection();
+		const selection = this._terminal.coreBrowserService!.mainDocument.getSelection();
 		if (!selection) {
 			return;
 		}
@@ -460,7 +454,7 @@ export class AccessibilityManager {
 	}
 
 	private _createAccessibilityTreeNode(): HTMLElement {
-		const element = this._coreBrowserService.mainDocument.createElement('div');
+		const element = this._terminal.coreBrowserService!.mainDocument.createElement('div');
 		element.setAttribute('role', 'listitem');
 		element.tabIndex = -1;
 		this._refreshRowDimensions(element);
@@ -468,13 +462,13 @@ export class AccessibilityManager {
 	}
 
 	private _refreshRowsDimensions(): void {
-		if (!this._renderService.dimensions.css.cell.height) {
+		if (!this._terminal.renderService!.dimensions.css.cell.height) {
 			return;
 		}
 		// Font size is inherited from the terminal's CSS font; only the width
 		// needs to track the rendered canvas.
 		Object.assign(this._accessibilityContainer.style, {
-			width: `${this._renderService.dimensions.css.canvas.width}px`
+			width: `${this._terminal.renderService!.dimensions.css.canvas.width}px`
 		});
 		if (this._rowElements.length !== this._terminal.bufferService.rows) {
 			this._handleResize(this._terminal.bufferService.rows);
@@ -486,7 +480,7 @@ export class AccessibilityManager {
 	}
 
 	private _refreshRowDimensions(element: HTMLElement): void {
-		element.style.height = `${this._renderService.dimensions.css.cell.height}px`;
+		element.style.height = `${this._terminal.renderService!.dimensions.css.cell.height}px`;
 	}
 
 	/**
@@ -505,7 +499,7 @@ export class AccessibilityManager {
 		if (!lastColumn) {
 			return;
 		}
-		const targetWidth = lastColumn * this._renderService.dimensions.css.cell.width;
+		const targetWidth = lastColumn * this._terminal.renderService!.dimensions.css.cell.width;
 		element.style.transform = `scaleX(${targetWidth / width})`;
 	}
 }

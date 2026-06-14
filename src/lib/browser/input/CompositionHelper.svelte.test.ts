@@ -62,13 +62,15 @@ function setupCompositionHelper() {
 		state.handledText += text;
 	};
 	const bufferService = createMockBufferService(10, 5);
-	const compositionHelper = new CompositionHelper(
+	const compositionHelper = new CompositionHelper({
 		textarea,
 		compositionView,
 		bufferService,
 		coreService,
-		new MockRenderService()
-	);
+		renderService: new MockRenderService()
+		// TODO: Fix this upstream type error.
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	} as any);
 	return { compositionHelper, textarea, state };
 }
 

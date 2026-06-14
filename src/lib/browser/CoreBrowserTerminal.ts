@@ -76,9 +76,9 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	public element: HTMLElement | undefined;
 	public screenElement: HTMLElement | undefined;
 
-	private _document: Document | undefined;
-	private _helperContainer: HTMLElement | undefined;
-	private _compositionView: HTMLElement | undefined;
+	public document: Document | undefined;
+	public helperContainer: HTMLElement | undefined;
+	public compositionView: HTMLElement | undefined;
 
 	private readonly _linkifier = new MutableDisposable<Linkifier>();
 	public get linkifier(): Linkifier | undefined {
@@ -380,11 +380,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _handleScreenReaderModeOptionChange(value: boolean): void {
 		if (value) {
 			if (!this._accessibilityManager.value && this.renderService) {
-				this._accessibilityManager.value = new AccessibilityManager(
-					this,
-					this.coreBrowserService!,
-					this.renderService
-				);
+				this._accessibilityManager.value = new AccessibilityManager(this);
 			}
 		} else {
 			this._accessibilityManager.clear();
@@ -595,15 +591,15 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		compositionView: HTMLDivElement,
 		scrollableContainer: HTMLDivElement
 	): void {
-		this._document = parent.ownerDocument;
+		this.document = parent.ownerDocument;
 
 		this.element = parent;
 
 		// Structural elements are pre-created by the caller in their final positions.
 		this.screenElement = screen;
-		this._helperContainer = helpers;
+		this.helperContainer = helpers;
 		this.textarea = textarea;
-		this._compositionView = compositionView;
+		this.compositionView = compositionView;
 
 		this._store.add(
 			addDisposableListener(this.screenElement, 'mousemove', (ev: MouseEvent) =>
@@ -632,7 +628,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			// Force unsafe null in node.js environment for tests
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(this._document ?? typeof window !== 'undefined') ? window.document : (null as any)
+			(this.document ?? typeof window !== 'undefined') ? window.document : (null as any)
 		);
 
 		this._store.add(
@@ -657,25 +653,13 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this.characterJoinerService = new CharacterJoinerService(this.bufferService);
 
 		this.renderService = new RenderService(this);
-		this.bufferService.onResize((e) => this.renderService!.resize(e.cols, e.rows));
+		this.bufferService.onResize(() => this.renderService!.resize());
 
-		this._compositionHelper = new CompositionHelper(
-			this.textarea,
-			this._compositionView,
-			this.bufferService,
-			this.coreService,
-			this.renderService
-		);
+		this._compositionHelper = new CompositionHelper(this);
 
-		this.mouseCoordsService = new MouseCoordsService(this, this.renderService);
+		this.mouseCoordsService = new MouseCoordsService(this);
 
-		const linkifier = (this._linkifier.value = new Linkifier(
-			this.screenElement,
-			this.mouseCoordsService,
-			this.renderService,
-			this.bufferService,
-			this.linkProviderService
-		));
+		this._linkifier.value = new Linkifier(this);
 
 		try {
 			this._onWillOpen.fire(this.element);
@@ -683,23 +667,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			console.error('onWillOpen handler threw an exception', e);
 		}
 		if (!this.renderService.hasRenderer()) {
-			this.renderService.setRenderer(
-				new DomRenderer(
-					this,
-					this._document!,
-					this.element!,
-					this.screenElement!,
-					this._helperContainer!,
-					this.linkifier!,
-					this.characterJoinerService!,
-					this.decorationService,
-					this.optionsService,
-					this.bufferService,
-					this.coreService,
-					this.coreBrowserService!,
-					this.themeService!
-				)
-			);
+			this.renderService.setRenderer(new DomRenderer(this));
 		}
 
 		this._store.add(
@@ -717,18 +685,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._store.add(this.onBlur(() => this.renderService!.handleBlur()));
 		this._store.add(this.onFocus(() => this.renderService!.handleFocus()));
 
-		this._viewport = new Viewport(
-			this.element,
-			this.screenElement,
-			scrollableContainer,
-			this.bufferService,
-			this.coreBrowserService,
-			this.coreService,
-			this.mouseStateService,
-			this.themeService,
-			this.optionsService,
-			this.renderService
-		);
+		this._viewport = new Viewport(this, scrollableContainer);
 		this._store.add(
 			this._viewport.onRequestScrollLines((e) => {
 				super.scrollLines(e, false);
@@ -736,28 +693,8 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			})
 		);
 
-		this.selectionService = new SelectionService(
-			this.element,
-			this.screenElement,
-			linkifier,
-			this.bufferService,
-			this.coreService,
-			this.mouseCoordsService,
-			this.optionsService,
-			this.mouseStateService,
-			this.renderService,
-			this.coreBrowserService
-		);
-		this.mouseService = new MouseService(
-			this.renderService,
-			this.mouseCoordsService,
-			this.mouseStateService,
-			this.coreService,
-			this.bufferService,
-			this.optionsService,
-			this.selectionService,
-			this.coreBrowserService
-		);
+		this.selectionService = new SelectionService(this);
+		this.mouseService = new MouseService(this);
 		this._store.add(
 			this.selectionService.onRequestScrollLines((e) =>
 				this.scrollLines(e.amount, e.suppressScrollEvent)
@@ -822,11 +759,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		if (this.options.screenReaderMode) {
 			// Note that this must be done *after* the renderer is created in order to
 			// ensure the correct order of the dprchange event
-			this._accessibilityManager.value = new AccessibilityManager(
-				this,
-				this.coreBrowserService,
-				this.renderService
-			);
+			this._accessibilityManager.value = new AccessibilityManager(this);
 		}
 		this._store.add(
 			this.optionsService.onSpecificOptionChange('screenReaderMode', (e) =>
@@ -876,7 +809,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			{
 				element: this.element!,
 				screenElement: this.screenElement!,
-				document: this._document!,
+				document: this.document!,
 				handleTouchScroll: (amount) => this._viewport?.handleTouchScroll(amount)
 			},
 			(disposable) => this._store.add(disposable),

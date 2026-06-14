@@ -13,10 +13,7 @@ import type {
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { dispose } from '$lib/common/Lifecycle';
 
-import type { BufferService } from '$lib/common/services/BufferService';
-import type { RenderService } from './services/RenderService';
-import type { MouseCoordsService } from './services/MouseCoordsService';
-import type { LinkProviderService } from './services/LinkProviderService';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 
@@ -47,34 +44,32 @@ export class Linkifier {
 	private readonly _mouseDownListener: IDisposable;
 	private readonly _mouseUpListener: IDisposable;
 
-	constructor(
-		private readonly _element: HTMLElement,
-		private readonly _mouseCoordsService: MouseCoordsService,
-		private readonly _renderService: RenderService,
-		private readonly _bufferService: BufferService,
-		private readonly _linkProviderService: LinkProviderService
-	) {
+	constructor(private readonly _terminal: CoreBrowserTerminal) {
 		// Listen to resize to catch the case where it's resized and the cursor is out of the viewport.
-		this._resizeListener = this._bufferService.onResize(() => {
+		this._resizeListener = this._terminal.bufferService.onResize(() => {
 			this._clearCurrentLink();
 			this._wasResized = true;
 		});
-		this._mouseLeaveListener = addDisposableListener(this._element, 'mouseleave', () => {
-			this._isMouseOut = true;
-			this._clearCurrentLink();
-		});
+		this._mouseLeaveListener = addDisposableListener(
+			this._terminal.screenElement!,
+			'mouseleave',
+			() => {
+				this._isMouseOut = true;
+				this._clearCurrentLink();
+			}
+		);
 		this._mouseMoveListener = addDisposableListener(
-			this._element,
+			this._terminal.screenElement!,
 			'mousemove',
 			this._handleMouseMove.bind(this)
 		);
 		this._mouseDownListener = addDisposableListener(
-			this._element,
+			this._terminal.screenElement!,
 			'mousedown',
 			this._handleMouseDown.bind(this)
 		);
 		this._mouseUpListener = addDisposableListener(
-			this._element,
+			this._terminal.screenElement!,
 			'mouseup',
 			this._handleMouseUp.bind(this)
 		);
@@ -98,7 +93,7 @@ export class Linkifier {
 	private _handleMouseMove(event: MouseEvent): void {
 		this._lastMouseEvent = event;
 
-		const position = this._positionFromMouseEvent(event, this._element);
+		const position = this._positionFromMouseEvent(event, this._terminal.screenElement!);
 		if (!position) {
 			return;
 		}
@@ -163,7 +158,7 @@ export class Linkifier {
 		let linkProvided = false;
 
 		// There is no link cached, so ask for one
-		for (const [i, linkProvider] of this._linkProviderService.linkProviders.entries()) {
+		for (const [i, linkProvider] of this._terminal.linkProviderService.linkProviders.entries()) {
 			if (useLineCache) {
 				const existingReply = this._activeProviderReplies?.get(i);
 				// If there isn't a reply, the provider hasn't responded yet.
@@ -186,7 +181,8 @@ export class Linkifier {
 					// If all providers have responded, remove lower priority links that intersect ranges of
 					// higher priority links
 					if (
-						this._activeProviderReplies?.size === this._linkProviderService.linkProviders.length
+						this._activeProviderReplies?.size ===
+						this._terminal.linkProviderService.linkProviders.length
 					) {
 						this._removeIntersectingLinks(position.y, this._activeProviderReplies);
 					}
@@ -212,7 +208,7 @@ export class Linkifier {
 				const startX = linkWithState.link.range.start.y < y ? 0 : linkWithState.link.range.start.x;
 				const endX =
 					linkWithState.link.range.end.y > y
-						? this._bufferService.cols
+						? this._terminal.bufferService.cols
 						: linkWithState.link.range.end.x;
 				for (let x = startX; x <= endX; x++) {
 					if (occupiedCells.has(x)) {
@@ -256,7 +252,8 @@ export class Linkifier {
 
 		// Check if all the providers have responded
 		if (
-			this._activeProviderReplies.size === this._linkProviderService.linkProviders.length &&
+			this._activeProviderReplies.size ===
+				this._terminal.linkProviderService.linkProviders.length &&
 			!linkProvided
 		) {
 			// Respect the order of the link providers
@@ -284,7 +281,7 @@ export class Linkifier {
 			return;
 		}
 
-		const position = this._positionFromMouseEvent(event, this._element);
+		const position = this._positionFromMouseEvent(event, this._terminal.screenElement!);
 		if (!position) {
 			return;
 		}
@@ -310,7 +307,7 @@ export class Linkifier {
 			(this._currentLink.link.range.start.y >= startRow &&
 				this._currentLink.link.range.end.y <= endRow)
 		) {
-			this._linkLeave(this._element, this._currentLink.link, this._lastMouseEvent);
+			this._linkLeave(this._terminal.screenElement!, this._currentLink.link, this._lastMouseEvent);
 			this._currentLink = undefined;
 			dispose(this._linkCacheDisposables);
 			this._linkCacheDisposables.length = 0;
@@ -322,7 +319,10 @@ export class Linkifier {
 			return;
 		}
 
-		const position = this._positionFromMouseEvent(this._lastMouseEvent, this._element);
+		const position = this._positionFromMouseEvent(
+			this._lastMouseEvent,
+			this._terminal.screenElement!
+		);
 
 		if (!position) {
 			return;
@@ -344,7 +344,7 @@ export class Linkifier {
 				},
 				isHovered: true
 			};
-			this._linkHover(this._element, linkWithState.link, this._lastMouseEvent);
+			this._linkHover(this._terminal.screenElement!, linkWithState.link, this._lastMouseEvent);
 
 			// Add listener for tracking decorations changes
 			linkWithState.link.decorations = {} as ILinkDecorations;
@@ -358,7 +358,7 @@ export class Linkifier {
 						) {
 							this._currentLink.state.decorations.pointerCursor = v;
 							if (this._currentLink.state.isHovered) {
-								this._element.classList.toggle('xterm-cursor-pointer', v);
+								this._terminal.screenElement!.classList.toggle('xterm-cursor-pointer', v);
 							}
 						}
 					}
@@ -379,15 +379,15 @@ export class Linkifier {
 			// Listen to viewport changes to re-render the link under the cursor (only when the line the
 			// link is on changes)
 			this._linkCacheDisposables.push(
-				this._renderService.onRenderedViewportChange((e) => {
+				this._terminal.renderService!.onRenderedViewportChange((e) => {
 					// Sanity check, this shouldn't happen in practice as this listener would be disposed
 					if (!this._currentLink) {
 						return;
 					}
 					// When start is 0 a scroll most likely occurred, make sure links above the fold also get
 					// cleared.
-					const start = e.start === 0 ? 0 : e.start + 1 + this._bufferService.buffer.ydisp;
-					const end = this._bufferService.buffer.ydisp + 1 + e.end;
+					const start = e.start === 0 ? 0 : e.start + 1 + this._terminal.bufferService.buffer.ydisp;
+					const end = this._terminal.bufferService.buffer.ydisp + 1 + e.end;
 					// Only clear the link if the viewport change happened on this line
 					if (
 						this._currentLink.link.range.start.y >= start &&
@@ -396,7 +396,10 @@ export class Linkifier {
 						this._clearCurrentLink(start, end);
 						if (this._lastMouseEvent) {
 							// re-eval previously active link after changes
-							const position = this._positionFromMouseEvent(this._lastMouseEvent, this._element);
+							const position = this._positionFromMouseEvent(
+								this._lastMouseEvent,
+								this._terminal.screenElement!
+							);
 							if (position) {
 								this._askForLink(position, false);
 							}
@@ -425,7 +428,7 @@ export class Linkifier {
 
 	private _fireUnderlineEvent(link: ILink, showEvent: boolean): void {
 		const range = link.range;
-		const scrollOffset = this._bufferService.buffer.ydisp;
+		const scrollOffset = this._terminal.bufferService.buffer.ydisp;
 		const event = this._createLinkUnderlineEvent(
 			range.start.x - 1,
 			range.start.y - scrollOffset - 1,
@@ -459,9 +462,9 @@ export class Linkifier {
 	 * @param position
 	 */
 	private _linkAtPosition(link: ILink, position: IBufferCellPosition): boolean {
-		const lower = link.range.start.y * this._bufferService.cols + link.range.start.x;
-		const upper = link.range.end.y * this._bufferService.cols + link.range.end.x;
-		const current = position.y * this._bufferService.cols + position.x;
+		const lower = link.range.start.y * this._terminal.bufferService.cols + link.range.start.x;
+		const upper = link.range.end.y * this._terminal.bufferService.cols + link.range.end.x;
+		const current = position.y * this._terminal.bufferService.cols + position.x;
 		return lower <= current && current <= upper;
 	}
 
@@ -473,17 +476,17 @@ export class Linkifier {
 		event: MouseEvent,
 		element: HTMLElement
 	): IBufferCellPosition | undefined {
-		const coords = this._mouseCoordsService.getCoords(
+		const coords = this._terminal.mouseCoordsService!.getCoords(
 			event,
 			element,
-			this._bufferService.cols,
-			this._bufferService.rows
+			this._terminal.bufferService.cols,
+			this._terminal.bufferService.rows
 		);
 		if (!coords) {
 			return;
 		}
 
-		return { x: coords[0], y: coords[1] + this._bufferService.buffer.ydisp };
+		return { x: coords[0], y: coords[1] + this._terminal.bufferService.buffer.ydisp };
 	}
 
 	private _createLinkUnderlineEvent(
@@ -493,7 +496,7 @@ export class Linkifier {
 		y2: number,
 		fg: number | undefined
 	): ILinkifierEvent {
-		return { x1, y1, x2, y2, cols: this._bufferService.cols, fg };
+		return { x1, y1, x2, y2, cols: this._terminal.bufferService.cols, fg };
 	}
 }
 

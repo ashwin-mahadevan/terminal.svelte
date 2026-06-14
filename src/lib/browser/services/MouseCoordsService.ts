@@ -6,13 +6,8 @@
 import { getWindow } from '$lib/browser/Dom';
 import { getCoords, getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
-import type { RenderService } from '$lib/browser/services/RenderService';
-
 export class MouseCoordsService {
-	constructor(
-		private readonly _terminal: CoreBrowserTerminal,
-		private readonly _renderService: RenderService
-	) {}
+	constructor(private readonly _terminal: CoreBrowserTerminal) {}
 
 	public getCoords(
 		event: { clientX: number; clientY: number },
@@ -28,8 +23,8 @@ export class MouseCoordsService {
 			colCount,
 			rowCount,
 			this._terminal.hasValidCharSize,
-			this._renderService.dimensions.css.cell.width,
-			this._renderService.dimensions.css.cell.height,
+			this._terminal.renderService!.dimensions.css.cell.width,
+			this._terminal.renderService!.dimensions.css.cell.height,
 			isSelection
 		);
 	}
@@ -44,15 +39,15 @@ export class MouseCoordsService {
 		}
 		coords[0] = Math.min(
 			Math.max(coords[0], 0),
-			this._renderService.dimensions.css.canvas.width - 1
+			this._terminal.renderService!.dimensions.css.canvas.width - 1
 		);
 		coords[1] = Math.min(
 			Math.max(coords[1], 0),
-			this._renderService.dimensions.css.canvas.height - 1
+			this._terminal.renderService!.dimensions.css.canvas.height - 1
 		);
 		return {
-			col: Math.floor(coords[0] / this._renderService.dimensions.css.cell.width),
-			row: Math.floor(coords[1] / this._renderService.dimensions.css.cell.height),
+			col: Math.floor(coords[0] / this._terminal.renderService!.dimensions.css.cell.width),
+			row: Math.floor(coords[1] / this._terminal.renderService!.dimensions.css.cell.height),
 			x: Math.floor(coords[0]),
 			y: Math.floor(coords[1])
 		};

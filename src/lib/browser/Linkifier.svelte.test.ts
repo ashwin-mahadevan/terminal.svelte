@@ -58,13 +58,15 @@ describe('Linkifier2', () => {
 	it('onShowLinkUnderline event range is correct', () =>
 		new Promise<void>((done) => {
 			const bufferService = createMockBufferService(100, 10);
-			const linkifier = new TestLinkifier2(
-				document.createElement('div'),
-				null!,
-				null!,
+			const linkifier = new TestLinkifier2({
+				screenElement: document.createElement('div'),
+				mouseCoordsService: null,
+				renderService: null,
 				bufferService,
-				new LinkProviderService()
-			);
+				linkProviderService: new LinkProviderService()
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} as any);
 			linkifier.currentLink = {
 				link,
 				state: {
@@ -92,13 +94,15 @@ describe('Linkifier2', () => {
 	it('onHideLinkUnderline event range is correct', () =>
 		new Promise<void>((done) => {
 			const bufferService = createMockBufferService(100, 10);
-			const linkifier = new TestLinkifier2(
-				document.createElement('div'),
-				null!,
-				null!,
+			const linkifier = new TestLinkifier2({
+				screenElement: document.createElement('div'),
+				mouseCoordsService: null,
+				renderService: null,
 				bufferService,
-				new LinkProviderService()
-			);
+				linkProviderService: new LinkProviderService()
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} as any);
 			linkifier.currentLink = {
 				link,
 				state: {
@@ -126,13 +130,15 @@ describe('Linkifier2', () => {
 	it('onShowLinkUnderline event range is correct for wrapped links', () =>
 		new Promise<void>((done) => {
 			const bufferService = createMockBufferService(100, 10);
-			const linkifier = new TestLinkifier2(
-				document.createElement('div'),
-				null!,
-				null!,
+			const linkifier = new TestLinkifier2({
+				screenElement: document.createElement('div'),
+				mouseCoordsService: null,
+				renderService: null,
 				bufferService,
-				new LinkProviderService()
-			);
+				linkProviderService: new LinkProviderService()
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} as any);
 			linkifier.currentLink = {
 				link,
 				state: {
@@ -160,13 +166,15 @@ describe('Linkifier2', () => {
 	it('onHideLinkUnderline event range is correct for wrapped links', () =>
 		new Promise<void>((done) => {
 			const bufferService = createMockBufferService(100, 10);
-			const linkifier = new TestLinkifier2(
-				document.createElement('div'),
-				null!,
-				null!,
+			const linkifier = new TestLinkifier2({
+				screenElement: document.createElement('div'),
+				mouseCoordsService: null,
+				renderService: null,
 				bufferService,
-				new LinkProviderService()
-			);
+				linkProviderService: new LinkProviderService()
+				// TODO: Fix this upstream type error.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} as any);
 			linkifier.currentLink = {
 				link,
 				state: {

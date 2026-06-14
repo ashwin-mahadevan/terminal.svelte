@@ -11,7 +11,6 @@ import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserServic
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
-import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import { LegacyEmitter } from '$lib/common/Event';
 import type { DomRenderer } from '../renderer/dom/DomRenderer';
@@ -55,10 +54,7 @@ export class RenderService {
 	private readonly _onRefreshRequest = new LegacyEmitter<{ start: number; end: number }>();
 	public readonly onRefreshRequest = this._onRefreshRequest.event;
 
-	private _rowCount: number = 0;
-	private readonly _optionsService: OptionsService;
-	private readonly _coreService: CoreService;
-	private readonly _coreBrowserService: CoreBrowserService;
+	private readonly _terminal: CoreBrowserTerminal;
 
 	private _dprChangeListener!: IDisposable;
 	private _bufferResizeListener!: IDisposable;
@@ -77,72 +73,78 @@ export class RenderService {
 	}
 
 	constructor(terminal: CoreBrowserTerminal) {
-		const bufferService = terminal.bufferService;
-		const decorationService = terminal.decorationService;
-		const themeService = terminal.themeService!;
-		const screenElement = terminal.screenElement!;
-		this._rowCount = bufferService.rows;
-		this._optionsService = terminal.optionsService;
-		this._coreService = terminal.coreService;
-		this._coreBrowserService = terminal.coreBrowserService!;
+		this._terminal = terminal;
 
 		this._pausedResizeTask = new DebouncedIdleTask();
 
 		this._renderDebouncer = new RenderDebouncer(
 			(start, end) => this._renderRows(start, end),
-			this._coreBrowserService
+			this._terminal.coreBrowserService!
 		);
 
 		this._syncOutputHandler = new SynchronizedOutputHandler(
-			this._coreBrowserService,
-			this._coreService,
+			this._terminal.coreBrowserService!,
+			this._terminal.coreService,
 			() => this._fullRefresh()
 		);
 
-		this._dprChangeListener = this._coreBrowserService.onDprChange(() =>
+		this._dprChangeListener = this._terminal.coreBrowserService!.onDprChange(() =>
 			this.handleDevicePixelRatioChange()
 		);
 
-		this._bufferResizeListener = bufferService.onResize(() => this._fullRefresh());
-		this._bufferActivateListener = bufferService.buffers.onBufferActivate(() =>
+		this._bufferResizeListener = this._terminal.bufferService.onResize(() => this._fullRefresh());
+		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() =>
 			this._renderer.value?.clear()
 		);
-		this._optionChangeListener = this._optionsService.onOptionChange(() =>
+		this._optionChangeListener = this._terminal.optionsService.onOptionChange(() =>
 			this._handleOptionsChanged()
 		);
-		this._charSizeChangeListener = terminal.onCharSizeChange(() => this.handleCharSizeChanged());
+		this._charSizeChangeListener = this._terminal.onCharSizeChange(() =>
+			this.handleCharSizeChanged()
+		);
 
 		// Do a full refresh whenever any decoration is added or removed. This may not actually result
 		// in changes but since decorations should be used sparingly or added/removed all in the same
 		// frame this should have minimal performance impact.
-		this._decorationRegisteredListener = decorationService.onDecorationRegistered(() =>
-			this._fullRefresh()
+		this._decorationRegisteredListener = this._terminal.decorationService.onDecorationRegistered(
+			() => this._fullRefresh()
 		);
-		this._decorationRemovedListener = decorationService.onDecorationRemoved(() =>
+		this._decorationRemovedListener = this._terminal.decorationService.onDecorationRemoved(() =>
 			this._fullRefresh()
 		);
 
 		// Clear the renderer when the a change that could affect glyphs occurs
-		this._glyphOptionChangeListener = this._optionsService.onMultipleOptionChange(
+		this._glyphOptionChangeListener = this._terminal.optionsService.onMultipleOptionChange(
 			['drawBoldTextInBrightColors', 'fontWeight', 'fontWeightBold', 'minimumContrastRatio'],
 			() => {
 				this.clear();
-				this.handleResize(bufferService.cols, bufferService.rows);
+				this.handleResize(this._terminal.bufferService.cols, this._terminal.bufferService.rows);
 				this._fullRefresh();
 			}
 		);
 
 		// Refresh the cursor line when the cursor changes
-		this._cursorOptionChangeListener = this._optionsService.onMultipleOptionChange(
+		this._cursorOptionChangeListener = this._terminal.optionsService.onMultipleOptionChange(
 			['cursorBlink', 'cursorStyle'],
-			() => this.refreshRows(bufferService.buffer.y, bufferService.buffer.y, undefined, true)
+			() =>
+				this.refreshRows(
+					this._terminal.bufferService.buffer.y,
+					this._terminal.bufferService.buffer.y,
+					undefined,
+					true
+				)
 		);
 
-		this._themeChangeListener = themeService.onChangeColors(() => this._fullRefresh());
+		this._themeChangeListener = this._terminal.themeService!.onChangeColors(() =>
+			this._fullRefresh()
+		);
 
-		this._registerIntersectionObserver(this._coreBrowserService.window, screenElement);
-		this._windowChangeListener = this._coreBrowserService.onWindowChange((w) =>
-			this._registerIntersectionObserver(w, screenElement)
+		this._registerIntersectionObserver(
+			this._terminal.coreBrowserService!.window,
+			this._terminal.screenElement!
+		);
+		this._windowChangeListener = this._terminal.coreBrowserService!.onWindowChange((w) =>
+			this._registerIntersectionObserver(w, this._terminal.screenElement!)
 		);
 	}
 
@@ -196,7 +198,7 @@ export class RenderService {
 
 		if (!this._isPaused && this._needsFullRefresh) {
 			this._pausedResizeTask.flush();
-			this.refreshRows(0, this._rowCount - 1);
+			this.refreshRows(0, this._terminal.bufferService.rows - 1);
 			this._needsFullRefresh = false;
 		}
 	}
@@ -212,7 +214,7 @@ export class RenderService {
 			return;
 		}
 
-		if (this._coreService.decPrivateModes.synchronizedOutput) {
+		if (this._terminal.coreService.decPrivateModes.synchronizedOutput) {
 			this._syncOutputHandler.bufferRows(start, end);
 			return;
 		}
@@ -230,7 +232,7 @@ export class RenderService {
 		if (sync) {
 			this._renderRows(start, end);
 		} else {
-			this._renderDebouncer.refresh(start, end, this._rowCount);
+			this._renderDebouncer.refresh(start, end, this._terminal.bufferService.rows);
 		}
 	}
 
@@ -241,7 +243,7 @@ export class RenderService {
 
 		// Skip rendering if synchronized output mode is enabled. This check must happen here
 		// (in addition to refreshRows) to handle renders that were queued before the mode was enabled.
-		if (this._coreService.decPrivateModes.synchronizedOutput) {
+		if (this._terminal.coreService.decPrivateModes.synchronizedOutput) {
 			this._syncOutputHandler.bufferRows(start, end);
 			return;
 		}
@@ -249,8 +251,8 @@ export class RenderService {
 		// Since this is debounced, a resize event could have happened between the time a refresh was
 		// requested and when this triggers. Clamp the values of start and end to ensure they're valid
 		// given the current viewport state.
-		start = Math.min(start, this._rowCount - 1);
-		end = Math.min(end, this._rowCount - 1);
+		start = Math.min(start, this._terminal.bufferService.rows - 1);
+		end = Math.min(end, this._terminal.bufferService.rows - 1);
 
 		// Render
 		this._renderer.value.renderRows(start, end);
@@ -273,8 +275,7 @@ export class RenderService {
 		this._isNextRenderRedrawOnly = true;
 	}
 
-	public resize(cols: number, rows: number): void {
-		this._rowCount = rows;
+	public resize(): void {
 		this._fireOnCanvasResize();
 	}
 
@@ -282,7 +283,7 @@ export class RenderService {
 		if (!this._renderer.value) {
 			return;
 		}
-		this.refreshRows(0, this._rowCount - 1);
+		this.refreshRows(0, this._terminal.bufferService.rows - 1);
 		this._fireOnCanvasResize();
 	}
 
@@ -324,7 +325,7 @@ export class RenderService {
 		if (this._isPaused) {
 			this._needsFullRefresh = true;
 		} else {
-			this.refreshRows(0, this._rowCount - 1);
+			this.refreshRows(0, this._terminal.bufferService.rows - 1);
 		}
 	}
 
@@ -342,7 +343,7 @@ export class RenderService {
 			return;
 		}
 		this._renderer.value.handleDevicePixelRatioChange();
-		this.refreshRows(0, this._rowCount - 1);
+		this.refreshRows(0, this._terminal.bufferService.rows - 1);
 	}
 
 	public handleResize(cols: number, rows: number): void {

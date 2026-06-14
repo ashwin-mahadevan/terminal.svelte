@@ -3,9 +3,7 @@
  * @license MIT
  */
 
-import type { RenderService } from '$lib/browser/services/RenderService';
-import type { BufferService } from '$lib/common/services/BufferService';
-import type { CoreService } from '$lib/common/services/CoreService';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { C0 } from '$lib/common/data/EscapeSequences';
 
 interface IPosition {
@@ -55,13 +53,7 @@ export class CompositionHelper {
 	 */
 	private _textareaChangeTimer?: number;
 
-	constructor(
-		private readonly _textarea: HTMLTextAreaElement,
-		private readonly _compositionView: HTMLElement,
-		private readonly _bufferService: BufferService,
-		private readonly _coreService: CoreService,
-		private readonly _renderService: RenderService
-	) {
+	constructor(private readonly _terminal: CoreBrowserTerminal) {
 		this._isComposing = false;
 		this._isSendingComposition = false;
 		this._compositionPosition = { start: 0, end: 0 };
@@ -76,14 +68,16 @@ export class CompositionHelper {
 		this._isComposing = true;
 		// It's important to use the selection here instead of textarea length to avoid conflicts with
 		// screen reader mode
-		const start = this._textarea.selectionStart ?? this._textarea.value.length;
-		const end = this._textarea.selectionEnd ?? start;
+		const start = this._terminal.textarea!.selectionStart ?? this._terminal.textarea!.value.length;
+		const end = this._terminal.textarea!.selectionEnd ?? start;
 		this._compositionPosition.start = Math.min(start, end);
 		this._compositionPosition.end = Math.max(start, end);
-		this._compositionSuffix = this._textarea.value.substring(this._compositionPosition.end);
-		this._compositionView.textContent = '';
+		this._compositionSuffix = this._terminal.textarea!.value.substring(
+			this._compositionPosition.end
+		);
+		this._terminal.compositionView!.textContent = '';
 		this._dataAlreadySent = '';
-		this._compositionView.classList.add('active');
+		this._terminal.compositionView!.classList.add('active');
 	}
 
 	/**
@@ -93,10 +87,10 @@ export class CompositionHelper {
 	public compositionupdate(ev: Pick<CompositionEvent, 'data'>): void {
 		// Mark text as LTR, direction=rtl is used in CSS so the end of the text is followed for long
 		// compositions
-		this._compositionView.textContent = `\u200E${ev.data}\u200E`;
+		this._terminal.compositionView!.textContent = `\u200E${ev.data}\u200E`;
 		this.updateCompositionElements();
 		setTimeout(() => {
-			const end = this._textarea.selectionEnd ?? this._textarea.value.length;
+			const end = this._terminal.textarea!.selectionEnd ?? this._terminal.textarea!.value.length;
 			this._compositionPosition.end = Math.max(this._compositionPosition.start, end);
 		}, 0);
 	}
@@ -149,17 +143,17 @@ export class CompositionHelper {
 	 *   the command is executed.
 	 */
 	private _finalizeComposition(waitForPropagation: boolean): void {
-		this._compositionView.classList.remove('active');
+		this._terminal.compositionView!.classList.remove('active');
 		this._isComposing = false;
 
 		if (!waitForPropagation) {
 			// Cancel any delayed composition send requests and send the input immediately.
 			this._isSendingComposition = false;
-			const input = this._textarea.value.substring(
+			const input = this._terminal.textarea!.value.substring(
 				this._compositionPosition.start,
 				this._compositionPosition.end
 			);
-			this._coreService.triggerDataEvent(input, true);
+			this._terminal.coreService.triggerDataEvent(input, true);
 		} else {
 			// Make a deep copy of the composition position here as a new compositionstart event may
 			// fire before the setTimeout executes.
@@ -189,7 +183,7 @@ export class CompositionHelper {
 					if (this._isComposing) {
 						// Use the start position of the new composition to get the string
 						// if a new composition has started.
-						input = this._textarea.value.substring(
+						input = this._terminal.textarea!.value.substring(
 							currentCompositionPosition.start,
 							this._compositionPosition.start
 						);
@@ -197,7 +191,7 @@ export class CompositionHelper {
 						// Keep support for non-composition characters typed immediately after composition end
 						// while avoiding re-sending the trailing text that was already present
 						// before composition started.
-						const value = this._textarea.value;
+						const value = this._terminal.textarea!.value;
 						const valueEnd =
 							currentCompositionSuffix.length > 0 && value.endsWith(currentCompositionSuffix)
 								? value.length - currentCompositionSuffix.length
@@ -208,7 +202,7 @@ export class CompositionHelper {
 						);
 					}
 					if (input.length > 0) {
-						this._coreService.triggerDataEvent(input, true);
+						this._terminal.coreService.triggerDataEvent(input, true);
 					}
 				}
 			}, 0);
@@ -225,23 +219,23 @@ export class CompositionHelper {
 		if (this._textareaChangeTimer) {
 			return;
 		}
-		const oldValue = this._textarea.value;
+		const oldValue = this._terminal.textarea!.value;
 		this._textareaChangeTimer = window.setTimeout(() => {
 			this._textareaChangeTimer = undefined;
 			// Ignore if a composition has started since the timeout
 			if (!this._isComposing) {
-				const newValue = this._textarea.value;
+				const newValue = this._terminal.textarea!.value;
 
 				const diff = newValue.replace(oldValue, '');
 
 				this._dataAlreadySent = diff;
 
 				if (newValue.length > oldValue.length) {
-					this._coreService.triggerDataEvent(diff, true);
+					this._terminal.coreService.triggerDataEvent(diff, true);
 				} else if (newValue.length < oldValue.length) {
-					this._coreService.triggerDataEvent(`${C0.DEL}`, true);
+					this._terminal.coreService.triggerDataEvent(`${C0.DEL}`, true);
 				} else if (newValue.length === oldValue.length && newValue !== oldValue) {
-					this._coreService.triggerDataEvent(newValue, true);
+					this._terminal.coreService.triggerDataEvent(newValue, true);
 				}
 			}
 		}, 0);
@@ -258,35 +252,41 @@ export class CompositionHelper {
 			return;
 		}
 
-		if (this._bufferService.buffer.isCursorInViewport) {
-			const cursorX = Math.min(this._bufferService.buffer.x, this._bufferService.cols - 1);
+		if (this._terminal.bufferService.buffer.isCursorInViewport) {
+			const cursorX = Math.min(
+				this._terminal.bufferService.buffer.x,
+				this._terminal.bufferService.cols - 1
+			);
 
-			const cellHeight = this._renderService.dimensions.css.cell.height;
+			const cellHeight = this._terminal.renderService!.dimensions.css.cell.height;
 			const cursorTop =
-				this._bufferService.buffer.y * this._renderService.dimensions.css.cell.height;
-			const cursorLeft = cursorX * this._renderService.dimensions.css.cell.width;
+				this._terminal.bufferService.buffer.y *
+				this._terminal.renderService!.dimensions.css.cell.height;
+			const cursorLeft = cursorX * this._terminal.renderService!.dimensions.css.cell.width;
 
-			this._compositionView.style.left = cursorLeft + 'px';
-			this._compositionView.style.top = cursorTop + 'px';
-			this._compositionView.style.height = cellHeight + 'px';
-			this._compositionView.style.lineHeight = cellHeight + 'px';
+			this._terminal.compositionView!.style.left = cursorLeft + 'px';
+			this._terminal.compositionView!.style.top = cursorTop + 'px';
+			this._terminal.compositionView!.style.height = cellHeight + 'px';
+			this._terminal.compositionView!.style.lineHeight = cellHeight + 'px';
 			// Font is inherited from the terminal's CSS font.
 			// Limit the composition view width to the space between the cursor and
 			// the terminal's right edge, preventing it from overflowing the terminal.
 			const maxWidth =
-				this._bufferService.cols * this._renderService.dimensions.css.cell.width - cursorLeft;
-			this._compositionView.style.maxWidth = maxWidth + 'px';
-			this._compositionView.style.overflow = 'hidden';
-			this._compositionView.style.direction = 'rtl';
+				this._terminal.bufferService.cols *
+					this._terminal.renderService!.dimensions.css.cell.width -
+				cursorLeft;
+			this._terminal.compositionView!.style.maxWidth = maxWidth + 'px';
+			this._terminal.compositionView!.style.overflow = 'hidden';
+			this._terminal.compositionView!.style.direction = 'rtl';
 			// Sync the textarea to the exact position of the composition view so the IME knows where the
 			// text is.
-			const compositionViewBounds = this._compositionView.getBoundingClientRect();
-			this._textarea.style.left = cursorLeft + 'px';
-			this._textarea.style.top = cursorTop + 'px';
+			const compositionViewBounds = this._terminal.compositionView!.getBoundingClientRect();
+			this._terminal.textarea!.style.left = cursorLeft + 'px';
+			this._terminal.textarea!.style.top = cursorTop + 'px';
 			// Ensure the text area is at least 1x1, otherwise certain IMEs may break
-			this._textarea.style.width = Math.max(compositionViewBounds.width, 1) + 'px';
-			this._textarea.style.height = Math.max(compositionViewBounds.height, 1) + 'px';
-			this._textarea.style.lineHeight = compositionViewBounds.height + 'px';
+			this._terminal.textarea!.style.width = Math.max(compositionViewBounds.width, 1) + 'px';
+			this._terminal.textarea!.style.height = Math.max(compositionViewBounds.height, 1) + 'px';
+			this._terminal.textarea!.style.lineHeight = compositionViewBounds.height + 'px';
 		}
 
 		if (!dontRecurse) {

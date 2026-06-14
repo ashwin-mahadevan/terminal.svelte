@@ -19,7 +19,6 @@ import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { RenderService } from '$lib/browser/services/RenderService';
-import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
 
 // NOTE: $lib/browser/TestUtils cannot be imported here because its inline
@@ -57,24 +56,20 @@ class TestSelectionService extends SelectionService {
 		renderService: RenderService,
 		public readonly mouseStateService: MockMouseStateService
 	) {
-		super(
-			null!,
-			null!,
-			null!,
+		super({
+			element: null,
+			screenElement: null,
+			linkifier: null,
 			bufferService,
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			new MockCoreService() as any,
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			new MockMouseService() as any,
+			coreService: new MockCoreService(),
+			mouseService: new MockMouseService(),
 			optionsService,
-			mouseStateService as unknown as MouseStateService,
+			mouseStateService,
 			renderService,
+			coreBrowserService: new MockCoreBrowserService()
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			new MockCoreBrowserService() as any
-		);
+		} as any);
 	}
 
 	public get model(): SelectionModel {
