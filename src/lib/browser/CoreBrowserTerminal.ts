@@ -67,7 +67,6 @@ import { AccessibilityManager } from './AccessibilityManager';
 import { Linkifier } from './Linkifier';
 import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
-import { addDisposableListener } from '$lib/browser/Dom';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 
 export class CoreBrowserTerminal extends CoreTerminal {
@@ -419,6 +418,48 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._compositionHelper!.compositionend();
 	};
 
+	public _copy = (event: ClipboardEvent): void => {
+		if (!this.selectionService?.hasSelection) {
+			return;
+		}
+		copyHandler(event, this.selectionService!);
+	};
+
+	public _paste = (event: ClipboardEvent): void => {
+		handlePasteEvent(event, this.textarea!, this.coreService, this.optionsService);
+	};
+
+	public _mouseDown = (event: MouseEvent): void => {
+		if (Browser.isFirefox && event.button === 2) {
+			rightClickHandler(
+				event,
+				this.textarea!,
+				this.screenElement!,
+				this.selectionService!,
+				this.options.rightClickSelectsWord
+			);
+		}
+		this.selectionService!.handleMouseDown(event);
+	};
+
+	public _contextMenu = (event: MouseEvent): void => {
+		if (!Browser.isFirefox) {
+			rightClickHandler(
+				event,
+				this.textarea!,
+				this.screenElement!,
+				this.selectionService!,
+				this.options.rightClickSelectsWord
+			);
+		}
+	};
+
+	public _auxClick = (event: MouseEvent): void => {
+		if (Browser.isLinux && event.button === 1) {
+			moveTextAreaUnderMouseCursor(event, this.textarea!, this.screenElement!);
+		}
+	};
+
 	private _syncTextArea(): void {
 		if (
 			!this.textarea ||
@@ -452,78 +493,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	}
 
 	/**
-	 * Initialize default behavior
-	 */
-	private _initGlobal(): void {
-		this._store.add(
-			this.renderService!.onRenderedViewportChange(() =>
-				this._compositionHelper!.updateCompositionElements()
-			)
-		);
-
-		// Bind clipboard functionality
-		this._store.add(
-			addDisposableListener(this.element!, 'copy', (event: ClipboardEvent) => {
-				// If mouse events are active it means the selection manager is disabled and
-				// copy should be handled by the host program.
-				if (!this.selectionService?.hasSelection) {
-					return;
-				}
-				copyHandler(event, this.selectionService!);
-			})
-		);
-		const pasteHandlerWrapper = (event: ClipboardEvent): void =>
-			handlePasteEvent(event, this.textarea!, this.coreService, this.optionsService);
-		this._store.add(addDisposableListener(this.textarea!, 'paste', pasteHandlerWrapper));
-		this._store.add(addDisposableListener(this.element!, 'paste', pasteHandlerWrapper));
-
-		// Handle right click context menus
-		if (Browser.isFirefox) {
-			// Firefox doesn't appear to fire the contextmenu event on right click
-			this._store.add(
-				addDisposableListener(this.element!, 'mousedown', (event: MouseEvent) => {
-					if (event.button === 2) {
-						rightClickHandler(
-							event,
-							this.textarea!,
-							this.screenElement!,
-							this.selectionService!,
-							this.options.rightClickSelectsWord
-						);
-					}
-				})
-			);
-		} else {
-			this._store.add(
-				addDisposableListener(this.element!, 'contextmenu', (event: MouseEvent) => {
-					rightClickHandler(
-						event,
-						this.textarea!,
-						this.screenElement!,
-						this.selectionService!,
-						this.options.rightClickSelectsWord
-					);
-				})
-			);
-		}
-
-		// Move the textarea under the cursor when middle clicking on Linux to ensure
-		// middle click to paste selection works. This only appears to work in Chrome
-		// at the time is writing.
-		if (Browser.isLinux) {
-			// Use auxclick event over mousedown the latter doesn't seem to work. Note
-			// that the regular click event doesn't fire for the middle mouse button.
-			this._store.add(
-				addDisposableListener(this.element!, 'auxclick', (event: MouseEvent) => {
-					if (event.button === 1) {
-						moveTextAreaUnderMouseCursor(event, this.textarea!, this.screenElement!);
-					}
-				})
-			);
-		}
-	}
-
-	/**
 	 * Opens the terminal within an element.
 	 *
 	 * @param parent The element to create the terminal within.
@@ -547,11 +516,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this.compositionView = compositionView;
 		this.scrollableContainer = scrollableContainer;
 
-		this._store.add(
-			addDisposableListener(this.screenElement, 'mousemove', (ev: MouseEvent) =>
-				this.updateCursorStyle(ev)
-			)
-		);
 		textarea.setAttribute('aria-label', Strings.promptLabel.get());
 		if (!Browser.isChromeOS) {
 			// ChromeVox on ChromeOS does not like this. See
@@ -682,12 +646,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				this.renderService
 			)
 		);
-		this._store.add(
-			addDisposableListener(this.element, 'mousedown', (e: MouseEvent) =>
-				this.selectionService!.handleMouseDown(e)
-			)
-		);
-
 		// apply mouse event classes set by escape codes before terminal was attached
 		if (this.mouseStateService.areMouseEventsActive && !this.options.mouseEventsRequireAlt) {
 			this.selectionService.disable();
@@ -741,8 +699,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		// Setup loop that draws to screen
 		this.refresh(0, this.bufferService.rows - 1);
 
-		// Initialize global actions that need to be taken on the document.
-		this._initGlobal();
+		this._store.add(
+			this.renderService!.onRenderedViewportChange(() =>
+				this._compositionHelper!.updateCompositionElements()
+			)
+		);
 
 		// Listen for mouse events and translate
 		// them into terminal mouse protocols.
@@ -771,13 +732,13 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	/**
 	 * Change the cursor style for different selection modes
 	 */
-	public updateCursorStyle(ev: KeyboardEvent | MouseEvent): void {
+	public updateCursorStyle = (ev: KeyboardEvent | MouseEvent): void => {
 		if (this.selectionService?.shouldColumnSelect(ev)) {
 			this.element!.classList.add('column-select');
 		} else {
 			this.element!.classList.remove('column-select');
 		}
-	}
+	};
 
 	/**
 	 * Display the cursor element

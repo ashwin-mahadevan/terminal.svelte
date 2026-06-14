@@ -212,9 +212,14 @@
 	bind:this={element}
 	bind:clientWidth
 	bind:clientHeight
+	oncopy={terminal._copy}
+	onpaste={terminal._paste}
+	onmousedown={terminal._mouseDown}
+	oncontextmenu={terminal._contextMenu}
+	onauxclick={terminal._auxClick}
 >
 	<div bind:this={scrollableEl}>
-		<div class="xterm-screen" bind:this={screenEl}>
+		<div class="xterm-screen" bind:this={screenEl} onmousemove={terminal.updateCursorStyle}>
 			<div class="xterm-helpers" bind:this={helpersEl}>
 				<textarea
 					class="xterm-helper-textarea"
@@ -231,6 +236,7 @@
 					oncompositionupdate={terminal._compositionUpdate}
 					oncompositionend={terminal._compositionEnd}
 					oninputcapture={terminal._inputEvent}
+					onpaste={terminal._paste}
 					onfocus={terminal._handleTextAreaFocus}
 					onblur={terminal._handleTextAreaBlur}
 				></textarea>
