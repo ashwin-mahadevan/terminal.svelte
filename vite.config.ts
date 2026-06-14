@@ -67,6 +67,7 @@ export default defineConfig({
 							height: 1080
 						}
 					},
+					setupFiles: ['src/test/setup.ts'],
 					include: ['src/lib/**/*.svelte.test.ts']
 				}
 			},
