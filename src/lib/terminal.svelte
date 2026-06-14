@@ -53,7 +53,7 @@
 
 	$effect(() => {
 		if (!onbell) return;
-		const disposable = terminal.onBell(onbell);
+		const disposable = terminal.inputHandler.onRequestBell(onbell);
 		return () => disposable.dispose();
 	});
 
@@ -67,9 +67,14 @@
 				: (terminal.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
 		const cols = Math.max(
 			2,
-			Math.floor((clientWidth - scrollbarWidth) / terminal.dimensions!.css.cell.width)
+			Math.floor(
+				(clientWidth - scrollbarWidth) / terminal.renderService!.dimensions!.css.cell.width
+			)
 		);
-		const rows = Math.max(1, Math.floor(clientHeight / terminal!.dimensions!.css.cell.height));
+		const rows = Math.max(
+			1,
+			Math.floor(clientHeight / terminal!.renderService!.dimensions!.css.cell.height)
+		);
 		terminal.resize(cols, rows);
 		emulator.columns = cols;
 		emulator.rows = rows;
@@ -85,7 +90,7 @@
 
 	// http(s) link detection, inlined from the upstream WebLinksAddon.
 	$effect(() => {
-		const disposable = terminal.registerLinkProvider(
+		const disposable = terminal.linkProviderService.registerLinkProvider(
 			new WebLinkProvider(terminal, strictUrlRegex, handleLink)
 		);
 		return () => disposable.dispose();

@@ -57,9 +57,6 @@ export abstract class CoreTerminal {
 	private _writeBuffer: WriteBuffer;
 	private _windowsWrappingHeuristics = new MutableDisposable();
 
-	protected readonly _onRender = new LegacyEmitter<{ start: number; end: number }>();
-	public readonly onRender = this._onRender.event;
-
 	/**
 	 * Internally we track the source of the scroll but this is meaningless outside the library so
 	 * it's filtered out.
@@ -138,7 +135,6 @@ export abstract class CoreTerminal {
 		this.coreService.dispose();
 		this.mouseStateService.dispose();
 		this.unicodeService.dispose();
-		this._onRender.dispose();
 		this._onScroll.dispose();
 		this._onScrollApi?.dispose();
 	}

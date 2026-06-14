@@ -21,10 +21,8 @@
  *   http://linux.die.net/man/7/urxvt
  */
 
-import type { ILinkProvider } from '$lib/browser/services/Services';
 import type { ITerminalOptions } from '$lib/common/services/Services';
-import type { IDecoration, IDecorationOptions, IModes, IParser } from '$lib/xterm';
-import type { IRenderDimensions as IRenderDimensionsApi } from '$lib/browser/renderer/shared/Types';
+import type { IModes, IParser } from '$lib/xterm';
 import { ParserApi } from '$lib/common/public/ParserApi';
 import {
 	copyHandler,
@@ -38,9 +36,7 @@ import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
 import type {
 	CharacterJoinerHandler,
 	CustomKeyEventHandler,
-	CustomWheelEventHandler,
 	IBrowser,
-	IBufferRange,
 	ICompositionHelper
 } from '$lib/browser/Types';
 import { Viewport } from '$lib/browser/Viewport';
@@ -64,7 +60,6 @@ import type { IColorEvent } from '$lib/common/Types';
 import { ColorRequestType, KeyboardResultType, SpecialColorIndex } from '$lib/common/Types';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import type { Buffer } from '$lib/common/buffer/Buffer';
-import type { Marker } from '$lib/common/buffer/Marker';
 import { C0, C1ESCAPED } from '$lib/common/data/EscapeSequences';
 import { toRgbString } from '$lib/common/input/XParseColor';
 import { DecorationService } from '$lib/common/services/DecorationService';
@@ -99,18 +94,18 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _customKeyEventHandler: CustomKeyEventHandler | undefined;
 
 	// Browser services
-	private readonly _decorationService: DecorationService;
-	private readonly _keyboardService: KeyboardService;
-	private readonly _linkProviderService: LinkProviderService;
+	public readonly decorationService: DecorationService;
+	public readonly keyboardService: KeyboardService;
+	public readonly linkProviderService: LinkProviderService;
 
 	// Optional browser services
-	private _coreBrowserService: CoreBrowserService | undefined;
-	private _mouseCoordsService: MouseCoordsService | undefined;
-	private _mouseService: MouseService | undefined;
-	private _renderService: RenderService | undefined;
-	private _themeService: ThemeService | undefined;
-	private _characterJoinerService: CharacterJoinerService | undefined;
-	private _selectionService: SelectionService | undefined;
+	public coreBrowserService: CoreBrowserService | undefined;
+	public mouseCoordsService: MouseCoordsService | undefined;
+	public mouseService: MouseService | undefined;
+	public renderService: RenderService | undefined;
+	public themeService: ThemeService | undefined;
+	public characterJoinerService: CharacterJoinerService | undefined;
+	public selectionService: SelectionService | undefined;
 
 	/**
 	 * Records whether the keydown event has already been handled and triggered a data event, if so
@@ -142,16 +137,8 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _compositionHelper: ICompositionHelper | undefined;
 	private _accessibilityManager = new MutableDisposable<AccessibilityManager>();
 
-	private readonly _onCursorMove = new LegacyEmitter<void>();
-	public readonly onCursorMove = this._onCursorMove.event;
 	private readonly _onKey = new LegacyEmitter<{ key: string; domEvent: KeyboardEvent }>();
 	public readonly onKey = this._onKey.event;
-	private readonly _onSelectionChange = new LegacyEmitter<void>();
-	public readonly onSelectionChange = this._onSelectionChange.event;
-	private readonly _onTitleChange = new LegacyEmitter<string>();
-	public readonly onTitleChange = this._onTitleChange.event;
-	private readonly _onBell = new LegacyEmitter<void>();
-	public readonly onBell = this._onBell.event;
 
 	private _onFocus = new LegacyEmitter<void>();
 	public get onFocus(): IEvent<void> {
@@ -161,20 +148,10 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	public get onBlur(): IEvent<void> {
 		return this._onBlur.event;
 	}
-	private _onA11yCharEmitter = new LegacyEmitter<string>();
-	public get onA11yChar(): IEvent<string> {
-		return this._onA11yCharEmitter.event;
-	}
-	private _onA11yTabEmitter = new LegacyEmitter<number>();
-	public get onA11yTab(): IEvent<number> {
-		return this._onA11yTabEmitter.event;
-	}
 	private _onWillOpen = new LegacyEmitter<HTMLElement>();
 	public get onWillOpen(): IEvent<HTMLElement> {
 		return this._onWillOpen.event;
 	}
-	private readonly _onDimensionsChange = new LegacyEmitter<IRenderDimensionsApi>();
-	public readonly onDimensionsChange = this._onDimensionsChange.event;
 	private readonly _onCharSizeChange = new LegacyEmitter<void>();
 	public readonly onCharSizeChange = this._onCharSizeChange.event;
 
@@ -192,24 +169,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	}
 	public get hasValidCharSize(): boolean {
 		return this._charWidth > 0 && this._charHeight > 0;
-	}
-
-	public get dimensions(): IRenderDimensionsApi | undefined {
-		if (!this._renderService) {
-			return undefined;
-		}
-		const dimensions = this._renderService.dimensions;
-		return {
-			css: {
-				canvas: { ...dimensions.css.canvas },
-				cell: { ...dimensions.css.cell }
-			},
-			device: {
-				canvas: { ...dimensions.device.canvas },
-				cell: { ...dimensions.device.cell },
-				char: { ...dimensions.device.char }
-			}
-		};
 	}
 
 	public readonly parser: IParser = new ParserApi(this);
@@ -273,15 +232,14 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		this._setup();
 
-		this._decorationService = new DecorationService(this.bufferService);
-		this._keyboardService = new KeyboardService(this.coreService, this.optionsService);
-		this._linkProviderService = new LinkProviderService();
-		this._linkProviderService.registerLinkProvider(
+		this.decorationService = new DecorationService(this.bufferService);
+		this.keyboardService = new KeyboardService(this.coreService, this.optionsService);
+		this.linkProviderService = new LinkProviderService();
+		this.linkProviderService.registerLinkProvider(
 			new OscLinkProvider(this.bufferService, this.optionsService, this.oscLinkService)
 		);
 
 		// Setup InputHandler listeners
-		this._store.add(this.inputHandler.onRequestBell(() => this._onBell.fire()));
 		this._store.add(
 			this.inputHandler.onRequestRefreshRows((e) =>
 				this.refresh(e?.start ?? 0, e?.end ?? this.bufferService.rows - 1)
@@ -293,10 +251,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			this.inputHandler.onRequestWindowsOptionsReport((type) => this._reportWindowsOptions(type))
 		);
 		this._store.add(this.inputHandler.onColor((event) => this._handleColorEvent(event)));
-		this._store.add(this.inputHandler.onCursorMove((e) => this._onCursorMove.fire(e)));
-		this._store.add(this.inputHandler.onTitleChange((e) => this._onTitleChange.fire(e)));
-		this._store.add(this.inputHandler.onA11yChar((e) => this._onA11yCharEmitter.fire(e)));
-		this._store.add(this.inputHandler.onA11yTab((e) => this._onA11yTabEmitter.fire(e)));
 
 		// Setup listeners
 
@@ -314,22 +268,15 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		super.dispose();
 		this._linkifier.dispose();
 		this._accessibilityManager.dispose();
-		this._coreBrowserService?.dispose();
-		this._renderService?.dispose();
+		this.coreBrowserService?.dispose();
+		this.renderService?.dispose();
 		this._viewport?.dispose();
-		this._selectionService?.dispose();
+		this.selectionService?.dispose();
 		this._overviewRulerRenderer?.dispose();
-		this._onCursorMove.dispose();
 		this._onKey.dispose();
-		this._onSelectionChange.dispose();
-		this._onTitleChange.dispose();
-		this._onBell.dispose();
 		this._onFocus.dispose();
 		this._onBlur.dispose();
-		this._onA11yCharEmitter.dispose();
-		this._onA11yTabEmitter.dispose();
 		this._onWillOpen.dispose();
-		this._onDimensionsChange.dispose();
 		this._onCharSizeChange.dispose();
 	}
 
@@ -340,7 +287,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 * while an event from OSC 10|110 | 11|111 | 12|112 always contains a single request.
 	 */
 	private _handleColorEvent(event: IColorEvent): void {
-		if (!this._themeService) return;
+		if (!this.themeService) return;
 		for (const req of event) {
 			let acc: 'foreground' | 'background' | 'cursor' | 'ansi';
 			let ident: string;
@@ -368,8 +315,8 @@ export class CoreBrowserTerminal extends CoreTerminal {
 					// eslint-disable-next-line no-case-declarations
 					const colorRgb = color.toColorRGB(
 						acc === 'ansi'
-							? this._themeService.colors.ansi[req.index]
-							: this._themeService.colors[acc]
+							? this.themeService.colors.ansi[req.index]
+							: this.themeService.colors[acc]
 					);
 					this.coreService.triggerDataEvent(
 						`${C0.ESC}]${ident};${toRgbString(colorRgb)}${C1ESCAPED.ST}`
@@ -377,18 +324,18 @@ export class CoreBrowserTerminal extends CoreTerminal {
 					break;
 				case ColorRequestType.SET:
 					if (acc === 'ansi') {
-						this._themeService.modifyColors(
+						this.themeService.modifyColors(
 							(colors) => (colors.ansi[req.index] = channels.toColor(...req.color))
 						);
 					} else {
 						const narrowedAcc = acc;
-						this._themeService.modifyColors(
+						this.themeService.modifyColors(
 							(colors) => (colors[narrowedAcc] = channels.toColor(...req.color))
 						);
 					}
 					break;
 				case ColorRequestType.RESTORE:
-					this._themeService.restoreColor(req.index);
+					this.themeService.restoreColor(req.index);
 					break;
 			}
 		}
@@ -400,9 +347,9 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 * Sends CSI ? 997 ; 1 n for dark mode or CSI ? 997 ; 2 n for light mode.
 	 */
 	private _reportColorScheme(): void {
-		if (!this._themeService) return;
-		const bgLuminance = rgb.relativeLuminance(this._themeService.colors.background.rgba >> 8);
-		const fgLuminance = rgb.relativeLuminance(this._themeService.colors.foreground.rgba >> 8);
+		if (!this.themeService) return;
+		const bgLuminance = rgb.relativeLuminance(this.themeService.colors.background.rgba >> 8);
+		const fgLuminance = rgb.relativeLuminance(this.themeService.colors.foreground.rgba >> 8);
 		// Dark mode = background is darker than foreground (lower luminance)
 		const colorSchemeMode = bgLuminance < fgLuminance ? 1 : 2;
 		this.coreService.triggerDataEvent(`${C0.ESC}[?997;${colorSchemeMode}n`);
@@ -432,11 +379,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 	private _handleScreenReaderModeOptionChange(value: boolean): void {
 		if (value) {
-			if (!this._accessibilityManager.value && this._renderService) {
+			if (!this._accessibilityManager.value && this.renderService) {
 				this._accessibilityManager.value = new AccessibilityManager(
 					this,
-					this._coreBrowserService!,
-					this._renderService
+					this.coreBrowserService!,
+					this.renderService
 				);
 			}
 		} else {
@@ -486,7 +433,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			!this.textarea ||
 			!this.buffer.isCursorInViewport ||
 			this._compositionHelper!.isComposing ||
-			!this._renderService
+			!this.renderService
 		) {
 			return;
 		}
@@ -496,11 +443,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			return;
 		}
 		const cursorX = Math.min(this.buffer.x, this.bufferService.cols - 1);
-		const cellHeight = this._renderService.dimensions.css.cell.height;
+		const cellHeight = this.renderService.dimensions.css.cell.height;
 		const width = bufferLine.getWidth(cursorX);
-		const cellWidth = this._renderService.dimensions.css.cell.width * width;
-		const cursorTop = this.buffer.y * this._renderService.dimensions.css.cell.height;
-		const cursorLeft = cursorX * this._renderService.dimensions.css.cell.width;
+		const cellWidth = this.renderService.dimensions.css.cell.width * width;
+		const cursorTop = this.buffer.y * this.renderService.dimensions.css.cell.height;
+		const cursorLeft = cursorX * this.renderService.dimensions.css.cell.width;
 
 		// Sync the textarea to the exact position of the composition view so the IME knows where the
 		// text is.
@@ -523,10 +470,10 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			addDisposableListener(this.element!, 'copy', (event: ClipboardEvent) => {
 				// If mouse events are active it means the selection manager is disabled and
 				// copy should be handled by the host program.
-				if (!this.hasSelection()) {
+				if (!this.selectionService?.hasSelection) {
 					return;
 				}
-				copyHandler(event, this._selectionService!);
+				copyHandler(event, this.selectionService!);
 			})
 		);
 		const pasteHandlerWrapper = (event: ClipboardEvent): void =>
@@ -544,7 +491,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 							event,
 							this.textarea!,
 							this.screenElement!,
-							this._selectionService!,
+							this.selectionService!,
 							this.options.rightClickSelectsWord
 						);
 					}
@@ -557,7 +504,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 						event,
 						this.textarea!,
 						this.screenElement!,
-						this._selectionService!,
+						this.selectionService!,
 						this.options.rightClickSelectsWord
 					);
 				})
@@ -628,7 +575,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._store.add(
 			addDisposableListener(this.textarea!, 'input', (ev: InputEvent) => this._inputEvent(ev), true)
 		);
-		this._store.add(this.onRender(() => this._compositionHelper!.updateCompositionElements()));
+		this._store.add(
+			this.renderService!.onRenderedViewportChange(() =>
+				this._compositionHelper!.updateCompositionElements()
+			)
+		);
 	}
 
 	/**
@@ -675,7 +626,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		// Register the core browser service before the generic textarea handlers are registered so it
 		// handles them first. Otherwise the renderers may use the wrong focus state.
-		this._coreBrowserService = new CoreBrowserService(
+		this.coreBrowserService = new CoreBrowserService(
 			textarea,
 			parent.ownerDocument.defaultView ?? window,
 			// Force unsafe null in node.js environment for tests
@@ -689,67 +640,51 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		);
 		this._store.add(addDisposableListener(textarea, 'blur', () => this._handleTextAreaBlur()));
 
-		this._themeService = new ThemeService(this.optionsService);
+		this.themeService = new ThemeService(this.optionsService);
 
 		// CSI ? 996 n - color scheme query (https://contour-terminal.org/vt-extensions/color-palette-update-notifications/)
 		this._store.add(this.inputHandler.onRequestColorSchemeQuery(() => this._reportColorScheme()));
 
 		// Emit unsolicited color scheme notification on theme change when DECSET 2031 is enabled
 		this._store.add(
-			this._themeService.onChangeColors(() => {
+			this.themeService.onChangeColors(() => {
 				if (this.coreService.decPrivateModes.colorSchemeUpdates) {
 					this._reportColorScheme();
 				}
 			})
 		);
 
-		this._characterJoinerService = new CharacterJoinerService(this.bufferService);
+		this.characterJoinerService = new CharacterJoinerService(this.bufferService);
 
-		this._renderService = new RenderService(
+		this.renderService = new RenderService(
 			this,
 			this.bufferService.rows,
 			this.screenElement,
 			this.optionsService,
 			this.coreService,
-			this._decorationService,
+			this.decorationService,
 			this.bufferService,
-			this._coreBrowserService,
-			this._themeService
+			this.coreBrowserService,
+			this.themeService
 		);
-		this._store.add(this._renderService.onRenderedViewportChange((e) => this._onRender.fire(e)));
-		this._store.add(
-			this._renderService.onDimensionsChange((e) =>
-				this._onDimensionsChange.fire({
-					css: {
-						canvas: { ...e.css.canvas },
-						cell: { ...e.css.cell }
-					},
-					device: {
-						canvas: { ...e.device.canvas },
-						cell: { ...e.device.cell },
-						char: { ...e.device.char }
-					}
-				})
-			)
-		);
-		this.bufferService.onResize((e) => this._renderService!.resize(e.cols, e.rows));
+		this.bufferService.onResize((e) => this.renderService!.resize(e.cols, e.rows));
 
 		this._compositionHelper = new CompositionHelper(
 			this.textarea,
 			this._compositionView,
 			this.bufferService,
 			this.coreService,
-			this._renderService
+			this.renderService
 		);
 
-		this._mouseCoordsService = new MouseCoordsService(this, this._renderService);
+		this.mouseCoordsService = new MouseCoordsService(this, this.renderService);
 
 		const linkifier = (this._linkifier.value = new Linkifier(
 			this.screenElement,
-			this._mouseCoordsService,
-			this._renderService,
+			this.mouseCoordsService,
+			this.renderService,
 			this.bufferService,
-			this._linkProviderService
+			this.linkProviderService
 		));
 
 		try {
@@ -757,8 +692,8 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		} catch (e) {
 			console.error('onWillOpen handler threw an exception', e);
 		}
-		if (!this._renderService.hasRenderer()) {
-			this._renderService.setRenderer(
+		if (!this.renderService.hasRenderer()) {
+			this.renderService.setRenderer(
 				new DomRenderer(
 					this,
 					this._document!,
@@ -766,43 +701,43 @@ export class CoreBrowserTerminal extends CoreTerminal {
 					this.screenElement!,
 					this._helperContainer!,
 					this.linkifier!,
-					this._characterJoinerService!,
-					this._decorationService,
+					this.characterJoinerService!,
+					this.decorationService,
 					this.optionsService,
 					this.bufferService,
 					this.coreService,
-					this._coreBrowserService!,
-					this._themeService!
+					this.coreBrowserService!,
+					this.themeService!
 				)
 			);
 		}
 
 		this._store.add(
-			this.onCursorMove(() => {
-				this._renderService!.handleCursorMove();
+			this.inputHandler.onCursorMove(() => {
+				this.renderService!.handleCursorMove();
 				this._syncTextArea();
 			})
 		);
 		this._store.add(
 			this.bufferService.onResize(() => {
-				this._renderService!.handleResize(this.bufferService.cols, this.bufferService.rows);
+				this.renderService!.handleResize(this.bufferService.cols, this.bufferService.rows);
 				this._syncTextArea();
 			})
 		);
-		this._store.add(this.onBlur(() => this._renderService!.handleBlur()));
-		this._store.add(this.onFocus(() => this._renderService!.handleFocus()));
+		this._store.add(this.onBlur(() => this.renderService!.handleBlur()));
+		this._store.add(this.onFocus(() => this.renderService!.handleFocus()));
 
 		this._viewport = new Viewport(
 			this.element,
 			this.screenElement,
 			scrollableContainer,
 			this.bufferService,
-			this._coreBrowserService,
+			this.coreBrowserService,
 			this.coreService,
 			this.mouseStateService,
-			this._themeService,
+			this.themeService,
 			this.optionsService,
-			this._renderService
+			this.renderService
 		);
 		this._store.add(
 			this._viewport.onRequestScrollLines((e) => {
@@ -811,41 +746,40 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			})
 		);
 
-		this._selectionService = new SelectionService(
+		this.selectionService = new SelectionService(
 			this.element,
 			this.screenElement,
 			linkifier,
 			this.bufferService,
 			this.coreService,
-			this._mouseCoordsService,
+			this.mouseCoordsService,
 			this.optionsService,
 			this.mouseStateService,
-			this._renderService,
-			this._coreBrowserService
+			this.renderService,
+			this.coreBrowserService
 		);
-		this._mouseService = new MouseService(
-			this._renderService,
-			this._mouseCoordsService,
+		this.mouseService = new MouseService(
+			this.renderService,
+			this.mouseCoordsService,
 			this.mouseStateService,
 			this.coreService,
 			this.bufferService,
 			this.optionsService,
-			this._selectionService,
-			this._coreBrowserService
+			this.selectionService,
+			this.coreBrowserService
 		);
 		this._store.add(
-			this._selectionService.onRequestScrollLines((e) =>
+			this.selectionService.onRequestScrollLines((e) =>
 				this.scrollLines(e.amount, e.suppressScrollEvent)
 			)
 		);
-		this._store.add(this._selectionService.onSelectionChange(() => this._onSelectionChange.fire()));
 		this._store.add(
-			this._selectionService.onRequestRedraw((e) =>
-				this._renderService!.handleSelectionChanged(e.start, e.end, e.columnSelectMode)
+			this.selectionService.onRequestRedraw((e) =>
+				this.renderService!.handleSelectionChanged(e.start, e.end, e.columnSelectMode)
 			)
 		);
 		this._store.add(
-			this._selectionService.onLinuxMouseSelection((text) => {
+			this.selectionService.onLinuxMouseSelection((text) => {
 				// If there's a new selection, put it into the textarea, focus and select it
 				// in order to register it as a selection on the OS. This event is fired
 				// only on Linux to enable middle click to paste selection.
@@ -866,7 +800,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				}
 				return store;
 			})(() => {
-				this._selectionService!.refresh();
+				this.selectionService!.refresh();
 				this._viewport?.queueSync();
 			})
 		);
@@ -875,23 +809,23 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			new BufferDecorationRenderer(
 				this.screenElement,
 				this.bufferService,
-				this._coreBrowserService,
-				this._decorationService,
-				this._renderService
+				this.coreBrowserService,
+				this.decorationService,
+				this.renderService
 			)
 		);
 		this._store.add(
 			addDisposableListener(this.element, 'mousedown', (e: MouseEvent) =>
-				this._selectionService!.handleMouseDown(e)
+				this.selectionService!.handleMouseDown(e)
 			)
 		);
 
 		// apply mouse event classes set by escape codes before terminal was attached
 		if (this.mouseStateService.areMouseEventsActive && !this.options.mouseEventsRequireAlt) {
-			this._selectionService.disable();
+			this.selectionService.disable();
 			this.element.classList.add(MouseEventCssClasses.ENABLE_MOUSE_EVENTS);
 		} else {
-			this._selectionService.enable();
+			this.selectionService.enable();
 			this.element.classList.remove(MouseEventCssClasses.ENABLE_MOUSE_EVENTS);
 		}
 
@@ -900,8 +834,8 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			// ensure the correct order of the dprchange event
 			this._accessibilityManager.value = new AccessibilityManager(
 				this,
-				this._coreBrowserService,
-				this._renderService
+				this.coreBrowserService,
+				this.renderService
 			);
 		}
 		this._store.add(
@@ -917,11 +851,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				this.element!,
 				this.screenElement,
 				this.bufferService,
-				this._decorationService,
-				this._renderService,
+				this.decorationService,
+				this.renderService,
 				this.optionsService,
-				this._themeService,
-				this._coreBrowserService
+				this.themeService,
+				this.coreBrowserService
 			);
 		}
 		this.optionsService.onSpecificOptionChange('scrollbar', (value) => {
@@ -931,11 +865,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 					this.element,
 					this.screenElement,
 					this.bufferService,
-					this._decorationService,
-					this._renderService!,
+					this.decorationService,
+					this.renderService!,
 					this.optionsService,
-					this._themeService!,
-					this._coreBrowserService!
+					this.themeService!,
+					this.coreBrowserService!
 				);
 			}
 		});
@@ -948,7 +882,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		// Listen for mouse events and translate
 		// them into terminal mouse protocols.
-		this._mouseService.bindMouse(
+		this.mouseService.bindMouse(
 			{
 				element: this.element!,
 				screenElement: this.screenElement!,
@@ -967,14 +901,14 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 * @param end The row to end at (between start and this.bufferService.rows - 1).
 	 */
 	public refresh(start: number, end: number, sync: boolean = false): void {
-		this._renderService?.refreshRows(start, end, sync);
+		this.renderService?.refreshRows(start, end, sync);
 	}
 
 	/**
 	 * Change the cursor style for different selection modes
 	 */
 	public updateCursorStyle(ev: KeyboardEvent | MouseEvent): void {
-		if (this._selectionService?.shouldColumnSelect(ev)) {
+		if (this.selectionService?.shouldColumnSelect(ev)) {
 			this.element!.classList.add('column-select');
 		} else {
 			this.element!.classList.remove('column-select');
@@ -1032,102 +966,22 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._customKeyEventHandler = customKeyEventHandler;
 	}
 
-	public attachCustomWheelEventHandler(customWheelEventHandler: CustomWheelEventHandler): void {
-		this.mouseStateService.setCustomWheelEventHandler(customWheelEventHandler);
-	}
-
-	public registerLinkProvider(linkProvider: ILinkProvider) {
-		return this._linkProviderService.registerLinkProvider(linkProvider);
-	}
-
 	public registerCharacterJoiner(handler: CharacterJoinerHandler): number {
-		if (!this._characterJoinerService) {
+		if (!this.characterJoinerService) {
 			throw new Error('Terminal must be opened first');
 		}
-		const joinerId = this._characterJoinerService.register(handler);
+		const joinerId = this.characterJoinerService.register(handler);
 		this.refresh(0, this.bufferService.rows - 1);
 		return joinerId;
 	}
 
 	public deregisterCharacterJoiner(joinerId: number): void {
-		if (!this._characterJoinerService) {
+		if (!this.characterJoinerService) {
 			throw new Error('Terminal must be opened first');
 		}
-		if (this._characterJoinerService.deregister(joinerId)) {
+		if (this.characterJoinerService.deregister(joinerId)) {
 			this.refresh(0, this.bufferService.rows - 1);
 		}
-	}
-
-	public get markers(): Marker[] {
-		return this.buffer.markers;
-	}
-
-	public registerMarker(cursorYOffset: number): Marker {
-		return this.buffer.addMarker(this.buffer.ybase + this.buffer.y + cursorYOffset);
-	}
-
-	public registerDecoration(decorationOptions: IDecorationOptions): IDecoration | undefined {
-		return this._decorationService.registerDecoration(decorationOptions);
-	}
-
-	/**
-	 * Gets whether the terminal has an active selection.
-	 */
-	public hasSelection(): boolean {
-		return this._selectionService ? this._selectionService.hasSelection : false;
-	}
-
-	/**
-	 * Selects text within the terminal.
-	 * @param column The column the selection starts at..
-	 * @param row The row the selection starts at.
-	 * @param length The length of the selection.
-	 */
-	public select(column: number, row: number, length: number): void {
-		this._selectionService!.setSelection(column, row, length);
-	}
-
-	/**
-	 * Gets the terminal's current selection, this is useful for implementing copy
-	 * behavior outside of xterm.js.
-	 */
-	public getSelection(): string {
-		return this._selectionService ? this._selectionService.selectionText : '';
-	}
-
-	public getSelectionPosition(): IBufferRange | undefined {
-		if (!this._selectionService || !this._selectionService.hasSelection) {
-			return undefined;
-		}
-
-		return {
-			start: {
-				x: this._selectionService.selectionStart![0],
-				y: this._selectionService.selectionStart![1]
-			},
-			end: {
-				x: this._selectionService.selectionEnd![0],
-				y: this._selectionService.selectionEnd![1]
-			}
-		};
-	}
-
-	/**
-	 * Clears the current terminal selection.
-	 */
-	public clearSelection(): void {
-		this._selectionService?.clearSelection();
-	}
-
-	/**
-	 * Selects all text within the terminal.
-	 */
-	public selectAll(): void {
-		this._selectionService?.selectAll();
-	}
-
-	public selectLines(start: number, end: number): void {
-		this._selectionService?.selectLines(start, end);
 	}
 
 	/**
@@ -1158,7 +1012,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			this._unprocessedDeadKey = true;
 		}
 
-		const result = this._keyboardService.evaluateKeyDown(event);
+		const result = this.keyboardService.evaluateKeyDown(event);
 
 		this.updateCursorStyle(event);
 
@@ -1174,7 +1028,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 
 		if (result.type === KeyboardResultType.SELECT_ALL) {
-			this.selectAll();
+			this.selectionService?.selectAll();
 		}
 
 		if (this._isThirdLevelShift(this.browser, event)) {
@@ -1195,8 +1049,8 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		// letters cannot be input while caps lock is on. Skip this hack when using kitty protocol
 		// or Win32 input mode as they need to send proper sequences for all key events.
 		if (
-			!this._keyboardService.useKitty &&
-			!this._keyboardService.useWin32InputMode &&
+			!this.keyboardService.useKitty &&
+			!this.keyboardService.useWin32InputMode &&
 			event.key &&
 			!event.ctrlKey &&
 			!event.altKey &&
@@ -1221,7 +1075,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 
 		const wasModifierOnly =
-			this._keyboardService.useWin32InputMode && wasModifierKeyOnlyEvent(event);
+			this.keyboardService.useWin32InputMode && wasModifierKeyOnlyEvent(event);
 		this._onKey.fire({ key: result.key, domEvent: event });
 		this._showCursor();
 		this.coreService.triggerDataEvent(result.key, !wasModifierOnly);
@@ -1265,10 +1119,9 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 
 		// Handle key release for Kitty keyboard protocol
-		const result = this._keyboardService.evaluateKeyUp(ev);
+		const result = this.keyboardService.evaluateKeyUp(ev);
 		if (result?.key) {
-			const wasModifierOnly =
-				this._keyboardService.useWin32InputMode && wasModifierKeyOnlyEvent(ev);
+			const wasModifierOnly = this.keyboardService.useWin32InputMode && wasModifierKeyOnlyEvent(ev);
 			this.coreService.triggerDataEvent(result.key, !wasModifierOnly);
 		}
 
@@ -1415,19 +1268,15 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		this._setup();
 		super.reset();
-		this._mouseService?.reset();
-		this._selectionService?.reset();
-		this._decorationService.reset();
+		this.mouseService?.reset();
+		this.selectionService?.reset();
+		this.decorationService.reset();
 
 		// reattach
 		this._customKeyEventHandler = customKeyEventHandler;
 
 		// do a full screen refresh
 		this.refresh(0, this.bufferService.rows - 1, true);
-	}
-
-	public clearTextureAtlas(): void {
-		this._renderService?.clearTextureAtlas();
 	}
 
 	private _reportFocus(): void {
@@ -1439,7 +1288,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	}
 
 	private _reportWindowsOptions(type: WindowsOptionsReportType): void {
-		if (!this._renderService) {
+		if (!this.renderService) {
 			return;
 		}
 
@@ -1447,19 +1296,19 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			case WindowsOptionsReportType.GET_WIN_SIZE_PIXELS:
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line no-case-declarations
-				const canvasWidth = this._renderService.dimensions.css.canvas.width.toFixed(0);
+				const canvasWidth = this.renderService.dimensions.css.canvas.width.toFixed(0);
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line no-case-declarations
-				const canvasHeight = this._renderService.dimensions.css.canvas.height.toFixed(0);
+				const canvasHeight = this.renderService.dimensions.css.canvas.height.toFixed(0);
 				this.coreService.triggerDataEvent(`${C0.ESC}[4;${canvasHeight};${canvasWidth}t`);
 				break;
 			case WindowsOptionsReportType.GET_CELL_SIZE_PIXELS:
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line no-case-declarations
-				const cellWidth = this._renderService.dimensions.css.cell.width.toFixed(0);
+				const cellWidth = this.renderService.dimensions.css.cell.width.toFixed(0);
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line no-case-declarations
-				const cellHeight = this._renderService.dimensions.css.cell.height.toFixed(0);
+				const cellHeight = this.renderService.dimensions.css.cell.height.toFixed(0);
 				this.coreService.triggerDataEvent(`${C0.ESC}[6;${cellHeight};${cellWidth}t`);
 				break;
 		}

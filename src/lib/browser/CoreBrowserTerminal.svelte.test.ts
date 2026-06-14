@@ -108,7 +108,7 @@ describe('CoreBrowserTerminal', () => {
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				let fired = false;
-				term.onCursorMove(() => {
+				term.inputHandler.onCursorMove(() => {
 					fired = true;
 					expect(fired).toBe(true);
 					r();
@@ -204,7 +204,7 @@ describe('CoreBrowserTerminal', () => {
 			}));
 		it('should fire the onTitleChange event', () =>
 			new Promise<void>((done) => {
-				term.onTitleChange((e) => {
+				term.inputHandler.onTitleChange((e) => {
 					expect(e).toBe('title');
 					done();
 				});
@@ -213,7 +213,7 @@ describe('CoreBrowserTerminal', () => {
 		it('should fire the onBell event', () =>
 			new Promise<void>((done) => {
 				let fired = false;
-				term.onBell(() => {
+				term.inputHandler.onRequestBell(() => {
 					fired = true;
 					expect(fired).toBe(true);
 					done();
@@ -226,7 +226,6 @@ describe('CoreBrowserTerminal', () => {
 		let term: TestTerminal;
 		beforeEach(() => {
 			term = createTestTerminal();
-			term.clearSelection = () => {};
 		});
 		const evKeyDown = {
 			preventDefault: () => {},
@@ -712,7 +711,6 @@ describe('CoreBrowserTerminal', () => {
 		let term: TestTerminal;
 		beforeEach(() => {
 			term = createTestTerminal();
-			term.clearSelection = () => {};
 		});
 
 		describe('with macOptionIsMeta', () => {

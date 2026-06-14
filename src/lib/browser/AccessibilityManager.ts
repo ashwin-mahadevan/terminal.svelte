@@ -123,12 +123,18 @@ export class AccessibilityManager {
 		}
 
 		this._resizeListener = this._terminal.bufferService.onResize((e) => this._handleResize(e.rows));
-		this._renderListener = this._terminal.onRender((e) => this._refreshRows(e.start, e.end));
+		this._renderListener = this._terminal.renderService!.onRenderedViewportChange((e) =>
+			this._refreshRows(e.start, e.end)
+		);
 		this._scrollListener = this._terminal.onScroll(() => this._refreshRows());
 		// Line feed is an issue as the prompt won't be read out after a command is run
-		this._a11yCharListener = this._terminal.onA11yChar((char) => this._handleChar(char));
+		this._a11yCharListener = this._terminal.inputHandler.onA11yChar((char) =>
+			this._handleChar(char)
+		);
 		this._lineFeedListener = this._terminal.inputHandler.onLineFeed(() => this._handleChar('\n'));
-		this._a11yTabListener = this._terminal.onA11yTab((spaceCount) => this._handleTab(spaceCount));
+		this._a11yTabListener = this._terminal.inputHandler.onA11yTab((spaceCount) =>
+			this._handleTab(spaceCount)
+		);
 		this._keyListener = this._terminal.onKey((e) => this._handleKey(e.key));
 		this._blurListener = this._terminal.onBlur(() => this._clearLiveRegion());
 		this._dimensionsChangeListener = this._renderService.onDimensionsChange(() =>
@@ -326,7 +332,7 @@ export class AccessibilityManager {
 			// behavior mirrors what we do with mouse --- if the mouse clicks
 			// somewhere outside of the terminal, we don't clear the selection.
 			if (this._rowContainer.contains(selection.anchorNode)) {
-				this._terminal.clearSelection();
+				this._terminal.selectionService?.clearSelection();
 			}
 			return;
 		}
@@ -418,7 +424,7 @@ export class AccessibilityManager {
 			throw new Error('invalid range');
 		}
 
-		this._terminal.select(
+		this._terminal.selectionService!.setSelection(
 			beginRowColumn.column,
 			beginRowColumn.row,
 			(endRowColumn.row - beginRowColumn.row) * this._terminal.bufferService.cols -
