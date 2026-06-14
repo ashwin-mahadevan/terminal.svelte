@@ -31,12 +31,8 @@ import {
 } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
-import type { OptionsService } from '$lib/common/services/OptionsService';
-import type { CoreService } from '$lib/common/services/CoreService';
 import type { BufferService } from '$lib/common/services/BufferService';
-import type { CharsetService } from '$lib/common/services/CharsetService';
-import type { OscLinkService } from '$lib/common/services/OscLinkService';
-import type { MouseStateService } from '$lib/common/services/MouseStateService';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { OscHandler } from '$lib/common/parser/OscParser';
 import { DcsHandler } from '$lib/common/parser/DcsParser';
@@ -140,6 +136,7 @@ let $temp = 0;
  * each function's header comment.
  */
 export class InputHandler {
+	private readonly _parser: EscapeSequenceParser = new EscapeSequenceParser();
 	private _parseBuffer: Uint32Array = new Uint32Array(4096);
 	private _stringDecoder: StringToUtf32 = new StringToUtf32();
 	private _utf8Decoder: Utf8ToUtf32 = new Utf8ToUtf32();
@@ -202,21 +199,12 @@ export class InputHandler {
 		position: 0
 	};
 
-	constructor(
-		private readonly _bufferService: BufferService,
-		private readonly _charsetService: CharsetService,
-		private readonly _coreService: CoreService,
-		private readonly _optionsService: OptionsService,
-		private readonly _oscLinkService: OscLinkService,
-		private readonly _mouseStateService: MouseStateService,
-		private readonly _unicodeService: UnicodeService,
-		private readonly _parser: EscapeSequenceParser = new EscapeSequenceParser()
-	) {
-		this._dirtyRowTracker = new DirtyRowTracker(this._bufferService);
+	constructor(private readonly _terminal: CoreTerminal) {
+		this._dirtyRowTracker = new DirtyRowTracker(this._terminal.bufferService);
 
 		// Track properties used in performance critical code manually to avoid using slow getters
-		this._activeBuffer = this._bufferService.buffer;
-		this._bufferActivateListener = this._bufferService.buffers.onBufferActivate(
+		this._activeBuffer = this._terminal.bufferService.buffer;
+		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(
 			(e) => (this._activeBuffer = e.activeBuffer)
 		);
 
@@ -691,14 +679,14 @@ export class InputHandler {
 		// _viewport_ which is relative to ydisp, not relative to ybase.
 		const viewportEnd =
 			this._dirtyRowTracker.end +
-			(this._bufferService.buffer.ybase - this._bufferService.buffer.ydisp);
+			(this._terminal.bufferService.buffer.ybase - this._terminal.bufferService.buffer.ydisp);
 		const viewportStart =
 			this._dirtyRowTracker.start +
-			(this._bufferService.buffer.ybase - this._bufferService.buffer.ydisp);
-		if (viewportStart < this._bufferService.rows) {
+			(this._terminal.bufferService.buffer.ybase - this._terminal.bufferService.buffer.ydisp);
+		if (viewportStart < this._terminal.bufferService.rows) {
 			this._onRequestRefreshRows.fire({
-				start: Math.min(viewportStart, this._bufferService.rows - 1),
-				end: Math.min(viewportEnd, this._bufferService.rows - 1)
+				start: Math.min(viewportStart, this._terminal.bufferService.rows - 1),
+				end: Math.min(viewportEnd, this._terminal.bufferService.rows - 1)
 			});
 		}
 	}
@@ -706,11 +694,11 @@ export class InputHandler {
 	public print(data: Uint32Array, start: number, end: number): void {
 		let code: number;
 		let chWidth: number;
-		const charset = this._charsetService.charset;
-		const screenReaderMode = this._optionsService.rawOptions.screenReaderMode;
-		const cols = this._bufferService.cols;
-		const wraparoundMode = this._coreService.decPrivateModes.wraparound;
-		const insertMode = this._coreService.modes.insertMode;
+		const charset = this._terminal.charsetService.charset;
+		const screenReaderMode = this._terminal.optionsService.rawOptions.screenReaderMode;
+		const cols = this._terminal.bufferService.cols;
+		const wraparoundMode = this._terminal.coreService.decPrivateModes.wraparound;
+		const insertMode = this._terminal.coreService.modes.insertMode;
 		const curAttr = this._curAttrData;
 		let bufferRow = this._activeBuffer.lines.get(this._activeBuffer.ybase + this._activeBuffer.y);
 
@@ -751,7 +739,7 @@ export class InputHandler {
 				}
 			}
 
-			const currentInfo = this._unicodeService.charProperties(code, precedingJoinState);
+			const currentInfo = this._terminal.unicodeService.charProperties(code, precedingJoinState);
 			chWidth = UnicodeService.extractWidth(currentInfo);
 			const shouldJoin = UnicodeService.extractShouldJoin(currentInfo);
 			const oldWidth = shouldJoin ? UnicodeService.extractWidth(precedingJoinState) : 0;
@@ -762,7 +750,10 @@ export class InputHandler {
 			}
 			const linkId = this._getCurrentLinkId();
 			if (linkId) {
-				this._oscLinkService.addLineToLink(linkId, this._activeBuffer.ybase + this._activeBuffer.y);
+				this._terminal.oscLinkService.addLineToLink(
+					linkId,
+					this._activeBuffer.ybase + this._activeBuffer.y
+				);
 			}
 
 			// goto next line if ch would overflow
@@ -778,10 +769,10 @@ export class InputHandler {
 					this._activeBuffer.y++;
 					if (this._activeBuffer.y === this._activeBuffer.scrollBottom + 1) {
 						this._activeBuffer.y--;
-						this._bufferService.scroll(this._eraseAttrData(), true);
+						this._terminal.bufferService.scroll(this._eraseAttrData(), true);
 					} else {
-						if (this._activeBuffer.y >= this._bufferService.rows) {
-							this._activeBuffer.y = this._bufferService.rows - 1;
+						if (this._activeBuffer.y >= this._terminal.bufferService.rows) {
+							this._activeBuffer.y = this._terminal.bufferService.rows - 1;
 						}
 						// The line already exists (eg. the initial viewport), mark it as a
 						// wrapped line
@@ -884,7 +875,12 @@ export class InputHandler {
 		if (id.final === 't' && !id.prefix && !id.intermediates) {
 			// security: always check whether window option is allowed
 			return this._parser.registerCsiHandler(id, (params) => {
-				if (!paramToWindowOption(params.params[0], this._optionsService.rawOptions.windowOptions)) {
+				if (
+					!paramToWindowOption(
+						params.params[0],
+						this._terminal.optionsService.rawOptions.windowOptions
+					)
+				) {
 					return true;
 				}
 				return callback(params);
@@ -958,15 +954,15 @@ export class InputHandler {
 	 */
 	public lineFeed(): boolean {
 		this._dirtyRowTracker.markDirty(this._activeBuffer.y);
-		if (this._optionsService.rawOptions.convertEol) {
+		if (this._terminal.optionsService.rawOptions.convertEol) {
 			this._activeBuffer.x = 0;
 		}
 		this._activeBuffer.y++;
 		if (this._activeBuffer.y === this._activeBuffer.scrollBottom + 1) {
 			this._activeBuffer.y--;
-			this._bufferService.scroll(this._eraseAttrData());
-		} else if (this._activeBuffer.y >= this._bufferService.rows) {
-			this._activeBuffer.y = this._bufferService.rows - 1;
+			this._terminal.bufferService.scroll(this._eraseAttrData());
+		} else if (this._activeBuffer.y >= this._terminal.bufferService.rows) {
+			this._activeBuffer.y = this._terminal.bufferService.rows - 1;
 		} else {
 			// There was an explicit line feed (not just a carriage return), so clear the wrapped state of
 			// the line. This is particularly important on conpty/Windows where revisiting lines to
@@ -977,7 +973,7 @@ export class InputHandler {
 				false;
 		}
 		// If the end of the line is hit, prevent this action from wrapping around to the next line.
-		if (this._activeBuffer.x >= this._bufferService.cols) {
+		if (this._activeBuffer.x >= this._terminal.bufferService.cols) {
 			this._activeBuffer.x--;
 		}
 		this._dirtyRowTracker.markDirty(this._activeBuffer.y);
@@ -1010,7 +1006,7 @@ export class InputHandler {
 	 */
 	public backspace(): boolean {
 		// reverse wrap-around is disabled
-		if (!this._coreService.decPrivateModes.reverseWraparound) {
+		if (!this._terminal.coreService.decPrivateModes.reverseWraparound) {
 			this._restrictCursor();
 			if (this._activeBuffer.x > 0) {
 				this._activeBuffer.x--;
@@ -1021,7 +1017,7 @@ export class InputHandler {
 		// reverse wrap-around is enabled
 		// other than for normal operation mode, reverse wrap-around allows the cursor
 		// to be at x=cols to be able to address the last cell of a row by BS
-		this._restrictCursor(this._bufferService.cols);
+		this._restrictCursor(this._terminal.bufferService.cols);
 
 		if (this._activeBuffer.x > 0) {
 			this._activeBuffer.x--;
@@ -1043,7 +1039,7 @@ export class InputHandler {
 				this._activeBuffer.lines.get(this._activeBuffer.ybase + this._activeBuffer.y)!.isWrapped =
 					false;
 				this._activeBuffer.y--;
-				this._activeBuffer.x = this._bufferService.cols - 1;
+				this._activeBuffer.x = this._terminal.bufferService.cols - 1;
 				// find last taken cell - last cell can have 3 different states:
 				// - hasContent(true) + hasWidth(1): narrow char - we are done
 				// - hasWidth(0): second part of wide char - we are done
@@ -1069,12 +1065,12 @@ export class InputHandler {
 	 * @vt: #Y   C0    HT   "Horizontal Tabulation"  "\t, \x09"  "Move the cursor to the next character tab stop."
 	 */
 	public tab(): boolean {
-		if (this._activeBuffer.x >= this._bufferService.cols) {
+		if (this._activeBuffer.x >= this._terminal.bufferService.cols) {
 			return true;
 		}
 		const originalX = this._activeBuffer.x;
 		this._activeBuffer.x = this._activeBuffer.nextStop();
-		if (this._optionsService.rawOptions.screenReaderMode) {
+		if (this._terminal.optionsService.rawOptions.screenReaderMode) {
 			this._onA11yTab.fire(this._activeBuffer.x - originalX);
 		}
 		return true;
@@ -1088,7 +1084,7 @@ export class InputHandler {
 	 * @vt: #P[Only limited ISO-2022 charset support.]  C0    SO   "Shift Out"  "\x0E"  "Switch to an alternative character set."
 	 */
 	public shiftOut(): boolean {
-		this._charsetService.setgLevel(1);
+		this._terminal.charsetService.setgLevel(1);
 		return true;
 	}
 
@@ -1100,21 +1096,21 @@ export class InputHandler {
 	 * @vt: #Y   C0    SI   "Shift In"   "\x0F"  "Return to regular character set after Shift Out."
 	 */
 	public shiftIn(): boolean {
-		this._charsetService.setgLevel(0);
+		this._terminal.charsetService.setgLevel(0);
 		return true;
 	}
 
 	/**
 	 * Restrict cursor to viewport size / scroll margin (origin mode).
 	 */
-	private _restrictCursor(maxCol: number = this._bufferService.cols - 1): void {
+	private _restrictCursor(maxCol: number = this._terminal.bufferService.cols - 1): void {
 		this._activeBuffer.x = Math.min(maxCol, Math.max(0, this._activeBuffer.x));
-		this._activeBuffer.y = this._coreService.decPrivateModes.origin
+		this._activeBuffer.y = this._terminal.coreService.decPrivateModes.origin
 			? Math.min(
 					this._activeBuffer.scrollBottom,
 					Math.max(this._activeBuffer.scrollTop, this._activeBuffer.y)
 				)
-			: Math.min(this._bufferService.rows - 1, Math.max(0, this._activeBuffer.y));
+			: Math.min(this._terminal.bufferService.rows - 1, Math.max(0, this._activeBuffer.y));
 		this._dirtyRowTracker.markDirty(this._activeBuffer.y);
 	}
 
@@ -1123,7 +1119,7 @@ export class InputHandler {
 	 */
 	private _setCursor(x: number, y: number): void {
 		this._dirtyRowTracker.markDirty(this._activeBuffer.y);
-		if (this._coreService.decPrivateModes.origin) {
+		if (this._terminal.coreService.decPrivateModes.origin) {
 			this._activeBuffer.x = x;
 			this._activeBuffer.y = this._activeBuffer.scrollTop + y;
 		} else {
@@ -1347,7 +1343,7 @@ export class InputHandler {
 	 * @vt: #Y CSI CHT   "Cursor Horizontal Tabulation" "CSI Ps I" "Move cursor `Ps` times tabs forward (default=1)."
 	 */
 	public cursorForwardTab(params: Params): boolean {
-		if (this._activeBuffer.x >= this._bufferService.cols) {
+		if (this._activeBuffer.x >= this._terminal.bufferService.cols) {
 			return true;
 		}
 		let param = params.params[0] || 1;
@@ -1363,7 +1359,7 @@ export class InputHandler {
 	 * @vt: #Y CSI CBT   "Cursor Backward Tabulation"  "CSI Ps Z"  "Move cursor `Ps` tabs backward (default=1)."
 	 */
 	public cursorBackwardTab(params: Params): boolean {
-		if (this._activeBuffer.x >= this._bufferService.cols) {
+		if (this._activeBuffer.x >= this._terminal.bufferService.cols) {
 			return true;
 		}
 		let param = params.params[0] || 1;
@@ -1426,7 +1422,7 @@ export class InputHandler {
 		const line = this._activeBuffer.lines.get(this._activeBuffer.ybase + y);
 		if (line) {
 			line.fill(this._activeBuffer.getNullCell(this._eraseAttrData()), respectProtect);
-			this._bufferService.buffer.clearMarkers(this._activeBuffer.ybase + y);
+			this._terminal.bufferService.buffer.clearMarkers(this._activeBuffer.ybase + y);
 			line.isWrapped = false;
 		}
 	}
@@ -1456,7 +1452,7 @@ export class InputHandler {
 	 * @vt: #Y CSI DECSED   "Selective Erase In Display"  "CSI ? Ps J"  "Same as ED with respecting protection flag."
 	 */
 	public eraseInDisplay(params: Params, respectProtect: boolean = false): boolean {
-		this._restrictCursor(this._bufferService.cols);
+		this._restrictCursor(this._terminal.bufferService.cols);
 		let j;
 		switch (params.params[0]) {
 			case 0:
@@ -1465,11 +1461,11 @@ export class InputHandler {
 				this._eraseInBufferLine(
 					j++,
 					this._activeBuffer.x,
-					this._bufferService.cols,
+					this._terminal.bufferService.cols,
 					this._activeBuffer.x === 0,
 					respectProtect
 				);
-				for (; j < this._bufferService.rows; j++) {
+				for (; j < this._terminal.bufferService.rows; j++) {
 					this._resetBufferLine(j, respectProtect);
 				}
 				this._dirtyRowTracker.markDirty(j);
@@ -1479,7 +1475,7 @@ export class InputHandler {
 				this._dirtyRowTracker.markDirty(j);
 				// Deleted front part of line and everything before. This line will no longer be wrapped.
 				this._eraseInBufferLine(j, 0, this._activeBuffer.x + 1, true, respectProtect);
-				if (this._activeBuffer.x + 1 >= this._bufferService.cols) {
+				if (this._activeBuffer.x + 1 >= this._terminal.bufferService.cols) {
 					// Deleted entire previous line. This next line can no longer be wrapped.
 					const nextLine = this._activeBuffer.lines.get(j + 1);
 					if (nextLine) {
@@ -1492,8 +1488,8 @@ export class InputHandler {
 				this._dirtyRowTracker.markDirty(0);
 				break;
 			case 2:
-				if (this._optionsService.rawOptions.scrollOnEraseInDisplay) {
-					j = this._bufferService.rows;
+				if (this._terminal.optionsService.rawOptions.scrollOnEraseInDisplay) {
+					j = this._terminal.bufferService.rows;
 					this._dirtyRowTracker.markRangeDirty(0, j - 1);
 					while (j--) {
 						const currentLine = this._activeBuffer.lines.get(this._activeBuffer.ybase + j);
@@ -1502,10 +1498,10 @@ export class InputHandler {
 						}
 					}
 					for (; j >= 0; j--) {
-						this._bufferService.scroll(this._eraseAttrData());
+						this._terminal.bufferService.scroll(this._eraseAttrData());
 					}
 				} else {
-					j = this._bufferService.rows;
+					j = this._terminal.bufferService.rows;
 					this._dirtyRowTracker.markDirty(j - 1);
 					while (j--) {
 						this._resetBufferLine(j, respectProtect);
@@ -1517,7 +1513,7 @@ export class InputHandler {
 				// Clear scrollback (everything not in viewport)
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line no-case-declarations
-				const scrollBackSize = this._activeBuffer.lines.length - this._bufferService.rows;
+				const scrollBackSize = this._activeBuffer.lines.length - this._terminal.bufferService.rows;
 				if (scrollBackSize > 0) {
 					this._activeBuffer.lines.trimStart(scrollBackSize);
 					this._activeBuffer.ybase = Math.max(this._activeBuffer.ybase - scrollBackSize, 0);
@@ -1553,13 +1549,13 @@ export class InputHandler {
 	 * @vt: #Y CSI DECSEL   "Selective Erase In Line"  "CSI ? Ps K"  "Same as EL with respecting protecting flag."
 	 */
 	public eraseInLine(params: Params, respectProtect: boolean = false): boolean {
-		this._restrictCursor(this._bufferService.cols);
+		this._restrictCursor(this._terminal.bufferService.cols);
 		switch (params.params[0]) {
 			case 0:
 				this._eraseInBufferLine(
 					this._activeBuffer.y,
 					this._activeBuffer.x,
-					this._bufferService.cols,
+					this._terminal.bufferService.cols,
 					this._activeBuffer.x === 0,
 					respectProtect
 				);
@@ -1577,7 +1573,7 @@ export class InputHandler {
 				this._eraseInBufferLine(
 					this._activeBuffer.y,
 					0,
-					this._bufferService.cols,
+					this._terminal.bufferService.cols,
 					true,
 					respectProtect
 				);
@@ -1609,9 +1605,10 @@ export class InputHandler {
 
 		const row: number = this._activeBuffer.ybase + this._activeBuffer.y;
 
-		const scrollBottomRowsOffset = this._bufferService.rows - 1 - this._activeBuffer.scrollBottom;
+		const scrollBottomRowsOffset =
+			this._terminal.bufferService.rows - 1 - this._activeBuffer.scrollBottom;
 		const scrollBottomAbsolute =
-			this._bufferService.rows - 1 + this._activeBuffer.ybase - scrollBottomRowsOffset + 1;
+			this._terminal.bufferService.rows - 1 + this._activeBuffer.ybase - scrollBottomRowsOffset + 1;
 		while (param--) {
 			// test: echo -e '\e[44m\e[1L\e[0m'
 			// blankLine(true) - xterm/linux behavior
@@ -1651,8 +1648,8 @@ export class InputHandler {
 		const row: number = this._activeBuffer.ybase + this._activeBuffer.y;
 
 		let j: number;
-		j = this._bufferService.rows - 1 - this._activeBuffer.scrollBottom;
-		j = this._bufferService.rows - 1 + this._activeBuffer.ybase - j;
+		j = this._terminal.bufferService.rows - 1 - this._activeBuffer.scrollBottom;
+		j = this._terminal.bufferService.rows - 1 + this._activeBuffer.ybase - j;
 		while (param--) {
 			// test: echo -e '\e[44m\e[1M\e[0m'
 			// blankLine(true) - xterm/linux behavior
@@ -2019,9 +2016,9 @@ export class InputHandler {
 			return true;
 		}
 		if (this._is('xterm') || this._is('rxvt-unicode') || this._is('screen')) {
-			this._coreService.triggerDataEvent(C0.ESC + '[?1;2c');
+			this._terminal.coreService.triggerDataEvent(C0.ESC + '[?1;2c');
 		} else if (this._is('linux')) {
-			this._coreService.triggerDataEvent(C0.ESC + '[?6c');
+			this._terminal.coreService.triggerDataEvent(C0.ESC + '[?6c');
 		}
 		return true;
 	}
@@ -2058,15 +2055,15 @@ export class InputHandler {
 		// seem to spit this
 		// out around ~370 times (?).
 		if (this._is('xterm')) {
-			this._coreService.triggerDataEvent(C0.ESC + '[>0;276;0c');
+			this._terminal.coreService.triggerDataEvent(C0.ESC + '[>0;276;0c');
 		} else if (this._is('rxvt-unicode')) {
-			this._coreService.triggerDataEvent(C0.ESC + '[>85;95;0c');
+			this._terminal.coreService.triggerDataEvent(C0.ESC + '[>85;95;0c');
 		} else if (this._is('linux')) {
 			// not supported by linux console.
 			// linux console echoes parameters.
-			this._coreService.triggerDataEvent(params.params[0] + 'c');
+			this._terminal.coreService.triggerDataEvent(params.params[0] + 'c');
 		} else if (this._is('screen')) {
-			this._coreService.triggerDataEvent(C0.ESC + '[>83;40003;0c');
+			this._terminal.coreService.triggerDataEvent(C0.ESC + '[>83;40003;0c');
 		}
 		return true;
 	}
@@ -2083,7 +2080,9 @@ export class InputHandler {
 		if (params.params[0] > 0) {
 			return true;
 		}
-		this._coreService.triggerDataEvent(`${C0.ESC}P>|xterm.js(${XTERM_VERSION})${C0.ESC}\\`);
+		this._terminal.coreService.triggerDataEvent(
+			`${C0.ESC}P>|xterm.js(${XTERM_VERSION})${C0.ESC}\\`
+		);
 		return true;
 	}
 
@@ -2092,7 +2091,7 @@ export class InputHandler {
 	 * @param term The terminal name to evaluate
 	 */
 	private _is(term: string): boolean {
-		return (this._optionsService.rawOptions.termName + '').startsWith(term);
+		return (this._terminal.optionsService.rawOptions.termName + '').startsWith(term);
 	}
 
 	/**
@@ -2116,10 +2115,10 @@ export class InputHandler {
 		for (let i = 0; i < params.length; i++) {
 			switch (params.params[i]) {
 				case 4:
-					this._coreService.modes.insertMode = true;
+					this._terminal.coreService.modes.insertMode = true;
 					break;
 				case 20:
-					this._optionsService.options.convertEol = true;
+					this._terminal.optionsService.options.convertEol = true;
 					break;
 			}
 		}
@@ -2244,13 +2243,13 @@ export class InputHandler {
 		for (let i = 0; i < params.length; i++) {
 			switch (params.params[i]) {
 				case 1:
-					this._coreService.decPrivateModes.applicationCursorKeys = true;
+					this._terminal.coreService.decPrivateModes.applicationCursorKeys = true;
 					break;
 				case 2:
-					this._charsetService.setgCharset(0, DEFAULT_CHARSET);
-					this._charsetService.setgCharset(1, DEFAULT_CHARSET);
-					this._charsetService.setgCharset(2, DEFAULT_CHARSET);
-					this._charsetService.setgCharset(3, DEFAULT_CHARSET);
+					this._terminal.charsetService.setgCharset(0, DEFAULT_CHARSET);
+					this._terminal.charsetService.setgCharset(1, DEFAULT_CHARSET);
+					this._terminal.charsetService.setgCharset(2, DEFAULT_CHARSET);
+					this._terminal.charsetService.setgCharset(3, DEFAULT_CHARSET);
 					// set VT100 mode here
 					break;
 				case 3:
@@ -2259,67 +2258,67 @@ export class InputHandler {
 					 * This is only active if 'SetWinLines' (24) is enabled
 					 * through `options.windowsOptions`.
 					 */
-					if (this._optionsService.rawOptions.windowOptions.setWinLines) {
-						this._bufferService.resize(132, this._bufferService.rows);
+					if (this._terminal.optionsService.rawOptions.windowOptions.setWinLines) {
+						this._terminal.bufferService.resize(132, this._terminal.bufferService.rows);
 						this._onRequestReset.fire();
 					}
 					break;
 				case 6:
-					this._coreService.decPrivateModes.origin = true;
+					this._terminal.coreService.decPrivateModes.origin = true;
 					this._setCursor(0, 0);
 					break;
 				case 7:
-					this._coreService.decPrivateModes.wraparound = true;
+					this._terminal.coreService.decPrivateModes.wraparound = true;
 					break;
 				case 12:
-					if (this._optionsService.rawOptions.quirks?.allowSetCursorBlink) {
-						this._optionsService.options.cursorBlink = true;
+					if (this._terminal.optionsService.rawOptions.quirks?.allowSetCursorBlink) {
+						this._terminal.optionsService.options.cursorBlink = true;
 					}
 					break;
 				case 45:
-					this._coreService.decPrivateModes.reverseWraparound = true;
+					this._terminal.coreService.decPrivateModes.reverseWraparound = true;
 					break;
 				case 66:
 					console.debug('Serial port requested application keypad.');
-					this._coreService.decPrivateModes.applicationKeypad = true;
+					this._terminal.coreService.decPrivateModes.applicationKeypad = true;
 					this._onRequestSyncScrollBar.fire();
 					break;
 				case 9: // X10 Mouse
 					// no release, no motion, no wheel, no modifiers.
-					this._mouseStateService.activeProtocol = 'X10';
+					this._terminal.mouseStateService.activeProtocol = 'X10';
 					break;
 				case 1000: // vt200 mouse
 					// no motion.
-					this._mouseStateService.activeProtocol = 'VT200';
+					this._terminal.mouseStateService.activeProtocol = 'VT200';
 					break;
 				case 1002: // button event mouse
-					this._mouseStateService.activeProtocol = 'DRAG';
+					this._terminal.mouseStateService.activeProtocol = 'DRAG';
 					break;
 				case 1003: // any event mouse
 					// any event - sends motion events,
 					// even if there is no button held down.
-					this._mouseStateService.activeProtocol = 'ANY';
+					this._terminal.mouseStateService.activeProtocol = 'ANY';
 					break;
 				case 1004: // send focusin/focusout events
 					// focusin: ^[[I
 					// focusout: ^[[O
-					this._coreService.decPrivateModes.sendFocus = true;
+					this._terminal.coreService.decPrivateModes.sendFocus = true;
 					this._onRequestSendFocus.fire();
 					break;
 				case 1005: // utf8 ext mode mouse - removed in #2507
 					console.debug('DECSET 1005 not supported (see #2507)');
 					break;
 				case 1006: // sgr ext mode mouse
-					this._mouseStateService.activeEncoding = 'SGR';
+					this._terminal.mouseStateService.activeEncoding = 'SGR';
 					break;
 				case 1015: // urxvt ext mode mouse - removed in #2507
 					console.debug('DECSET 1015 not supported (see #2507)');
 					break;
 				case 1016: // sgr pixels mode mouse
-					this._mouseStateService.activeEncoding = 'SGR_PIXELS';
+					this._terminal.mouseStateService.activeEncoding = 'SGR_PIXELS';
 					break;
 				case 25: // show cursor
-					this._coreService.isCursorHidden = false;
+					this._terminal.coreService.isCursorHidden = false;
 					break;
 				case 1048: // alt screen cursor
 					this.saveCursor();
@@ -2332,30 +2331,30 @@ export class InputHandler {
 				case 47: // alt screen buffer
 				case 1047: // alt screen buffer
 					// Swap kitty keyboard flags: save main, restore alt
-					if (this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
-						const state = this._coreService.kittyKeyboard;
+					if (this._terminal.optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
+						const state = this._terminal.coreService.kittyKeyboard;
 						state.mainFlags = state.flags;
 						state.flags = state.altFlags;
 					}
-					this._bufferService.buffers.activateAltBuffer(this._eraseAttrData());
-					this._coreService.isCursorInitialized = true;
+					this._terminal.bufferService.buffers.activateAltBuffer(this._eraseAttrData());
+					this._terminal.coreService.isCursorInitialized = true;
 					this._onRequestRefreshRows.fire(undefined);
 					this._onRequestSyncScrollBar.fire();
 					break;
 				case 2004: // bracketed paste mode (https://cirw.in/blog/bracketed-paste)
-					this._coreService.decPrivateModes.bracketedPasteMode = true;
+					this._terminal.coreService.decPrivateModes.bracketedPasteMode = true;
 					break;
 				case 2026: // synchronized output (https://github.com/contour-terminal/vt-extensions/blob/master/synchronized-output.md)
-					this._coreService.decPrivateModes.synchronizedOutput = true;
+					this._terminal.coreService.decPrivateModes.synchronizedOutput = true;
 					break;
 				case 2031: // color scheme updates (https://contour-terminal.org/vt-extensions/color-palette-update-notifications/)
-					if (this._optionsService.rawOptions.vtExtensions?.colorSchemeQuery ?? true) {
-						this._coreService.decPrivateModes.colorSchemeUpdates = true;
+					if (this._terminal.optionsService.rawOptions.vtExtensions?.colorSchemeQuery ?? true) {
+						this._terminal.coreService.decPrivateModes.colorSchemeUpdates = true;
 					}
 					break;
 				case 9001: // win32-input-mode (https://github.com/microsoft/terminal/blob/main/doc/specs/%234999%20-%20Improved%20keyboard%20handling%20in%20Conpty.md)
-					if (this._optionsService.rawOptions.vtExtensions?.win32InputMode) {
-						this._coreService.decPrivateModes.win32InputMode = true;
+					if (this._terminal.optionsService.rawOptions.vtExtensions?.win32InputMode) {
+						this._terminal.coreService.decPrivateModes.win32InputMode = true;
 					}
 					break;
 			}
@@ -2387,10 +2386,10 @@ export class InputHandler {
 		for (let i = 0; i < params.length; i++) {
 			switch (params.params[i]) {
 				case 4:
-					this._coreService.modes.insertMode = false;
+					this._terminal.coreService.modes.insertMode = false;
 					break;
 				case 20:
-					this._optionsService.options.convertEol = false;
+					this._terminal.optionsService.options.convertEol = false;
 					break;
 			}
 		}
@@ -2511,7 +2510,7 @@ export class InputHandler {
 		for (let i = 0; i < params.length; i++) {
 			switch (params.params[i]) {
 				case 1:
-					this._coreService.decPrivateModes.applicationCursorKeys = false;
+					this._terminal.coreService.decPrivateModes.applicationCursorKeys = false;
 					break;
 				case 3:
 					/**
@@ -2519,54 +2518,54 @@ export class InputHandler {
 					 * This is only active if 'SetWinLines' (24) is enabled
 					 * through `options.windowsOptions`.
 					 */
-					if (this._optionsService.rawOptions.windowOptions.setWinLines) {
-						this._bufferService.resize(80, this._bufferService.rows);
+					if (this._terminal.optionsService.rawOptions.windowOptions.setWinLines) {
+						this._terminal.bufferService.resize(80, this._terminal.bufferService.rows);
 						this._onRequestReset.fire();
 					}
 					break;
 				case 6:
-					this._coreService.decPrivateModes.origin = false;
+					this._terminal.coreService.decPrivateModes.origin = false;
 					this._setCursor(0, 0);
 					break;
 				case 7:
-					this._coreService.decPrivateModes.wraparound = false;
+					this._terminal.coreService.decPrivateModes.wraparound = false;
 					break;
 				case 12:
-					if (this._optionsService.rawOptions.quirks?.allowSetCursorBlink) {
-						this._optionsService.options.cursorBlink = false;
+					if (this._terminal.optionsService.rawOptions.quirks?.allowSetCursorBlink) {
+						this._terminal.optionsService.options.cursorBlink = false;
 					}
 					break;
 				case 45:
-					this._coreService.decPrivateModes.reverseWraparound = false;
+					this._terminal.coreService.decPrivateModes.reverseWraparound = false;
 					break;
 				case 66:
 					console.debug('Switching back to normal keypad.');
-					this._coreService.decPrivateModes.applicationKeypad = false;
+					this._terminal.coreService.decPrivateModes.applicationKeypad = false;
 					this._onRequestSyncScrollBar.fire();
 					break;
 				case 9: // X10 Mouse
 				case 1000: // vt200 mouse
 				case 1002: // button event mouse
 				case 1003: // any event mouse
-					this._mouseStateService.activeProtocol = 'NONE';
+					this._terminal.mouseStateService.activeProtocol = 'NONE';
 					break;
 				case 1004: // send focusin/focusout events
-					this._coreService.decPrivateModes.sendFocus = false;
+					this._terminal.coreService.decPrivateModes.sendFocus = false;
 					break;
 				case 1005: // utf8 ext mode mouse - removed in #2507
 					console.debug('DECRST 1005 not supported (see #2507)');
 					break;
 				case 1006: // sgr ext mode mouse
-					this._mouseStateService.activeEncoding = 'DEFAULT';
+					this._terminal.mouseStateService.activeEncoding = 'DEFAULT';
 					break;
 				case 1015: // urxvt ext mode mouse - removed in #2507
 					console.debug('DECRST 1015 not supported (see #2507)');
 					break;
 				case 1016: // sgr pixels mode mouse
-					this._mouseStateService.activeEncoding = 'DEFAULT';
+					this._terminal.mouseStateService.activeEncoding = 'DEFAULT';
 					break;
 				case 25: // hide cursor
-					this._coreService.isCursorHidden = true;
+					this._terminal.coreService.isCursorHidden = true;
 					break;
 				case 1048: // alt screen cursor
 					this.restoreCursor();
@@ -2578,35 +2577,35 @@ export class InputHandler {
 				case 47: // normal screen buffer
 				case 1047: // normal screen buffer - clearing it first
 					// Swap kitty keyboard flags: save alt, restore main
-					if (this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
-						const state = this._coreService.kittyKeyboard;
+					if (this._terminal.optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
+						const state = this._terminal.coreService.kittyKeyboard;
 						state.altFlags = state.flags;
 						state.flags = state.mainFlags;
 					}
 					// Ensure the selection manager has the correct buffer
-					this._bufferService.buffers.activateNormalBuffer();
+					this._terminal.bufferService.buffers.activateNormalBuffer();
 					if (params.params[i] === 1049) {
 						this.restoreCursor();
 					}
-					this._coreService.isCursorInitialized = true;
+					this._terminal.coreService.isCursorInitialized = true;
 					this._onRequestRefreshRows.fire(undefined);
 					this._onRequestSyncScrollBar.fire();
 					break;
 				case 2004: // bracketed paste mode (https://cirw.in/blog/bracketed-paste)
-					this._coreService.decPrivateModes.bracketedPasteMode = false;
+					this._terminal.coreService.decPrivateModes.bracketedPasteMode = false;
 					break;
 				case 2026: // synchronized output (https://github.com/contour-terminal/vt-extensions/blob/master/synchronized-output.md)
-					this._coreService.decPrivateModes.synchronizedOutput = false;
+					this._terminal.coreService.decPrivateModes.synchronizedOutput = false;
 					this._onRequestRefreshRows.fire(undefined);
 					break;
 				case 2031: // color scheme updates (https://contour-terminal.org/vt-extensions/color-palette-update-notifications/)
-					if (this._optionsService.rawOptions.vtExtensions?.colorSchemeQuery ?? true) {
-						this._coreService.decPrivateModes.colorSchemeUpdates = false;
+					if (this._terminal.optionsService.rawOptions.vtExtensions?.colorSchemeQuery ?? true) {
+						this._terminal.coreService.decPrivateModes.colorSchemeUpdates = false;
 					}
 					break;
 				case 9001: // win32-input-mode
-					if (this._optionsService.rawOptions.vtExtensions?.win32InputMode) {
-						this._coreService.decPrivateModes.win32InputMode = false;
+					if (this._terminal.optionsService.rawOptions.vtExtensions?.win32InputMode) {
+						this._terminal.coreService.decPrivateModes.win32InputMode = false;
 					}
 					break;
 			}
@@ -2658,13 +2657,13 @@ export class InputHandler {
 		}
 
 		// access helpers
-		const dm = this._coreService.decPrivateModes;
+		const dm = this._terminal.coreService.decPrivateModes;
 		const { activeProtocol: mouseProtocol, activeEncoding: mouseEncoding } =
-			this._mouseStateService;
-		const cs = this._coreService;
-		const { buffers, cols } = this._bufferService;
+			this._terminal.mouseStateService;
+		const cs = this._terminal.coreService;
+		const { buffers, cols } = this._terminal.bufferService;
 		const { active, alt } = buffers;
-		const opts = this._optionsService.rawOptions;
+		const opts = this._terminal.optionsService.rawOptions;
 
 		const f = (m: number, v: V): boolean => {
 			cs.triggerDataEvent(`${C0.ESC}[${ansi ? '' : '?'}${m};${v}$y`);
@@ -2716,7 +2715,7 @@ export class InputHandler {
 		if (p === 2004) return f(p, b2v(dm.bracketedPasteMode));
 		if (p === 2026) return f(p, b2v(dm.synchronizedOutput));
 		if (p === 9001)
-			return this._optionsService.rawOptions.vtExtensions?.win32InputMode
+			return this._terminal.optionsService.rawOptions.vtExtensions?.win32InputMode
 				? f(p, b2v(dm.win32InputMode))
 				: f(p, V.NOT_RECOGNIZED);
 		return f(p, V.NOT_RECOGNIZED);
@@ -3042,13 +3041,13 @@ export class InputHandler {
 				attr.bg &= ~BgFlags.OVERLINE;
 			} else if (
 				p === 221 &&
-				(this._optionsService.rawOptions.vtExtensions?.kittySgrBoldFaintControl ?? true)
+				(this._terminal.optionsService.rawOptions.vtExtensions?.kittySgrBoldFaintControl ?? true)
 			) {
 				// not bold (kitty extension)
 				attr.fg &= ~FgFlags.BOLD;
 			} else if (
 				p === 222 &&
-				(this._optionsService.rawOptions.vtExtensions?.kittySgrBoldFaintControl ?? true)
+				(this._terminal.optionsService.rawOptions.vtExtensions?.kittySgrBoldFaintControl ?? true)
 			) {
 				// not faint (kitty extension)
 				attr.bg &= ~BgFlags.DIM;
@@ -3092,7 +3091,7 @@ export class InputHandler {
 		switch (params.params[0]) {
 			case 5:
 				// status report
-				this._coreService.triggerDataEvent(`${C0.ESC}[0n`);
+				this._terminal.coreService.triggerDataEvent(`${C0.ESC}[0n`);
 				break;
 			case 6:
 				// cursor position
@@ -3102,7 +3101,7 @@ export class InputHandler {
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line no-case-declarations
 				const x = this._activeBuffer.x + 1;
-				this._coreService.triggerDataEvent(`${C0.ESC}[${y};${x}R`);
+				this._terminal.coreService.triggerDataEvent(`${C0.ESC}[${y};${x}R`);
 				break;
 		}
 		return true;
@@ -3121,7 +3120,7 @@ export class InputHandler {
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line no-case-declarations
 				const x = this._activeBuffer.x + 1;
-				this._coreService.triggerDataEvent(`${C0.ESC}[?${y};${x}R`);
+				this._terminal.coreService.triggerDataEvent(`${C0.ESC}[?${y};${x}R`);
 				break;
 			case 15:
 				// no printer
@@ -3141,7 +3140,7 @@ export class InputHandler {
 				break;
 			case 996:
 				// color scheme query (https://contour-terminal.org/vt-extensions/color-palette-update-notifications/)
-				if (this._optionsService.rawOptions.vtExtensions?.colorSchemeQuery ?? true) {
+				if (this._terminal.optionsService.rawOptions.vtExtensions?.colorSchemeQuery ?? true) {
 					this._onRequestColorSchemeQuery.fire();
 				}
 				break;
@@ -3172,23 +3171,23 @@ export class InputHandler {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public softReset(params: Params): boolean {
-		this._coreService.isCursorHidden = false;
+		this._terminal.coreService.isCursorHidden = false;
 		this._onRequestSyncScrollBar.fire();
 		this._activeBuffer.scrollTop = 0;
-		this._activeBuffer.scrollBottom = this._bufferService.rows - 1;
+		this._activeBuffer.scrollBottom = this._terminal.bufferService.rows - 1;
 		this._curAttrData = DEFAULT_ATTR_DATA.clone();
-		this._coreService.reset();
-		this._charsetService.reset();
+		this._terminal.coreService.reset();
+		this._terminal.charsetService.reset();
 
 		// reset DECSC data
 		this._activeBuffer.savedX = 0;
 		this._activeBuffer.savedY = this._activeBuffer.ybase;
 		this._activeBuffer.savedCurAttrData.fg = this._curAttrData.fg;
 		this._activeBuffer.savedCurAttrData.bg = this._curAttrData.bg;
-		this._activeBuffer.savedCharset = this._charsetService.charset;
+		this._activeBuffer.savedCharset = this._terminal.charsetService.charset;
 
 		// reset DECOM
-		this._coreService.decPrivateModes.origin = false;
+		this._terminal.coreService.decPrivateModes.origin = false;
 		return true;
 	}
 
@@ -3215,25 +3214,25 @@ export class InputHandler {
 	public setCursorStyle(params: Params): boolean {
 		const param = params.length === 0 ? 1 : params.params[0];
 		if (param === 0) {
-			this._coreService.decPrivateModes.cursorStyle = undefined;
-			this._coreService.decPrivateModes.cursorBlink = undefined;
+			this._terminal.coreService.decPrivateModes.cursorStyle = undefined;
+			this._terminal.coreService.decPrivateModes.cursorBlink = undefined;
 		} else {
 			switch (param) {
 				case 1:
 				case 2:
-					this._coreService.decPrivateModes.cursorStyle = 'block';
+					this._terminal.coreService.decPrivateModes.cursorStyle = 'block';
 					break;
 				case 3:
 				case 4:
-					this._coreService.decPrivateModes.cursorStyle = 'underline';
+					this._terminal.coreService.decPrivateModes.cursorStyle = 'underline';
 					break;
 				case 5:
 				case 6:
-					this._coreService.decPrivateModes.cursorStyle = 'bar';
+					this._terminal.coreService.decPrivateModes.cursorStyle = 'bar';
 					break;
 			}
 			const isBlinking = param % 2 === 1;
-			this._coreService.decPrivateModes.cursorBlink = isBlinking;
+			this._terminal.coreService.decPrivateModes.cursorBlink = isBlinking;
 		}
 		return true;
 	}
@@ -3251,10 +3250,10 @@ export class InputHandler {
 
 		if (
 			params.length < 2 ||
-			(bottom = params.params[1]) > this._bufferService.rows ||
+			(bottom = params.params[1]) > this._terminal.bufferService.rows ||
 			bottom === 0
 		) {
-			bottom = this._bufferService.rows;
+			bottom = this._terminal.bufferService.rows;
 		}
 
 		if (bottom > top) {
@@ -3296,7 +3295,9 @@ export class InputHandler {
 	 *    Ps >= 24                                                          not implemented
 	 */
 	public windowOptions(params: Params): boolean {
-		if (!paramToWindowOption(params.params[0], this._optionsService.rawOptions.windowOptions)) {
+		if (
+			!paramToWindowOption(params.params[0], this._terminal.optionsService.rawOptions.windowOptions)
+		) {
 			return true;
 		}
 		const second = params.length > 1 ? params.params[1] : 0;
@@ -3310,9 +3311,9 @@ export class InputHandler {
 				this._onRequestWindowsOptionsReport.fire(WindowsOptionsReportType.GET_CELL_SIZE_PIXELS);
 				break;
 			case 18: // GetWinSizeChars, returns CSI 8 ; height ; width t
-				if (this._bufferService) {
-					this._coreService.triggerDataEvent(
-						`${C0.ESC}[8;${this._bufferService.rows};${this._bufferService.cols}t`
+				if (this._terminal.bufferService) {
+					this._terminal.coreService.triggerDataEvent(
+						`${C0.ESC}[8;${this._terminal.bufferService.rows};${this._terminal.bufferService.cols}t`
 					);
 				}
 				break;
@@ -3361,11 +3362,11 @@ export class InputHandler {
 		this._activeBuffer.savedY = this._activeBuffer.ybase + this._activeBuffer.y;
 		this._activeBuffer.savedCurAttrData.fg = this._curAttrData.fg;
 		this._activeBuffer.savedCurAttrData.bg = this._curAttrData.bg;
-		this._activeBuffer.savedCharset = this._charsetService.charset;
-		this._activeBuffer.savedCharsets = this._charsetService.charsets.slice();
-		this._activeBuffer.savedGlevel = this._charsetService.glevel;
-		this._activeBuffer.savedOriginMode = this._coreService.decPrivateModes.origin;
-		this._activeBuffer.savedWraparoundMode = this._coreService.decPrivateModes.wraparound;
+		this._activeBuffer.savedCharset = this._terminal.charsetService.charset;
+		this._activeBuffer.savedCharsets = this._terminal.charsetService.charsets.slice();
+		this._activeBuffer.savedGlevel = this._terminal.charsetService.glevel;
+		this._activeBuffer.savedOriginMode = this._terminal.coreService.decPrivateModes.origin;
+		this._activeBuffer.savedWraparoundMode = this._terminal.coreService.decPrivateModes.wraparound;
 		return true;
 	}
 
@@ -3385,11 +3386,11 @@ export class InputHandler {
 		this._curAttrData.fg = this._activeBuffer.savedCurAttrData.fg;
 		this._curAttrData.bg = this._activeBuffer.savedCurAttrData.bg;
 		for (let i = 0; i < this._activeBuffer.savedCharsets.length; i++) {
-			this._charsetService.setgCharset(i, this._activeBuffer.savedCharsets[i]);
+			this._terminal.charsetService.setgCharset(i, this._activeBuffer.savedCharsets[i]);
 		}
-		this._charsetService.setgLevel(this._activeBuffer.savedGlevel);
-		this._coreService.decPrivateModes.origin = this._activeBuffer.savedOriginMode;
-		this._coreService.decPrivateModes.wraparound = this._activeBuffer.savedWraparoundMode;
+		this._terminal.charsetService.setgLevel(this._activeBuffer.savedGlevel);
+		this._terminal.coreService.decPrivateModes.origin = this._activeBuffer.savedOriginMode;
+		this._terminal.coreService.decPrivateModes.wraparound = this._activeBuffer.savedWraparoundMode;
 		this._restrictCursor();
 		return true;
 	}
@@ -3502,7 +3503,7 @@ export class InputHandler {
 			id = parsedParams[idParamIndex].slice(3) || undefined;
 		}
 		this._curAttrData.extended = this._curAttrData.extended.clone();
-		this._curAttrData.extended.urlId = this._oscLinkService.registerLink({ id, uri });
+		this._curAttrData.extended.urlId = this._terminal.oscLinkService.registerLink({ id, uri });
 		this._curAttrData.updateExtended();
 		return true;
 	}
@@ -3675,7 +3676,7 @@ export class InputHandler {
 	 */
 	public keypadApplicationMode(): boolean {
 		console.debug('Serial port requested application keypad.');
-		this._coreService.decPrivateModes.applicationKeypad = true;
+		this._terminal.coreService.decPrivateModes.applicationKeypad = true;
 		this._onRequestSyncScrollBar.fire();
 		return true;
 	}
@@ -3687,7 +3688,7 @@ export class InputHandler {
 	 */
 	public keypadNumericMode(): boolean {
 		console.debug('Switching back to normal keypad.');
-		this._coreService.decPrivateModes.applicationKeypad = false;
+		this._terminal.coreService.decPrivateModes.applicationKeypad = false;
 		this._onRequestSyncScrollBar.fire();
 		return true;
 	}
@@ -3699,8 +3700,8 @@ export class InputHandler {
 	 *   therefore ESC % G does the same.
 	 */
 	public selectDefaultCharset(): boolean {
-		this._charsetService.setgLevel(0);
-		this._charsetService.setgCharset(0, DEFAULT_CHARSET); // US (default)
+		this._terminal.charsetService.setgLevel(0);
+		this._terminal.charsetService.setgCharset(0, DEFAULT_CHARSET); // US (default)
 		return true;
 	}
 
@@ -3728,7 +3729,7 @@ export class InputHandler {
 		if (collectAndFlag[0] === '/') {
 			return true; // TODO: Is this supported?
 		}
-		this._charsetService.setgCharset(
+		this._terminal.charsetService.setgCharset(
 			GLEVEL[collectAndFlag[0]],
 			CHARSETS[collectAndFlag[1]] ?? DEFAULT_CHARSET
 		);
@@ -3749,9 +3750,9 @@ export class InputHandler {
 		this._activeBuffer.y++;
 		if (this._activeBuffer.y === this._activeBuffer.scrollBottom + 1) {
 			this._activeBuffer.y--;
-			this._bufferService.scroll(this._eraseAttrData());
-		} else if (this._activeBuffer.y >= this._bufferService.rows) {
-			this._activeBuffer.y = this._bufferService.rows - 1;
+			this._terminal.bufferService.scroll(this._eraseAttrData());
+		} else if (this._activeBuffer.y >= this._terminal.bufferService.rows) {
+			this._activeBuffer.y = this._terminal.bufferService.rows - 1;
 		}
 		this._restrictCursor();
 		return true;
@@ -3846,7 +3847,7 @@ export class InputHandler {
 	 *   you use another locking shift. (partly supported)
 	 */
 	public setgLevel(level: number): boolean {
-		this._charsetService.setgLevel(level);
+		this._terminal.charsetService.setgLevel(level);
 		return true;
 	}
 
@@ -3866,7 +3867,7 @@ export class InputHandler {
 		cell.bg = this._curAttrData.bg;
 
 		this._setCursor(0, 0);
-		for (let yOffset = 0; yOffset < this._bufferService.rows; ++yOffset) {
+		for (let yOffset = 0; yOffset < this._terminal.bufferService.rows; ++yOffset) {
 			const row = this._activeBuffer.ybase + this._activeBuffer.y + yOffset;
 			const line = this._activeBuffer.lines.get(row);
 			if (line) {
@@ -3909,13 +3910,13 @@ export class InputHandler {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public requestStatusString(data: string, params: Params): boolean {
 		const f = (s: string): boolean => {
-			this._coreService.triggerDataEvent(`${C0.ESC}${s}${C0.ESC}\\`);
+			this._terminal.coreService.triggerDataEvent(`${C0.ESC}${s}${C0.ESC}\\`);
 			return true;
 		};
 
 		// access helpers
-		const b = this._bufferService.buffer;
-		const opts = this._optionsService.rawOptions;
+		const b = this._terminal.bufferService.buffer;
+		const opts = this._terminal.optionsService.rawOptions;
 		const STYLES: { [key: string]: number } = { block: 2, underline: 4, bar: 6 };
 
 		if (data === '"q') return f(`P1$r${this._curAttrData.isProtected() ? 1 : 0}"q`);
@@ -3941,12 +3942,12 @@ export class InputHandler {
 	 * @vt: #Y CSI KKBDSET "Kitty Keyboard Set" "CSI = Ps ; Pm u" "Set Kitty keyboard protocol flags."
 	 */
 	public kittyKeyboardSet(params: Params): boolean {
-		if (!this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
+		if (!this._terminal.optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
 			return true;
 		}
 		const flags = params.params[0] || 0;
 		const mode = params.length > 1 ? params.params[1] || 1 : 1;
-		const state = this._coreService.kittyKeyboard;
+		const state = this._terminal.coreService.kittyKeyboard;
 
 		switch (mode) {
 			case 1: // Set all flags
@@ -3972,11 +3973,11 @@ export class InputHandler {
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public kittyKeyboardQuery(params: Params): boolean {
-		if (!this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
+		if (!this._terminal.optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
 			return true;
 		}
-		const flags = this._coreService.kittyKeyboard.flags;
-		this._coreService.triggerDataEvent(`${C0.ESC}[?${flags}u`);
+		const flags = this._terminal.coreService.kittyKeyboard.flags;
+		this._terminal.coreService.triggerDataEvent(`${C0.ESC}[?${flags}u`);
 		return true;
 	}
 
@@ -3987,12 +3988,12 @@ export class InputHandler {
 	 * @vt: #Y CSI KKBDPUSH "Kitty Keyboard Push" "CSI > Ps u" "Push keyboard flags to stack and set new flags."
 	 */
 	public kittyKeyboardPush(params: Params): boolean {
-		if (!this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
+		if (!this._terminal.optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
 			return true;
 		}
 		const flags = params.params[0] || 0;
-		const state = this._coreService.kittyKeyboard;
-		const isAlt = this._bufferService.buffer === this._bufferService.buffers.alt;
+		const state = this._terminal.coreService.kittyKeyboard;
+		const isAlt = this._terminal.bufferService.buffer === this._terminal.bufferService.buffers.alt;
 		const stack = isAlt ? state.altStack : state.mainStack;
 
 		// Evict oldest entry if stack is full (DoS protection, limit of 16)
@@ -4013,12 +4014,12 @@ export class InputHandler {
 	 * @vt: #Y CSI KKBDPOP "Kitty Keyboard Pop" "CSI < Ps u" "Pop keyboard flags from stack."
 	 */
 	public kittyKeyboardPop(params: Params): boolean {
-		if (!this._optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
+		if (!this._terminal.optionsService.rawOptions.vtExtensions?.kittyKeyboard) {
 			return true;
 		}
 		const count = Math.max(1, params.params[0] || 1);
-		const state = this._coreService.kittyKeyboard;
-		const isAlt = this._bufferService.buffer === this._bufferService.buffers.alt;
+		const state = this._terminal.coreService.kittyKeyboard;
+		const isAlt = this._terminal.bufferService.buffer === this._terminal.bufferService.buffers.alt;
 		const stack = isAlt ? state.altStack : state.mainStack;
 
 		// Pop specified number of entries from stack

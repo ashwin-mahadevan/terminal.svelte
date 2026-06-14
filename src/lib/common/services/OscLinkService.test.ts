@@ -8,13 +8,14 @@ import { AttributeData } from '$lib/common/buffer/AttributeData';
 import { BufferService } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
+import { createMockTerminal } from '$lib/common/TestUtils';
 
 describe('OscLinkService', () => {
 	describe('constructor', () => {
 		it('link IDs are created and fetched consistently', () => {
 			const optionsService = new OptionsService({ rows: 3, cols: 10 });
-			const bufferService = new BufferService(optionsService);
-			const oscLinkService = new OscLinkService(bufferService);
+			const bufferService = new BufferService(createMockTerminal({ optionsService }));
+			const oscLinkService = new OscLinkService(createMockTerminal({ bufferService }));
 			const linkId = oscLinkService.registerLink({ id: 'foo', uri: 'bar' });
 			expect(linkId).toBeTruthy();
 			expect(oscLinkService.registerLink({ id: 'foo', uri: 'bar' })).toBe(linkId);
@@ -22,8 +23,8 @@ describe('OscLinkService', () => {
 
 		it('should dispose the link ID when the last marker is trimmed from the buffer', () => {
 			const optionsService = new OptionsService({ rows: 3, cols: 10 });
-			const bufferService = new BufferService(optionsService);
-			const oscLinkService = new OscLinkService(bufferService);
+			const bufferService = new BufferService(createMockTerminal({ optionsService }));
+			const oscLinkService = new OscLinkService(createMockTerminal({ bufferService }));
 			// Activate the alt buffer to get 0 scrollback
 			bufferService.buffers.activateAltBuffer();
 			const linkId = oscLinkService.registerLink({ id: 'foo', uri: 'bar' });
@@ -34,8 +35,8 @@ describe('OscLinkService', () => {
 
 		it('should fetch link data from link id', () => {
 			const optionsService = new OptionsService({ rows: 3, cols: 10 });
-			const bufferService = new BufferService(optionsService);
-			const oscLinkService = new OscLinkService(bufferService);
+			const bufferService = new BufferService(createMockTerminal({ optionsService }));
+			const oscLinkService = new OscLinkService(createMockTerminal({ bufferService }));
 			const linkId = oscLinkService.registerLink({ id: 'foo', uri: 'bar' });
 			expect(oscLinkService.getLinkData(linkId)).toEqual({ id: 'foo', uri: 'bar' });
 		});

@@ -8,7 +8,7 @@ import type { IAttributeData } from '$lib/common/Types';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { Buffer } from '$lib/common/buffer/Buffer';
-import type { OptionsService } from '$lib/common/services/OptionsService';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -39,10 +39,16 @@ export class BufferService {
 	private _cachedBlankLine: BufferLine | undefined;
 	private readonly _bufferActivateListener: IDisposable;
 
-	constructor(optionsService: OptionsService) {
-		this.cols = Math.max(optionsService.rawOptions.cols || 0, BufferServiceConstants.MINIMUM_COLS);
-		this.rows = Math.max(optionsService.rawOptions.rows || 0, BufferServiceConstants.MINIMUM_ROWS);
-		this.buffers = new BufferSet(optionsService, this);
+	constructor(terminal: CoreTerminal) {
+		this.cols = Math.max(
+			terminal.optionsService.rawOptions.cols || 0,
+			BufferServiceConstants.MINIMUM_COLS
+		);
+		this.rows = Math.max(
+			terminal.optionsService.rawOptions.rows || 0,
+			BufferServiceConstants.MINIMUM_ROWS
+		);
+		this.buffers = new BufferSet(terminal.optionsService, this);
 		this._bufferActivateListener = this.buffers.onBufferActivate((e) => {
 			this._onScroll.fire(e.activeBuffer.ydisp);
 		});

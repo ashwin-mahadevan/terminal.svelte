@@ -2,7 +2,7 @@
  * Copyright (c) 2022 The xterm.js authors. All rights reserved.
  * @license MIT
  */
-import type { BufferService } from '$lib/common/services/BufferService';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 import type { IMarker, IOscLinkData } from '$lib/common/Types';
 
 export class OscLinkService {
@@ -22,10 +22,10 @@ export class OscLinkService {
 	 */
 	private _dataByLinkId: Map<number, IOscLinkEntryNoId | IOscLinkEntryWithId> = new Map();
 
-	constructor(private readonly _bufferService: BufferService) {}
+	constructor(private readonly _terminal: CoreTerminal) {}
 
 	public registerLink(data: IOscLinkData): number {
-		const buffer = this._bufferService.buffer;
+		const buffer = this._terminal.bufferService.buffer;
 
 		// Links with no id will only ever be registered a single time
 		if (data.id === undefined) {
@@ -69,7 +69,7 @@ export class OscLinkService {
 			return;
 		}
 		if (entry.lines.every((e) => e.line !== y)) {
-			const marker = this._bufferService.buffer.addMarker(y);
+			const marker = this._terminal.bufferService.buffer.addMarker(y);
 			entry.lines.push(marker);
 			marker.onDispose(() => this._removeMarkerFromLink(entry, marker));
 		}

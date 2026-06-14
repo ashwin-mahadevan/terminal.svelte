@@ -4,8 +4,7 @@
  */
 
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
-import type { BufferService } from '$lib/common/services/BufferService';
-import type { OptionsService } from '$lib/common/services/OptionsService';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 import { LegacyEmitter } from '$lib/common/Event';
 
 const DEFAULT_MODES: IModes = Object.freeze({
@@ -53,11 +52,8 @@ export class CoreService {
 	private readonly _onRequestScrollToBottom = new LegacyEmitter<void>();
 	public readonly onRequestScrollToBottom = this._onRequestScrollToBottom.event;
 
-	constructor(
-		private readonly _bufferService: BufferService,
-		private readonly _optionsService: OptionsService
-	) {
-		this.isCursorInitialized = _optionsService.rawOptions.showCursorImmediately ?? false;
+	constructor(private readonly _terminal: CoreTerminal) {
+		this.isCursorInitialized = _terminal.optionsService.rawOptions.showCursorImmediately ?? false;
 		this.modes = structuredClone(DEFAULT_MODES);
 		this.decPrivateModes = structuredClone(DEFAULT_DEC_PRIVATE_MODES);
 		this.kittyKeyboard = DEFAULT_KITTY_KEYBOARD_STATE();
@@ -78,15 +74,15 @@ export class CoreService {
 
 	public triggerDataEvent(data: string, wasUserInput: boolean = false): void {
 		// Prevents all events to pty process if stdin is disabled
-		if (this._optionsService.rawOptions.disableStdin) {
+		if (this._terminal.optionsService.rawOptions.disableStdin) {
 			return;
 		}
 
 		// Input is being sent to the terminal, the terminal should focus the prompt.
-		const buffer = this._bufferService.buffer;
+		const buffer = this._terminal.bufferService.buffer;
 		if (
 			wasUserInput &&
-			this._optionsService.rawOptions.scrollOnUserInput &&
+			this._terminal.optionsService.rawOptions.scrollOnUserInput &&
 			buffer.ybase !== buffer.ydisp
 		) {
 			this._onRequestScrollToBottom.fire();
@@ -109,7 +105,7 @@ export class CoreService {
 	}
 
 	public triggerBinaryEvent(data: string): void {
-		if (this._optionsService.rawOptions.disableStdin) {
+		if (this._terminal.optionsService.rawOptions.disableStdin) {
 			return;
 		}
 		if (process.env.NODE_ENV === 'development') {

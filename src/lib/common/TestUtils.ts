@@ -11,9 +11,13 @@ import type {
 	IInternalDecoration,
 	IBufferResizeEvent
 } from '$lib/common/services/Services';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 import type { CoreService } from '$lib/common/services/CoreService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { BufferService } from '$lib/common/services/BufferService';
+import type { CharsetService } from '$lib/common/services/CharsetService';
+import type { OscLinkService } from '$lib/common/services/OscLinkService';
+import type { MouseStateService } from '$lib/common/services/MouseStateService';
 import type { DecorationService } from '$lib/common/services/DecorationService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { DEFAULT_OPTIONS } from '$lib/common/services/OptionsService';
@@ -359,4 +363,18 @@ class MockDecorationService {
 
 export function createMockDecorationService(): DecorationService {
 	return new MockDecorationService() as unknown as DecorationService;
+}
+
+export function createMockTerminal(
+	opts: {
+		bufferService?: BufferService;
+		optionsService?: OptionsService;
+		coreService?: CoreService;
+		charsetService?: CharsetService;
+		oscLinkService?: OscLinkService;
+		mouseStateService?: MouseStateService;
+		unicodeService?: UnicodeService;
+	} = {}
+): CoreTerminal {
+	return opts as unknown as CoreTerminal;
 }

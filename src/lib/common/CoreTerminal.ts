@@ -85,23 +85,15 @@ export abstract class CoreTerminal {
 	constructor(options: Partial<ITerminalOptions>) {
 		// Setup and initialize services
 		this.optionsService = new OptionsService(options);
-		this.bufferService = new BufferService(this.optionsService);
-		this.coreService = new CoreService(this.bufferService, this.optionsService);
+		this.bufferService = new BufferService(this);
+		this.coreService = new CoreService(this);
 		this.mouseStateService = new MouseStateService();
 		this.unicodeService = new UnicodeService();
 		this.charsetService = new CharsetService();
-		this.oscLinkService = new OscLinkService(this.bufferService);
+		this.oscLinkService = new OscLinkService(this);
 
 		// Register input handler and handle/forward events
-		this.inputHandler = new InputHandler(
-			this.bufferService,
-			this.charsetService,
-			this.coreService,
-			this.optionsService,
-			this.oscLinkService,
-			this.mouseStateService,
-			this.unicodeService
-		);
+		this.inputHandler = new InputHandler(this);
 		// Setup listeners
 		this._store.add(this.coreService.onRequestScrollToBottom(() => this.scrollToBottom(true)));
 		this._store.add(this.coreService.onUserInput(() => this._writeBuffer.handleUserInput()));
