@@ -79,6 +79,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	public document: Document | undefined;
 	public helperContainer: HTMLElement | undefined;
 	public compositionView: HTMLElement | undefined;
+	public scrollableContainer: HTMLDivElement | undefined;
 
 	private readonly _linkifier = new MutableDisposable<Linkifier>();
 	public get linkifier(): Linkifier | undefined {
@@ -600,6 +601,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this.helperContainer = helpers;
 		this.textarea = textarea;
 		this.compositionView = compositionView;
+		this.scrollableContainer = scrollableContainer;
 
 		this._store.add(
 			addDisposableListener(this.screenElement, 'mousemove', (ev: MouseEvent) =>
@@ -685,7 +687,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._store.add(this.onBlur(() => this.renderService!.handleBlur()));
 		this._store.add(this.onFocus(() => this.renderService!.handleFocus()));
 
-		this._viewport = new Viewport(this, scrollableContainer);
+		this._viewport = new Viewport(this);
 		this._store.add(
 			this._viewport.onRequestScrollLines((e) => {
 				super.scrollLines(e, false);

@@ -39,16 +39,12 @@ export class Viewport {
 	private _isHandlingScroll: boolean = false;
 	private _suppressOnScrollHandler: boolean = false;
 	private _needsSyncOnRender: boolean = false;
-	constructor(
-		private readonly _terminal: CoreBrowserTerminal,
-		scrollableContainer: HTMLElement
-	) {
+	constructor(private readonly _terminal: CoreBrowserTerminal) {
 		this._scrollable = new Scrollable({
 			forceIntegerValues: false,
 			smoothScrollDuration: this._terminal.optionsService.rawOptions.smoothScrollDuration,
 			// This is used over `RenderService.addRefreshCallback` since it can be canceled
-			scheduleAtNextAnimationFrame: (cb) =>
-				scheduleAtNextAnimationFrame(window, cb)
+			scheduleAtNextAnimationFrame: (cb) => scheduleAtNextAnimationFrame(window, cb)
 		});
 		this._smoothScrollDurationListener = this._terminal.optionsService.onSpecificOptionChange(
 			'smoothScrollDuration',
@@ -70,7 +66,7 @@ export class Viewport {
 				...this._getChangeOptions()
 			},
 			this._scrollable,
-			scrollableContainer
+			this._terminal.scrollableContainer!
 		);
 		this._scrollOptionsListener = this._terminal.optionsService.onMultipleOptionChange(
 			['scrollSensitivity', 'fastScrollSensitivity', 'scrollbar'],
