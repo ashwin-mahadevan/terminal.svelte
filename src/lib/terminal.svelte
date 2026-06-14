@@ -13,14 +13,26 @@
 	type Props = {
 		ondata?: (data: string) => void;
 		onbell?: () => void;
+		onkey?: (event: { key: string; domEvent: KeyboardEvent }) => void;
+		onbinary?: (data: string) => void;
+		onlinefeed?: () => void;
+		oncursormove?: () => void;
 	};
 
-	const { ondata, onbell }: Props = $props();
+	const { ondata, onbell, onkey, onbinary, onlinefeed, oncursormove }: Props = $props();
 
 	const terminal = (browser && new CoreBrowserTerminal()) as CoreBrowserTerminal;
 
-	export const dimensions = $state({columns: 80, rows: 24})
-	export const progress = new Progress()
+	export const dimensions = $state({ columns: 80, rows: 24 });
+	export const progress = new Progress();
+
+	let title = $state('');
+	let focused = $state(false);
+	let selection = $state('');
+	let scrollPosition = $state(0);
+	export { title, focused, selection, scrollPosition };
+
+	let isOpen = $state(false);
 
 	let element: HTMLDivElement;
 	let scrollableEl: HTMLDivElement;
@@ -42,6 +54,7 @@
 
 	onMount(() => {
 		terminal.open(element, screenEl, helpersEl, textareaEl, compositionEl, scrollableEl);
+		isOpen = true;
 		return () => terminal.dispose();
 	});
 
@@ -106,12 +119,89 @@
 
 	$effect(() => terminal.parser.registerOscHandler(9, handleProgress).dispose);
 
+	$effect(() => {
+		if (!onkey) return;
+		const disposable = terminal.onKey(onkey);
+		return () => disposable.dispose();
+	});
+
+	$effect(() => {
+		if (!onbinary) return;
+		const disposable = terminal.coreService.onBinary(onbinary);
+		return () => disposable.dispose();
+	});
+
+	$effect(() => {
+		if (!onlinefeed) return;
+		const disposable = terminal.inputHandler.onLineFeed(onlinefeed);
+		return () => disposable.dispose();
+	});
+
+	$effect(() => {
+		if (!oncursormove) return;
+		const disposable = terminal.inputHandler.onCursorMove(oncursormove);
+		return () => disposable.dispose();
+	});
+
+	$effect(() => {
+		const disposable = terminal.inputHandler.onTitleChange((t) => {
+			title = t;
+		});
+		return () => disposable.dispose();
+	});
+
+	$effect(() => {
+		const focusDisposable = terminal.onFocus(() => {
+			focused = true;
+		});
+		const blurDisposable = terminal.onBlur(() => {
+			focused = false;
+		});
+		return () => {
+			focusDisposable.dispose();
+			blurDisposable.dispose();
+		};
+	});
+
+	$effect(() => {
+		const disposable = terminal.onScroll((position) => {
+			scrollPosition = position;
+		});
+		return () => disposable.dispose();
+	});
+
+	$effect(() => {
+		if (!isOpen) return;
+		const sel = terminal.selectionService!;
+		selection = sel.selectionText;
+		const disposable = sel.onSelectionChange(() => {
+			selection = sel.selectionText;
+		});
+		return () => disposable.dispose();
+	});
+
 	export function write(data: string) {
 		return new Promise<void>((resolve) => terminal.write(data, resolve));
 	}
 
 	export function serialize(options?: ISerializeOptions): string {
 		return internalSerialize(terminal, options);
+	}
+
+	export function focus(): void {
+		terminal.focus();
+	}
+
+	export function blur(): void {
+		terminal.blur();
+	}
+
+	export function selectAll(): void {
+		terminal.selectionService?.selectAll();
+	}
+
+	export function scrollLines(amount: number): void {
+		terminal.scrollLines(amount);
 	}
 </script>
 

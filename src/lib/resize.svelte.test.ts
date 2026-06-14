@@ -116,7 +116,9 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 
 		await component.write('\x1b[?1049h');
 
-		expect({ cols: component.dimensions.columns, rows: component.dimensions.rows }).toEqual(dimsBefore);
+		expect({ cols: component.dimensions.columns, rows: component.dimensions.rows }).toEqual(
+			dimsBefore
+		);
 	});
 
 	// Hypothesis 3: resizes that happen while the alt buffer is active are not
