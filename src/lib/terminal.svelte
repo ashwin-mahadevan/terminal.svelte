@@ -205,6 +205,7 @@
 	}
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	class="xterm"
 	dir="ltr"
@@ -217,9 +218,15 @@
 	onmousedown={terminal._mouseDown}
 	oncontextmenu={terminal._contextMenu}
 	onauxclick={terminal._auxClick}
+	role="application"
 >
 	<div bind:this={scrollableEl}>
-		<div class="xterm-screen" bind:this={screenEl} onmousemove={terminal.updateCursorStyle}>
+		<div
+			class="xterm-screen"
+			bind:this={screenEl}
+			onmousemove={terminal.updateCursorStyle}
+			role="presentation"
+		>
 			<div class="xterm-helpers" bind:this={helpersEl}>
 				<textarea
 					class="xterm-helper-textarea"
