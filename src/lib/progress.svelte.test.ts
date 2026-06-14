@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Terminal from '$lib/terminal.svelte';
 import {
-	PROGRESS_STATE_REMOVE,
+	PROGRESS_STATE_UNSET,
 	PROGRESS_STATE_SET,
 	PROGRESS_STATE_ERROR,
 	PROGRESS_STATE_INDETERMINATE,
@@ -21,11 +21,11 @@ describe('progress (OSC 9;4)', () => {
 		const { component } = await render(Terminal);
 		// no value
 		await component.write('\x1b]9;4;0\x1b\\');
-		expect(component.emulator.progress.type).toBe(PROGRESS_STATE_REMOVE);
+		expect(component.emulator.progress.type).toBe(PROGRESS_STATE_UNSET);
 		expect(component.emulator.progress.value).toBe(0);
 		// value ignored
 		await component.write('\x1b]9;4;0;12\x1b\\');
-		expect(component.emulator.progress.type).toBe(PROGRESS_STATE_REMOVE);
+		expect(component.emulator.progress.type).toBe(PROGRESS_STATE_UNSET);
 		expect(component.emulator.progress.value).toBe(0);
 	});
 
@@ -143,11 +143,11 @@ describe('progress (OSC 9;4)', () => {
 		const { component } = await render(Terminal);
 		// illegal state
 		await component.write('\x1b]9;4;5;12\x1b\\');
-		expect(component.emulator.progress.type).toBe(PROGRESS_STATE_REMOVE);
+		expect(component.emulator.progress.type).toBe(PROGRESS_STATE_UNSET);
 		expect(component.emulator.progress.value).toBe(0);
 		// illegal chars in value
 		await component.write('\x1b]9;4;1; 123xxxx\x1b\\');
-		expect(component.emulator.progress.type).toBe(PROGRESS_STATE_REMOVE);
+		expect(component.emulator.progress.type).toBe(PROGRESS_STATE_UNSET);
 		expect(component.emulator.progress.value).toBe(0);
 		// a valid sequence afterwards proves the invalid ones emitted nothing
 		await component.write('\x1b]9;4;1;7\x1b\\');

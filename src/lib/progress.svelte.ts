@@ -1,11 +1,11 @@
-export const PROGRESS_STATE_REMOVE = '0' as const;
+export const PROGRESS_STATE_UNSET = '0' as const;
 export const PROGRESS_STATE_SET = '1' as const;
 export const PROGRESS_STATE_ERROR = '2' as const;
 export const PROGRESS_STATE_INDETERMINATE = '3' as const;
 export const PROGRESS_STATE_PAUSE = '4' as const;
 
 export type ProgressState =
-	| typeof PROGRESS_STATE_REMOVE
+	| typeof PROGRESS_STATE_UNSET
 	| typeof PROGRESS_STATE_SET
 	| typeof PROGRESS_STATE_ERROR
 	| typeof PROGRESS_STATE_INDETERMINATE
@@ -13,7 +13,7 @@ export type ProgressState =
 
 /** ConEmu OSC 9;4 progress. */
 export class Progress {
-	type = $state<ProgressState>(PROGRESS_STATE_REMOVE);
+	type = $state<ProgressState>(PROGRESS_STATE_UNSET);
 	value = $state(0);
 
 	handle = (data: string) => {
@@ -24,8 +24,8 @@ export class Progress {
 		const value = parseInt(match[2]!) || 0;
 
 		switch (type) {
-			case PROGRESS_STATE_REMOVE:
-				this.type = PROGRESS_STATE_REMOVE;
+			case PROGRESS_STATE_UNSET:
+				this.type = PROGRESS_STATE_UNSET;
 				this.value = 0;
 				break;
 			case PROGRESS_STATE_SET:
