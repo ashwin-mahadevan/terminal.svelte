@@ -98,7 +98,7 @@ export abstract class CoreTerminal {
 		this._store.add(this.coreService.onRequestScrollToBottom(() => this.scrollToBottom(true)));
 		this._store.add(this.coreService.onUserInput(() => this._writeBuffer.handleUserInput()));
 		this._store.add(
-			this.optionsService.onMultipleOptionChange(['windowsPty'], () =>
+			this.optionsService.onSpecificOptionChange('windowsPty', () =>
 				this._handleWindowsPtyOptionChange()
 			)
 		);

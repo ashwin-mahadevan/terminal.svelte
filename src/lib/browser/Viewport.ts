@@ -23,7 +23,7 @@ export class Viewport {
 	private _styleElement!: HTMLStyleElement;
 
 	private _smoothScrollDurationListener!: IDisposable;
-	private _scrollOptionsListener!: IDisposable;
+	private _scrollOptionsListeners!: IDisposable[];
 	private _protocolChangeListener!: IDisposable;
 	private _updateBackgroundColorListener!: IDisposable;
 	private _updateScrollbarStyleListener!: IDisposable;
@@ -68,10 +68,19 @@ export class Viewport {
 			this._scrollable,
 			this._terminal.scrollableContainer!
 		);
-		this._scrollOptionsListener = this._terminal.optionsService.onMultipleOptionChange(
-			['scrollSensitivity', 'fastScrollSensitivity', 'scrollbar'],
-			() => this._scrollableElement.updateOptions(this._getChangeOptions())
-		);
+		const scrollOptionsHandler = (): void =>
+			this._scrollableElement.updateOptions(this._getChangeOptions());
+		this._scrollOptionsListeners = [
+			this._terminal.optionsService.onSpecificOptionChange(
+				'scrollSensitivity',
+				scrollOptionsHandler
+			),
+			this._terminal.optionsService.onSpecificOptionChange(
+				'fastScrollSensitivity',
+				scrollOptionsHandler
+			),
+			this._terminal.optionsService.onSpecificOptionChange('scrollbar', scrollOptionsHandler)
+		];
 		// Don't handle mouse wheel if wheel events are supported by the current mouse prototcol
 		this._protocolChangeListener = this._terminal.mouseStateService.onProtocolChange((type) => {
 			this._scrollableElement.updateOptions({
@@ -137,7 +146,7 @@ export class Viewport {
 		this._scrollable.dispose();
 		this._scrollableElement.dispose();
 		this._smoothScrollDurationListener.dispose();
-		this._scrollOptionsListener.dispose();
+		this._scrollOptionsListeners.forEach((l) => l.dispose());
 		this._protocolChangeListener.dispose();
 		this._updateBackgroundColorListener.dispose();
 		this._updateScrollbarStyleListener.dispose();
