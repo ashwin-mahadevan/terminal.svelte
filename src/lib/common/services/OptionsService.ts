@@ -6,7 +6,7 @@
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { isMac } from '$lib/common/Platform';
 import type { CursorStyle } from '$lib/common/Types';
-import type { FontWeight, ITerminalOptions } from '$lib/common/services/Services';
+import type { ITerminalOptions } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
 export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
@@ -20,8 +20,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	cursorInactiveStyle: 'outline',
 	drawBoldTextInBrightColors: true,
 	fastScrollSensitivity: 5,
-	fontWeight: 'normal',
-	fontWeightBold: 'bold',
 	ignoreBracketedPasteMode: false,
 	linkHandler: null,
 	scrollback: 1000,
@@ -49,20 +47,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	quirks: {},
 	vtExtensions: {}
 };
-
-const FONT_WEIGHT_OPTIONS: Extract<FontWeight, string>[] = [
-	'normal',
-	'bold',
-	'100',
-	'200',
-	'300',
-	'400',
-	'500',
-	'600',
-	'700',
-	'800',
-	'900'
-];
 
 export class OptionsService {
 	public readonly rawOptions: Required<ITerminalOptions>;
@@ -159,14 +143,6 @@ export class OptionsService {
 				if (!value) {
 					value = DEFAULT_OPTIONS[key];
 				}
-				break;
-			case 'fontWeight':
-			case 'fontWeightBold':
-				if (typeof value === 'number' && 1 <= value && value <= 1000) {
-					// already valid numeric value
-					break;
-				}
-				value = FONT_WEIGHT_OPTIONS.includes(value) ? value : DEFAULT_OPTIONS[key];
 				break;
 			case 'blinkIntervalDuration':
 				value = Math.floor(value);

@@ -4,7 +4,6 @@
  */
 
 import { throwIfFalsy } from '$lib/browser/renderer/shared/RendererUtils';
-import type { FontWeight } from '$lib/common/services/Services';
 
 export const enum WidthCacheSettings {
 	/** sentinel for unset values in flat cache */
@@ -35,8 +34,8 @@ export class WidthCache {
 
 	private _font = '';
 	private _fontSize = 0;
-	private _weight: FontWeight = 'normal';
-	private _weightBold: FontWeight = 'bold';
+	private _weight = 400;
+	private _weightBold = 700;
 	private _canvasElements: WidthCacheFontVariantCanvas[] = [];
 
 	constructor(
@@ -66,7 +65,7 @@ export class WidthCache {
 	 * Must be called for any changes on font settings.
 	 * Also clears the cache.
 	 */
-	public setFont(font: string, fontSize: number, weight: FontWeight, weightBold: FontWeight): void {
+	public setFont(font: string, fontSize: number, weight: number, weightBold: number): void {
 		// skip if nothing changed
 		if (
 			font === this._font &&
@@ -148,12 +147,7 @@ class WidthCacheFontVariantCanvas {
 		}
 	}
 
-	public setFont(
-		fontFamily: string,
-		fontSize: number,
-		fontWeight: FontWeight,
-		italic: boolean
-	): void {
+	public setFont(fontFamily: string, fontSize: number, fontWeight: number, italic: boolean): void {
 		const fontStyle = italic ? 'italic' : '';
 		this._ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`.trim();
 	}

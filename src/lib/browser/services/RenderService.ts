@@ -124,8 +124,6 @@ export class RenderService {
 				'drawBoldTextInBrightColors',
 				glyphHandler
 			),
-			this._terminal.optionsService.onSpecificOptionChange('fontWeight', glyphHandler),
-			this._terminal.optionsService.onSpecificOptionChange('fontWeightBold', glyphHandler),
 			this._terminal.optionsService.onSpecificOptionChange('minimumContrastRatio', glyphHandler)
 		];
 

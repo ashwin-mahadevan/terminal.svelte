@@ -36,54 +36,6 @@ describe('OptionsService', () => {
 			expect(Object.keys(optionsService.options).length).not.toBe(0);
 		});
 	});
-	describe('setOption', () => {
-		it('applies valid fontWeight option values', () => {
-			const service = new OptionsService({});
-			service.options.fontWeight = 'bold';
-			// "bold" keyword value should be applied
-			expect(service.options.fontWeight).toBe('bold');
-
-			service.options.fontWeight = 'normal';
-			// "normal" keyword value should be applied
-			expect(service.options.fontWeight).toBe('normal');
-
-			service.options.fontWeight = '600';
-			// String numeric values should be applied
-			expect(service.options.fontWeight).toBe('600');
-
-			service.options.fontWeight = 350;
-			// Values between 1 and 1000 should be applied as is
-			expect(service.options.fontWeight).toBe(350);
-
-			service.options.fontWeight = 1;
-			// Range should include minimum value: 1
-			expect(service.options.fontWeight).toBe(1);
-
-			service.options.fontWeight = 1000;
-			// Range should include maximum value: 1000
-			expect(service.options.fontWeight).toBe(1000);
-		});
-		it('normalizes invalid fontWeight option values', () => {
-			const service = new OptionsService({});
-			service.options.fontWeight = 350;
-			// fontWeight should be normalized instead of throwing
-			expect(() => (service.options.fontWeight = 10000)).not.toThrow();
-			// Values greater than 1000 should be reset to default
-			expect(service.options.fontWeight).toBe(DEFAULT_OPTIONS.fontWeight);
-
-			service.options.fontWeight = 350;
-			service.options.fontWeight = -10;
-			// Values less than 1 should be reset to default
-			expect(service.options.fontWeight).toBe(DEFAULT_OPTIONS.fontWeight);
-
-			service.options.fontWeight = 350;
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			service.options.fontWeight = 'bold700' as any;
-			// Wrong string literals should be reset to default
-			expect(service.options.fontWeight).toBe(DEFAULT_OPTIONS.fontWeight);
-		});
-	});
 	describe('onOptionChange', () => {
 		it('should fire on any option change', async () => {
 			const service = new OptionsService({});

@@ -20,20 +20,6 @@ export interface IBufferResizeEvent {
 	rowsChanged: boolean;
 }
 
-export type FontWeight =
-	| 'normal'
-	| 'bold'
-	| '100'
-	| '200'
-	| '300'
-	| '400'
-	| '500'
-	| '600'
-	| '700'
-	| '800'
-	| '900'
-	| number;
-
 export interface ITerminalOptions {
 	altClickMovesCursor?: boolean;
 	cols?: number;
@@ -46,8 +32,6 @@ export interface ITerminalOptions {
 	disableStdin?: boolean;
 	drawBoldTextInBrightColors?: boolean;
 	fastScrollSensitivity?: number;
-	fontWeight?: FontWeight;
-	fontWeightBold?: FontWeight;
 	ignoreBracketedPasteMode?: boolean;
 	linkHandler?: ILinkHandler | null;
 	macOptionIsMeta?: boolean;

@@ -32,6 +32,21 @@ const enum Constants {
 let nextTerminalId = 1;
 
 /**
+ * Resolve the CSS `bolder` keyword against a concrete inherited weight, per the
+ * CSS Fonts Module Level 4 relative-weight table, so the glyph-width cache can
+ * measure the bold variant the browser actually renders for bold cells.
+ */
+function resolveBolder(weight: number): number {
+	if (weight < 350) {
+		return 400;
+	}
+	if (weight < 550) {
+		return 700;
+	}
+	return 900;
+}
+
+/**
  * The standard renderer and fallback for when the webgl addon is slow. This is not meant to be
  * particularly fast and will even lack some features such as custom glyphs, hoever this is more
  * reliable as webgl may not work on some machines.
@@ -221,12 +236,11 @@ export class DomRenderer {
 			` color: ${color.multiplyOpacity(colors.foreground, 0.5).css};` +
 			`}`;
 		// Text styles
+		// Normal spans inherit the host's CSS font-weight; bold cells step up
+		// relative to it via the `bolder` keyword, so no weight option is needed.
 		styles +=
-			`${this._terminalSelector} span:not(.${RowCss.BOLD_CLASS}) {` +
-			` font-weight: ${this._terminal.optionsService.rawOptions.fontWeight};` +
-			`}` +
 			`${this._terminalSelector} span.${RowCss.BOLD_CLASS} {` +
-			` font-weight: ${this._terminal.optionsService.rawOptions.fontWeightBold};` +
+			` font-weight: bolder;` +
 			`}` +
 			`${this._terminalSelector} span.${RowCss.ITALIC_CLASS} {` +
 			` font-style: italic;` +
@@ -387,7 +401,8 @@ export class DomRenderer {
 	 * Point the glyph-width cache at the *computed* CSS font of the rows rather
 	 * than a font option. This keeps the canvas-measured widths (used to nudge
 	 * each glyph onto the grid) in sync with what the browser actually renders.
-	 * Weight still comes from options, which drive the bold/normal CSS classes.
+	 * The bold weight is derived from the inherited weight via the same `bolder`
+	 * keyword the bold-cell CSS rule uses.
 	 */
 	private _refreshWidthCacheFont(): void {
 		const style = getComputedStyle(this._rowContainer);
@@ -395,12 +410,8 @@ export class DomRenderer {
 		// (e.g. detached); a real value arrives on the next char-size change.
 		const fontFamily = style.fontFamily || 'monospace';
 		const fontSize = parseFloat(style.fontSize) || 15;
-		this._widthCache.setFont(
-			fontFamily,
-			fontSize,
-			this._terminal.optionsService.rawOptions.fontWeight,
-			this._terminal.optionsService.rawOptions.fontWeightBold
-		);
+		const fontWeight = parseFloat(style.fontWeight) || 400;
+		this._widthCache.setFont(fontFamily, fontSize, fontWeight, resolveBolder(fontWeight));
 	}
 
 	public handleBlur(): void {
