@@ -3,13 +3,11 @@ import { render } from 'vitest-browser-svelte';
 import Terminal from '$lib/terminal.svelte';
 
 /**
- * Render Terminal into a pre-sized container so the initial synchronous
- * dimension measurement at mount reflects the intended size.
+ * Render Terminal into a pre-sized container.
  *
- * Passing `target` to render() makes the library mount into that element
- * directly (setup.js:69) rather than creating a fresh div, so
- * `result.container` is the same pre-sized element and further
- * `container.style` mutations in the test body work normally.
+ * Passing `target` keeps `result.container` as the same element we created,
+ * so subsequent `container.style` mutations are picked up by the terminal's
+ * ResizeObserver.
  */
 async function renderSized(width: string, height: string) {
 	const container = document.createElement('div');

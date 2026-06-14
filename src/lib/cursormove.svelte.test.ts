@@ -13,8 +13,10 @@ describe('oncursormove', () => {
 	it('fires when a cursor movement escape sequence is processed', async () => {
 		const oncursormove = vi.fn<() => void>();
 		const { component } = await render(Terminal, { props: { oncursormove } });
-		// CSI 5 G: move to column 5 (CHA — works in a single-row terminal).
-		await component.write('\x1b[5G');
+		// Wait for ResizeObserver to give the terminal more than one row.
+		await expect.poll(() => component.dimensions.rows).toBeGreaterThan(1);
+		// CSI B: cursor down one line.
+		await component.write('\x1b[B');
 		expect(oncursormove).toHaveBeenCalled();
 	});
 
