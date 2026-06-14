@@ -143,10 +143,6 @@ export abstract class CoreTerminal {
 		this._writeBuffer.write(data, callback);
 	}
 
-	public input(data: string, wasUserInput: boolean = true): void {
-		this.coreService.triggerDataEvent(data, wasUserInput);
-	}
-
 	public resize(x: number, y: number): void {
 		if (isNaN(x) || isNaN(y)) {
 			return;
