@@ -189,11 +189,11 @@
 	}
 
 	export function focus(): void {
-		terminal.focus();
+		terminal.textarea?.focus({ preventScroll: true });
 	}
 
 	export function blur(): void {
-		terminal.blur();
+		terminal.textarea?.blur();
 	}
 
 	export function selectAll(): void {

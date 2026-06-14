@@ -59,7 +59,6 @@ import * as Browser from '$lib/common/Platform';
 import type { IColorEvent } from '$lib/common/Types';
 import { ColorRequestType, KeyboardResultType, SpecialColorIndex } from '$lib/common/Types';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
-import type { Buffer } from '$lib/common/buffer/Buffer';
 import { C0, C1ESCAPED } from '$lib/common/data/EscapeSequences';
 import { toRgbString } from '$lib/common/input/XParseColor';
 import { DecorationService } from '$lib/common/services/DecorationService';
@@ -362,22 +361,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._customKeyEventHandler = undefined;
 	}
 
-	/**
-	 * Convenience property to active buffer.
-	 */
-	public get buffer(): Buffer {
-		return this.bufferService.buffers.active;
-	}
-
-	/**
-	 * Focus the terminal. Delegates focus handling to the terminal's DOM element.
-	 */
-	public focus(): void {
-		if (this.textarea) {
-			this.textarea.focus({ preventScroll: true });
-		}
-	}
-
 	private _handleScreenReaderModeOptionChange(value: boolean): void {
 		if (value) {
 			if (!this._accessibilityManager.value && this.renderService) {
@@ -403,21 +386,13 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	}
 
 	/**
-	 * Blur the terminal, calling the blur function on the terminal's underlying
-	 * textarea.
-	 */
-	public blur(): void {
-		return this.textarea?.blur();
-	}
-
-	/**
 	 * Binds the desired blur behavior on a given terminal object.
 	 */
 	private _handleTextAreaBlur(): void {
 		// Text can safely be removed on blur. Doing it earlier could interfere with
 		// screen readers reading it out.
 		this.textarea!.value = '';
-		this.refresh(this.buffer.y, this.buffer.y);
+		this.refresh(this.bufferService.buffers.active.y, this.bufferService.buffers.active.y);
 		if (this.coreService.decPrivateModes.sendFocus) {
 			this.coreService.triggerDataEvent(C0.ESC + '[O');
 		}
@@ -428,22 +403,23 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _syncTextArea(): void {
 		if (
 			!this.textarea ||
-			!this.buffer.isCursorInViewport ||
+			!this.bufferService.buffers.active.isCursorInViewport ||
 			this._compositionHelper!.isComposing ||
 			!this.renderService
 		) {
 			return;
 		}
-		const cursorY = this.buffer.ybase + this.buffer.y;
-		const bufferLine = this.buffer.lines.get(cursorY);
+		const cursorY = this.bufferService.buffers.active.ybase + this.bufferService.buffers.active.y;
+		const bufferLine = this.bufferService.buffers.active.lines.get(cursorY);
 		if (!bufferLine) {
 			return;
 		}
-		const cursorX = Math.min(this.buffer.x, this.bufferService.cols - 1);
+		const cursorX = Math.min(this.bufferService.buffers.active.x, this.bufferService.cols - 1);
 		const cellHeight = this.renderService.dimensions.css.cell.height;
 		const width = bufferLine.getWidth(cursorX);
 		const cellWidth = this.renderService.dimensions.css.cell.width * width;
-		const cursorTop = this.buffer.y * this.renderService.dimensions.css.cell.height;
+		const cursorTop =
+			this.bufferService.buffers.active.y * this.renderService.dimensions.css.cell.height;
 		const cursorLeft = cursorX * this.renderService.dimensions.css.cell.width;
 
 		// Sync the textarea to the exact position of the composition view so the IME knows where the
@@ -815,7 +791,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 				handleTouchScroll: (amount) => this._viewport?.handleTouchScroll(amount)
 			},
 			(disposable) => this._store.add(disposable),
-			() => this.focus()
+			() => this.textarea?.focus({ preventScroll: true })
 		);
 	}
 
@@ -846,7 +822,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	private _showCursor(): void {
 		if (!this.coreService.isCursorInitialized) {
 			this.coreService.isCursorInitialized = true;
-			this.refresh(this.buffer.y, this.buffer.y);
+			this.refresh(this.bufferService.buffers.active.y, this.bufferService.buffers.active.y);
 		}
 	}
 
@@ -870,7 +846,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 	public scrollToBottom(disableSmoothScroll?: boolean): void {
 		if (disableSmoothScroll && this._viewport) {
-			this._viewport.scrollToLine(this.buffer.ybase, true);
+			this._viewport.scrollToLine(this.bufferService.buffers.active.ybase, true);
 		} else {
 			this.scrollLines(this.bufferService.buffer.ybase - this.bufferService.buffer.ydisp);
 		}
@@ -927,7 +903,10 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			this.browser.isMac && this.options.macOptionIsMeta && event.altKey;
 
 		if (!shouldIgnoreComposition && !this._compositionHelper!.keydown(event)) {
-			if (this.options.scrollOnUserInput && this.buffer.ybase !== this.buffer.ydisp) {
+			if (
+				this.options.scrollOnUserInput &&
+				this.bufferService.buffers.active.ybase !== this.bufferService.buffers.active.ydisp
+			) {
 				this.scrollToBottom(true);
 			}
 			return false;
@@ -1040,7 +1019,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 
 		if (!wasModifierKeyOnlyEvent(ev)) {
-			this.focus();
+			this.textarea?.focus({ preventScroll: true });
 		}
 
 		// Handle key release for Kitty keyboard protocol
@@ -1155,22 +1134,32 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 * Clear the entire buffer, making the prompt line the new first line.
 	 */
 	public clear(): void {
-		if (this.buffer.ybase === 0 && this.buffer.y === 0) {
+		if (
+			this.bufferService.buffers.active.ybase === 0 &&
+			this.bufferService.buffers.active.y === 0
+		) {
 			// Don't clear if it's already clear
 			return;
 		}
-		this.buffer.clearAllMarkers();
-		this.buffer.lines.set(0, this.buffer.lines.get(this.buffer.ybase + this.buffer.y)!);
-		this.buffer.lines.length = 1;
-		this.buffer.ydisp = 0;
-		this.buffer.ybase = 0;
-		this.buffer.y = 0;
+		this.bufferService.buffers.active.clearAllMarkers();
+		this.bufferService.buffers.active.lines.set(
+			0,
+			this.bufferService.buffers.active.lines.get(
+				this.bufferService.buffers.active.ybase + this.bufferService.buffers.active.y
+			)!
+		);
+		this.bufferService.buffers.active.lines.length = 1;
+		this.bufferService.buffers.active.ydisp = 0;
+		this.bufferService.buffers.active.ybase = 0;
+		this.bufferService.buffers.active.y = 0;
 		for (let i = 1; i < this.bufferService.rows; i++) {
-			this.buffer.lines.push(this.buffer.getBlankLine(DEFAULT_ATTR_DATA));
+			this.bufferService.buffers.active.lines.push(
+				this.bufferService.buffers.active.getBlankLine(DEFAULT_ATTR_DATA)
+			);
 		}
 		// IMPORTANT: Fire scroll event before viewport is reset. This ensures embedders get the clear
 		// scroll event and that the viewport's state will be valid for immediate writes.
-		this._onScroll.fire({ position: this.buffer.ydisp });
+		this._onScroll.fire({ position: this.bufferService.buffers.active.ydisp });
 		this.refresh(0, this.bufferService.rows - 1);
 	}
 

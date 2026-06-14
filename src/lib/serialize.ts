@@ -622,7 +622,7 @@ function _serializeScrollRegion(terminal: CoreBrowserTerminal): string {
 	// HACK: Internal API access since scroll region is not exposed in the public API
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const buffer = (terminal as any).buffer;
+	const buffer = (terminal as any).bufferService.buffers.active;
 	const scrollTop: number = buffer.scrollTop;
 	const scrollBottom: number = buffer.scrollBottom;
 

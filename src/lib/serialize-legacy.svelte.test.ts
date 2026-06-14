@@ -166,7 +166,7 @@ describe('SerializeAddon', () => {
 				await writeP(scrollTerminal, '\x1b[2;4r');
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const buffer = (scrollTerminal as any).buffer;
+				const buffer = (scrollTerminal as any).bufferService.buffers.active;
 				expect(buffer.scrollTop).toBe(1);
 				expect(buffer.scrollBottom).toBe(3);
 				const result = serialize(scrollTerminal);
@@ -187,7 +187,7 @@ describe('SerializeAddon', () => {
 				await writeP(made.term, serialized);
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const buffer = (made.term as any).buffer;
+				const buffer = (made.term as any).bufferService.buffers.active;
 				expect(buffer.scrollTop).toBe(1);
 				expect(buffer.scrollBottom).toBe(3);
 			});
