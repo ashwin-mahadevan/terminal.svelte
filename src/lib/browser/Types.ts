@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import type { ColorContrastCache } from '$lib/browser/ColorContrastCache';
 import type { IColor } from '$lib/common/Types';
 import { channels, css } from '$lib/common/Color';
 
@@ -25,10 +24,6 @@ export interface IColorSet {
 	scrollbarSliderActiveBackground: IColor;
 	overviewRulerBorder: IColor;
 	ansi: IColor[];
-	/** Maps original colors to colors that respect minimum contrast ratio. */
-	contrastCache: ColorContrastCache;
-	/** Maps original colors to colors that respect _half_ of the minimum contrast ratio. */
-	halfContrastCache: ColorContrastCache;
 }
 
 export type ReadonlyColorSet = Readonly<Omit<IColorSet, 'ansi'>> & {

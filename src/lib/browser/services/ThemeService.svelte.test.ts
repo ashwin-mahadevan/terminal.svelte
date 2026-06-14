@@ -18,7 +18,7 @@ describe('ThemeService', () => {
 			const optionsService = new OptionsService({});
 			const themeService = new ThemeService(optionsService);
 			for (const key of Object.keys(themeService.colors)) {
-				if (!['ansi', 'contrastCache', 'halfContrastCache', 'selectionForeground'].includes(key)) {
+				if (!['ansi', 'selectionForeground'].includes(key)) {
 					// A #rrggbb or rgba(...)
 					// TODO: Fix this upstream type error.
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any

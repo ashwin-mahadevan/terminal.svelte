@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import { ColorContrastCache } from '$lib/browser/ColorContrastCache';
 import type { IColorSet, ReadonlyColorSet } from '$lib/browser/Types';
 import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 import { color, css, NULL_COLOR } from '$lib/common/Color';
@@ -33,8 +32,6 @@ const DEFAULT_OVERVIEW_RULER_BORDER = DEFAULT_FOREGROUND;
 
 export class ThemeService {
 	private _colors: IColorSet;
-	private _contrastCache: ColorContrastCache = new ColorContrastCache();
-	private _halfContrastCache: ColorContrastCache = new ColorContrastCache();
 	private _restoreColors!: IRestoreColorSet;
 
 	public get colors(): ReadonlyColorSet {
@@ -44,7 +41,6 @@ export class ThemeService {
 	private readonly _onChangeColors = new LegacyEmitter<ReadonlyColorSet>();
 	public readonly onChangeColors = this._onChangeColors.event;
 
-	private readonly _minContrastListener: IDisposable;
 	private readonly _themeListener: IDisposable;
 
 	constructor(private readonly _optionsService: OptionsService) {
@@ -62,17 +58,11 @@ export class ThemeService {
 			scrollbarSliderHoverBackground: color.opacity(DEFAULT_FOREGROUND, 0.4),
 			scrollbarSliderActiveBackground: color.opacity(DEFAULT_FOREGROUND, 0.5),
 			overviewRulerBorder: DEFAULT_FOREGROUND,
-			ansi: DEFAULT_ANSI_COLORS.slice(),
-			contrastCache: this._contrastCache,
-			halfContrastCache: this._halfContrastCache
+			ansi: DEFAULT_ANSI_COLORS.slice()
 		};
 		this._updateRestoreColors();
 		this._setTheme(this._optionsService.rawOptions.theme);
 
-		this._minContrastListener = this._optionsService.onSpecificOptionChange(
-			'minimumContrastRatio',
-			() => this._contrastCache.clear()
-		);
 		this._themeListener = this._optionsService.onSpecificOptionChange('theme', () =>
 			this._setTheme(this._optionsService.rawOptions.theme)
 		);
@@ -80,7 +70,6 @@ export class ThemeService {
 
 	public dispose(): void {
 		this._onChangeColors.dispose();
-		this._minContrastListener.dispose();
 		this._themeListener.dispose();
 	}
 
@@ -178,9 +167,6 @@ export class ThemeService {
 				colors.ansi[i + 16] = parseColor(theme.extendedAnsi[i], DEFAULT_ANSI_COLORS[i + 16]);
 			}
 		}
-		// Clear our the cache
-		this._contrastCache.clear();
-		this._halfContrastCache.clear();
 		this._updateRestoreColors();
 		this._onChangeColors.fire(this.colors);
 	}

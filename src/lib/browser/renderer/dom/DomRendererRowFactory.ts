@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { ICellData, IColor } from '$lib/common/Types';
+import type { ICellData } from '$lib/common/Types';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { INVERTED_DEFAULT_COLOR } from '$lib/browser/renderer/shared/Constants';
 import { WHITESPACE_CELL_CHAR, Attributes } from '$lib/common/buffer/Constants';
@@ -11,15 +11,12 @@ import { CellData } from '$lib/common/buffer/CellData';
 import type { DecorationService } from '$lib/common/services/DecorationService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
-import { channels, color } from '$lib/common/Color';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { JoinedCellData } from '$lib/browser/services/CharacterJoinerService';
-import { treatGlyphAsBackgroundColor } from '$lib/browser/renderer/shared/RendererUtils';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import type { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
-import type { ColorContrastCache } from '$lib/browser/ColorContrastCache';
 
 export const enum RowCss {
 	BOLD_CLASS = 'xterm-bold',
@@ -370,8 +367,6 @@ export class DomRendererRowFactory {
 
 			// Apply any decoration foreground/background overrides, this must happen after inverse has
 			// been applied
-			let bgOverride: IColor | undefined;
-			let fgOverride: IColor | undefined;
 			let isTop = false;
 			this._decorationService.forEachDecorationAtCell(x, row, undefined, (d) => {
 				if (d.options.layer !== 'top' && isTop) {
@@ -380,26 +375,21 @@ export class DomRendererRowFactory {
 				if (d.backgroundColorRGB) {
 					bgColorMode = Attributes.CM_RGB;
 					bg = (d.backgroundColorRGB.rgba >> 8) & 0xffffff;
-					bgOverride = d.backgroundColorRGB;
 				}
 				if (d.foregroundColorRGB) {
 					fgColorMode = Attributes.CM_RGB;
 					fg = (d.foregroundColorRGB.rgba >> 8) & 0xffffff;
-					fgOverride = d.foregroundColorRGB;
 				}
 				isTop = d.options.layer === 'top';
 			});
 
 			// Apply selection
 			if (!isTop && isInSelection) {
-				// If in the selection, force the element to be above the selection to improve contrast and
-				// support opaque selections. The applies background is not actually needed here as
-				// selection is drawn in a seperate container, the main purpose of this to ensuring minimum
-				// contrast ratio
-				bgOverride = this._coreBrowserService.isFocused
+				// Force the element above the selection layer to support opaque selections.
+				const selectionBg = this._coreBrowserService.isFocused
 					? colors.selectionBackgroundOpaque
 					: colors.selectionInactiveBackgroundOpaque;
-				bg = (bgOverride.rgba >> 8) & 0xffffff;
+				bg = (selectionBg.rgba >> 8) & 0xffffff;
 				bgColorMode = Attributes.CM_RGB;
 				// Since an opaque selection is being rendered, the selection pretends to be a decoration to
 				// ensure text is drawn above the selection.
@@ -408,7 +398,6 @@ export class DomRendererRowFactory {
 				if (colors.selectionForeground) {
 					fgColorMode = Attributes.CM_RGB;
 					fg = (colors.selectionForeground.rgba >> 8) & 0xffffff;
-					fgOverride = colors.selectionForeground;
 				}
 			}
 
@@ -418,15 +407,12 @@ export class DomRendererRowFactory {
 			}
 
 			// Background
-			let resolvedBg: IColor;
 			switch (bgColorMode) {
 				case Attributes.CM_P16:
 				case Attributes.CM_P256:
-					resolvedBg = colors.ansi[bg];
 					classes.push(`xterm-bg-${bg}`);
 					break;
 				case Attributes.CM_RGB:
-					resolvedBg = channels.toColor(bg >> 16, (bg >> 8) & 0xff, bg & 0xff);
 					this._addStyle(
 						charElement,
 						`background-color:#${(bg >>> 0).toString(16).padStart(6, '0')}`
@@ -435,18 +421,8 @@ export class DomRendererRowFactory {
 				case Attributes.CM_DEFAULT:
 				default:
 					if (isInverse) {
-						resolvedBg = colors.foreground;
 						classes.push(`xterm-bg-${INVERTED_DEFAULT_COLOR}`);
-					} else {
-						resolvedBg = colors.background;
 					}
-			}
-
-			// If there is no background override by now it's the original color, so apply dim if needed
-			if (!bgOverride) {
-				if (cell.isDim()) {
-					bgOverride = color.multiplyOpacity(resolvedBg, 0.5);
-				}
 			}
 
 			// Foreground
@@ -460,51 +436,15 @@ export class DomRendererRowFactory {
 					) {
 						fg += 8;
 					}
-					if (
-						!this._applyMinimumContrast(
-							charElement,
-							resolvedBg,
-							colors.ansi[fg],
-							cell,
-							bgOverride,
-							undefined
-						)
-					) {
-						classes.push(`xterm-fg-${fg}`);
-					}
+					classes.push(`xterm-fg-${fg}`);
 					break;
 				case Attributes.CM_RGB:
-					// TODO: Fix this upstream type error.
-					// eslint-disable-next-line no-case-declarations
-					const color = channels.toColor((fg >> 16) & 0xff, (fg >> 8) & 0xff, fg & 0xff);
-					if (
-						!this._applyMinimumContrast(
-							charElement,
-							resolvedBg,
-							color,
-							cell,
-							bgOverride,
-							fgOverride
-						)
-					) {
-						this._addStyle(charElement, `color:#${fg.toString(16).padStart(6, '0')}`);
-					}
+					this._addStyle(charElement, `color:#${fg.toString(16).padStart(6, '0')}`);
 					break;
 				case Attributes.CM_DEFAULT:
 				default:
-					if (
-						!this._applyMinimumContrast(
-							charElement,
-							resolvedBg,
-							colors.foreground,
-							cell,
-							bgOverride,
-							fgOverride
-						)
-					) {
-						if (isInverse) {
-							classes.push(`xterm-fg-${INVERTED_DEFAULT_COLOR}`);
-						}
+					if (isInverse) {
+						classes.push(`xterm-fg-${INVERTED_DEFAULT_COLOR}`);
 					}
 			}
 
@@ -537,52 +477,6 @@ export class DomRendererRowFactory {
 		}
 
 		return elements;
-	}
-
-	private _applyMinimumContrast(
-		element: HTMLElement,
-		bg: IColor,
-		fg: IColor,
-		cell: ICellData,
-		bgOverride: IColor | undefined,
-		fgOverride: IColor | undefined
-	): boolean {
-		if (
-			this._optionsService.rawOptions.minimumContrastRatio === 1 ||
-			treatGlyphAsBackgroundColor(cell.getCode())
-		) {
-			return false;
-		}
-
-		// Try get from cache first, only use the cache when there are no decoration overrides
-		const cache = this._getContrastCache(cell);
-		let adjustedColor: IColor | undefined | null = undefined;
-		if (!bgOverride && !fgOverride) {
-			adjustedColor = cache.getColor(bg.rgba, fg.rgba);
-		}
-
-		// Calculate and store in cache
-		if (adjustedColor === undefined) {
-			// Dim cells only require half the contrast, otherwise they wouldn't be distinguishable from
-			// non-dim cells
-			const ratio = this._optionsService.rawOptions.minimumContrastRatio / (cell.isDim() ? 2 : 1);
-			adjustedColor = color.ensureContrastRatio(bgOverride ?? bg, fgOverride ?? fg, ratio);
-			cache.setColor((bgOverride ?? bg).rgba, (fgOverride ?? fg).rgba, adjustedColor ?? null);
-		}
-
-		if (adjustedColor) {
-			this._addStyle(element, `color:${adjustedColor.css}`);
-			return true;
-		}
-
-		return false;
-	}
-
-	private _getContrastCache(cell: ICellData): ColorContrastCache {
-		if (cell.isDim()) {
-			return this._themeService.colors.halfContrastCache;
-		}
-		return this._themeService.colors.contrastCache;
 	}
 
 	private _addStyle(element: HTMLElement, style: string): void {

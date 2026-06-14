@@ -31,7 +31,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	smoothScrollDuration: 0,
 	macOptionIsMeta: false,
 	macOptionClickForcesSelection: false,
-	minimumContrastRatio: 1,
 	mouseEventsRequireAlt: false,
 	disableStdin: false,
 	tabStopWidth: 8,
@@ -157,9 +156,6 @@ export class OptionsService {
 				if (value < 1) {
 					throw new Error(`${key} cannot be less than 1, value: ${value}`);
 				}
-				break;
-			case 'minimumContrastRatio':
-				value = Math.max(1, Math.min(21, Math.round(value * 10) / 10));
 				break;
 			case 'scrollback':
 				value = Math.min(value, 4294967295);

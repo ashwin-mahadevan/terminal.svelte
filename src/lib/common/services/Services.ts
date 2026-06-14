@@ -36,7 +36,6 @@ export interface ITerminalOptions {
 	linkHandler?: ILinkHandler | null;
 	macOptionIsMeta?: boolean;
 	macOptionClickForcesSelection?: boolean;
-	minimumContrastRatio?: number;
 	mouseEventsRequireAlt?: boolean;
 	reflowCursorLine?: boolean;
 	rightClickSelectsWord?: boolean;

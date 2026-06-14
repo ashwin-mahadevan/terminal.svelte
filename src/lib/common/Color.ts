@@ -75,14 +75,6 @@ export namespace color {
 		return (color.rgba & 0xff) === 0xff;
 	}
 
-	export function ensureContrastRatio(bg: IColor, fg: IColor, ratio: number): IColor | undefined {
-		const result = rgba.ensureContrastRatio(bg.rgba, fg.rgba, ratio);
-		if (!result) {
-			return undefined;
-		}
-		return channels.toColor((result >> 24) & 0xff, (result >> 16) & 0xff, (result >> 8) & 0xff);
-	}
-
 	export function opaque(color: IColor): IColor {
 		const rgbaColor = (color.rgba | 0xff) >>> 0;
 		[$r, $g, $b] = rgba.toChannels(rgbaColor);
@@ -286,102 +278,6 @@ export namespace rgba {
 		return channels.toRgba($r, $g, $b);
 	}
 
-	/**
-	 * Given a foreground color and a background color, either increase or reduce the luminance of the
-	 * foreground color until the specified contrast ratio is met. If pure white or black is hit
-	 * without the contrast ratio being met, go the other direction using the background color as the
-	 * foreground color and take either the first or second result depending on which has the higher
-	 * contrast ratio.
-	 *
-	 * `undefined` will be returned if the contrast ratio is already met.
-	 *
-	 * @param bgRgba The background color in rgba format.
-	 * @param fgRgba The foreground color in rgba format.
-	 * @param ratio The contrast ratio to achieve.
-	 */
-	export function ensureContrastRatio(
-		bgRgba: number,
-		fgRgba: number,
-		ratio: number
-	): number | undefined {
-		const bgL = rgb.relativeLuminance(bgRgba >> 8);
-		const fgL = rgb.relativeLuminance(fgRgba >> 8);
-		const cr = contrastRatio(bgL, fgL);
-		if (cr < ratio) {
-			if (fgL < bgL) {
-				const resultA = reduceLuminance(bgRgba, fgRgba, ratio);
-				const resultARatio = contrastRatio(bgL, rgb.relativeLuminance(resultA >> 8));
-				if (resultARatio < ratio) {
-					const resultB = increaseLuminance(bgRgba, fgRgba, ratio);
-					const resultBRatio = contrastRatio(bgL, rgb.relativeLuminance(resultB >> 8));
-					return resultARatio > resultBRatio ? resultA : resultB;
-				}
-				return resultA;
-			}
-			const resultA = increaseLuminance(bgRgba, fgRgba, ratio);
-			const resultARatio = contrastRatio(bgL, rgb.relativeLuminance(resultA >> 8));
-			if (resultARatio < ratio) {
-				const resultB = reduceLuminance(bgRgba, fgRgba, ratio);
-				const resultBRatio = contrastRatio(bgL, rgb.relativeLuminance(resultB >> 8));
-				return resultARatio > resultBRatio ? resultA : resultB;
-			}
-			return resultA;
-		}
-		return undefined;
-	}
-
-	function reduceLuminance(bgRgba: number, fgRgba: number, ratio: number): number {
-		// This is a naive but fast approach to reducing luminance as converting to
-		// HSL and back is expensive
-		const bgR = (bgRgba >> 24) & 0xff;
-		const bgG = (bgRgba >> 16) & 0xff;
-		const bgB = (bgRgba >> 8) & 0xff;
-		let fgR = (fgRgba >> 24) & 0xff;
-		let fgG = (fgRgba >> 16) & 0xff;
-		let fgB = (fgRgba >> 8) & 0xff;
-		let cr = contrastRatio(
-			rgb.relativeLuminance2(fgR, fgG, fgB),
-			rgb.relativeLuminance2(bgR, bgG, bgB)
-		);
-		while (cr < ratio && (fgR > 0 || fgG > 0 || fgB > 0)) {
-			// Reduce by 10% until the ratio is hit
-			fgR -= Math.max(0, Math.ceil(fgR * 0.1));
-			fgG -= Math.max(0, Math.ceil(fgG * 0.1));
-			fgB -= Math.max(0, Math.ceil(fgB * 0.1));
-			cr = contrastRatio(
-				rgb.relativeLuminance2(fgR, fgG, fgB),
-				rgb.relativeLuminance2(bgR, bgG, bgB)
-			);
-		}
-		return ((fgR << 24) | (fgG << 16) | (fgB << 8) | 0xff) >>> 0;
-	}
-
-	function increaseLuminance(bgRgba: number, fgRgba: number, ratio: number): number {
-		// This is a naive but fast approach to increasing luminance as converting to
-		// HSL and back is expensive
-		const bgR = (bgRgba >> 24) & 0xff;
-		const bgG = (bgRgba >> 16) & 0xff;
-		const bgB = (bgRgba >> 8) & 0xff;
-		let fgR = (fgRgba >> 24) & 0xff;
-		let fgG = (fgRgba >> 16) & 0xff;
-		let fgB = (fgRgba >> 8) & 0xff;
-		let cr = contrastRatio(
-			rgb.relativeLuminance2(fgR, fgG, fgB),
-			rgb.relativeLuminance2(bgR, bgG, bgB)
-		);
-		while (cr < ratio && (fgR < 0xff || fgG < 0xff || fgB < 0xff)) {
-			// Increase by 10% until the ratio is hit
-			fgR = Math.min(0xff, fgR + Math.ceil((255 - fgR) * 0.1));
-			fgG = Math.min(0xff, fgG + Math.ceil((255 - fgG) * 0.1));
-			fgB = Math.min(0xff, fgB + Math.ceil((255 - fgB) * 0.1));
-			cr = contrastRatio(
-				rgb.relativeLuminance2(fgR, fgG, fgB),
-				rgb.relativeLuminance2(bgR, bgG, bgB)
-			);
-		}
-		return ((fgR << 24) | (fgG << 16) | (fgB << 8) | 0xff) >>> 0;
-	}
-
 	export function toChannels(value: number): [number, number, number, number] {
 		return [(value >> 24) & 0xff, (value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff];
 	}
@@ -390,17 +286,4 @@ export namespace rgba {
 export function toPaddedHex(c: number): string {
 	const s = c.toString(16);
 	return s.length < 2 ? '0' + s : s;
-}
-
-/**
- * Gets the contrast ratio between two relative luminance values.
- * @param l1 The first relative luminance.
- * @param l2 The first relative luminance.
- * @see https://www.w3.org/TR/WCAG20/#contrast-ratiodef
- */
-export function contrastRatio(l1: number, l2: number): number {
-	if (l1 < l2) {
-		return (l2 + 0.05) / (l1 + 0.05);
-	}
-	return (l1 + 0.05) / (l2 + 0.05);
 }

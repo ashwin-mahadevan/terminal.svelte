@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { channels, color, css, rgb, rgba, toPaddedHex, contrastRatio } from '$lib/common/Color';
+import { channels, color, css, rgb, rgba, toPaddedHex } from '$lib/common/Color';
 
 describe('Color', () => {
 	describe('channels', () => {
@@ -508,59 +508,6 @@ describe('Color', () => {
 				expect(rgba.blend(0x000000ff, 0xffffffff)).toEqual(0xffffffff);
 			});
 		});
-		describe('ensureContrastRatio', () => {
-			it('should return undefined if the color already meets the contrast ratio (black bg)', () => {
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 1)).toBe(undefined);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 2)).toBe(undefined);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 3)).toBe(undefined);
-			});
-			it('should return a color that meets the contrast ratio (black bg)', () => {
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 4)).toBe(0x707070ff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 5)).toBe(0x7f7f7fff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 6)).toBe(0x8c8c8cff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 7)).toBe(0x989898ff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 8)).toBe(0xa3a3a3ff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 9)).toBe(0xadadadff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 10)).toBe(0xb6b6b6ff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 11)).toBe(0xbebebeff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 12)).toBe(0xc5c5c5ff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 13)).toBe(0xd1d1d1ff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 14)).toBe(0xd6d6d6ff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 15)).toBe(0xdbdbdbff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 16)).toBe(0xe3e3e3ff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 17)).toBe(0xe9e9e9ff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 18)).toBe(0xeeeeeeff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 19)).toBe(0xf4f4f4ff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 20)).toBe(0xfafafaff);
-				expect(rgba.ensureContrastRatio(0x000000ff, 0x606060ff, 21)).toBe(0xffffffff);
-			});
-			it('should return undefined if the color already meets the contrast ratio (white bg)', () => {
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 1)).toBe(undefined);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 2)).toBe(undefined);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 3)).toBe(undefined);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 4)).toBe(undefined);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 5)).toBe(undefined);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 6)).toBe(undefined);
-			});
-			it('should return a color that meets the contrast ratio (white bg)', () => {
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 7)).toBe(0x565656ff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 8)).toBe(0x4d4d4dff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 9)).toBe(0x454545ff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 10)).toBe(0x3e3e3eff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 11)).toBe(0x373737ff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 12)).toBe(0x313131ff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 13)).toBe(0x313131ff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 14)).toBe(0x272727ff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 15)).toBe(0x232323ff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 16)).toBe(0x1f1f1fff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 17)).toBe(0x1b1b1bff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 18)).toBe(0x151515ff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 19)).toBe(0x101010ff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 20)).toBe(0x080808ff);
-				expect(rgba.ensureContrastRatio(0xffffffff, 0x606060ff, 21)).toBe(0x000000ff);
-			});
-		});
-
 		describe('toChannels', () => {
 			it('should convert an rgba number to an rgba array', () => {
 				expect(rgba.toChannels(0x00000000)).toEqual([0x00, 0x00, 0x00, 0x00]);
@@ -603,18 +550,6 @@ describe('Color', () => {
 			expect(toPaddedHex(0xe0)).toBe('e0');
 			expect(toPaddedHex(0xf0)).toBe('f0');
 			expect(toPaddedHex(0xff)).toBe('ff');
-		});
-	});
-
-	describe('contrastRatio', () => {
-		it('should calculate the relative luminance of the color', () => {
-			expect(contrastRatio(0, 0)).toBe(1);
-			expect(contrastRatio(0, 0.5)).toBe(11);
-			expect(contrastRatio(0, 1)).toBe(21);
-		});
-		it('should work regardless of the parameter order', () => {
-			expect(contrastRatio(0, 1)).toBe(21);
-			expect(contrastRatio(1, 0)).toBe(21);
 		});
 	});
 });

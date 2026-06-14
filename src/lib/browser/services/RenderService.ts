@@ -123,8 +123,7 @@ export class RenderService {
 			this._terminal.optionsService.onSpecificOptionChange(
 				'drawBoldTextInBrightColors',
 				glyphHandler
-			),
-			this._terminal.optionsService.onSpecificOptionChange('minimumContrastRatio', glyphHandler)
+			)
 		];
 
 		// Refresh the cursor line when the cursor changes
