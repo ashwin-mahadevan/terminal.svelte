@@ -3,109 +3,73 @@
  * @license MIT
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
 import { createMockOptionsService } from '$lib/common/TestUtils';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
-import { LegacyEmitter } from '$lib/common/Event';
 
-class FakeWindow {
-	public nextId = 1;
-	public intervals = new Map<number, () => void>();
-
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	public setInterval(callback: () => void, _duration: number): number {
-		const id = this.nextId++;
-		this.intervals.set(id, callback);
-		return id;
-	}
-
-	public clearInterval(id: number): void {
-		this.intervals.delete(id);
-	}
-}
-
-function createManager(duration: number): {
-	manager: TextBlinkStateManager;
-	window: FakeWindow;
-	getRenderCount: () => number;
-} {
-	const fakeWindow = new FakeWindow();
-	let renderCount = 0;
-	// TODO: Fix this upstream type error.
-
-	const coreBrowserService = {
-		isFocused: true,
-		dpr: 1,
-		onDprChange: new LegacyEmitter<number>().event,
-		onWindowChange: new LegacyEmitter<Window & typeof globalThis>().event,
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		window: fakeWindow as any,
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		mainDocument: {} as any
-	} as unknown as CoreBrowserService;
-	const optionsService = createMockOptionsService({ blinkIntervalDuration: duration });
-	const manager = new TextBlinkStateManager(
-		() => {
-			renderCount++;
-		},
-		coreBrowserService,
-		optionsService
-	);
-	return {
-		manager,
-		window: fakeWindow,
-		getRenderCount: () => renderCount
-	};
-}
-
-function getOnlyIntervalCallback(window: FakeWindow): () => void {
-	const iterator = window.intervals.values();
-	const first = iterator.next();
-	expect(first.done).toBeFalsy();
-	expect(iterator.next().done).toBeTruthy();
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return first.value as any;
-}
+const coreBrowserService = {} as unknown as CoreBrowserService;
 
 describe('TextBlinkStateManager', () => {
+	beforeEach(() => {
+		vi.useFakeTimers();
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
 	it('starts interval only when needed', () => {
-		const { manager, window } = createManager(100);
-		expect(window.intervals.size).toBe(0);
+		const manager = new TextBlinkStateManager(
+			() => {},
+			coreBrowserService,
+			createMockOptionsService({ blinkIntervalDuration: 100 })
+		);
+		expect(vi.getTimerCount()).toBe(0);
 		manager.setNeedsBlinkInViewport(true);
-		expect(window.intervals.size).toBe(1);
+		expect(vi.getTimerCount()).toBe(1);
 	});
 
 	it('stops interval and restores blink visibility when no longer needed', () => {
-		const { manager, window, getRenderCount } = createManager(100);
+		let renderCount = 0;
+		const manager = new TextBlinkStateManager(
+			() => {
+				renderCount++;
+			},
+			coreBrowserService,
+			createMockOptionsService({ blinkIntervalDuration: 100 })
+		);
 		manager.setNeedsBlinkInViewport(true);
-		const tick = getOnlyIntervalCallback(window);
-		tick();
-		const rendersAfterTick = getRenderCount();
+		vi.advanceTimersByTime(100);
+		const rendersAfterTick = renderCount;
 		expect(manager.isBlinkOn).toBe(false);
 		manager.setNeedsBlinkInViewport(false);
-		expect(window.intervals.size).toBe(0);
+		expect(vi.getTimerCount()).toBe(0);
 		expect(manager.isBlinkOn).toBe(true);
-		expect(getRenderCount()).toBe(rendersAfterTick + 1);
+		expect(renderCount).toBe(rendersAfterTick + 1);
 	});
 
 	it('pauses while viewport is hidden and resumes when visible', () => {
-		const { manager, window } = createManager(100);
+		const manager = new TextBlinkStateManager(
+			() => {},
+			coreBrowserService,
+			createMockOptionsService({ blinkIntervalDuration: 100 })
+		);
 		manager.setNeedsBlinkInViewport(true);
-		expect(window.intervals.size).toBe(1);
+		expect(vi.getTimerCount()).toBe(1);
 		manager.setViewportVisible(false);
-		expect(window.intervals.size).toBe(0);
+		expect(vi.getTimerCount()).toBe(0);
 		manager.setViewportVisible(true);
-		expect(window.intervals.size).toBe(1);
+		expect(vi.getTimerCount()).toBe(1);
 	});
 
 	it('does not start interval when duration is zero', () => {
-		const { manager, window } = createManager(0);
+		const manager = new TextBlinkStateManager(
+			() => {},
+			coreBrowserService,
+			createMockOptionsService({ blinkIntervalDuration: 0 })
+		);
 		manager.setNeedsBlinkInViewport(true);
-		expect(window.intervals.size).toBe(0);
+		expect(vi.getTimerCount()).toBe(0);
 	});
 });
