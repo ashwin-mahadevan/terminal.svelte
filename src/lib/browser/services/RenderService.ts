@@ -8,12 +8,9 @@ import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
-import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
-import type { DecorationService } from '$lib/common/services/DecorationService';
-import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -58,6 +55,11 @@ export class RenderService {
 	private readonly _onRefreshRequest = new LegacyEmitter<{ start: number; end: number }>();
 	public readonly onRefreshRequest = this._onRefreshRequest.event;
 
+	private _rowCount: number = 0;
+	private readonly _optionsService: OptionsService;
+	private readonly _coreService: CoreService;
+	private readonly _coreBrowserService: CoreBrowserService;
+
 	private _dprChangeListener!: IDisposable;
 	private _bufferResizeListener!: IDisposable;
 	private _bufferActivateListener!: IDisposable;
@@ -74,17 +76,16 @@ export class RenderService {
 		return this._renderer.value!.dimensions;
 	}
 
-	constructor(
-		terminal: CoreBrowserTerminal,
-		private _rowCount: number,
-		screenElement: HTMLElement,
-		private readonly _optionsService: OptionsService,
-		private readonly _coreService: CoreService,
-		decorationService: DecorationService,
-		bufferService: BufferService,
-		private readonly _coreBrowserService: CoreBrowserService,
-		themeService: ThemeService
-	) {
+	constructor(terminal: CoreBrowserTerminal) {
+		const bufferService = terminal.bufferService;
+		const decorationService = terminal.decorationService;
+		const themeService = terminal.themeService!;
+		const screenElement = terminal.screenElement!;
+		this._rowCount = bufferService.rows;
+		this._optionsService = terminal.optionsService;
+		this._coreService = terminal.coreService;
+		this._coreBrowserService = terminal.coreBrowserService!;
+
 		this._pausedResizeTask = new DebouncedIdleTask();
 
 		this._renderDebouncer = new RenderDebouncer(
