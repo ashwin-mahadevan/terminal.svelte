@@ -14,7 +14,7 @@ describe('oncursormove', () => {
 		const oncursormove = vi.fn<() => void>();
 		const { component } = await render(Terminal, { props: { oncursormove } });
 		// Wait for ResizeObserver to give the terminal more than one row.
-		await expect.poll(() => component.dimensions.rows).toBeGreaterThan(1);
+		await expect.poll(() => component.emulator.rows).toBeGreaterThan(1);
 		// CSI B: cursor down one line.
 		await component.write('\x1b[B');
 		expect(oncursormove).toHaveBeenCalled();

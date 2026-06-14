@@ -7,8 +7,8 @@
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
 	import { browser } from '$app/environment';
-	import { Progress } from '$lib/progress.svelte';
 	import type { ProgressState } from '$lib/progress.svelte';
+	import { Emulator } from './emulator.svelte';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -23,14 +23,7 @@
 
 	const terminal = (browser && new CoreBrowserTerminal()) as CoreBrowserTerminal;
 
-	export const dimensions = $state({ columns: 80, rows: 24 });
-	export const progress = new Progress();
-
-	let title = $state('');
-	let focused = $state(false);
-	let selection = $state('');
-	let scrollPosition = $state(0);
-	export { title, focused, selection, scrollPosition };
+	export const emulator = new Emulator();
 
 	let isOpen = $state(false);
 
@@ -89,8 +82,8 @@
 			Math.floor(clientHeight / terminal!.renderService!.dimensions!.css.cell.height)
 		);
 		terminal.resize(cols, rows);
-		dimensions.columns = cols;
-		dimensions.rows = rows;
+		emulator.columns = cols;
+		emulator.rows = rows;
 	});
 
 	// OSC 52 clipboard read/report, inlined from the upstream ClipboardAddon.
@@ -113,7 +106,7 @@
 		const match = data.match(/^4;(\d+)(?:;(\d*))?$/);
 		if (!match) return false;
 
-		progress.handle(match[1]! as ProgressState, parseInt(match[2]!) || 0);
+		emulator.progress.handle(match[1]! as ProgressState, parseInt(match[2]!) || 0);
 		return true;
 	}
 
@@ -145,17 +138,17 @@
 
 	$effect(() => {
 		const disposable = terminal.inputHandler.onTitleChange((t) => {
-			title = t;
+			emulator.title = t;
 		});
 		return () => disposable.dispose();
 	});
 
 	$effect(() => {
 		const focusDisposable = terminal.onFocus(() => {
-			focused = true;
+			emulator.focused = true;
 		});
 		const blurDisposable = terminal.onBlur(() => {
-			focused = false;
+			emulator.focused = false;
 		});
 		return () => {
 			focusDisposable.dispose();
@@ -165,7 +158,7 @@
 
 	$effect(() => {
 		const disposable = terminal.onScroll((position) => {
-			scrollPosition = position;
+			emulator.scrollPosition = position;
 		});
 		return () => disposable.dispose();
 	});
@@ -173,9 +166,9 @@
 	$effect(() => {
 		if (!isOpen) return;
 		const sel = terminal.selectionService!;
-		selection = sel.selectionText;
+		emulator.selection = sel.selectionText;
 		const disposable = sel.onSelectionChange(() => {
-			selection = sel.selectionText;
+			emulator.selection = sel.selectionText;
 		});
 		return () => disposable.dispose();
 	});
