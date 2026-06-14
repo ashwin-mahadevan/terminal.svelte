@@ -162,9 +162,7 @@ export class OverviewRulerRenderer {
 		// Calculate actual pixels per line
 		const pixelsPerLine = this._canvas.height / this._bufferService.buffer.lines.length;
 		// Clamp actual pixels within a range
-		const nonFullHeight = Math.round(
-			Math.max(Math.min(pixelsPerLine, 12), 6) * devicePixelRatio
-		);
+		const nonFullHeight = Math.round(Math.max(Math.min(pixelsPerLine, 12), 6) * devicePixelRatio);
 		drawHeight.left = nonFullHeight;
 		drawHeight.center = nonFullHeight;
 		drawHeight.right = nonFullHeight;

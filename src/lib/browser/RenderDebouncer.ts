@@ -31,9 +31,7 @@ export class RenderDebouncer implements IRenderDebouncerWithCallback {
 	public addRefreshCallback(callback: FrameRequestCallback) {
 		this._refreshCallbacks.push(callback);
 		if (!this._animationFrame) {
-			this._animationFrame = requestAnimationFrame(() =>
-				this._innerRefresh()
-			);
+			this._animationFrame = requestAnimationFrame(() => this._innerRefresh());
 		}
 		return this._animationFrame;
 	}
@@ -51,9 +49,7 @@ export class RenderDebouncer implements IRenderDebouncerWithCallback {
 			return;
 		}
 
-		this._animationFrame = requestAnimationFrame(() =>
-			this._innerRefresh()
-		);
+		this._animationFrame = requestAnimationFrame(() => this._innerRefresh());
 	}
 
 	private _innerRefresh(): void {

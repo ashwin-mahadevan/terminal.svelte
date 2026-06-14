@@ -156,8 +156,12 @@ export class DomRenderer {
 			this.dimensions.device.cell.width * this._terminal.bufferService.cols;
 		this.dimensions.device.canvas.height =
 			this.dimensions.device.cell.height * this._terminal.bufferService.rows;
-		this.dimensions.css.canvas.width = Math.round(this.dimensions.device.canvas.width / devicePixelRatio);
-		this.dimensions.css.canvas.height = Math.round(this.dimensions.device.canvas.height / devicePixelRatio);
+		this.dimensions.css.canvas.width = Math.round(
+			this.dimensions.device.canvas.width / devicePixelRatio
+		);
+		this.dimensions.css.canvas.height = Math.round(
+			this.dimensions.device.canvas.height / devicePixelRatio
+		);
 		this.dimensions.css.cell.width =
 			this.dimensions.css.canvas.width / this._terminal.bufferService.cols;
 		this.dimensions.css.cell.height =
@@ -730,7 +734,7 @@ export class DomRenderer {
 }
 
 class CursorBlinkStateManager {
-	private _idleTimeout?: ReturnType<typeof setTimeout>
+	private _idleTimeout?: ReturnType<typeof setTimeout>;
 	private _isIdlePaused: boolean = false;
 
 	constructor(

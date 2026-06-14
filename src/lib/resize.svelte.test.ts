@@ -23,42 +23,42 @@ describe('terminal.svelte auto-resize', () => {
 	it('fits the terminal to its container on mount', async () => {
 		const { component } = await renderSized('800px', '600px');
 
-		await expect.poll(() => component.emulator.columns).toBeGreaterThan(0);
+		await expect.poll(() => component.dimensions.columns).toBeGreaterThan(0);
 
-		expect(component.emulator.columns).toBeGreaterThan(0);
-		expect(component.emulator.rows).toBeGreaterThan(0);
+		expect(component.dimensions.columns).toBeGreaterThan(0);
+		expect(component.dimensions.rows).toBeGreaterThan(0);
 	});
 
 	it('shrinks the terminal when its container shrinks', async () => {
 		const { container, component } = await renderSized('800px', '600px');
 
-		await expect.poll(() => component.emulator.columns).toBeGreaterThan(0);
+		await expect.poll(() => component.dimensions.columns).toBeGreaterThan(0);
 
-		const { columns: largeCols, rows: largeRows } = component.emulator;
+		const { columns: largeCols, rows: largeRows } = component.dimensions;
 
 		container.style.width = '400px';
 		container.style.height = '300px';
 
-		await expect.poll(() => component.emulator.columns).toBeLessThan(largeCols);
+		await expect.poll(() => component.dimensions.columns).toBeLessThan(largeCols);
 
-		expect(component.emulator.columns).toBeLessThan(largeCols);
-		expect(component.emulator.rows).toBeLessThan(largeRows);
+		expect(component.dimensions.columns).toBeLessThan(largeCols);
+		expect(component.dimensions.rows).toBeLessThan(largeRows);
 	});
 
 	it('grows the terminal when its container grows', async () => {
 		const { container, component } = await renderSized('400px', '300px');
 
-		await expect.poll(() => component.emulator.columns).toBeGreaterThan(0);
+		await expect.poll(() => component.dimensions.columns).toBeGreaterThan(0);
 
-		const { columns: smallCols, rows: smallRows } = component.emulator;
+		const { columns: smallCols, rows: smallRows } = component.dimensions;
 
 		container.style.width = '800px';
 		container.style.height = '600px';
 
-		await expect.poll(() => component.emulator.columns).toBeGreaterThan(smallCols);
+		await expect.poll(() => component.dimensions.columns).toBeGreaterThan(smallCols);
 
-		expect(component.emulator.columns).toBeGreaterThan(smallCols);
-		expect(component.emulator.rows).toBeGreaterThan(smallRows);
+		expect(component.dimensions.columns).toBeGreaterThan(smallCols);
+		expect(component.dimensions.rows).toBeGreaterThan(smallRows);
 	});
 
 	it('respects padding on the container', async () => {
@@ -70,16 +70,16 @@ describe('terminal.svelte auto-resize', () => {
 		document.body.appendChild(container);
 		const { component } = await render(Terminal, { target: container });
 
-		await expect.poll(() => component.emulator.columns).toBeGreaterThan(0);
+		await expect.poll(() => component.dimensions.columns).toBeGreaterThan(0);
 
-		const { columns: paddedCols, rows: paddedRows } = component.emulator;
+		const { columns: paddedCols, rows: paddedRows } = component.dimensions;
 
 		container.style.padding = '0';
 
-		await expect.poll(() => component.emulator.columns).toBeGreaterThan(paddedCols);
+		await expect.poll(() => component.dimensions.columns).toBeGreaterThan(paddedCols);
 
-		expect(component.emulator.columns).toBeGreaterThan(paddedCols);
-		expect(component.emulator.rows).toBeGreaterThan(paddedRows);
+		expect(component.dimensions.columns).toBeGreaterThan(paddedCols);
+		expect(component.dimensions.rows).toBeGreaterThan(paddedRows);
 	});
 });
 
@@ -93,8 +93,8 @@ describe('terminal.svelte auto-resize', () => {
 describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 	async function renderFitted() {
 		const { container, component } = await renderSized('800px', '600px');
-		await expect.poll(() => component.emulator.columns).toBeGreaterThan(0);
-		const fitted = { cols: component.emulator.columns, rows: component.emulator.rows };
+		await expect.poll(() => component.dimensions.columns).toBeGreaterThan(0);
+		const fitted = { cols: component.dimensions.columns, rows: component.dimensions.rows };
 		return { container, component, fitted };
 	}
 
@@ -105,18 +105,18 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 
 		await component.write('\x1b[?1049h');
 
-		expect({ cols: component.emulator.columns, rows: component.emulator.rows }).toEqual(fitted);
+		expect({ cols: component.dimensions.columns, rows: component.dimensions.rows }).toEqual(fitted);
 	});
 
 	// Hypothesis 2: activating the alt buffer emits a bogus resize (e.g. back
 	// to 80x24), which the demo would forward to the pty.
 	it('activating the alt buffer does not emit a resize event', async () => {
 		const { component } = await renderFitted();
-		const dimsBefore = { cols: component.emulator.columns, rows: component.emulator.rows };
+		const dimsBefore = { cols: component.dimensions.columns, rows: component.dimensions.rows };
 
 		await component.write('\x1b[?1049h');
 
-		expect({ cols: component.emulator.columns, rows: component.emulator.rows }).toEqual(dimsBefore);
+		expect({ cols: component.dimensions.columns, rows: component.dimensions.rows }).toEqual(dimsBefore);
 	});
 
 	// Hypothesis 3: resizes that happen while the alt buffer is active are not
@@ -126,13 +126,13 @@ describe('terminal.svelte alt-buffer sizing diagnostics', () => {
 		const { container, component } = await renderFitted();
 
 		await component.write('\x1b[?1049h');
-		const { columns: prevCols, rows: prevRows } = component.emulator;
+		const { columns: prevCols, rows: prevRows } = component.dimensions;
 
 		container.style.width = '400px';
 		container.style.height = '300px';
-		await expect.poll(() => component.emulator.columns).toBeLessThan(prevCols);
+		await expect.poll(() => component.dimensions.columns).toBeLessThan(prevCols);
 
-		expect(component.emulator.columns).toBeLessThan(prevCols);
-		expect(component.emulator.rows).toBeLessThan(prevRows);
+		expect(component.dimensions.columns).toBeLessThan(prevCols);
+		expect(component.dimensions.rows).toBeLessThan(prevRows);
 	});
 });

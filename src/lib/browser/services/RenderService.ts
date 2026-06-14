@@ -139,10 +139,7 @@ export class RenderService {
 			this._fullRefresh()
 		);
 
-		this._registerIntersectionObserver(
-			window,
-			this._terminal.screenElement!
-		);
+		this._registerIntersectionObserver(window, this._terminal.screenElement!);
 		this._windowChangeListener = this._terminal.coreBrowserService!.onWindowChange((w) =>
 			this._registerIntersectionObserver(w, this._terminal.screenElement!)
 		);
@@ -399,7 +396,7 @@ export class RenderService {
 class SynchronizedOutputHandler {
 	private _start: number = 0;
 	private _end: number = 0;
-	private _timeout?: ReturnType<typeof setTimeout>
+	private _timeout?: ReturnType<typeof setTimeout>;
 	private _isBuffering: boolean = false;
 
 	constructor(

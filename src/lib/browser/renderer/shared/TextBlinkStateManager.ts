@@ -9,7 +9,7 @@ import type { OptionsService } from '$lib/common/services/OptionsService';
 
 export class TextBlinkStateManager {
 	private _intervalDuration: number = 0;
-	private _interval?: ReturnType<typeof setInterval>
+	private _interval?: ReturnType<typeof setInterval>;
 	private _blinkOn: boolean = true;
 	private _needsBlinkInViewport: boolean = false;
 	private _isViewportVisible: boolean = true;
