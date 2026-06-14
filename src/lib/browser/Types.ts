@@ -10,15 +10,6 @@ import { channels, css } from '$lib/common/Color';
 export type CustomKeyEventHandler = (event: KeyboardEvent) => boolean;
 export type CustomWheelEventHandler = (event: WheelEvent) => boolean;
 
-export interface ICompositionHelper {
-	readonly isComposing: boolean;
-	compositionstart(): void;
-	compositionupdate(ev: CompositionEvent): void;
-	compositionend(): void;
-	updateCompositionElements(dontRecurse?: boolean): void;
-	keydown(ev: KeyboardEvent): boolean;
-}
-
 export interface IBrowser {
 	isNode: boolean;
 	userAgent: string;

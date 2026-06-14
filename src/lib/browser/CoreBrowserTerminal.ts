@@ -33,12 +33,7 @@ import {
 } from '$lib/browser/Clipboard';
 import * as Strings from '$lib/browser/LocalizableStrings';
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
-import type {
-	CharacterJoinerHandler,
-	CustomKeyEventHandler,
-	IBrowser,
-	ICompositionHelper
-} from '$lib/browser/Types';
+import type { CharacterJoinerHandler, CustomKeyEventHandler, IBrowser } from '$lib/browser/Types';
 import { Viewport } from '$lib/browser/Viewport';
 import { BufferDecorationRenderer } from '$lib/browser/decorations/BufferDecorationRenderer';
 import { OverviewRulerRenderer } from '$lib/browser/decorations/OverviewRulerRenderer';
@@ -79,9 +74,9 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	public compositionView: HTMLElement | undefined;
 	public scrollableContainer: HTMLDivElement | undefined;
 
-	private readonly _linkifier = new MutableDisposable<Linkifier>();
+	private _linkifier: Linkifier | undefined;
 	public get linkifier(): Linkifier | undefined {
-		return this._linkifier.value;
+		return this._linkifier;
 	}
 	private _overviewRulerRenderer: OverviewRulerRenderer | undefined;
 	private _viewport: Viewport | undefined;
@@ -133,7 +128,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 */
 	private _unprocessedDeadKey: boolean = false;
 
-	private _compositionHelper: ICompositionHelper | undefined;
+	private _compositionHelper: CompositionHelper | undefined;
 	private _accessibilityManager = new MutableDisposable<AccessibilityManager>();
 
 	private readonly _onKey = new LegacyEmitter<{ key: string; domEvent: KeyboardEvent }>();
@@ -265,7 +260,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 	public override dispose(): void {
 		super.dispose();
-		this._linkifier.dispose();
+		this._linkifier?.dispose();
 		this._accessibilityManager.dispose();
 		this.coreBrowserService?.dispose();
 		this.renderService?.dispose();
@@ -564,7 +559,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 
 		this.mouseCoordsService = new MouseCoordsService(this);
 
-		this._linkifier.value = new Linkifier(this);
+		this._linkifier = new Linkifier(this);
 
 		try {
 			this._onWillOpen.fire(this.element);
