@@ -795,17 +795,16 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	 *
 	 * [KeyboardEvent]: https://developer.mozilla.org/en-US/docs/DOM/KeyboardEvent
 	 */
-	public _keyDown = (event: KeyboardEvent): boolean | undefined => {
+	public _keyDown = (event: KeyboardEvent): void => {
 		this._keyDownHandled = false;
 		this._keyDownSeen = true;
 
 		if (this._customKeyEventHandler && this._customKeyEventHandler(event) === false) {
-			return false;
+			return;
 		}
 
 		// Ignore composing with Alt key on Mac when macOptionIsMeta is enabled
-		const shouldIgnoreComposition =
-			isMac && this.options.macOptionIsMeta && event.altKey;
+		const shouldIgnoreComposition = isMac && this.options.macOptionIsMeta && event.altKey;
 
 		if (!shouldIgnoreComposition && !this._compositionHelper!.keydown(event)) {
 			if (
@@ -814,7 +813,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			) {
 				this.scrollToBottom(true);
 			}
-			return false;
+			return;
 		}
 
 		if (!shouldIgnoreComposition && (event.key === 'Dead' || event.key === 'AltGraph')) {
@@ -833,7 +832,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			this.scrollLines(result.type === KeyboardResultType.PAGE_UP ? -scrollCount : scrollCount);
 			event.preventDefault();
 			event.stopPropagation();
-			return false;
+			return;
 		}
 
 		if (result.type === KeyboardResultType.SELECT_ALL) {
@@ -841,7 +840,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 
 		if (this._isThirdLevelShift(event)) {
-			return true;
+			return;
 		}
 
 		if (result.cancel) {
@@ -851,7 +850,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		}
 
 		if (!result.key) {
-			return true;
+			return;
 		}
 
 		// HACK: Process A-Z in the keypress event to fix an issue with macOS IMEs where lower case
@@ -867,13 +866,13 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			event.key.length === 1
 		) {
 			if (event.key.charCodeAt(0) >= 65 && event.key.charCodeAt(0) <= 90) {
-				return true;
+				return;
 			}
 		}
 
 		if (this._unprocessedDeadKey) {
 			this._unprocessedDeadKey = false;
-			return true;
+			return;
 		}
 
 		// If ctrl+c or enter is being sent, clear out the textarea. This is done so that screen readers
@@ -896,7 +895,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		if (!this.optionsService.rawOptions.screenReaderMode || event.altKey || event.ctrlKey) {
 			event.preventDefault();
 			event.stopPropagation();
-			return false;
+			return;
 		}
 
 		this._keyDownHandled = true;
@@ -967,10 +966,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			return false;
 		}
 
-		if (
-			!key ||
-			((ev.altKey || ev.ctrlKey || ev.metaKey) && !this._isThirdLevelShift(ev))
-		) {
+		if (!key || ((ev.altKey || ev.ctrlKey || ev.metaKey) && !this._isThirdLevelShift(ev))) {
 			return false;
 		}
 

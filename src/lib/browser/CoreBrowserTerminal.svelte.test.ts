@@ -3,7 +3,8 @@
  * @license MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { isMac, isWindows } from '$lib/common/Platform';
 import { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import { CellData } from '$lib/common/buffer/CellData';
@@ -19,8 +20,8 @@ import type { IMarker } from '$lib/common/Types';
 // terminal and (apart from the composition helper's `isComposing`) never have
 // their methods invoked by these tests, so trivial stubs suffice.
 class TestTerminal extends CoreBrowserTerminal {
-	public keyDown(ev: KeyboardEvent): boolean | undefined {
-		return this._keyDown(ev);
+	public keyDown(ev: KeyboardEvent): void {
+		this._keyDown(ev);
 	}
 	public keyPress(ev: KeyboardEvent): boolean {
 		return this._keyPress(ev);
@@ -233,22 +234,39 @@ describe('CoreBrowserTerminal', () => {
 		} as KeyboardEvent;
 
 		it('should process the keydown/keypress event based on what the handler returns', () => {
-			expect(term.keyDown(evKeyDown)).toBe(true);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const keydownSpy = vi.spyOn((term as any)._compositionHelper, 'keydown');
+
+			term.keyDown(evKeyDown);
+			expect(keydownSpy).toHaveBeenCalled();
 			expect(term.keyPress(evKeyPress)).toBe(true);
+
+			keydownSpy.mockClear();
 			term.attachCustomKeyEventHandler((ev) => ev.keyCode === 77);
-			expect(term.keyDown(evKeyDown)).toBe(true);
+			term.keyDown(evKeyDown);
+			expect(keydownSpy).toHaveBeenCalled();
 			expect(term.keyPress(evKeyPress)).toBe(true);
+
+			keydownSpy.mockClear();
 			term.attachCustomKeyEventHandler((ev) => ev.keyCode !== 77);
-			expect(term.keyDown(evKeyDown)).toBe(false);
+			term.keyDown(evKeyDown);
+			expect(keydownSpy).not.toHaveBeenCalled();
 			expect(term.keyPress(evKeyPress)).toBe(false);
 		});
 
 		it('should alive after reset(ESC c Full Reset (RIS))', () => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const keydownSpy = vi.spyOn((term as any)._compositionHelper, 'keydown');
+
 			term.attachCustomKeyEventHandler((ev) => ev.keyCode !== 77);
-			expect(term.keyDown(evKeyDown)).toBe(false);
+			term.keyDown(evKeyDown);
+			expect(keydownSpy).not.toHaveBeenCalled();
 			expect(term.keyPress(evKeyPress)).toBe(false);
+
 			term.reset();
-			expect(term.keyDown(evKeyDown)).toBe(false);
+			keydownSpy.mockClear();
+			term.keyDown(evKeyDown);
+			expect(keydownSpy).not.toHaveBeenCalled();
 			expect(term.keyPress(evKeyPress)).toBe(false);
 		});
 	});
@@ -801,41 +819,23 @@ describe('CoreBrowserTerminal', () => {
 					// TODO: Fix this upstream type error.
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any;
-				evKeyDown.altKey = true;
-				evKeyDown.keyCode = 81;
-				expect(term.keyDown(evKeyDown)).toBe(false);
-				evKeyDown.altKey = true;
-				evKeyDown.keyCode = 192;
-				expect(term.keyDown(evKeyDown)).toBe(false);
-			});
-		});
+				const pdSpy = vi.spyOn(evKeyDown, 'preventDefault');
 
-		describe('On Mac OS', () => {
-			it('should not interfere with the alt key on keyDown', () => {
-				const originalBrowser = term.browser;
-				term.browser = { ...originalBrowser, isMac: true };
-				const evKeyDown = {
-					preventDefault: () => {},
-					stopPropagation: () => {},
-					type: 'keydown',
-					altKey: null,
-					keyCode: null
-					// TODO: Fix this upstream type error.
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				} as any;
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 81;
-				expect(term.keyDown(evKeyDown)).toBe(true);
+				term.keyDown(evKeyDown);
+				expect(pdSpy).toHaveBeenCalled();
+
+				pdSpy.mockClear();
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 192;
 				term.keyDown(evKeyDown);
-				expect(term.keyDown(evKeyDown)).toBe(true);
-				term.browser = originalBrowser;
+				expect(pdSpy).toHaveBeenCalled();
 			});
+		});
 
-			it('should interfere with the alt + arrow keys', () => {
-				const originalBrowser = term.browser;
-				term.browser = { ...originalBrowser, isMac: true };
+		describe.runIf(isMac)('On Mac OS', () => {
+			it('should not interfere with the alt key on keyDown', () => {
 				const evKeyDown = {
 					preventDefault: () => {},
 					stopPropagation: () => {},
@@ -845,19 +845,47 @@ describe('CoreBrowserTerminal', () => {
 					// TODO: Fix this upstream type error.
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any;
+				const pdSpy = vi.spyOn(evKeyDown, 'preventDefault');
+
+				evKeyDown.altKey = true;
+				evKeyDown.keyCode = 81;
+				term.keyDown(evKeyDown);
+				expect(pdSpy).not.toHaveBeenCalled();
+
+				evKeyDown.altKey = true;
+				evKeyDown.keyCode = 192;
+				term.keyDown(evKeyDown);
+				pdSpy.mockClear();
+				term.keyDown(evKeyDown);
+				expect(pdSpy).not.toHaveBeenCalled();
+			});
+
+			it('should interfere with the alt + arrow keys', () => {
+				const evKeyDown = {
+					preventDefault: () => {},
+					stopPropagation: () => {},
+					type: 'keydown',
+					altKey: null,
+					keyCode: null
+					// TODO: Fix this upstream type error.
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				} as any;
+				const pdSpy = vi.spyOn(evKeyDown, 'preventDefault');
+
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 37;
-				expect(term.keyDown(evKeyDown)).toBe(false);
+				term.keyDown(evKeyDown);
+				expect(pdSpy).toHaveBeenCalled();
+
+				pdSpy.mockClear();
 				evKeyDown.altKey = true;
 				evKeyDown.keyCode = 39;
-				expect(term.keyDown(evKeyDown)).toBe(false);
-				term.browser = originalBrowser;
+				term.keyDown(evKeyDown);
+				expect(pdSpy).toHaveBeenCalled();
 			});
 
 			it('should emit key with alt + key on keyPress', () =>
 				new Promise<void>((done) => {
-					const originalBrowser = term.browser;
-					term.browser = { ...originalBrowser, isMac: true };
 					const evKeyPress = {
 						preventDefault: () => {},
 						stopPropagation: () => {},
@@ -877,7 +905,6 @@ describe('CoreBrowserTerminal', () => {
 							keys.splice(index, 1);
 						}
 						if (keys.length === 0) {
-							term.browser = originalBrowser;
 							done();
 						}
 					});
@@ -910,10 +937,8 @@ describe('CoreBrowserTerminal', () => {
 				}));
 		});
 
-		describe('On MS Windows', () => {
+		describe.runIf(isWindows)('On MS Windows', () => {
 			it('should not interfere with the alt + ctrl key on keyDown', () => {
-				const originalBrowser = term.browser;
-				term.browser = { ...originalBrowser, isWindows: true };
 				const evKeyDown = {
 					preventDefault: () => {},
 					stopPropagation: () => {},
@@ -933,21 +958,24 @@ describe('CoreBrowserTerminal', () => {
 					// TODO: Fix this upstream type error.
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any;
+				const pdSpy = vi.spyOn(evKeyPress, 'preventDefault');
+
 				evKeyPress.altKey = true;
 				evKeyPress.ctrlKey = true;
 				evKeyPress.keyCode = 81;
-				expect(term.keyDown(evKeyPress)).toBe(true);
+				term.keyDown(evKeyPress);
+				expect(pdSpy).not.toHaveBeenCalled();
+
 				evKeyDown.altKey = true;
 				evKeyDown.ctrlKey = true;
 				evKeyDown.keyCode = 81;
 				term.keyDown(evKeyDown);
-				expect(term.keyDown(evKeyPress)).toBe(true);
-				term.browser = originalBrowser;
+				pdSpy.mockClear();
+				term.keyDown(evKeyPress);
+				expect(pdSpy).not.toHaveBeenCalled();
 			});
 
 			it('should interfere with the alt + ctrl + arrow keys', () => {
-				const originalBrowser = term.browser;
-				term.browser = { ...originalBrowser, isWindows: true };
 				const evKeyDown = {
 					preventDefault: () => {},
 					stopPropagation: () => {},
@@ -957,21 +985,25 @@ describe('CoreBrowserTerminal', () => {
 					// TODO: Fix this upstream type error.
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any;
+				const pdSpy = vi.spyOn(evKeyDown, 'preventDefault');
+
 				evKeyDown.altKey = true;
 				evKeyDown.ctrlKey = true;
 
 				evKeyDown.keyCode = 37;
-				expect(term.keyDown(evKeyDown)).toBe(false);
+				term.keyDown(evKeyDown);
+				expect(pdSpy).toHaveBeenCalled();
+
+				pdSpy.mockClear();
 				evKeyDown.keyCode = 39;
 				term.keyDown(evKeyDown);
-				expect(term.keyDown(evKeyDown)).toBe(false);
-				term.browser = originalBrowser;
+				pdSpy.mockClear();
+				term.keyDown(evKeyDown);
+				expect(pdSpy).toHaveBeenCalled();
 			});
 
 			it('should emit key with alt + ctrl + key on keyPress', () =>
 				new Promise<void>((done) => {
-					const originalBrowser = term.browser;
-					term.browser = { ...originalBrowser, isWindows: true };
 					const evKeyPress = {
 						preventDefault: () => {},
 						stopPropagation: () => {},
@@ -991,7 +1023,6 @@ describe('CoreBrowserTerminal', () => {
 							keys.splice(index, 1);
 						}
 						if (keys.length === 0) {
-							term.browser = originalBrowser;
 							done();
 						}
 					});
