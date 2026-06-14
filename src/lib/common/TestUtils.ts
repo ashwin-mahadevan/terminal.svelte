@@ -252,18 +252,6 @@ class MockOptionsService {
 		});
 	}
 
-	public onMultipleOptionChange(
-		keys: (keyof ITerminalOptions)[],
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		listener: () => any
-	): IDisposable {
-		return this.onOptionChange((eventKey) => {
-			if (keys.indexOf(eventKey) !== -1) {
-				listener();
-			}
-		});
-	}
 	public setOptions(options: ITerminalOptions): void {
 		for (const key of Object.keys(options)) {
 			this.options[key] = options[key];

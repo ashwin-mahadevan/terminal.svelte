@@ -131,20 +131,4 @@ describe('OptionsService', () => {
 			});
 		});
 	});
-	describe('onMultipleOptionChange', () => {
-		it('should fire only for specific options', async () => {
-			const service = new OptionsService({});
-			await new Promise<void>((r) => {
-				let called = false;
-				service.onMultipleOptionChange(['scrollback'], () => {
-					called = true;
-				});
-				service.options.cursorWidth = 10;
-				expect(called).toBeFalsy();
-				service.options.scrollback = 20;
-				expect(called).toBeTruthy();
-				r();
-			});
-		});
-	});
 });

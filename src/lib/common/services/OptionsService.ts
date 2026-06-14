@@ -109,17 +109,6 @@ export class OptionsService {
 		});
 	}
 
-	public onMultipleOptionChange(
-		keys: (keyof ITerminalOptions)[],
-		listener: () => void
-	): IDisposable {
-		return this.onOptionChange((eventKey) => {
-			if (keys.indexOf(eventKey) !== -1) {
-				listener();
-			}
-		});
-	}
-
 	private _setupOptions(): void {
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
