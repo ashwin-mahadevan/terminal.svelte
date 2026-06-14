@@ -140,7 +140,7 @@ export class RenderService {
 		);
 
 		this._registerIntersectionObserver(
-			this._terminal.coreBrowserService!.window,
+			window,
 			this._terminal.screenElement!
 		);
 		this._windowChangeListener = this._terminal.coreBrowserService!.onWindowChange((w) =>
@@ -399,7 +399,7 @@ export class RenderService {
 class SynchronizedOutputHandler {
 	private _start: number = 0;
 	private _end: number = 0;
-	private _timeout: number | undefined;
+	private _timeout?: ReturnType<typeof setTimeout>
 	private _isBuffering: boolean = false;
 
 	constructor(
@@ -418,7 +418,7 @@ class SynchronizedOutputHandler {
 			this._end = Math.max(this._end, end);
 		}
 
-		this._timeout ??= this._coreBrowserService.window.setTimeout(() => {
+		this._timeout ??= setTimeout(() => {
 			this._timeout = undefined;
 			this._coreService.decPrivateModes.synchronizedOutput = false;
 			this._onTimeout();
@@ -427,7 +427,7 @@ class SynchronizedOutputHandler {
 
 	public flush(): { start: number; end: number } | undefined {
 		if (this._timeout !== undefined) {
-			this._coreBrowserService.window.clearTimeout(this._timeout);
+			clearTimeout(this._timeout);
 			this._timeout = undefined;
 		}
 
@@ -442,7 +442,7 @@ class SynchronizedOutputHandler {
 
 	public dispose(): void {
 		if (this._timeout !== undefined) {
-			this._coreBrowserService.window.clearTimeout(this._timeout);
+			clearTimeout(this._timeout);
 			this._timeout = undefined;
 		}
 	}

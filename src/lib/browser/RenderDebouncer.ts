@@ -23,15 +23,15 @@ export class RenderDebouncer implements IRenderDebouncerWithCallback {
 
 	public dispose(): void {
 		if (this._animationFrame) {
-			this._coreBrowserService.window.cancelAnimationFrame(this._animationFrame);
+			cancelAnimationFrame(this._animationFrame);
 			this._animationFrame = undefined;
 		}
 	}
 
-	public addRefreshCallback(callback: FrameRequestCallback): number {
+	public addRefreshCallback(callback: FrameRequestCallback) {
 		this._refreshCallbacks.push(callback);
 		if (!this._animationFrame) {
-			this._animationFrame = this._coreBrowserService.window.requestAnimationFrame(() =>
+			this._animationFrame = requestAnimationFrame(() =>
 				this._innerRefresh()
 			);
 		}
@@ -51,7 +51,7 @@ export class RenderDebouncer implements IRenderDebouncerWithCallback {
 			return;
 		}
 
-		this._animationFrame = this._coreBrowserService.window.requestAnimationFrame(() =>
+		this._animationFrame = requestAnimationFrame(() =>
 			this._innerRefresh()
 		);
 	}

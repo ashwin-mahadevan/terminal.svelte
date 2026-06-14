@@ -146,9 +146,8 @@ export class DomRenderer {
 	}
 
 	private _updateDimensions(): void {
-		const dpr = this._terminal.coreBrowserService!.dpr;
-		this.dimensions.device.char.width = this._terminal.charWidth * dpr;
-		this.dimensions.device.char.height = Math.ceil(this._terminal.charHeight * dpr);
+		this.dimensions.device.char.width = this._terminal.charWidth * devicePixelRatio;
+		this.dimensions.device.char.height = Math.ceil(this._terminal.charHeight * devicePixelRatio);
 		this.dimensions.device.cell.width = this.dimensions.device.char.width;
 		this.dimensions.device.cell.height = this.dimensions.device.char.height;
 		this.dimensions.device.char.left = 0;
@@ -157,8 +156,8 @@ export class DomRenderer {
 			this.dimensions.device.cell.width * this._terminal.bufferService.cols;
 		this.dimensions.device.canvas.height =
 			this.dimensions.device.cell.height * this._terminal.bufferService.rows;
-		this.dimensions.css.canvas.width = Math.round(this.dimensions.device.canvas.width / dpr);
-		this.dimensions.css.canvas.height = Math.round(this.dimensions.device.canvas.height / dpr);
+		this.dimensions.css.canvas.width = Math.round(this.dimensions.device.canvas.width / devicePixelRatio);
+		this.dimensions.css.canvas.height = Math.round(this.dimensions.device.canvas.height / devicePixelRatio);
 		this.dimensions.css.cell.width =
 			this.dimensions.css.canvas.width / this._terminal.bufferService.cols;
 		this.dimensions.css.cell.height =
@@ -325,7 +324,7 @@ export class DomRenderer {
 
 	/**
 	 * default letter spacing
-	 * Due to rounding issues in dimensions dpr calc glyph might render
+	 * Due to rounding issues in dimensions devicePixelRatio calc glyph might render
 	 * slightly too wide or too narrow. The method corrects the stacking offsets
 	 * by applying a default letter-spacing for all chars.
 	 * The value gets passed to the row factory to avoid setting this value again
@@ -387,7 +386,7 @@ export class DomRenderer {
 	 * Weight still comes from options, which drive the bold/normal CSS classes.
 	 */
 	private _refreshWidthCacheFont(): void {
-		const style = this._terminal.coreBrowserService!.window.getComputedStyle(this._rowContainer);
+		const style = getComputedStyle(this._rowContainer);
 		// Fallbacks cover the rare case where the rows are not yet laid out
 		// (e.g. detached); a real value arrives on the next char-size change.
 		const fontFamily = style.fontFamily || 'monospace';
@@ -731,7 +730,7 @@ export class DomRenderer {
 }
 
 class CursorBlinkStateManager {
-	private _idleTimeout: number | undefined;
+	private _idleTimeout?: ReturnType<typeof setTimeout>
 	private _isIdlePaused: boolean = false;
 
 	constructor(
@@ -768,14 +767,14 @@ class CursorBlinkStateManager {
 	private _resetIdleTimer(): void {
 		this._isIdlePaused = false;
 		this._clearIdleTimer();
-		this._idleTimeout = this._coreBrowserService.window.setTimeout(() => {
+		this._idleTimeout = setTimeout(() => {
 			this._stopBlinkingDueToIdle();
 		}, RendererConstants.CURSOR_BLINK_IDLE_TIMEOUT);
 	}
 
 	private _clearIdleTimer(): void {
 		if (this._idleTimeout) {
-			this._coreBrowserService.window.clearTimeout(this._idleTimeout);
+			clearTimeout(this._idleTimeout);
 			this._idleTimeout = undefined;
 		}
 	}

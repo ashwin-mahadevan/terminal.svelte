@@ -92,7 +92,7 @@ export class SelectionService {
 	 * A setInterval timer that is active while the mouse is down whose callback
 	 * scrolls the viewport when necessary.
 	 */
-	private _dragScrollIntervalTimer: number | undefined;
+	private _dragScrollIntervalTimer?: ReturnType<typeof setInterval>
 
 	/**
 	 * The animation frame ID used for refreshing the selection.
@@ -290,7 +290,7 @@ export class SelectionService {
 	public refresh(isLinuxMouseSelection?: boolean): void {
 		// Queue the refresh for the renderer
 		if (!this._refreshAnimationFrame) {
-			this._refreshAnimationFrame = this._terminal.coreBrowserService!.window.requestAnimationFrame(
+			this._refreshAnimationFrame = requestAnimationFrame(
 				() => this._refresh()
 			);
 		}
@@ -444,7 +444,7 @@ export class SelectionService {
 	 */
 	private _getMouseEventScrollAmount(event: MouseEvent): number {
 		let offset = getCoordsRelativeToElement(
-			this._terminal.coreBrowserService!.window,
+		window,	
 			event,
 			this._terminal.screenElement!
 		)[1];
@@ -556,7 +556,7 @@ export class SelectionService {
 				this._mouseUpListener
 			);
 		}
-		this._dragScrollIntervalTimer = this._terminal.coreBrowserService!.window.setInterval(
+		this._dragScrollIntervalTimer = setInterval(
 			() => this._dragScroll(),
 			Constants.DRAG_SCROLL_INTERVAL
 		);
@@ -576,7 +576,7 @@ export class SelectionService {
 				this._mouseUpListener
 			);
 		}
-		this._terminal.coreBrowserService!.window.clearInterval(this._dragScrollIntervalTimer);
+		clearInterval(this._dragScrollIntervalTimer);
 		this._dragScrollIntervalTimer = undefined;
 	}
 

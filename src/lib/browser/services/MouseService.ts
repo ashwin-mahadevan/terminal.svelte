@@ -188,7 +188,7 @@ export class MouseService {
 				const lines = this._consumeWheelEvent(
 					ev as WheelEvent,
 					this._terminal.renderService?.dimensions?.device?.cell?.height,
-					this._terminal.coreBrowserService?.dpr
+					devicePixelRatio
 				);
 				if (lines === 0) {
 					return false;
@@ -325,7 +325,7 @@ export class MouseService {
 			const lines = this._consumeWheelEvent(
 				ev,
 				this._terminal.renderService?.dimensions?.device?.cell?.height,
-				this._terminal.coreBrowserService?.dpr
+				devicePixelRatio
 			);
 			if (lines === 0) {
 				ev.preventDefault();

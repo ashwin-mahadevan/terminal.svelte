@@ -9,7 +9,7 @@ import type { OptionsService } from '$lib/common/services/OptionsService';
 
 export class TextBlinkStateManager {
 	private _intervalDuration: number = 0;
-	private _interval: number | undefined;
+	private _interval?: ReturnType<typeof setInterval>
 	private _blinkOn: boolean = true;
 	private _needsBlinkInViewport: boolean = false;
 	private _isViewportVisible: boolean = true;
@@ -79,7 +79,7 @@ export class TextBlinkStateManager {
 			}
 			const wasBlinkOn = this._blinkOn;
 			this._blinkOn = true;
-			this._interval = this._coreBrowserService.window.setInterval(() => {
+			this._interval = setInterval(() => {
 				this._blinkOn = !this._blinkOn;
 				this._renderCallback();
 			}, this._intervalDuration);
@@ -98,7 +98,7 @@ export class TextBlinkStateManager {
 
 	private _clearInterval(): void {
 		if (this._interval !== undefined) {
-			this._coreBrowserService.window.clearInterval(this._interval);
+			clearInterval(this._interval);
 			this._interval = undefined;
 		}
 	}

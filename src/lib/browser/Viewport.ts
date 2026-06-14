@@ -48,7 +48,7 @@ export class Viewport {
 			smoothScrollDuration: this._terminal.optionsService.rawOptions.smoothScrollDuration,
 			// This is used over `RenderService.addRefreshCallback` since it can be canceled
 			scheduleAtNextAnimationFrame: (cb) =>
-				scheduleAtNextAnimationFrame(this._terminal.coreBrowserService!.window, cb)
+				scheduleAtNextAnimationFrame(window, cb)
 		});
 		this._smoothScrollDurationListener = this._terminal.optionsService.onSpecificOptionChange(
 			'smoothScrollDuration',

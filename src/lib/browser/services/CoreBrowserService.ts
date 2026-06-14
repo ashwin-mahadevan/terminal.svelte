@@ -56,21 +56,6 @@ export class CoreBrowserService {
 		this._blurListener.dispose();
 	}
 
-	public get window(): Window & typeof globalThis {
-		return this._window;
-	}
-
-	public set window(value: Window & typeof globalThis) {
-		if (this._window !== value) {
-			this._window = value;
-			this._onWindowChange.fire(this._window);
-		}
-	}
-
-	public get dpr(): number {
-		return this.window.devicePixelRatio;
-	}
-
 	public get isFocused(): boolean {
 		if (this._cachedIsFocused === undefined) {
 			this._cachedIsFocused = this._isFocused && this._textarea.ownerDocument.hasFocus();

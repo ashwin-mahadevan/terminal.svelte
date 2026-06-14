@@ -125,7 +125,7 @@ export class OverviewRulerRenderer {
 	public dispose(): void {
 		this._isDisposed = true;
 		if (this._animationFrame !== undefined) {
-			this._coreBrowserService.window.cancelAnimationFrame(this._animationFrame);
+			cancelAnimationFrame(this._animationFrame);
 			this._animationFrame = undefined;
 		}
 		this._canvas?.remove();
@@ -158,12 +158,12 @@ export class OverviewRulerRenderer {
 	}
 
 	private _refreshDrawHeightConstants(): void {
-		drawHeight.full = Math.round(2 * this._coreBrowserService.dpr);
+		drawHeight.full = Math.round(2 * devicePixelRatio);
 		// Calculate actual pixels per line
 		const pixelsPerLine = this._canvas.height / this._bufferService.buffer.lines.length;
 		// Clamp actual pixels within a range
 		const nonFullHeight = Math.round(
-			Math.max(Math.min(pixelsPerLine, 12), 6) * this._coreBrowserService.dpr
+			Math.max(Math.min(pixelsPerLine, 12), 6) * devicePixelRatio
 		);
 		drawHeight.left = nonFullHeight;
 		drawHeight.center = nonFullHeight;
@@ -199,7 +199,7 @@ export class OverviewRulerRenderer {
 		const cssCanvasHeight = this._renderService.dimensions.css.canvas.height;
 		const deviceCanvasHeight = this._renderService.dimensions.device.canvas.height;
 		this._canvas.style.width = `${this._width}px`;
-		this._canvas.width = Math.round(this._width * this._coreBrowserService.dpr);
+		this._canvas.width = Math.round(this._width * devicePixelRatio);
 		this._canvas.style.height = `${cssCanvasHeight}px`;
 		this._canvas.height = deviceCanvasHeight;
 		this._refreshDrawConstants();
@@ -284,7 +284,7 @@ export class OverviewRulerRenderer {
 		if (this._animationFrame !== undefined) {
 			return;
 		}
-		this._animationFrame = this._coreBrowserService.window.requestAnimationFrame(() => {
+		this._animationFrame = requestAnimationFrame(() => {
 			if (!this._isDisposed) {
 				this._refreshDecorations();
 			}
