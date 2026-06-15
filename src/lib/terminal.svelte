@@ -6,11 +6,7 @@
 	import { setOrReportClipboard } from '$lib/clipboard';
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
-	import {
-		copyHandler,
-		handlePasteEvent,
-		moveTextAreaUnderMouseCursor
-	} from '$lib/browser/Clipboard';
+	import { copyHandler, handlePasteEvent } from '$lib/browser/Clipboard';
 	import { isFirefox, isLinux } from '$lib/common/Platform';
 	import { browser } from '$app/environment';
 	import { Emulator } from './emulator.svelte';
@@ -229,7 +225,13 @@
 	}}
 	onmousedown={(event) => {
 		if (isFirefox && event.button === 2) {
-			moveTextAreaUnderMouseCursor(event, terminal.textarea!, terminal.screenElement!);
+			const pos = terminal.screenElement!.getBoundingClientRect();
+			terminal.textarea!.style.width = '20px';
+			terminal.textarea!.style.height = '20px';
+			terminal.textarea!.style.left = `${event.clientX - pos.left - 10}px`;
+			terminal.textarea!.style.top = `${event.clientY - pos.top - 10}px`;
+			terminal.textarea!.style.zIndex = '1000';
+			terminal.textarea!.focus();
 			if (terminal.core.optionsService.options.rightClickSelectsWord) {
 				terminal.selectionService!.rightClickSelect(event);
 			}
@@ -240,7 +242,13 @@
 	}}
 	oncontextmenu={(event) => {
 		if (isFirefox) {
-			moveTextAreaUnderMouseCursor(event, terminal.textarea!, terminal.screenElement!);
+			const pos = terminal.screenElement!.getBoundingClientRect();
+			terminal.textarea!.style.width = '20px';
+			terminal.textarea!.style.height = '20px';
+			terminal.textarea!.style.left = `${event.clientX - pos.left - 10}px`;
+			terminal.textarea!.style.top = `${event.clientY - pos.top - 10}px`;
+			terminal.textarea!.style.zIndex = '1000';
+			terminal.textarea!.focus();
 			if (terminal.core.optionsService.options.rightClickSelectsWord) {
 				terminal.selectionService!.rightClickSelect(event);
 			}
@@ -250,7 +258,13 @@
 	}}
 	onauxclick={(event) => {
 		if (isLinux && event.button === 1) {
-			moveTextAreaUnderMouseCursor(event, terminal.textarea!, terminal.screenElement!);
+			const pos = terminal.screenElement!.getBoundingClientRect();
+			terminal.textarea!.style.width = '20px';
+			terminal.textarea!.style.height = '20px';
+			terminal.textarea!.style.left = `${event.clientX - pos.left - 10}px`;
+			terminal.textarea!.style.top = `${event.clientY - pos.top - 10}px`;
+			terminal.textarea!.style.zIndex = '1000';
+			terminal.textarea!.focus();
 		}
 	}}
 	role="application"

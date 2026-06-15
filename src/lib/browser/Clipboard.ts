@@ -74,28 +74,3 @@ export function paste(
 	coreService.triggerDataEvent(text, true);
 	textarea.value = '';
 }
-
-/**
- * Moves the textarea under the mouse cursor and focuses it.
- * @param ev The original right click event to be handled.
- * @param textarea The terminal's textarea.
- */
-export function moveTextAreaUnderMouseCursor(
-	ev: MouseEvent,
-	textarea: HTMLTextAreaElement,
-	screenElement: HTMLElement
-): void {
-	// Calculate textarea position relative to the screen element
-	const pos = screenElement.getBoundingClientRect();
-	const left = ev.clientX - pos.left - 10;
-	const top = ev.clientY - pos.top - 10;
-
-	// Bring textarea at the cursor position
-	textarea.style.width = '20px';
-	textarea.style.height = '20px';
-	textarea.style.left = `${left}px`;
-	textarea.style.top = `${top}px`;
-	textarea.style.zIndex = '1000';
-
-	textarea.focus();
-}
