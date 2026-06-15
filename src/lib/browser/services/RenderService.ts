@@ -77,10 +77,7 @@ export class RenderService {
 
 		this._pausedResizeTask = new DebouncedIdleTask();
 
-		this._renderDebouncer = new RenderDebouncer(
-			(start, end) => this._renderRows(start, end),
-			this._terminal.coreBrowserService!
-		);
+		this._renderDebouncer = new RenderDebouncer((start, end) => this._renderRows(start, end));
 
 		this._syncOutputHandler = new SynchronizedOutputHandler(
 			this._terminal.coreBrowserService!,

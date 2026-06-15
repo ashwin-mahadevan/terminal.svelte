@@ -4,7 +4,6 @@
  */
 
 import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
-import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 
 /**
  * Debounces calls to render terminal rows using animation frames.
@@ -16,10 +15,7 @@ export class RenderDebouncer implements IRenderDebouncerWithCallback {
 	private _animationFrame: number | undefined;
 	private _refreshCallbacks: FrameRequestCallback[] = [];
 
-	constructor(
-		private _renderCallback: (start: number, end: number) => void,
-		private readonly _coreBrowserService: CoreBrowserService
-	) {}
+	constructor(private _renderCallback: (start: number, end: number) => void) {}
 
 	public dispose(): void {
 		if (this._animationFrame) {
