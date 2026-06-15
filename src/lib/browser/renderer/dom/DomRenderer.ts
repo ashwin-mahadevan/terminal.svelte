@@ -4,7 +4,6 @@
  */
 
 import { DomRendererRowFactory, RowCss } from '$lib/browser/renderer/dom/DomRendererRowFactory';
-import { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
 import { INVERTED_DEFAULT_COLOR, RendererConstants } from '$lib/browser/renderer/shared/Constants';
 import { createRenderDimensions } from '$lib/browser/renderer/shared/RendererUtils';
 import { createSelectionRenderModel } from '$lib/browser/renderer/shared/SelectionRenderModel';
@@ -32,21 +31,6 @@ const enum Constants {
 let nextTerminalId = 1;
 
 /**
- * Resolve the CSS `bolder` keyword against a concrete inherited weight, per the
- * CSS Fonts Module Level 4 relative-weight table, so the glyph-width cache can
- * measure the bold variant the browser actually renders for bold cells.
- */
-function resolveBolder(weight: number): number {
-	if (weight < 350) {
-		return 400;
-	}
-	if (weight < 550) {
-		return 700;
-	}
-	return 900;
-}
-
-/**
  * The standard renderer and fallback for when the webgl addon is slow. This is not meant to be
  * particularly fast and will even lack some features such as custom glyphs, hoever this is more
  * reliable as webgl may not work on some machines.
@@ -60,7 +44,6 @@ export class DomRenderer {
 	private _rowContainer: HTMLElement;
 	private _rowElements: HTMLElement[] = [];
 	private _selectionContainer: HTMLElement;
-	private _widthCache: WidthCache;
 	private _selectionRenderModel: SelectionRenderModel = createSelectionRenderModel();
 	private _lastSelectionStart: [number, number] | undefined;
 	private _lastSelectionEnd: [number, number] | undefined;
@@ -135,10 +118,6 @@ export class DomRenderer {
 			this._terminal.coreBrowserService!,
 			this._terminal.optionsService
 		);
-
-		this._widthCache = new WidthCache();
-		this._refreshWidthCacheFont();
-		this._setDefaultSpacing();
 	}
 
 	public dispose(): void {
@@ -147,7 +126,6 @@ export class DomRenderer {
 		// https://github.com/xtermjs/xterm.js/issues/2960
 		this._rowContainer.remove();
 		this._selectionContainer.remove();
-		this._widthCache.dispose();
 		this._themeStyleElement.remove();
 		this._dimensionsStyleElement.remove();
 		this._cursorBlinkStateManager.dispose();
@@ -340,25 +318,8 @@ export class DomRenderer {
 		this._themeStyleElement.textContent = styles;
 	}
 
-	/**
-	 * default letter spacing
-	 * Due to rounding issues in dimensions devicePixelRatio calc glyph might render
-	 * slightly too wide or too narrow. The method corrects the stacking offsets
-	 * by applying a default letter-spacing for all chars.
-	 * The value gets passed to the row factory to avoid setting this value again
-	 * (render speedup is roughly 10%).
-	 */
-	private _setDefaultSpacing(): void {
-		// measure the same char the host measures ('W') to get the base deviation
-		const spacing = this.dimensions.css.cell.width - this._widthCache.get('W', false, false);
-		this._rowContainer.style.letterSpacing = `${spacing}px`;
-		this._rowFactory.defaultSpacing = spacing;
-	}
-
 	public handleDevicePixelRatioChange(): void {
 		this._updateDimensions();
-		this._widthCache.clear();
-		this._setDefaultSpacing();
 	}
 
 	private _refreshRowElements(cols: number, rows: number): void {
@@ -390,28 +351,6 @@ export class DomRenderer {
 
 	public handleCharSizeChanged(): void {
 		this._updateDimensions();
-		// The font may have changed (e.g. an async web font loaded), so the
-		// glyph-width measurements must be re-taken against the live CSS font.
-		this._widthCache.clear();
-		this._refreshWidthCacheFont();
-		this._setDefaultSpacing();
-	}
-
-	/**
-	 * Point the glyph-width cache at the *computed* CSS font of the rows rather
-	 * than a font option. This keeps the canvas-measured widths (used to nudge
-	 * each glyph onto the grid) in sync with what the browser actually renders.
-	 * The bold weight is derived from the inherited weight via the same `bolder`
-	 * keyword the bold-cell CSS rule uses.
-	 */
-	private _refreshWidthCacheFont(): void {
-		const style = getComputedStyle(this._rowContainer);
-		// Fallbacks cover the rare case where the rows are not yet laid out
-		// (e.g. detached); a real value arrives on the next char-size change.
-		const fontFamily = style.fontFamily || 'monospace';
-		const fontSize = parseFloat(style.fontSize) || 15;
-		const fontWeight = parseFloat(style.fontWeight) || 400;
-		this._widthCache.setFont(fontFamily, fontSize, fontWeight, resolveBolder(fontWeight));
 	}
 
 	public handleBlur(): void {
@@ -583,9 +522,6 @@ export class DomRenderer {
 		this._updateDimensions();
 		// Refresh CSS
 		this._injectCss(this._terminal.themeService!.colors);
-		// update spacing cache
-		this._refreshWidthCacheFont();
-		this._setDefaultSpacing();
 	}
 
 	public clear(): void {
@@ -637,8 +573,6 @@ export class DomRenderer {
 					cursorX,
 					cursorBlink,
 					this._textBlinkStateManager.isBlinkOn,
-					this.dimensions.css.cell.width,
-					this._widthCache,
 					-1,
 					-1,
 					rowInfo
@@ -718,8 +652,6 @@ export class DomRenderer {
 					cursorX,
 					cursorBlink,
 					this._textBlinkStateManager.isBlinkOn,
-					this.dimensions.css.cell.width,
-					this._widthCache,
 					enabled ? (i === y ? x : 0) : -1,
 					enabled ? (i === y2 ? x2 : cols) - 1 : -1,
 					rowInfo

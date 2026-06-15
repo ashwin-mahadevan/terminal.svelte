@@ -23,7 +23,6 @@ import {
 	createCellData,
 	NULL_CELL_DATA
 } from '$lib/common/TestUtils';
-import { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
 import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import type { ThemeService } from '$lib/browser/services/ThemeService';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -125,47 +124,6 @@ function createMockThemeService(): ThemeService {
 
 const TEST_STRING_CACHE = new BufferLineStringCache();
 
-class MockWidthCacheFontVariantCanvas {
-	public widths: { [key: string]: number } = {};
-
-	public setFont(
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		_fontFamily: string,
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		_fontSize: number,
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		_fontWeight: unknown,
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		_italic: boolean
-	): void {}
-
-	public measure(c: string): number {
-		return this.widths[c] ?? 5;
-	}
-}
-
-class TestWidthCache extends WidthCache {
-	public get canvasElements(): MockWidthCacheFontVariantCanvas[] {
-		// TODO: Fix this upstream type error.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return (this as any)._canvasElements;
-	}
-
-	constructor() {
-		super(() => new MockWidthCacheFontVariantCanvas() as never);
-	}
-
-	public setWidths(widths: { [key: string]: number }): void {
-		for (const canvas of this.canvasElements) {
-			canvas.widths = widths;
-		}
-	}
-}
-
 describe('DomRendererRowFactory', () => {
 	describe('createRow', () => {
 		it('should not create anything for an empty row', () => {
@@ -179,7 +137,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
-			const widthCache = new TestWidthCache();
 			const spans = rowFactory.createRow(
 				lineData,
 				0,
@@ -189,8 +146,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
@@ -208,8 +163,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
-			const widthCache = new TestWidthCache();
-			widthCache.setWidths({ 語: 10 });
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, '語', 2));
 			// There should be no element for the following "empty" cell
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, '', 0));
@@ -222,8 +175,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
@@ -241,7 +192,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
-			const widthCache = new TestWidthCache();
 			for (const style of ['block', 'bar', 'underline']) {
 				const spans = rowFactory.createRow(
 					lineData,
@@ -252,8 +202,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -274,7 +222,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(2);
-			const widthCache = new TestWidthCache();
 			const spans = rowFactory.createRow(
 				lineData,
 				0,
@@ -284,8 +231,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				true,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
@@ -296,7 +241,6 @@ describe('DomRendererRowFactory', () => {
 
 		it('should add class for inactive cursor', () => {
 			const lineData = createEmptyLineData(2);
-			const widthCache = new TestWidthCache();
 			const coreBrowserService = new MockCoreBrowserService();
 			coreBrowserService.isFocused = false;
 			const rowFactory = new DomRendererRowFactory(
@@ -318,8 +262,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -335,7 +277,6 @@ describe('DomRendererRowFactory', () => {
 
 		it('should not display cursor for before initializing', () => {
 			const lineData = createEmptyLineData(2);
-			const widthCache = new TestWidthCache();
 			const coreService = createMockCoreService();
 			coreService.isCursorInitialized = false;
 			const rowFactory = new DomRendererRowFactory(
@@ -356,8 +297,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
@@ -376,7 +315,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.BOLD;
 				lineData.setCell(0, cell);
@@ -389,8 +327,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -408,7 +344,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.ITALIC;
 				lineData.setCell(0, cell);
@@ -421,8 +356,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -440,7 +373,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.DIM;
 				lineData.setCell(0, cell);
@@ -453,8 +385,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -473,7 +403,6 @@ describe('DomRendererRowFactory', () => {
 						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
-					const widthCache = new TestWidthCache();
 					const cell = createCellData(0, 'a', 1);
 					cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.UNDERLINE;
 					cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
@@ -488,8 +417,6 @@ describe('DomRendererRowFactory', () => {
 						0,
 						false,
 						true,
-						5,
-						widthCache,
 						-1,
 						-1
 					);
@@ -506,7 +433,6 @@ describe('DomRendererRowFactory', () => {
 						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
-					const widthCache = new TestWidthCache();
 					const cell = createCellData(0, 'a', 1);
 					cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.UNDERLINE;
 					cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
@@ -521,8 +447,6 @@ describe('DomRendererRowFactory', () => {
 						0,
 						false,
 						true,
-						5,
-						widthCache,
 						-1,
 						-1
 					);
@@ -539,7 +463,6 @@ describe('DomRendererRowFactory', () => {
 						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
-					const widthCache = new TestWidthCache();
 					const cell = createCellData(0, 'a', 1);
 					cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.UNDERLINE;
 					cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
@@ -554,8 +477,6 @@ describe('DomRendererRowFactory', () => {
 						0,
 						false,
 						true,
-						5,
-						widthCache,
 						-1,
 						-1
 					);
@@ -572,7 +493,6 @@ describe('DomRendererRowFactory', () => {
 						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
-					const widthCache = new TestWidthCache();
 					const cell = createCellData(0, 'a', 1);
 					cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.UNDERLINE;
 					cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
@@ -587,8 +507,6 @@ describe('DomRendererRowFactory', () => {
 						0,
 						false,
 						true,
-						5,
-						widthCache,
 						-1,
 						-1
 					);
@@ -605,7 +523,6 @@ describe('DomRendererRowFactory', () => {
 						createMockThemeService()
 					);
 					const lineData = createEmptyLineData(2);
-					const widthCache = new TestWidthCache();
 					const cell = createCellData(0, 'a', 1);
 					cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.UNDERLINE;
 					cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
@@ -620,8 +537,6 @@ describe('DomRendererRowFactory', () => {
 						0,
 						false,
 						true,
-						5,
-						widthCache,
 						-1,
 						-1
 					);
@@ -640,7 +555,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.OVERLINE;
 				lineData.setCell(0, cell);
@@ -653,8 +567,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -672,7 +584,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.STRIKETHROUGH;
 				lineData.setCell(0, cell);
@@ -685,8 +596,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -704,7 +613,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.BLINK | FgFlags.UNDERLINE;
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.HAS_EXTENDED;
@@ -719,8 +627,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -734,8 +640,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					false,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -755,7 +659,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_P256;
 				for (let i = 0; i < 256; i++) {
@@ -771,8 +674,6 @@ describe('DomRendererRowFactory', () => {
 						0,
 						false,
 						true,
-						5,
-						widthCache,
 						-1,
 						-1
 					);
@@ -791,7 +692,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.bg |= Attributes.CM_P256;
 				for (let i = 0; i < 256; i++) {
@@ -807,8 +707,6 @@ describe('DomRendererRowFactory', () => {
 						0,
 						false,
 						true,
-						5,
-						widthCache,
 						-1,
 						-1
 					);
@@ -827,7 +725,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_P16 | 2 | FgFlags.INVERSE;
 				cell.bg |= Attributes.CM_P16 | 1;
@@ -841,8 +738,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -860,7 +755,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= FgFlags.INVERSE;
 				cell.bg |= Attributes.CM_P16 | 1;
@@ -874,8 +768,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -893,7 +785,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_P16 | 1 | FgFlags.INVERSE;
 				lineData.setCell(0, cell);
@@ -906,8 +797,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -925,7 +814,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= FgFlags.BOLD | Attributes.CM_P16;
 				for (let i = 0; i < 8; i++) {
@@ -941,8 +829,6 @@ describe('DomRendererRowFactory', () => {
 						0,
 						false,
 						true,
-						5,
-						widthCache,
 						-1,
 						-1
 					);
@@ -961,7 +847,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_RGB | (1 << 16) | (2 << 8) | 3;
 				cell.bg |= Attributes.CM_RGB | (4 << 16) | (5 << 8) | 6;
@@ -975,8 +860,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -996,7 +879,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_RGB | (1 << 16) | (2 << 8) | 3 | FgFlags.INVERSE;
 				cell.bg |= Attributes.CM_RGB | (4 << 16) | (5 << 8) | 6;
@@ -1010,8 +892,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -1033,7 +913,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 				lineData.setCell(1, createCellData(DEFAULT_ATTR, 'b', 1));
 				rowFactory.handleSelectionChanged([1, 0], [2, 0], false);
@@ -1046,8 +925,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -1066,7 +943,6 @@ describe('DomRendererRowFactory', () => {
 					createMockThemeService()
 				);
 				const lineData = createEmptyLineData(2);
-				const widthCache = new TestWidthCache();
 				lineData.setCell(1, createCellData(DEFAULT_ATTR, 'a', 1));
 				rowFactory.handleSelectionChanged([0, 0], [2, 0], false);
 				const spans = rowFactory.createRow(
@@ -1078,8 +954,6 @@ describe('DomRendererRowFactory', () => {
 					0,
 					false,
 					true,
-					5,
-					widthCache,
 					-1,
 					-1
 				);
@@ -1102,7 +976,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
 			const spans = rowFactory.createRow(
 				lineData,
 				0,
@@ -1112,15 +985,13 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
 			expect(extractHtml(spans)).toBe('');
 		});
 
-		it('can merge codepoints for equal spacing', () => {
+		it('can merge adjacent codepoints with matching attributes', () => {
 			const rowFactory = new DomRendererRowFactory(
 				document,
 				createMockCharacterJoinerService(),
@@ -1131,7 +1002,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, 'b', 1));
 			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'c', 1));
@@ -1144,47 +1014,10 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
 			expect(extractHtml(spans)).toBe('<span>abc</span>');
-		});
-
-		it('should not merge codepoints with different spacing', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
-			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
-			widthCache.setWidths({ '€': 2 });
-			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
-			lineData.setCell(1, createCellData(DEFAULT_ATTR, '€', 1));
-			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'c', 1));
-			const spans = rowFactory.createRow(
-				lineData,
-				0,
-				false,
-				undefined,
-				undefined,
-				0,
-				false,
-				true,
-				5,
-				widthCache,
-				-1,
-				-1
-			);
-			expect(extractHtml(spans)).toBe(
-				'<span>a</span><span style="letter-spacing: 3px;">€</span><span>c</span>'
-			);
 		});
 
 		it('should not merge on FG change', () => {
@@ -1198,7 +1031,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
 			const aColor1 = createCellData(DEFAULT_ATTR, 'a', 1);
 			aColor1.fg |= Attributes.CM_P16 | 1;
 			const bColor2 = createCellData(DEFAULT_ATTR, 'b', 1);
@@ -1216,8 +1048,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
@@ -1237,7 +1067,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'X', 1));
@@ -1252,8 +1081,6 @@ describe('DomRendererRowFactory', () => {
 				2,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
@@ -1273,7 +1100,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
 			const nullCell = lineData.loadCell(0, new CellData());
 			nullCell.bg = Attributes.CM_P16 | 1;
 			lineData.setCell(2, nullCell);
@@ -1289,8 +1115,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
@@ -1310,7 +1134,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
 			const nullCell = lineData.loadCell(0, new CellData());
 			nullCell.bg = Attributes.CM_P16 | 1;
 			lineData.setCell(0, nullCell);
@@ -1323,8 +1146,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
@@ -1339,8 +1160,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
@@ -1356,8 +1175,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
@@ -1372,49 +1189,10 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-1,
 				-1
 			);
 			expect(extractHtml(spans)).toBe('<span class="xterm-bg-1">    </span><span>a</span>');
-		});
-
-		it('should apply correct positive or negative spacing', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
-			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
-			widthCache.setWidths({ '€': 2, 語: 10, '𝄞': 7 }); // €: too small (+3px), 語: exact, 𝄞: too wide (-2px)
-			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
-			lineData.setCell(1, createCellData(DEFAULT_ATTR, '€', 1));
-			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'c', 1));
-			lineData.setCell(3, CellData.fromCharData([DEFAULT_ATTR, '語', 2, 'c'.charCodeAt(0)]));
-			lineData.setCell(4, CellData.fromCharData([DEFAULT_ATTR, '𝄞', 1, 'c'.charCodeAt(0)]));
-			const spans = rowFactory.createRow(
-				lineData,
-				0,
-				false,
-				undefined,
-				undefined,
-				0,
-				false,
-				true,
-				5,
-				widthCache,
-				-1,
-				-1
-			);
-			expect(extractHtml(spans)).toBe(
-				'<span>a</span><span style="letter-spacing: 3px;">€</span><span>c語</span><span style="letter-spacing: -2px;">𝄞</span>'
-			);
 		});
 
 		it('should not merge across link borders', () => {
@@ -1428,7 +1206,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'x', 1));
@@ -1445,8 +1222,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				2,
 				4
 			);
@@ -1466,7 +1241,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(2, createCellData(DEFAULT_ATTR, 'x', 1));
@@ -1480,8 +1254,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				2,
 				4
 			);
@@ -1501,7 +1273,6 @@ describe('DomRendererRowFactory', () => {
 				createMockThemeService()
 			);
 			const lineData = createEmptyLineData(10);
-			const widthCache = new TestWidthCache();
 			for (let i = 0; i < 10; ++i) {
 				lineData.setCell(i, createCellData(DEFAULT_ATTR, 'a', 1));
 			}
@@ -1514,8 +1285,6 @@ describe('DomRendererRowFactory', () => {
 				0,
 				false,
 				true,
-				5,
-				widthCache,
 				-100,
 				100
 			);

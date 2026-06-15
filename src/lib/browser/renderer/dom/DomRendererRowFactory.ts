@@ -16,7 +16,6 @@ import type { ThemeService } from '$lib/browser/services/ThemeService';
 import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { JoinedCellData } from '$lib/browser/services/CharacterJoinerService';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
-import type { WidthCache } from '$lib/browser/renderer/dom/WidthCache';
 
 export const enum RowCss {
 	BOLD_CLASS = 'xterm-bold',
@@ -40,8 +39,6 @@ export class DomRendererRowFactory {
 	private _selectionStart: [number, number] | undefined;
 	private _selectionEnd: [number, number] | undefined;
 	private _columnSelectMode: boolean = false;
-
-	public defaultSpacing = 0;
 
 	constructor(
 		private readonly _document: Document,
@@ -72,8 +69,6 @@ export class DomRendererRowFactory {
 		cursorX: number,
 		cursorBlink: boolean,
 		blinkOn: boolean,
-		cellWidth: number,
-		widthCache: WidthCache,
 		linkStart: number,
 		linkEnd: number,
 		rowInfo?: { hasBlinkingCells: boolean }
@@ -98,9 +93,7 @@ export class DomRendererRowFactory {
 		let oldFg = 0;
 		let oldExt = 0;
 		let oldLinkHover: number | boolean = false;
-		let oldSpacing = 0;
 		let oldIsInSelection: boolean = false;
-		let spacing;
 		let skipJoinedCheckUntilX = 0;
 		const classes: string[] = [];
 
@@ -108,7 +101,7 @@ export class DomRendererRowFactory {
 
 		for (let x = 0; x < lineLength; x++) {
 			lineData.loadCell(x, this._workCell);
-			let width = this._workCell.getWidth();
+			const width = this._workCell.getWidth();
 
 			// The character to the left is a wide character, drawing is owned by the char at x-1
 			if (width === 0) {
@@ -153,9 +146,6 @@ export class DomRendererRowFactory {
 
 					// Skip over the cells occupied by this range in the loop
 					lastCharX = range[1] - 1;
-
-					// Recalculate width
-					width = cell.getWidth();
 				}
 			}
 
@@ -183,9 +173,6 @@ export class DomRendererRowFactory {
 				chars = '\xa0';
 			}
 
-			// lookup char render width and calc spacing
-			spacing = width * cellWidth - widthCache.get(chars, cell.isBold(), cell.isItalic());
-
 			if (!charElement) {
 				charElement = this._document.createElement('span');
 			} else {
@@ -196,7 +183,6 @@ export class DomRendererRowFactory {
 				 * - fg did not change (or both are in selection and selection fg is set)
 				 * - ext did not change
 				 * - underline from hover state did not change
-				 * - cell content renders to same letter-spacing
 				 * - cell is not cursor
 				 */
 				if (
@@ -207,7 +193,6 @@ export class DomRendererRowFactory {
 						cell.fg === oldFg) &&
 					cell.extended.ext === oldExt &&
 					isLinkHover === oldLinkHover &&
-					spacing === oldSpacing &&
 					!isCursorCell &&
 					!isJoined &&
 					!isDecorated &&
@@ -243,7 +228,6 @@ export class DomRendererRowFactory {
 			oldFg = cell.fg;
 			oldExt = cell.extended.ext;
 			oldLinkHover = isLinkHover;
-			oldSpacing = spacing;
 			oldIsInSelection = isInSelection;
 
 			if (isJoined) {
@@ -461,10 +445,6 @@ export class DomRendererRowFactory {
 				cellAmount++;
 			} else {
 				charElement.textContent = text;
-			}
-			// apply letter-spacing rule
-			if (spacing !== this.defaultSpacing) {
-				charElement.style.letterSpacing = `${spacing}px`;
 			}
 
 			elements.push(charElement);
