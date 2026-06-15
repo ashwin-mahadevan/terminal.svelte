@@ -73,7 +73,9 @@
 
 	$effect(() => {
 		terminal.setCharSize(cellWidth, cellHeight);
+	});
 
+	$effect(() => {
 		const showScrollbar = terminal.core.options.scrollbar?.showScrollbar ?? true;
 		const scrollbarWidth =
 			terminal.core.options.scrollback === 0 || !showScrollbar
