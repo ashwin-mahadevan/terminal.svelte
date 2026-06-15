@@ -63,8 +63,9 @@ export class RenderService {
 	private _charSizeChangeListener!: IDisposable;
 	private _decorationRegisteredListener!: IDisposable;
 	private _decorationRemovedListener!: IDisposable;
-	private _glyphOptionChangeListeners!: IDisposable[];
-	private _cursorOptionChangeListeners!: IDisposable[];
+	private _drawBoldTextGlyphListener!: IDisposable;
+	private _cursorBlinkListener!: IDisposable;
+	private _cursorStyleListener!: IDisposable;
 	private _themeChangeListener!: IDisposable;
 	private _windowChangeListener!: IDisposable;
 
@@ -116,12 +117,10 @@ export class RenderService {
 			this.handleResize(this._terminal.bufferService.cols, this._terminal.bufferService.rows);
 			this._fullRefresh();
 		};
-		this._glyphOptionChangeListeners = [
-			this._terminal.optionsService.onSpecificOptionChange(
-				'drawBoldTextInBrightColors',
-				glyphHandler
-			)
-		];
+		this._drawBoldTextGlyphListener = this._terminal.optionsService.onSpecificOptionChange(
+			'drawBoldTextInBrightColors',
+			glyphHandler
+		);
 
 		// Refresh the cursor line when the cursor changes
 		const cursorHandler = (): void => {
@@ -132,10 +131,14 @@ export class RenderService {
 				true
 			);
 		};
-		this._cursorOptionChangeListeners = [
-			this._terminal.optionsService.onSpecificOptionChange('cursorBlink', cursorHandler),
-			this._terminal.optionsService.onSpecificOptionChange('cursorStyle', cursorHandler)
-		];
+		this._cursorBlinkListener = this._terminal.optionsService.onSpecificOptionChange(
+			'cursorBlink',
+			cursorHandler
+		);
+		this._cursorStyleListener = this._terminal.optionsService.onSpecificOptionChange(
+			'cursorStyle',
+			cursorHandler
+		);
 
 		this._themeChangeListener = this._terminal.themeService!.onChangeColors(() =>
 			this._fullRefresh()
@@ -164,8 +167,9 @@ export class RenderService {
 		this._charSizeChangeListener.dispose();
 		this._decorationRegisteredListener.dispose();
 		this._decorationRemovedListener.dispose();
-		this._glyphOptionChangeListeners.forEach((l) => l.dispose());
-		this._cursorOptionChangeListeners.forEach((l) => l.dispose());
+		this._drawBoldTextGlyphListener.dispose();
+		this._cursorBlinkListener.dispose();
+		this._cursorStyleListener.dispose();
 		this._themeChangeListener.dispose();
 		this._windowChangeListener.dispose();
 	}
