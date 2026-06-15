@@ -49,8 +49,6 @@ export class CoreService {
 	public readonly onUserInput = this._onUserInput.event;
 	private readonly _onBinary = new LegacyEmitter<string>();
 	public readonly onBinary = this._onBinary.event;
-	private readonly _onRequestScrollToBottom = new LegacyEmitter<void>();
-	public readonly onRequestScrollToBottom = this._onRequestScrollToBottom.event;
 
 	constructor(private readonly _terminal: CoreTerminal) {
 		this.isCursorInitialized = _terminal.optionsService.rawOptions.showCursorImmediately ?? false;
@@ -63,7 +61,6 @@ export class CoreService {
 		this._onData.dispose();
 		this._onUserInput.dispose();
 		this._onBinary.dispose();
-		this._onRequestScrollToBottom.dispose();
 	}
 
 	public reset(): void {
@@ -85,7 +82,7 @@ export class CoreService {
 			this._terminal.optionsService.rawOptions.scrollOnUserInput &&
 			buffer.ybase !== buffer.ydisp
 		) {
-			this._onRequestScrollToBottom.fire();
+			this._terminal.scrollToBottom(true);
 		}
 
 		// Fire onUserInput so listeners can react as well (eg. clear selection)

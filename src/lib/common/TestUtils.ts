@@ -211,7 +211,6 @@ export class MockCoreService {
 	public onData: IEvent<string> = new LegacyEmitter<string>().event;
 	public onUserInput: IEvent<void> = new LegacyEmitter<void>().event;
 	public onBinary: IEvent<string> = new LegacyEmitter<string>().event;
-	public onRequestScrollToBottom: IEvent<void> = new LegacyEmitter<void>().event;
 	public reset(): void {}
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
