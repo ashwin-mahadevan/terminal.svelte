@@ -24,8 +24,6 @@
 
 	export const emulator = new Emulator();
 
-	let isOpen = $state(false);
-
 	let element: HTMLDivElement;
 	let scrollableEl: HTMLDivElement;
 	let screenEl: HTMLDivElement;
@@ -55,7 +53,6 @@
 			scrollableEl,
 			rowContainerEl
 		);
-		isOpen = true;
 		return () => terminal.dispose();
 	});
 
@@ -164,7 +161,6 @@
 	});
 
 	$effect(() => {
-		if (!isOpen) return;
 		const sel = terminal.selectionService!;
 		emulator.selection = sel.selectionText;
 		const disposable = sel.onSelectionChange(() => {
