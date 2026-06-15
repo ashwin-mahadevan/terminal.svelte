@@ -210,7 +210,7 @@
 		if (event.clipboardData) {
 			paste(
 				event.clipboardData.getData('text/plain'),
-				terminal.textarea!,
+				textareaEl,
 				terminal.core.coreService,
 				terminal.core.optionsService
 			);
@@ -219,45 +219,45 @@
 	onmousedown={(event) => {
 		if (isFirefox && event.button === 2) {
 			const pos = terminal.screenElement!.getBoundingClientRect();
-			terminal.textarea!.style.width = '20px';
-			terminal.textarea!.style.height = '20px';
-			terminal.textarea!.style.left = `${event.clientX - pos.left - 10}px`;
-			terminal.textarea!.style.top = `${event.clientY - pos.top - 10}px`;
-			terminal.textarea!.style.zIndex = '1000';
-			terminal.textarea!.focus();
+			textareaEl.style.width = '20px';
+			textareaEl.style.height = '20px';
+			textareaEl.style.left = `${event.clientX - pos.left - 10}px`;
+			textareaEl.style.top = `${event.clientY - pos.top - 10}px`;
+			textareaEl.style.zIndex = '1000';
+			textareaEl.focus();
 			if (terminal.core.optionsService.options.rightClickSelectsWord) {
 				terminal.selectionService!.rightClickSelect(event);
 			}
-			terminal.textarea!.value = terminal.selectionService!.selectionText;
-			terminal.textarea!.select();
+			textareaEl.value = terminal.selectionService!.selectionText;
+			textareaEl.select();
 		}
 		terminal.selectionService!.handleMouseDown(event);
 	}}
 	oncontextmenu={(event) => {
 		if (isFirefox) {
 			const pos = terminal.screenElement!.getBoundingClientRect();
-			terminal.textarea!.style.width = '20px';
-			terminal.textarea!.style.height = '20px';
-			terminal.textarea!.style.left = `${event.clientX - pos.left - 10}px`;
-			terminal.textarea!.style.top = `${event.clientY - pos.top - 10}px`;
-			terminal.textarea!.style.zIndex = '1000';
-			terminal.textarea!.focus();
+			textareaEl.style.width = '20px';
+			textareaEl.style.height = '20px';
+			textareaEl.style.left = `${event.clientX - pos.left - 10}px`;
+			textareaEl.style.top = `${event.clientY - pos.top - 10}px`;
+			textareaEl.style.zIndex = '1000';
+			textareaEl.focus();
 			if (terminal.core.optionsService.options.rightClickSelectsWord) {
 				terminal.selectionService!.rightClickSelect(event);
 			}
-			terminal.textarea!.value = terminal.selectionService!.selectionText;
-			terminal.textarea!.select();
+			textareaEl.value = terminal.selectionService!.selectionText;
+			textareaEl.select();
 		}
 	}}
 	onauxclick={(event) => {
 		if (isLinux && event.button === 1) {
 			const pos = terminal.screenElement!.getBoundingClientRect();
-			terminal.textarea!.style.width = '20px';
-			terminal.textarea!.style.height = '20px';
-			terminal.textarea!.style.left = `${event.clientX - pos.left - 10}px`;
-			terminal.textarea!.style.top = `${event.clientY - pos.top - 10}px`;
-			terminal.textarea!.style.zIndex = '1000';
-			terminal.textarea!.focus();
+			textareaEl.style.width = '20px';
+			textareaEl.style.height = '20px';
+			textareaEl.style.left = `${event.clientX - pos.left - 10}px`;
+			textareaEl.style.top = `${event.clientY - pos.top - 10}px`;
+			textareaEl.style.zIndex = '1000';
+			textareaEl.focus();
 		}
 	}}
 	role="application"
@@ -299,7 +299,7 @@
 						if (event.clipboardData) {
 							paste(
 								event.clipboardData.getData('text/plain'),
-								terminal.textarea!,
+								textareaEl,
 								terminal.core.coreService,
 								terminal.core.optionsService
 							);
