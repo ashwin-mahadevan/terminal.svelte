@@ -31,11 +31,8 @@ export class MouseCoordsService {
 	public getMouseReportCoords(
 		event: MouseEvent,
 		element: HTMLElement
-	): { col: number; row: number; x: number; y: number } | undefined {
+	): { col: number; row: number; x: number; y: number } {
 		const coords = getCoordsRelativeToElement(getWindow(element), event, element);
-		if (!this._terminal.hasValidCharSize) {
-			return undefined;
-		}
 		coords[0] = Math.min(
 			Math.max(coords[0], 0),
 			this._terminal.renderService!.dimensions.css.canvas.width - 1
