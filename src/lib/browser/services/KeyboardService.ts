@@ -11,18 +11,14 @@ import {
 } from '$lib/common/input/KittyKeyboard';
 import { Win32InputMode } from '$lib/common/input/Win32InputMode';
 import { isMac } from '$lib/common/Platform';
-import type { OptionsService } from '$lib/common/services/OptionsService';
-import type { CoreService } from '$lib/common/services/CoreService';
 import type { IKeyboardResult } from '$lib/common/Types';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 
 export class KeyboardService {
 	private _win32InputMode: Win32InputMode | undefined;
 	private _kittyKeyboard: KittyKeyboard | undefined;
 
-	constructor(
-		private readonly _coreService: CoreService,
-		private readonly _optionsService: OptionsService
-	) {}
+	constructor(private readonly _terminal: CoreTerminal) {}
 
 	private _getWin32InputMode(): Win32InputMode {
 		this._win32InputMode ??= new Win32InputMode();
@@ -39,19 +35,19 @@ export class KeyboardService {
 		if (this.useWin32InputMode) {
 			return this._getWin32InputMode().evaluateKeyboardEvent(event, true);
 		}
-		const kittyFlags = this._coreService.kittyKeyboard.flags;
+		const kittyFlags = this._terminal.coreService.kittyKeyboard.flags;
 		return this.useKitty
 			? this._getKittyKeyboard().evaluate(
 					event,
 					kittyFlags,
 					event.repeat ? KittyKeyboardEventType.REPEAT : KittyKeyboardEventType.PRESS,
-					isMac && this._optionsService.rawOptions.macOptionIsMeta
+					isMac && this._terminal.optionsService.rawOptions.macOptionIsMeta
 				)
 			: evaluateKeyboardEvent(
 					event,
-					this._coreService.decPrivateModes.applicationCursorKeys,
+					this._terminal.coreService.decPrivateModes.applicationCursorKeys,
 					isMac,
-					this._optionsService.rawOptions.macOptionIsMeta
+					this._terminal.optionsService.rawOptions.macOptionIsMeta
 				);
 	}
 
@@ -60,30 +56,30 @@ export class KeyboardService {
 		if (this.useWin32InputMode) {
 			return this._getWin32InputMode().evaluateKeyboardEvent(event, false);
 		}
-		const kittyFlags = this._coreService.kittyKeyboard.flags;
+		const kittyFlags = this._terminal.coreService.kittyKeyboard.flags;
 		if (this.useKitty && kittyFlags & KittyKeyboardFlags.REPORT_EVENT_TYPES) {
 			return this._getKittyKeyboard().evaluate(
 				event,
 				kittyFlags,
 				KittyKeyboardEventType.RELEASE,
-				isMac && this._optionsService.rawOptions.macOptionIsMeta
+				isMac && this._terminal.optionsService.rawOptions.macOptionIsMeta
 			);
 		}
 		return undefined;
 	}
 
 	public get useKitty(): boolean {
-		const kittyFlags = this._coreService.kittyKeyboard.flags;
+		const kittyFlags = this._terminal.coreService.kittyKeyboard.flags;
 		return !!(
-			this._optionsService.rawOptions.vtExtensions?.kittyKeyboard &&
+			this._terminal.optionsService.rawOptions.vtExtensions?.kittyKeyboard &&
 			KittyKeyboard.shouldUseProtocol(kittyFlags)
 		);
 	}
 
 	public get useWin32InputMode(): boolean {
 		return !!(
-			this._optionsService.rawOptions.vtExtensions?.win32InputMode &&
-			this._coreService.decPrivateModes.win32InputMode
+			this._terminal.optionsService.rawOptions.vtExtensions?.win32InputMode &&
+			this._terminal.coreService.decPrivateModes.win32InputMode
 		);
 	}
 }
