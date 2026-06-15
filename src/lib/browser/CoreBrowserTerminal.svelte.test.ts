@@ -340,46 +340,6 @@ describe('CoreBrowserTerminal', () => {
 		});
 	});
 
-	describe('paste', () => {
-		let term: TestTerminal;
-		// `paste()` writes back to `term.textarea.value` after firing onData; provide
-		// a stub textarea so the write target exists (upstream relied on it too).
-		beforeEach(() => {
-			term = createTestTerminal();
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(term as any).textarea = { value: '' };
-		});
-		it('should fire data event', () =>
-			new Promise<void>((done) => {
-				term.core.coreService.onData((e) => {
-					expect(e).toBe('foo');
-					done();
-				});
-				term.paste('foo');
-			}));
-		it('should sanitize \\n chars', () =>
-			new Promise<void>((done) => {
-				term.core.coreService.onData((e) => {
-					expect(e).toBe('\rfoo\rbar\r');
-					done();
-				});
-				term.paste('\r\nfoo\nbar\r');
-			}));
-		it('should respect bracketed paste mode', () => {
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line no-async-promise-executor
-			return new Promise<void>(async (r) => {
-				term.core.coreService.onData((e) => {
-					expect(e).toBe('\x1b[200~foo\x1b[201~');
-					r();
-				});
-				await term.writeP('\x1b[?2004h');
-				term.paste('foo');
-			});
-		});
-	});
-
 	describe('scroll', () => {
 		let term: TestTerminal;
 		beforeEach(() => {

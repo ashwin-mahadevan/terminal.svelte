@@ -22,7 +22,6 @@
  */
 
 import type { ITerminalOptions } from '$lib/common/services/Services';
-import { paste } from '$lib/browser/Clipboard';
 import * as Strings from '$lib/browser/LocalizableStrings';
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
 import type { CharacterJoinerHandler, CustomKeyEventHandler } from '$lib/browser/Types';
@@ -628,10 +627,6 @@ export class CoreBrowserTerminal {
 		if (scrollAmount !== 0) {
 			this.scrollLines(scrollAmount);
 		}
-	}
-
-	public paste(data: string): void {
-		paste(data, this.textarea!, this.core.coreService, this.core.optionsService);
 	}
 
 	public attachCustomKeyEventHandler(customKeyEventHandler: CustomKeyEventHandler): void {
