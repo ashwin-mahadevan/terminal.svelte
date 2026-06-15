@@ -61,6 +61,7 @@ import { AccessibilityManager } from './AccessibilityManager';
 import { Linkifier } from './Linkifier';
 import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
+import type { IDisposable } from '$lib/common/Lifecycle';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import { isChromeOS, isFirefox, isLinux, isMac, isWindows } from '$lib/common/Platform';
 
@@ -218,6 +219,34 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._onCharSizeChange.fire();
 	}
 
+	requestFocusListener = this.inputHandler.onRequestSendFocus(() => this._reportFocus());
+	requestRefreshRowsListener = this.inputHandler.onRequestRefreshRows((e) =>
+		this.refresh(e?.start ?? 0, e?.end ?? this.bufferService.rows - 1)
+	);
+	requestResetListener = this.inputHandler.onRequestReset(() => this.reset());
+	requestWindowsOptionsReportListener = this.inputHandler.onRequestWindowsOptionsReport((type) =>
+		this._reportWindowsOptions(type)
+	);
+	colorListener = this.inputHandler.onColor((event) => this._handleColorEvent(event));
+
+	// Listeners registered in open()
+	private _disableStdinListener: IDisposable | undefined;
+	private _colorSchemeQueryListener: IDisposable | undefined;
+	private _themeColorsChangeListener: IDisposable | undefined;
+	private _cursorMoveListener: IDisposable | undefined;
+	private _bufferResizeListener: IDisposable | undefined;
+	private _blurRenderListener: IDisposable | undefined;
+	private _focusRenderListener: IDisposable | undefined;
+	private _viewportScrollLinesListener: IDisposable | undefined;
+	private _selectionScrollLinesListener: IDisposable | undefined;
+	private _selectionRedrawListener: IDisposable | undefined;
+	private _linuxMouseSelectionListener: IDisposable | undefined;
+	private _scrollEventListener: IDisposable | undefined;
+	private _inputScrollListener: IDisposable | undefined;
+	private _bufferDecorationRenderer: BufferDecorationRenderer | undefined;
+	private _screenReaderModeListener: IDisposable | undefined;
+	private _renderedViewportChangeListener: IDisposable | undefined;
+
 	constructor(options: Partial<ITerminalOptions> = {}) {
 		super(options);
 
@@ -227,21 +256,6 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this.keyboardService = new KeyboardService(this);
 		this.linkProviderService = new LinkProviderService();
 		this.linkProviderService.registerLinkProvider(new OscLinkProvider(this));
-
-		// Setup InputHandler listeners
-		this._store.add(
-			this.inputHandler.onRequestRefreshRows((e) =>
-				this.refresh(e?.start ?? 0, e?.end ?? this.bufferService.rows - 1)
-			)
-		);
-		this._store.add(this.inputHandler.onRequestSendFocus(() => this._reportFocus()));
-		this._store.add(this.inputHandler.onRequestReset(() => this.reset()));
-		this._store.add(
-			this.inputHandler.onRequestWindowsOptionsReport((type) => this._reportWindowsOptions(type))
-		);
-		this._store.add(this.inputHandler.onColor((event) => this._handleColorEvent(event)));
-
-		// Setup listeners
 
 		this._store.add(
 			toDisposable(() => {
@@ -267,6 +281,27 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._onBlur.dispose();
 		this._onWillOpen.dispose();
 		this._onCharSizeChange.dispose();
+		this.requestFocusListener.dispose();
+		this.requestRefreshRowsListener.dispose();
+		this.requestResetListener.dispose();
+		this.requestWindowsOptionsReportListener.dispose();
+		this.colorListener.dispose();
+		this._disableStdinListener?.dispose();
+		this._colorSchemeQueryListener?.dispose();
+		this._themeColorsChangeListener?.dispose();
+		this._cursorMoveListener?.dispose();
+		this._bufferResizeListener?.dispose();
+		this._blurRenderListener?.dispose();
+		this._focusRenderListener?.dispose();
+		this._viewportScrollLinesListener?.dispose();
+		this._selectionScrollLinesListener?.dispose();
+		this._selectionRedrawListener?.dispose();
+		this._linuxMouseSelectionListener?.dispose();
+		this._scrollEventListener?.dispose();
+		this._inputScrollListener?.dispose();
+		this._bufferDecorationRenderer?.dispose();
+		this._screenReaderModeListener?.dispose();
+		this._renderedViewportChangeListener?.dispose();
 	}
 
 	/**
@@ -514,11 +549,9 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			// https://issuetracker.google.com/issues/260170397
 			textarea.setAttribute('aria-multiline', 'false');
 		}
-		this._store.add(
-			this.optionsService.onSpecificOptionChange(
-				'disableStdin',
-				() => (textarea.readOnly = this.optionsService.rawOptions.disableStdin)
-			)
+		this._disableStdinListener = this.optionsService.onSpecificOptionChange(
+			'disableStdin',
+			() => (textarea.readOnly = this.optionsService.rawOptions.disableStdin)
 		);
 		textarea.readOnly = this.optionsService.rawOptions.disableStdin;
 
@@ -536,16 +569,16 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this.themeService = new ThemeService(this);
 
 		// CSI ? 996 n - color scheme query (https://contour-terminal.org/vt-extensions/color-palette-update-notifications/)
-		this._store.add(this.inputHandler.onRequestColorSchemeQuery(() => this._reportColorScheme()));
+		this._colorSchemeQueryListener = this.inputHandler.onRequestColorSchemeQuery(() =>
+			this._reportColorScheme()
+		);
 
 		// Emit unsolicited color scheme notification on theme change when DECSET 2031 is enabled
-		this._store.add(
-			this.themeService.onChangeColors(() => {
-				if (this.coreService.decPrivateModes.colorSchemeUpdates) {
-					this._reportColorScheme();
-				}
-			})
-		);
+		this._themeColorsChangeListener = this.themeService.onChangeColors(() => {
+			if (this.coreService.decPrivateModes.colorSchemeUpdates) {
+				this._reportColorScheme();
+			}
+		});
 
 		this.characterJoinerService = new CharacterJoinerService(this);
 
@@ -567,59 +600,47 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			this.renderService.setRenderer(new DomRenderer(this));
 		}
 
-		this._store.add(
-			this.inputHandler.onCursorMove(() => {
-				this.renderService!.handleCursorMove();
-				this._syncTextArea();
-			})
-		);
-		this._store.add(
-			this.bufferService.onResize(() => {
-				this.renderService!.handleResize(this.bufferService.cols, this.bufferService.rows);
-				this._syncTextArea();
-			})
-		);
-		this._store.add(this.onBlur(() => this.renderService!.handleBlur()));
-		this._store.add(this.onFocus(() => this.renderService!.handleFocus()));
+		this._cursorMoveListener = this.inputHandler.onCursorMove(() => {
+			this.renderService!.handleCursorMove();
+			this._syncTextArea();
+		});
+		this._bufferResizeListener = this.bufferService.onResize(() => {
+			this.renderService!.handleResize(this.bufferService.cols, this.bufferService.rows);
+			this._syncTextArea();
+		});
+		this._blurRenderListener = this.onBlur(() => this.renderService!.handleBlur());
+		this._focusRenderListener = this.onFocus(() => this.renderService!.handleFocus());
 
 		this._viewport = new Viewport(this);
-		this._store.add(
-			this._viewport.onRequestScrollLines((e) => {
-				super.scrollLines(e, false);
-				this.refresh(0, this.bufferService.rows - 1);
-			})
-		);
+		this._viewportScrollLinesListener = this._viewport.onRequestScrollLines((e) => {
+			super.scrollLines(e, false);
+			this.refresh(0, this.bufferService.rows - 1);
+		});
 
 		this.selectionService = new SelectionService(this);
 		this.mouseService = new MouseService(this);
-		this._store.add(
-			this.selectionService.onRequestScrollLines((e) =>
-				this.scrollLines(e.amount, e.suppressScrollEvent)
-			)
+		this._selectionScrollLinesListener = this.selectionService.onRequestScrollLines((e) =>
+			this.scrollLines(e.amount, e.suppressScrollEvent)
 		);
-		this._store.add(
-			this.selectionService.onRequestRedraw((e) =>
-				this.renderService!.handleSelectionChanged(e.start, e.end, e.columnSelectMode)
-			)
+		this._selectionRedrawListener = this.selectionService.onRequestRedraw((e) =>
+			this.renderService!.handleSelectionChanged(e.start, e.end, e.columnSelectMode)
 		);
-		this._store.add(
-			this.selectionService.onLinuxMouseSelection((text) => {
-				// If there's a new selection, put it into the textarea, focus and select it
-				// in order to register it as a selection on the OS. This event is fired
-				// only on Linux to enable middle click to paste selection.
-				this.textarea!.value = text;
-				this.textarea!.focus();
-				this.textarea!.select();
-			})
-		);
+		this._linuxMouseSelectionListener = this.selectionService.onLinuxMouseSelection((text) => {
+			// If there's a new selection, put it into the textarea, focus and select it
+			// in order to register it as a selection on the OS. This event is fired
+			// only on Linux to enable middle click to paste selection.
+			this.textarea!.value = text;
+			this.textarea!.focus();
+			this.textarea!.select();
+		});
 		const onScroll = (): void => {
 			this.selectionService!.refresh();
 			this._viewport?.queueSync();
 		};
-		this._store.add(this._onScroll.event(onScroll));
-		this._store.add(this.inputHandler.onScroll(onScroll));
+		this._scrollEventListener = this._onScroll.event(onScroll);
+		this._inputScrollListener = this.inputHandler.onScroll(onScroll);
 
-		this._store.add(new BufferDecorationRenderer(this));
+		this._bufferDecorationRenderer = new BufferDecorationRenderer(this);
 		// apply mouse event classes set by escape codes before terminal was attached
 		if (this.mouseStateService.areMouseEventsActive && !this.options.mouseEventsRequireAlt) {
 			this.selectionService.disable();
@@ -634,10 +655,9 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			// ensure the correct order of the dprchange event
 			this._accessibilityManager.value = new AccessibilityManager(this);
 		}
-		this._store.add(
-			this.optionsService.onSpecificOptionChange('screenReaderMode', (e) =>
-				this._handleScreenReaderModeOptionChange(e)
-			)
+		this._screenReaderModeListener = this.optionsService.onSpecificOptionChange(
+			'screenReaderMode',
+			(e) => this._handleScreenReaderModeOptionChange(e)
 		);
 
 		const showScrollbar = this.options.scrollbar?.showScrollbar ?? true;
@@ -655,10 +675,8 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		// Setup loop that draws to screen
 		this.refresh(0, this.bufferService.rows - 1);
 
-		this._store.add(
-			this.renderService!.onRenderedViewportChange(() =>
-				this._compositionHelper!.updateCompositionElements()
-			)
+		this._renderedViewportChangeListener = this.renderService!.onRenderedViewportChange(() =>
+			this._compositionHelper!.updateCompositionElements()
 		);
 
 		// Listen for mouse events and translate
