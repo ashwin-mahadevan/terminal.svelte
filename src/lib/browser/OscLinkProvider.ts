@@ -11,24 +11,26 @@ import type { BufferService } from '$lib/common/services/BufferService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { OscLinkService } from '$lib/common/services/OscLinkService';
 
+interface ITerminalServices {
+	bufferService: BufferService;
+	optionsService: OptionsService;
+	oscLinkService: OscLinkService;
+}
+
 export class OscLinkProvider implements ILinkProvider {
 	private readonly _workCell = new CellData();
 
-	constructor(
-		private readonly _bufferService: BufferService,
-		private readonly _optionsService: OptionsService,
-		private readonly _oscLinkService: OscLinkService
-	) {}
+	constructor(private readonly _terminal: ITerminalServices) {}
 
 	public provideLinks(y: number, callback: (links: ILink[] | undefined) => void): void {
-		const line = this._bufferService.buffer.lines.get(y - 1);
+		const line = this._terminal.bufferService.buffer.lines.get(y - 1);
 		if (!line) {
 			callback(undefined);
 			return;
 		}
 
 		const result: ILink[] = [];
-		const linkHandler = this._optionsService.rawOptions.linkHandler;
+		const linkHandler = this._terminal.optionsService.rawOptions.linkHandler;
 		const cell = this._workCell;
 		const lineLength = line.getTrimmedLength();
 		let currentLinkId = -1;
@@ -57,7 +59,7 @@ export class OscLinkProvider implements ILinkProvider {
 			}
 
 			if (finishLink || (currentStart !== -1 && x === lineLength - 1)) {
-				const text = this._oscLinkService.getLinkData(currentLinkId)?.uri;
+				const text = this._terminal.oscLinkService.getLinkData(currentLinkId)?.uri;
 				if (text) {
 					const endX = x + (!finishLink && x === lineLength - 1 ? 1 : 0);
 					const range = this._getRangeWithLineWrap(y, currentStart, endX, currentLinkId);
@@ -120,11 +122,11 @@ export class OscLinkProvider implements ILinkProvider {
 
 		// Expand upward only when this segment starts at column 0 and the current line is wrapped.
 		while (finalStartX === 0) {
-			const currentLine = this._bufferService.buffer.lines.get(startY - 1);
+			const currentLine = this._terminal.bufferService.buffer.lines.get(startY - 1);
 			if (!currentLine?.isWrapped) {
 				break;
 			}
-			const previousLine = this._bufferService.buffer.lines.get(startY - 2);
+			const previousLine = this._terminal.bufferService.buffer.lines.get(startY - 2);
 			if (!previousLine) {
 				break;
 			}
@@ -145,7 +147,7 @@ export class OscLinkProvider implements ILinkProvider {
 
 		// Expand downward only when this segment reaches trimmed EOL and the next line is wrapped.
 		while (true) {
-			const currentLine = this._bufferService.buffer.lines.get(endY - 1);
+			const currentLine = this._terminal.bufferService.buffer.lines.get(endY - 1);
 			if (!currentLine) {
 				break;
 			}
@@ -153,7 +155,7 @@ export class OscLinkProvider implements ILinkProvider {
 			if (finalEndX !== currentLineLength) {
 				break;
 			}
-			const nextLine = this._bufferService.buffer.lines.get(endY);
+			const nextLine = this._terminal.bufferService.buffer.lines.get(endY);
 			if (!nextLine?.isWrapped) {
 				break;
 			}

@@ -226,9 +226,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this.decorationService = new DecorationService(this.bufferService);
 		this.keyboardService = new KeyboardService(this);
 		this.linkProviderService = new LinkProviderService();
-		this.linkProviderService.registerLinkProvider(
-			new OscLinkProvider(this.bufferService, this.optionsService, this.oscLinkService)
-		);
+		this.linkProviderService.registerLinkProvider(new OscLinkProvider(this));
 
 		// Setup InputHandler listeners
 		this._store.add(

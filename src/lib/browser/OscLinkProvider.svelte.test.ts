@@ -60,11 +60,11 @@ describe('OscLinkProvider', () => {
 	it('expands a wrapped link range backward to the previous line', async () => {
 		const optionsService = createMockOptionsService();
 		const bufferService = createMockBufferService(5, 5, optionsService);
-		const provider = new OscLinkProvider(
+		const provider = new OscLinkProvider({
 			bufferService,
 			optionsService,
-			new TestOscLinkService() as unknown as OscLinkService
-		);
+			oscLinkService: new TestOscLinkService() as unknown as OscLinkService
+		});
 		const line1 = bufferService.buffer.lines.get(0);
 		const line2 = bufferService.buffer.lines.get(1);
 		setText(line1, 0, 'aa');
@@ -84,11 +84,11 @@ describe('OscLinkProvider', () => {
 	it('expands a wrapped link range forward when a link ends at line boundary', async () => {
 		const optionsService = createMockOptionsService();
 		const bufferService = createMockBufferService(5, 5, optionsService);
-		const provider = new OscLinkProvider(
+		const provider = new OscLinkProvider({
 			bufferService,
 			optionsService,
-			new TestOscLinkService() as unknown as OscLinkService
-		);
+			oscLinkService: new TestOscLinkService() as unknown as OscLinkService
+		});
 		const line1 = bufferService.buffer.lines.get(0);
 		const line2 = bufferService.buffer.lines.get(1);
 		setUrl(line1, 0, 'aaaaa', 1);
@@ -107,11 +107,11 @@ describe('OscLinkProvider', () => {
 	it('does not merge wrapped links with different url ids', async () => {
 		const optionsService = createMockOptionsService();
 		const bufferService = createMockBufferService(5, 5, optionsService);
-		const provider = new OscLinkProvider(
+		const provider = new OscLinkProvider({
 			bufferService,
 			optionsService,
-			new TestOscLinkService() as unknown as OscLinkService
-		);
+			oscLinkService: new TestOscLinkService() as unknown as OscLinkService
+		});
 		const line1 = bufferService.buffer.lines.get(0);
 		const line2 = bufferService.buffer.lines.get(1);
 		setUrl(line1, 0, 'aaaaa', 1);
