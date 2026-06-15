@@ -23,7 +23,9 @@ export class Viewport {
 	private _styleElement!: HTMLStyleElement;
 
 	private _smoothScrollDurationListener!: IDisposable;
-	private _scrollOptionsListeners!: IDisposable[];
+	private _scrollSensitivityListener!: IDisposable;
+	private _fastScrollSensitivityListener!: IDisposable;
+	private _scrollbarListener!: IDisposable;
 	private _protocolChangeListener!: IDisposable;
 	private _updateBackgroundColorListener!: IDisposable;
 	private _updateScrollbarStyleListener!: IDisposable;
@@ -70,17 +72,18 @@ export class Viewport {
 		);
 		const scrollOptionsHandler = (): void =>
 			this._scrollableElement.updateOptions(this._getChangeOptions());
-		this._scrollOptionsListeners = [
-			this._terminal.optionsService.onSpecificOptionChange(
-				'scrollSensitivity',
-				scrollOptionsHandler
-			),
-			this._terminal.optionsService.onSpecificOptionChange(
-				'fastScrollSensitivity',
-				scrollOptionsHandler
-			),
-			this._terminal.optionsService.onSpecificOptionChange('scrollbar', scrollOptionsHandler)
-		];
+		this._scrollSensitivityListener = this._terminal.optionsService.onSpecificOptionChange(
+			'scrollSensitivity',
+			scrollOptionsHandler
+		);
+		this._fastScrollSensitivityListener = this._terminal.optionsService.onSpecificOptionChange(
+			'fastScrollSensitivity',
+			scrollOptionsHandler
+		);
+		this._scrollbarListener = this._terminal.optionsService.onSpecificOptionChange(
+			'scrollbar',
+			scrollOptionsHandler
+		);
 		// Don't handle mouse wheel if wheel events are supported by the current mouse prototcol
 		this._protocolChangeListener = this._terminal.mouseStateService.onProtocolChange((type) => {
 			this._scrollableElement.updateOptions({
@@ -146,7 +149,9 @@ export class Viewport {
 		this._scrollable.dispose();
 		this._scrollableElement.dispose();
 		this._smoothScrollDurationListener.dispose();
-		this._scrollOptionsListeners.forEach((l) => l.dispose());
+		this._scrollSensitivityListener.dispose();
+		this._fastScrollSensitivityListener.dispose();
+		this._scrollbarListener.dispose();
 		this._protocolChangeListener.dispose();
 		this._updateBackgroundColorListener.dispose();
 		this._updateScrollbarStyleListener.dispose();
