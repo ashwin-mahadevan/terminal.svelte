@@ -126,7 +126,7 @@ export class CoreBrowserTerminal {
 	private readonly _onKey = new LegacyEmitter<{ key: string; domEvent: KeyboardEvent }>();
 	public readonly onKey = this._onKey.event;
 
-	private _onFocus = new LegacyEmitter<void>();
+	public _onFocus = new LegacyEmitter<void>();
 	public get onFocus(): IEvent<void> {
 		return this._onFocus.event;
 	}
@@ -347,20 +347,6 @@ export class CoreBrowserTerminal {
 			this._accessibilityManager.clear();
 		}
 	}
-
-	/**
-	 * Binds the desired focus behavior on a given terminal object.
-	 */
-	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	public _handleTextAreaFocus = (_ev: FocusEvent): void => {
-		if (this.core.coreService.decPrivateModes.sendFocus) {
-			this.core.coreService.triggerDataEvent(C0.ESC + '[I');
-		}
-		this.element!.classList.add('focus');
-		this._showCursor();
-		this._onFocus.fire();
-	};
 
 	public _syncTextArea(): void {
 		if (
@@ -601,7 +587,7 @@ export class CoreBrowserTerminal {
 	/**
 	 * Display the cursor element
 	 */
-	private _showCursor(): void {
+	public _showCursor(): void {
 		if (!this.core.coreService.isCursorInitialized) {
 			this.core.coreService.isCursorInitialized = true;
 			this.refresh(

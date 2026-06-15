@@ -298,7 +298,14 @@
 							terminal.core.optionsService
 						);
 					}}
-					onfocus={terminal._handleTextAreaFocus}
+					onfocus={() => {
+						if (terminal.core.coreService.decPrivateModes.sendFocus) {
+							terminal.core.coreService.triggerDataEvent(C0.ESC + '[I');
+						}
+						terminal.element!.classList.add('focus');
+						terminal._showCursor();
+						terminal._onFocus.fire();
+					}}
 					onblur={() => {
 						// Text can safely be removed on blur. Doing it earlier could interfere with
 						// screen readers reading it out.
