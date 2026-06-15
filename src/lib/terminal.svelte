@@ -183,13 +183,10 @@
 	export const serialize = (options?: ISerializeOptions): string =>
 		internalSerialize(terminal, options);
 
-	export const focus = (): void => terminal.textarea?.focus({ preventScroll: true });
-
-	export const blur = (): void => terminal.textarea?.blur();
-
-	export const selectAll = (): void => terminal.selectionService?.selectAll();
-
-	export const scrollLines = (amount: number): void => terminal.scrollLines(amount);
+	export const focus = () => textareaEl.focus({ preventScroll: true });
+	export const blur = () => textareaEl.blur();
+	export const selectAll = () => terminal.selectionService?.selectAll();
+	export const scrollLines = (amount: number) => terminal.scrollLines(amount);
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
