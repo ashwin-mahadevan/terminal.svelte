@@ -44,15 +44,15 @@ export class Viewport {
 	constructor(private readonly _terminal: CoreBrowserTerminal) {
 		this._scrollable = new Scrollable({
 			forceIntegerValues: false,
-			smoothScrollDuration: this._terminal.optionsService.rawOptions.smoothScrollDuration,
+			smoothScrollDuration: this._terminal.core.optionsService.rawOptions.smoothScrollDuration,
 			// This is used over `RenderService.addRefreshCallback` since it can be canceled
 			scheduleAtNextAnimationFrame: (cb) => scheduleAtNextAnimationFrame(window, cb)
 		});
-		this._smoothScrollDurationListener = this._terminal.optionsService.onSpecificOptionChange(
+		this._smoothScrollDurationListener = this._terminal.core.optionsService.onSpecificOptionChange(
 			'smoothScrollDuration',
 			() => {
 				this._scrollable.setSmoothScrollDuration(
-					this._terminal.optionsService.rawOptions.smoothScrollDuration
+					this._terminal.core.optionsService.rawOptions.smoothScrollDuration
 				);
 			}
 		);
@@ -64,7 +64,8 @@ export class Viewport {
 				horizontal: ScrollbarVisibility.HIDDEN,
 				useShadows: false,
 				mouseWheelSmoothScroll: true,
-				verticalHasArrows: this._terminal.optionsService.rawOptions.scrollbar?.showArrows ?? false,
+				verticalHasArrows:
+					this._terminal.core.optionsService.rawOptions.scrollbar?.showArrows ?? false,
 				...this._getChangeOptions()
 			},
 			this._scrollable,
@@ -72,24 +73,26 @@ export class Viewport {
 		);
 		const scrollOptionsHandler = (): void =>
 			this._scrollableElement.updateOptions(this._getChangeOptions());
-		this._scrollSensitivityListener = this._terminal.optionsService.onSpecificOptionChange(
+		this._scrollSensitivityListener = this._terminal.core.optionsService.onSpecificOptionChange(
 			'scrollSensitivity',
 			scrollOptionsHandler
 		);
-		this._fastScrollSensitivityListener = this._terminal.optionsService.onSpecificOptionChange(
+		this._fastScrollSensitivityListener = this._terminal.core.optionsService.onSpecificOptionChange(
 			'fastScrollSensitivity',
 			scrollOptionsHandler
 		);
-		this._scrollbarListener = this._terminal.optionsService.onSpecificOptionChange(
+		this._scrollbarListener = this._terminal.core.optionsService.onSpecificOptionChange(
 			'scrollbar',
 			scrollOptionsHandler
 		);
 		// Don't handle mouse wheel if wheel events are supported by the current mouse prototcol
-		this._protocolChangeListener = this._terminal.mouseStateService.onProtocolChange((type) => {
-			this._scrollableElement.updateOptions({
-				handleMouseWheel: !(type & CoreMouseEventType.WHEEL)
-			});
-		});
+		this._protocolChangeListener = this._terminal.core.mouseStateService.onProtocolChange(
+			(type) => {
+				this._scrollableElement.updateOptions({
+					handleMouseWheel: !(type & CoreMouseEventType.WHEEL)
+				});
+			}
+		);
 
 		this._scrollableElement.setScrollDimensions({ height: 0, scrollHeight: 0 });
 		const updateBackgroundColor = (): void => {
@@ -121,14 +124,16 @@ export class Viewport {
 		this._updateScrollbarStyleListener =
 			this._terminal.themeService!.onChangeColors(updateScrollbarStyle);
 
-		this._bufferResizeListener = this._terminal.bufferService.onResize(() => this.queueSync());
-		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() => {
-			// Reset _latestYDisp when switching buffers to prevent stale scroll position
-			// from alt buffer contaminating normal buffer scroll position
-			this._latestYDisp = undefined;
-			this.queueSync();
-		});
-		this._bufferScrollListener = this._terminal.bufferService.onScroll(() => this._sync());
+		this._bufferResizeListener = this._terminal.core.bufferService.onResize(() => this.queueSync());
+		this._bufferActivateListener = this._terminal.core.bufferService.buffers.onBufferActivate(
+			() => {
+				// Reset _latestYDisp when switching buffers to prevent stale scroll position
+				// from alt buffer contaminating normal buffer scroll position
+				this._latestYDisp = undefined;
+				this.queueSync();
+			}
+		);
+		this._bufferScrollListener = this._terminal.core.bufferService.onScroll(() => this._sync());
 
 		// Flush deferred viewport sync after a render completes (e.g. after ESU ends
 		// synchronized output mode). This ensures DOM scroll position updates atomically
@@ -181,15 +186,16 @@ export class Viewport {
 	}
 
 	private _getChangeOptions(): IScrollableElementChangeOptions {
-		const showScrollbar = this._terminal.optionsService.rawOptions.scrollbar?.showScrollbar ?? true;
-		const showArrows = this._terminal.optionsService.rawOptions.scrollbar?.showArrows ?? false;
+		const showScrollbar =
+			this._terminal.core.optionsService.rawOptions.scrollbar?.showScrollbar ?? true;
+		const showArrows = this._terminal.core.optionsService.rawOptions.scrollbar?.showArrows ?? false;
 		const verticalScrollbarSize = showScrollbar
-			? (this._terminal.optionsService.rawOptions.scrollbar?.width ??
+			? (this._terminal.core.optionsService.rawOptions.scrollbar?.width ??
 				ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH)
 			: 0;
 		return {
-			mouseWheelScrollSensitivity: this._terminal.optionsService.rawOptions.scrollSensitivity,
-			fastScrollSensitivity: this._terminal.optionsService.rawOptions.fastScrollSensitivity,
+			mouseWheelScrollSensitivity: this._terminal.core.optionsService.rawOptions.scrollSensitivity,
+			fastScrollSensitivity: this._terminal.core.optionsService.rawOptions.fastScrollSensitivity,
 			vertical: showScrollbar ? ScrollbarVisibility.AUTO : ScrollbarVisibility.HIDDEN,
 			verticalScrollbarSize,
 			verticalHasArrows: showArrows
@@ -212,13 +218,13 @@ export class Viewport {
 		});
 	}
 
-	private _sync(ydisp: number = this._terminal.bufferService.buffer.ydisp): void {
+	private _sync(ydisp: number = this._terminal.core.bufferService.buffer.ydisp): void {
 		if (!this._terminal.renderService || this._isSyncing) {
 			return;
 		}
 		// Defer DOM scroll updates during synchronized output to prevent visible
 		// scroll position flickering while the canvas content is frozen.
-		if (this._terminal.coreService.decPrivateModes.synchronizedOutput) {
+		if (this._terminal.core.coreService.decPrivateModes.synchronizedOutput) {
 			this._needsSyncOnRender = true;
 			return;
 		}
@@ -231,7 +237,7 @@ export class Viewport {
 			height: this._terminal.renderService!.dimensions.css.canvas.height,
 			scrollHeight:
 				this._terminal.renderService!.dimensions.css.cell.height *
-				this._terminal.bufferService.buffer.lines.length
+				this._terminal.core.bufferService.buffer.lines.length
 		});
 		this._suppressOnScrollHandler = false;
 
@@ -257,7 +263,7 @@ export class Viewport {
 		const newRow = Math.round(
 			e.scrollTop / this._terminal.renderService!.dimensions.css.cell.height
 		);
-		const diff = newRow - this._terminal.bufferService.buffer.ydisp;
+		const diff = newRow - this._terminal.core.bufferService.buffer.ydisp;
 		if (diff !== 0) {
 			this._latestYDisp = newRow;
 			this._onRequestScrollLines.fire(diff);

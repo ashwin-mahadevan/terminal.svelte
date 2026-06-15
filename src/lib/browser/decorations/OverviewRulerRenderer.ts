@@ -77,15 +77,18 @@ export class OverviewRulerRenderer {
 		this._renderedViewportChangeListener = this._terminal.renderService!.onRenderedViewportChange(
 			() => this._queueRefresh()
 		);
-		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() => {
-			this._canvas!.style.display =
-				this._terminal.bufferService.buffer === this._terminal.bufferService.buffers.alt
-					? 'none'
-					: 'block';
-		});
-		this._bufferScrollListener = this._terminal.bufferService.onScroll(() => {
+		this._bufferActivateListener = this._terminal.core.bufferService.buffers.onBufferActivate(
+			() => {
+				this._canvas!.style.display =
+					this._terminal.core.bufferService.buffer === this._terminal.core.bufferService.buffers.alt
+						? 'none'
+						: 'block';
+			}
+		);
+		this._bufferScrollListener = this._terminal.core.bufferService.onScroll(() => {
 			if (
-				this._lastKnownBufferLength !== this._terminal.bufferService.buffers.normal.lines.length
+				this._lastKnownBufferLength !==
+				this._terminal.core.bufferService.buffers.normal.lines.length
 			) {
 				this._refreshDrawHeightConstants();
 				this._refreshColorZonePadding();
@@ -99,7 +102,7 @@ export class OverviewRulerRenderer {
 		this._dprChangeListener = this._terminal.coreBrowserService!.onDprChange(() =>
 			this._queueRefresh(true)
 		);
-		this._scrollbarOptionListener = this._terminal.optionsService.onSpecificOptionChange(
+		this._scrollbarOptionListener = this._terminal.core.optionsService.onSpecificOptionChange(
 			'scrollbar',
 			() => this._queueRefresh(true)
 		);
@@ -147,7 +150,8 @@ export class OverviewRulerRenderer {
 	private _refreshDrawHeightConstants(): void {
 		drawHeight.full = Math.round(2 * devicePixelRatio);
 		// Calculate actual pixels per line
-		const pixelsPerLine = this._canvas.height / this._terminal.bufferService.buffer.lines.length;
+		const pixelsPerLine =
+			this._canvas.height / this._terminal.core.bufferService.buffer.lines.length;
 		// Clamp actual pixels within a range
 		const nonFullHeight = Math.round(Math.max(Math.min(pixelsPerLine, 12), 6) * devicePixelRatio);
 		drawHeight.left = nonFullHeight;
@@ -158,23 +162,27 @@ export class OverviewRulerRenderer {
 	private _refreshColorZonePadding(): void {
 		this._colorZoneStore.setPadding({
 			full: Math.floor(
-				(this._terminal.bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
+				(this._terminal.core.bufferService.buffers.active.lines.length /
+					(this._canvas.height - 1)) *
 					drawHeight.full
 			),
 			left: Math.floor(
-				(this._terminal.bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
+				(this._terminal.core.bufferService.buffers.active.lines.length /
+					(this._canvas.height - 1)) *
 					drawHeight.left
 			),
 			center: Math.floor(
-				(this._terminal.bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
+				(this._terminal.core.bufferService.buffers.active.lines.length /
+					(this._canvas.height - 1)) *
 					drawHeight.center
 			),
 			right: Math.floor(
-				(this._terminal.bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
+				(this._terminal.core.bufferService.buffers.active.lines.length /
+					(this._canvas.height - 1)) *
 					drawHeight.right
 			)
 		});
-		this._lastKnownBufferLength = this._terminal.bufferService.buffers.normal.lines.length;
+		this._lastKnownBufferLength = this._terminal.core.bufferService.buffers.normal.lines.length;
 	}
 
 	private _refreshCanvasDimensions(): void {
@@ -193,7 +201,7 @@ export class OverviewRulerRenderer {
 	}
 
 	private _getWidth(): number {
-		const scrollbar = this._terminal.optionsService.rawOptions.scrollbar;
+		const scrollbar = this._terminal.core.optionsService.rawOptions.scrollbar;
 		const showScrollbar = scrollbar?.showScrollbar ?? true;
 		if (!showScrollbar) {
 			return 0;
@@ -233,7 +241,7 @@ export class OverviewRulerRenderer {
 	private _renderRulerOutline(): void {
 		this._ctx.fillStyle = this._terminal.themeService!.colors.overviewRulerBorder.css;
 		this._ctx.fillRect(0, 0, Constants.OVERVIEW_RULER_BORDER_WIDTH, this._canvas.height);
-		if (this._terminal.optionsService.rawOptions.scrollbar?.overviewRuler?.showTopBorder) {
+		if (this._terminal.core.optionsService.rawOptions.scrollbar?.overviewRuler?.showTopBorder) {
 			this._ctx.fillRect(
 				Constants.OVERVIEW_RULER_BORDER_WIDTH,
 				0,
@@ -241,7 +249,7 @@ export class OverviewRulerRenderer {
 				Constants.OVERVIEW_RULER_BORDER_WIDTH
 			);
 		}
-		if (this._terminal.optionsService.rawOptions.scrollbar?.overviewRuler?.showBottomBorder) {
+		if (this._terminal.core.optionsService.rawOptions.scrollbar?.overviewRuler?.showBottomBorder) {
 			this._ctx.fillRect(
 				Constants.OVERVIEW_RULER_BORDER_WIDTH,
 				this._canvas.height - Constants.OVERVIEW_RULER_BORDER_WIDTH,
@@ -257,14 +265,14 @@ export class OverviewRulerRenderer {
 			/* x */ drawX[zone.position || 'full'],
 			/* y */ Math.round(
 				(this._canvas.height - 1) * // -1 to ensure at least 2px are allowed for decoration on last line
-					(zone.startBufferLine / this._terminal.bufferService.buffers.active.lines.length) -
+					(zone.startBufferLine / this._terminal.core.bufferService.buffers.active.lines.length) -
 					drawHeight[zone.position || 'full'] / 2
 			),
 			/* w */ drawWidth[zone.position || 'full'],
 			/* h */ Math.round(
 				(this._canvas.height - 1) * // -1 to ensure at least 2px are allowed for decoration on last line
 					((zone.endBufferLine - zone.startBufferLine) /
-						this._terminal.bufferService.buffers.active.lines.length) +
+						this._terminal.core.bufferService.buffers.active.lines.length) +
 					drawHeight[zone.position || 'full']
 			)
 		);

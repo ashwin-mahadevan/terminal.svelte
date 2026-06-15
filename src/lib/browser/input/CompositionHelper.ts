@@ -153,7 +153,7 @@ export class CompositionHelper {
 				this._compositionPosition.start,
 				this._compositionPosition.end
 			);
-			this._terminal.coreService.triggerDataEvent(input, true);
+			this._terminal.core.coreService.triggerDataEvent(input, true);
 		} else {
 			// Make a deep copy of the composition position here as a new compositionstart event may
 			// fire before the setTimeout executes.
@@ -202,7 +202,7 @@ export class CompositionHelper {
 						);
 					}
 					if (input.length > 0) {
-						this._terminal.coreService.triggerDataEvent(input, true);
+						this._terminal.core.coreService.triggerDataEvent(input, true);
 					}
 				}
 			}, 0);
@@ -231,11 +231,11 @@ export class CompositionHelper {
 				this._dataAlreadySent = diff;
 
 				if (newValue.length > oldValue.length) {
-					this._terminal.coreService.triggerDataEvent(diff, true);
+					this._terminal.core.coreService.triggerDataEvent(diff, true);
 				} else if (newValue.length < oldValue.length) {
-					this._terminal.coreService.triggerDataEvent(`${C0.DEL}`, true);
+					this._terminal.core.coreService.triggerDataEvent(`${C0.DEL}`, true);
 				} else if (newValue.length === oldValue.length && newValue !== oldValue) {
-					this._terminal.coreService.triggerDataEvent(newValue, true);
+					this._terminal.core.coreService.triggerDataEvent(newValue, true);
 				}
 			}
 		}, 0);
@@ -252,15 +252,15 @@ export class CompositionHelper {
 			return;
 		}
 
-		if (this._terminal.bufferService.buffer.isCursorInViewport) {
+		if (this._terminal.core.bufferService.buffer.isCursorInViewport) {
 			const cursorX = Math.min(
-				this._terminal.bufferService.buffer.x,
-				this._terminal.bufferService.cols - 1
+				this._terminal.core.bufferService.buffer.x,
+				this._terminal.core.bufferService.cols - 1
 			);
 
 			const cellHeight = this._terminal.renderService!.dimensions.css.cell.height;
 			const cursorTop =
-				this._terminal.bufferService.buffer.y *
+				this._terminal.core.bufferService.buffer.y *
 				this._terminal.renderService!.dimensions.css.cell.height;
 			const cursorLeft = cursorX * this._terminal.renderService!.dimensions.css.cell.width;
 
@@ -272,7 +272,7 @@ export class CompositionHelper {
 			// Limit the composition view width to the space between the cursor and
 			// the terminal's right edge, preventing it from overflowing the terminal.
 			const maxWidth =
-				this._terminal.bufferService.cols *
+				this._terminal.core.bufferService.cols *
 					this._terminal.renderService!.dimensions.css.cell.width -
 				cursorLeft;
 			this._terminal.compositionView!.style.maxWidth = maxWidth + 'px';

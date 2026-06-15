@@ -46,7 +46,7 @@ export class Linkifier {
 
 	constructor(private readonly _terminal: CoreBrowserTerminal) {
 		// Listen to resize to catch the case where it's resized and the cursor is out of the viewport.
-		this._resizeListener = this._terminal.bufferService.onResize(() => {
+		this._resizeListener = this._terminal.core.bufferService.onResize(() => {
 			this._clearCurrentLink();
 			this._wasResized = true;
 		});
@@ -208,7 +208,7 @@ export class Linkifier {
 				const startX = linkWithState.link.range.start.y < y ? 0 : linkWithState.link.range.start.x;
 				const endX =
 					linkWithState.link.range.end.y > y
-						? this._terminal.bufferService.cols
+						? this._terminal.core.bufferService.cols
 						: linkWithState.link.range.end.x;
 				for (let x = startX; x <= endX; x++) {
 					if (occupiedCells.has(x)) {
@@ -386,8 +386,9 @@ export class Linkifier {
 					}
 					// When start is 0 a scroll most likely occurred, make sure links above the fold also get
 					// cleared.
-					const start = e.start === 0 ? 0 : e.start + 1 + this._terminal.bufferService.buffer.ydisp;
-					const end = this._terminal.bufferService.buffer.ydisp + 1 + e.end;
+					const start =
+						e.start === 0 ? 0 : e.start + 1 + this._terminal.core.bufferService.buffer.ydisp;
+					const end = this._terminal.core.bufferService.buffer.ydisp + 1 + e.end;
 					// Only clear the link if the viewport change happened on this line
 					if (
 						this._currentLink.link.range.start.y >= start &&
@@ -428,7 +429,7 @@ export class Linkifier {
 
 	private _fireUnderlineEvent(link: ILink, showEvent: boolean): void {
 		const range = link.range;
-		const scrollOffset = this._terminal.bufferService.buffer.ydisp;
+		const scrollOffset = this._terminal.core.bufferService.buffer.ydisp;
 		const event = this._createLinkUnderlineEvent(
 			range.start.x - 1,
 			range.start.y - scrollOffset - 1,
@@ -462,9 +463,9 @@ export class Linkifier {
 	 * @param position
 	 */
 	private _linkAtPosition(link: ILink, position: IBufferCellPosition): boolean {
-		const lower = link.range.start.y * this._terminal.bufferService.cols + link.range.start.x;
-		const upper = link.range.end.y * this._terminal.bufferService.cols + link.range.end.x;
-		const current = position.y * this._terminal.bufferService.cols + position.x;
+		const lower = link.range.start.y * this._terminal.core.bufferService.cols + link.range.start.x;
+		const upper = link.range.end.y * this._terminal.core.bufferService.cols + link.range.end.x;
+		const current = position.y * this._terminal.core.bufferService.cols + position.x;
 		return lower <= current && current <= upper;
 	}
 
@@ -479,14 +480,14 @@ export class Linkifier {
 		const coords = this._terminal.mouseCoordsService!.getCoords(
 			event,
 			element,
-			this._terminal.bufferService.cols,
-			this._terminal.bufferService.rows
+			this._terminal.core.bufferService.cols,
+			this._terminal.core.bufferService.rows
 		);
 		if (!coords) {
 			return;
 		}
 
-		return { x: coords[0], y: coords[1] + this._terminal.bufferService.buffer.ydisp };
+		return { x: coords[0], y: coords[1] + this._terminal.core.bufferService.buffer.ydisp };
 	}
 
 	private _createLinkUnderlineEvent(
@@ -496,7 +497,7 @@ export class Linkifier {
 		y2: number,
 		fg: number | undefined
 	): ILinkifierEvent {
-		return { x1, y1, x2, y2, cols: this._terminal.bufferService.cols, fg };
+		return { x1, y1, x2, y2, cols: this._terminal.core.bufferService.cols, fg };
 	}
 }
 

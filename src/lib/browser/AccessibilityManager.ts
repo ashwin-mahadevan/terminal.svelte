@@ -73,7 +73,7 @@ export class AccessibilityManager {
 		this._rowContainer.setAttribute('role', 'list');
 		this._rowContainer.classList.add('xterm-accessibility-tree');
 		this._rowElements = [];
-		for (let i = 0; i < this._terminal.bufferService.rows; i++) {
+		for (let i = 0; i < this._terminal.core.bufferService.rows; i++) {
 			this._rowElements[i] = this._createAccessibilityTreeNode();
 			this._rowContainer.appendChild(this._rowElements[i]);
 		}
@@ -116,17 +116,21 @@ export class AccessibilityManager {
 			this._terminal.element.insertAdjacentElement('afterbegin', this._accessibilityContainer);
 		}
 
-		this._resizeListener = this._terminal.bufferService.onResize((e) => this._handleResize(e.rows));
+		this._resizeListener = this._terminal.core.bufferService.onResize((e) =>
+			this._handleResize(e.rows)
+		);
 		this._renderListener = this._terminal.renderService!.onRenderedViewportChange((e) =>
 			this._refreshRows(e.start, e.end)
 		);
-		this._scrollListener = this._terminal.onScroll(() => this._refreshRows());
+		this._scrollListener = this._terminal.core.onScroll(() => this._refreshRows());
 		// Line feed is an issue as the prompt won't be read out after a command is run
-		this._a11yCharListener = this._terminal.inputHandler.onA11yChar((char) =>
+		this._a11yCharListener = this._terminal.core.inputHandler.onA11yChar((char) =>
 			this._handleChar(char)
 		);
-		this._lineFeedListener = this._terminal.inputHandler.onLineFeed(() => this._handleChar('\n'));
-		this._a11yTabListener = this._terminal.inputHandler.onA11yTab((spaceCount) =>
+		this._lineFeedListener = this._terminal.core.inputHandler.onLineFeed(() =>
+			this._handleChar('\n')
+		);
+		this._a11yTabListener = this._terminal.core.inputHandler.onA11yTab((spaceCount) =>
 			this._handleTab(spaceCount)
 		);
 		this._keyListener = this._terminal.onKey((e) => this._handleKey(e.key));
@@ -207,11 +211,11 @@ export class AccessibilityManager {
 	}
 
 	private _refreshRows(start?: number, end?: number): void {
-		this._liveRegionDebouncer.refresh(start, end, this._terminal.bufferService.rows);
+		this._liveRegionDebouncer.refresh(start, end, this._terminal.core.bufferService.rows);
 	}
 
 	private _renderRows(start: number, end: number): void {
-		const buffer: Buffer = this._terminal.bufferService.buffers.active;
+		const buffer: Buffer = this._terminal.core.bufferService.buffers.active;
 		const setSize = buffer.lines.length.toString();
 		for (let i = start; i <= end; i++) {
 			const line = buffer.lines.get(buffer.ydisp + i);
@@ -256,7 +260,7 @@ export class AccessibilityManager {
 		const lastRowPos =
 			position === BoundaryPosition.TOP
 				? '1'
-				: `${this._terminal.bufferService.buffers.active.lines.length}`;
+				: `${this._terminal.core.bufferService.buffers.active.lines.length}`;
 		if (posInSet === lastRowPos) {
 			return;
 		}
@@ -395,7 +399,7 @@ export class AccessibilityManager {
 			}
 
 			let column = offset < columns.length ? columns[offset] : columns.slice(-1)[0] + 1;
-			if (column >= this._terminal.bufferService.cols) {
+			if (column >= this._terminal.core.bufferService.cols) {
 				++row;
 				column = 0;
 			}
@@ -423,7 +427,7 @@ export class AccessibilityManager {
 		this._terminal.selectionService!.setSelection(
 			beginRowColumn.column,
 			beginRowColumn.row,
-			(endRowColumn.row - beginRowColumn.row) * this._terminal.bufferService.cols -
+			(endRowColumn.row - beginRowColumn.row) * this._terminal.core.bufferService.cols -
 				beginRowColumn.column +
 				endRowColumn.column
 		);
@@ -437,7 +441,11 @@ export class AccessibilityManager {
 		);
 
 		// Grow rows as required
-		for (let i = this._rowContainer.children.length; i < this._terminal.bufferService.rows; i++) {
+		for (
+			let i = this._rowContainer.children.length;
+			i < this._terminal.core.bufferService.rows;
+			i++
+		) {
 			this._rowElements[i] = this._createAccessibilityTreeNode();
 			this._rowContainer.appendChild(this._rowElements[i]);
 		}
@@ -472,10 +480,10 @@ export class AccessibilityManager {
 		Object.assign(this._accessibilityContainer.style, {
 			width: `${this._terminal.renderService!.dimensions.css.canvas.width}px`
 		});
-		if (this._rowElements.length !== this._terminal.bufferService.rows) {
-			this._handleResize(this._terminal.bufferService.rows);
+		if (this._rowElements.length !== this._terminal.core.bufferService.rows) {
+			this._handleResize(this._terminal.core.bufferService.rows);
 		}
-		for (let i = 0; i < this._terminal.bufferService.rows; i++) {
+		for (let i = 0; i < this._terminal.core.bufferService.rows; i++) {
 			this._refreshRowDimensions(this._rowElements[i]);
 			this._alignRowWidth(this._rowElements[i]);
 		}

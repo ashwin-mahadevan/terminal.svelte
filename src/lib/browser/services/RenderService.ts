@@ -81,7 +81,7 @@ export class RenderService {
 
 		this._syncOutputHandler = new SynchronizedOutputHandler(
 			this._terminal.coreBrowserService!,
-			this._terminal.coreService,
+			this._terminal.core.coreService,
 			() => this._fullRefresh()
 		);
 
@@ -89,8 +89,10 @@ export class RenderService {
 			this.handleDevicePixelRatioChange()
 		);
 
-		this._bufferResizeListener = this._terminal.bufferService.onResize(() => this._fullRefresh());
-		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() =>
+		this._bufferResizeListener = this._terminal.core.bufferService.onResize(() =>
+			this._fullRefresh()
+		);
+		this._bufferActivateListener = this._terminal.core.bufferService.buffers.onBufferActivate(() =>
 			this._renderer.value?.clear()
 		);
 		this._charSizeChangeListener = this._terminal.onCharSizeChange(() =>
@@ -110,10 +112,13 @@ export class RenderService {
 		// Clear the renderer when the a change that could affect glyphs occurs
 		const glyphHandler = (): void => {
 			this.clear();
-			this.handleResize(this._terminal.bufferService.cols, this._terminal.bufferService.rows);
+			this.handleResize(
+				this._terminal.core.bufferService.cols,
+				this._terminal.core.bufferService.rows
+			);
 			this._fullRefresh();
 		};
-		this._drawBoldTextGlyphListener = this._terminal.optionsService.onSpecificOptionChange(
+		this._drawBoldTextGlyphListener = this._terminal.core.optionsService.onSpecificOptionChange(
 			'drawBoldTextInBrightColors',
 			glyphHandler
 		);
@@ -121,17 +126,17 @@ export class RenderService {
 		// Refresh the cursor line when the cursor changes
 		const cursorHandler = (): void => {
 			this.refreshRows(
-				this._terminal.bufferService.buffer.y,
-				this._terminal.bufferService.buffer.y,
+				this._terminal.core.bufferService.buffer.y,
+				this._terminal.core.bufferService.buffer.y,
 				undefined,
 				true
 			);
 		};
-		this._cursorBlinkListener = this._terminal.optionsService.onSpecificOptionChange(
+		this._cursorBlinkListener = this._terminal.core.optionsService.onSpecificOptionChange(
 			'cursorBlink',
 			cursorHandler
 		);
-		this._cursorStyleListener = this._terminal.optionsService.onSpecificOptionChange(
+		this._cursorStyleListener = this._terminal.core.optionsService.onSpecificOptionChange(
 			'cursorStyle',
 			cursorHandler
 		);
@@ -196,7 +201,7 @@ export class RenderService {
 
 		if (!this._isPaused && this._needsFullRefresh) {
 			this._pausedResizeTask.flush();
-			this.refreshRows(0, this._terminal.bufferService.rows - 1);
+			this.refreshRows(0, this._terminal.core.bufferService.rows - 1);
 			this._needsFullRefresh = false;
 		}
 	}
@@ -212,7 +217,7 @@ export class RenderService {
 			return;
 		}
 
-		if (this._terminal.coreService.decPrivateModes.synchronizedOutput) {
+		if (this._terminal.core.coreService.decPrivateModes.synchronizedOutput) {
 			this._syncOutputHandler.bufferRows(start, end);
 			return;
 		}
@@ -230,7 +235,7 @@ export class RenderService {
 		if (sync) {
 			this._renderRows(start, end);
 		} else {
-			this._renderDebouncer.refresh(start, end, this._terminal.bufferService.rows);
+			this._renderDebouncer.refresh(start, end, this._terminal.core.bufferService.rows);
 		}
 	}
 
@@ -241,7 +246,7 @@ export class RenderService {
 
 		// Skip rendering if synchronized output mode is enabled. This check must happen here
 		// (in addition to refreshRows) to handle renders that were queued before the mode was enabled.
-		if (this._terminal.coreService.decPrivateModes.synchronizedOutput) {
+		if (this._terminal.core.coreService.decPrivateModes.synchronizedOutput) {
 			this._syncOutputHandler.bufferRows(start, end);
 			return;
 		}
@@ -249,8 +254,8 @@ export class RenderService {
 		// Since this is debounced, a resize event could have happened between the time a refresh was
 		// requested and when this triggers. Clamp the values of start and end to ensure they're valid
 		// given the current viewport state.
-		start = Math.min(start, this._terminal.bufferService.rows - 1);
-		end = Math.min(end, this._terminal.bufferService.rows - 1);
+		start = Math.min(start, this._terminal.core.bufferService.rows - 1);
+		end = Math.min(end, this._terminal.core.bufferService.rows - 1);
 
 		// Render
 		this._renderer.value.renderRows(start, end);
@@ -315,7 +320,7 @@ export class RenderService {
 		if (this._isPaused) {
 			this._needsFullRefresh = true;
 		} else {
-			this.refreshRows(0, this._terminal.bufferService.rows - 1);
+			this.refreshRows(0, this._terminal.core.bufferService.rows - 1);
 		}
 	}
 
@@ -333,7 +338,7 @@ export class RenderService {
 			return;
 		}
 		this._renderer.value.handleDevicePixelRatioChange();
-		this.refreshRows(0, this._terminal.bufferService.rows - 1);
+		this.refreshRows(0, this._terminal.core.bufferService.rows - 1);
 	}
 
 	public handleResize(cols: number, rows: number): void {

@@ -66,7 +66,10 @@ export class DomRenderer {
 	// renderer only populates and styles it via this._terminal.rowContainer. See
 	// terminal.svelte.
 	constructor(private readonly _terminal: CoreBrowserTerminal) {
-		this._refreshRowElements(this._terminal.bufferService.cols, this._terminal.bufferService.rows);
+		this._refreshRowElements(
+			this._terminal.core.bufferService.cols,
+			this._terminal.core.bufferService.rows
+		);
 		this._selectionContainer = this._terminal.document!.createElement('div');
 		this._selectionContainer.classList.add(Constants.SELECTION_CLASS);
 		this._selectionContainer.setAttribute('aria-hidden', 'true');
@@ -99,7 +102,8 @@ export class DomRenderer {
 			this._cursorBlinkStateManager.restartBlinkAnimation()
 		);
 		this._textBlinkStateManager = new TextBlinkStateManager(
-			() => this._onRequestRedraw.fire({ start: 0, end: this._terminal.bufferService.rows - 1 }),
+			() =>
+				this._onRequestRedraw.fire({ start: 0, end: this._terminal.core.bufferService.rows - 1 }),
 			this._terminal
 		);
 	}
@@ -129,9 +133,9 @@ export class DomRenderer {
 		this.dimensions.device.char.left = 0;
 		this.dimensions.device.char.top = 0;
 		this.dimensions.device.canvas.width =
-			this.dimensions.device.cell.width * this._terminal.bufferService.cols;
+			this.dimensions.device.cell.width * this._terminal.core.bufferService.cols;
 		this.dimensions.device.canvas.height =
-			this.dimensions.device.cell.height * this._terminal.bufferService.rows;
+			this.dimensions.device.cell.height * this._terminal.core.bufferService.rows;
 		this.dimensions.css.canvas.width = Math.round(
 			this.dimensions.device.canvas.width / devicePixelRatio
 		);
@@ -139,9 +143,9 @@ export class DomRenderer {
 			this.dimensions.device.canvas.height / devicePixelRatio
 		);
 		this.dimensions.css.cell.width =
-			this.dimensions.css.canvas.width / this._terminal.bufferService.cols;
+			this.dimensions.css.canvas.width / this._terminal.core.bufferService.cols;
 		this.dimensions.css.cell.height =
-			this.dimensions.css.canvas.height / this._terminal.bufferService.rows;
+			this.dimensions.css.canvas.height / this._terminal.core.bufferService.rows;
 
 		for (const element of this._rowElements) {
 			element.style.width = `${this.dimensions.css.canvas.width}px`;
@@ -262,7 +266,7 @@ export class DomRenderer {
 			` outline-offset: -1px;` +
 			`}` +
 			`${this._terminalSelector} .${Constants.ROW_CONTAINER_CLASS} .${RowCss.CURSOR_CLASS}.${RowCss.CURSOR_STYLE_BAR_CLASS} {` +
-			` box-shadow: ${this._terminal.optionsService.rawOptions.cursorWidth}px 0 0 ${colors.cursor.css} inset;` +
+			` box-shadow: ${this._terminal.core.optionsService.rawOptions.cursorWidth}px 0 0 ${colors.cursor.css} inset;` +
 			`}` +
 			`${this._terminalSelector} .${Constants.ROW_CONTAINER_CLASS} .${RowCss.CURSOR_CLASS}.${RowCss.CURSOR_STYLE_UNDERLINE_CLASS} {` +
 			` border-bottom: 1px ${colors.cursor.css};` +
@@ -339,13 +343,16 @@ export class DomRenderer {
 	public handleBlur(): void {
 		this._terminal.rowContainer!.classList.remove(Constants.FOCUS_CLASS);
 		this._cursorBlinkStateManager.pause();
-		this.renderRows(0, this._terminal.bufferService.rows - 1);
+		this.renderRows(0, this._terminal.core.bufferService.rows - 1);
 	}
 
 	public handleFocus(): void {
 		this._terminal.rowContainer!.classList.add(Constants.FOCUS_CLASS);
 		this._cursorBlinkStateManager.resume();
-		this.renderRows(this._terminal.bufferService.buffer.y, this._terminal.bufferService.buffer.y);
+		this.renderRows(
+			this._terminal.core.bufferService.buffer.y,
+			this._terminal.core.bufferService.buffer.y
+		);
 	}
 
 	public handleViewportVisibilityChange(isVisible: boolean): void {
@@ -357,7 +364,7 @@ export class DomRenderer {
 		end: [number, number] | undefined,
 		columnSelectMode: boolean
 	): void {
-		const rows = this._terminal.bufferService.rows;
+		const rows = this._terminal.core.bufferService.rows;
 
 		// Remove all selections
 		this._selectionContainer.replaceChildren();
@@ -412,7 +419,9 @@ export class DomRenderer {
 				// Draw first row
 				const startCol = viewportStartRow === viewportCappedStartRow ? start[0] : 0;
 				const endCol =
-					viewportCappedStartRow === viewportEndRow ? end[0] : this._terminal.bufferService.cols;
+					viewportCappedStartRow === viewportEndRow
+						? end[0]
+						: this._terminal.core.bufferService.cols;
 				documentFragment.appendChild(
 					this._createSelectionElement(viewportCappedStartRow, startCol, endCol)
 				);
@@ -422,7 +431,7 @@ export class DomRenderer {
 					this._createSelectionElement(
 						viewportCappedStartRow + 1,
 						0,
-						this._terminal.bufferService.cols,
+						this._terminal.core.bufferService.cols,
 						middleRowsCount
 					)
 				);
@@ -430,7 +439,9 @@ export class DomRenderer {
 				if (viewportCappedStartRow !== viewportCappedEndRow) {
 					// Only draw viewportEndRow if it's not the same as viewporttartRow
 					const finalEndCol =
-						viewportEndRow === viewportCappedEndRow ? end[0] : this._terminal.bufferService.cols;
+						viewportEndRow === viewportCappedEndRow
+							? end[0]
+							: this._terminal.core.bufferService.cols;
 					documentFragment.appendChild(
 						this._createSelectionElement(viewportCappedEndRow, 0, finalEndCol)
 					);
@@ -449,7 +460,7 @@ export class DomRenderer {
 			renderEndRow = Math.min(renderEndRow, rows - 1);
 
 			// Ensure cursor row is included when a selection is present
-			const buffer = this._terminal.bufferService.buffer;
+			const buffer = this._terminal.core.bufferService.buffer;
 			const cursorViewportRow = buffer.y;
 			if (
 				this._selectionRenderModel.hasSelection &&
@@ -520,16 +531,16 @@ export class DomRenderer {
 	}
 
 	public renderRows(start: number, end: number): void {
-		const buffer = this._terminal.bufferService.buffer;
+		const buffer = this._terminal.core.bufferService.buffer;
 		const cursorAbsoluteY = buffer.ybase + buffer.y;
-		const cursorX = Math.min(buffer.x, this._terminal.bufferService.cols - 1);
+		const cursorX = Math.min(buffer.x, this._terminal.core.bufferService.cols - 1);
 		const cursorBlink =
-			this._terminal.coreService.decPrivateModes.cursorBlink ??
-			this._terminal.optionsService.rawOptions.cursorBlink;
+			this._terminal.core.coreService.decPrivateModes.cursorBlink ??
+			this._terminal.core.optionsService.rawOptions.cursorBlink;
 		const cursorStyle =
-			this._terminal.coreService.decPrivateModes.cursorStyle ??
-			this._terminal.optionsService.rawOptions.cursorStyle;
-		const cursorInactiveStyle = this._terminal.optionsService.rawOptions.cursorInactiveStyle;
+			this._terminal.core.coreService.decPrivateModes.cursorStyle ??
+			this._terminal.core.optionsService.rawOptions.cursorStyle;
+		const cursorInactiveStyle = this._terminal.core.optionsService.rawOptions.cursorInactiveStyle;
 		const rowInfo = { hasBlinkingCells: false };
 
 		for (let y = start; y <= end; y++) {
@@ -597,17 +608,17 @@ export class DomRenderer {
 		// clip coords into viewport
 		if (y < 0) x = 0;
 		if (y2 < 0) x2 = 0;
-		const maxY = this._terminal.bufferService.rows - 1;
+		const maxY = this._terminal.core.bufferService.rows - 1;
 		y = Math.max(Math.min(y, maxY), 0);
 		y2 = Math.max(Math.min(y2, maxY), 0);
 
-		cols = Math.min(cols, this._terminal.bufferService.cols);
-		const buffer = this._terminal.bufferService.buffer;
+		cols = Math.min(cols, this._terminal.core.bufferService.cols);
+		const buffer = this._terminal.core.bufferService.buffer;
 		const cursorAbsoluteY = buffer.ybase + buffer.y;
 		const cursorX = Math.min(buffer.x, cols - 1);
-		const cursorBlink = this._terminal.optionsService.rawOptions.cursorBlink;
-		const cursorStyle = this._terminal.optionsService.rawOptions.cursorStyle;
-		const cursorInactiveStyle = this._terminal.optionsService.rawOptions.cursorInactiveStyle;
+		const cursorBlink = this._terminal.core.optionsService.rawOptions.cursorBlink;
+		const cursorStyle = this._terminal.core.optionsService.rawOptions.cursorStyle;
+		const cursorInactiveStyle = this._terminal.core.optionsService.rawOptions.cursorInactiveStyle;
 		const rowInfo = { hasBlinkingCells: false };
 
 		// refresh rows within link range

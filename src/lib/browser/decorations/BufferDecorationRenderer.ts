@@ -37,10 +37,13 @@ export class BufferDecorationRenderer {
 		this._dprChangeListener = this._terminal.coreBrowserService!.onDprChange(() =>
 			this._queueRefresh()
 		);
-		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() => {
-			this._altBufferIsActive =
-				this._terminal.bufferService.buffer === this._terminal.bufferService.buffers.alt;
-		});
+		this._bufferActivateListener = this._terminal.core.bufferService.buffers.onBufferActivate(
+			() => {
+				this._altBufferIsActive =
+					this._terminal.core.bufferService.buffer ===
+					this._terminal.core.bufferService.buffers.alt;
+			}
+		);
 		this._decorationRegisteredListener = this._terminal.decorationService.onDecorationRegistered(
 			() => this._queueRefresh()
 		);
@@ -90,11 +93,11 @@ export class BufferDecorationRenderer {
 		element.classList.toggle('xterm-decoration-top-layer', decoration?.options?.layer === 'top');
 		element.style.width = `${Math.round((decoration.options.width || 1) * this._terminal.renderService!.dimensions.css.cell.width)}px`;
 		element.style.height = `${(decoration.options.height || 1) * this._terminal.renderService!.dimensions.css.cell.height}px`;
-		element.style.top = `${(decoration.marker.line - this._terminal.bufferService.buffers.active.ydisp) * this._terminal.renderService!.dimensions.css.cell.height}px`;
+		element.style.top = `${(decoration.marker.line - this._terminal.core.bufferService.buffers.active.ydisp) * this._terminal.renderService!.dimensions.css.cell.height}px`;
 		element.style.lineHeight = `${this._terminal.renderService!.dimensions.css.cell.height}px`;
 
 		const x = decoration.options.x ?? 0;
-		if (x && x > this._terminal.bufferService.cols) {
+		if (x && x > this._terminal.core.bufferService.cols) {
 			// exceeded the container width, so hide
 			element.style.display = 'none';
 		}
@@ -104,8 +107,8 @@ export class BufferDecorationRenderer {
 	}
 
 	private _refreshStyle(decoration: IInternalDecoration): void {
-		const line = decoration.marker.line - this._terminal.bufferService.buffers.active.ydisp;
-		if (line < 0 || line >= this._terminal.bufferService.rows) {
+		const line = decoration.marker.line - this._terminal.core.bufferService.buffers.active.ydisp;
+		if (line < 0 || line >= this._terminal.core.bufferService.rows) {
 			// outside of viewport
 			if (decoration.element) {
 				decoration.element.style.display = 'none';

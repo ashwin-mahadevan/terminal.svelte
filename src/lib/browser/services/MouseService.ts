@@ -69,17 +69,17 @@ export class MouseService {
 			element,
 			document,
 			() =>
-				this._terminal.mouseStateService.areMouseEventsActive &&
-				!!this._terminal.optionsService.rawOptions.mouseEventsRequireAlt
+				this._terminal.core.mouseStateService.areMouseEventsActive &&
+				!!this._terminal.core.optionsService.rawOptions.mouseEventsRequireAlt
 		);
 		register(this._altMouseCursor);
 		register(
-			this._terminal.mouseStateService.onProtocolChange((events) => {
+			this._terminal.core.mouseStateService.onProtocolChange((events) => {
 				this._handleProtocolChange(ctx, eventListeners, events);
 			})
 		);
 		register(
-			this._terminal.optionsService.onSpecificOptionChange('mouseEventsRequireAlt', () => {
+			this._terminal.core.optionsService.onSpecificOptionChange('mouseEventsRequireAlt', () => {
 				this._syncMouseModeState(element);
 				this._altMouseCursor?.sync();
 			})
@@ -87,8 +87,8 @@ export class MouseService {
 		// force initial onProtocolChange so we dont miss early mouse requests
 		// TODO: Fix this upstream type error.
 		/* eslint-disable no-self-assign */
-		this._terminal.mouseStateService.activeProtocol =
-			this._terminal.mouseStateService.activeProtocol;
+		this._terminal.core.mouseStateService.activeProtocol =
+			this._terminal.core.mouseStateService.activeProtocol;
 		/* eslint-enable no-self-assign */
 
 		// Ensure document-level listeners are removed on dispose
@@ -174,7 +174,7 @@ export class MouseService {
 				but = ev.button < 3 ? ev.button : CoreMouseButton.NONE;
 				break;
 			case 'wheel':
-				if (!this._terminal.mouseStateService.allowCustomWheelEvent(ev as WheelEvent)) {
+				if (!this._terminal.core.mouseStateService.allowCustomWheelEvent(ev as WheelEvent)) {
 					return false;
 				}
 				// TODO: Fix this upstream type error.
@@ -209,8 +209,8 @@ export class MouseService {
 
 		if (
 			but !== CoreMouseButton.WHEEL &&
-			this._terminal.optionsService.rawOptions.mouseEventsRequireAlt &&
-			this._terminal.mouseStateService.areMouseEventsActive &&
+			this._terminal.core.optionsService.rawOptions.mouseEventsRequireAlt &&
+			this._terminal.core.mouseStateService.areMouseEventsActive &&
 			!ev.altKey
 		) {
 			return false;
@@ -220,8 +220,8 @@ export class MouseService {
 		// application (e.g. tmux ignores alt-modified mouse reports).
 		const stripAltFromReport =
 			but !== CoreMouseButton.WHEEL &&
-			this._terminal.optionsService.rawOptions.mouseEventsRequireAlt &&
-			this._terminal.mouseStateService.areMouseEventsActive;
+			this._terminal.core.optionsService.rawOptions.mouseEventsRequireAlt &&
+			this._terminal.core.mouseStateService.areMouseEventsActive;
 
 		return this._triggerMouseEvent({
 			col: pos.col,
@@ -278,7 +278,7 @@ export class MouseService {
 		// if the selection manager is having selection forced (ie. a modifier is
 		// held).
 		if (
-			!this._terminal.mouseStateService.areMouseEventsActive ||
+			!this._terminal.core.mouseStateService.areMouseEventsActive ||
 			this._terminal.selectionService!.shouldForceSelection(ev)
 		) {
 			return;
@@ -304,11 +304,11 @@ export class MouseService {
 			return;
 		}
 
-		if (!this._terminal.mouseStateService.allowCustomWheelEvent(ev)) {
+		if (!this._terminal.core.mouseStateService.allowCustomWheelEvent(ev)) {
 			return false;
 		}
 
-		if (!this._terminal.bufferService.buffer.hasScrollback) {
+		if (!this._terminal.core.bufferService.buffer.hasScrollback) {
 			// Convert wheel events into up/down events when the buffer does not have scrollback, this
 			// enables scrolling in apps hosted in the alt buffer such as vim or tmux even when mouse
 			// events are not enabled.
@@ -336,9 +336,9 @@ export class MouseService {
 			// Construct and send sequences
 			const sequence =
 				C0.ESC +
-				(this._terminal.coreService.decPrivateModes.applicationCursorKeys ? 'O' : '[') +
+				(this._terminal.core.coreService.decPrivateModes.applicationCursorKeys ? 'O' : '[') +
 				(ev.deltaY < 0 ? 'A' : 'B');
-			this._terminal.coreService.triggerDataEvent(sequence, true);
+			this._terminal.core.coreService.triggerDataEvent(sequence, true);
 			ev.preventDefault();
 			ev.stopPropagation();
 			return false;
@@ -360,7 +360,7 @@ export class MouseService {
 		}
 
 		// When in alt buffer (no scrollback), send up/down key sequences.
-		if (!this._terminal.bufferService.buffer.hasScrollback) {
+		if (!this._terminal.core.bufferService.buffer.hasScrollback) {
 			this._handleTouchScrollAsKeys(e);
 			return;
 		}
@@ -384,10 +384,10 @@ export class MouseService {
 		this._touchScrollAccumulator -= lines * cellHeight;
 		const sequence =
 			C0.ESC +
-			(this._terminal.coreService.decPrivateModes.applicationCursorKeys ? 'O' : '[') +
+			(this._terminal.core.coreService.decPrivateModes.applicationCursorKeys ? 'O' : '[') +
 			(lines < 0 ? 'A' : 'B');
 		for (let i = 0; i < Math.abs(lines); i++) {
-			this._terminal.coreService.triggerDataEvent(sequence, true);
+			this._terminal.core.coreService.triggerDataEvent(sequence, true);
 		}
 	}
 
@@ -434,8 +434,8 @@ export class MouseService {
 	}
 
 	private _syncMouseModeState(element: HTMLElement): void {
-		if (this._terminal.mouseStateService.areMouseEventsActive) {
-			if (this._terminal.optionsService.rawOptions.mouseEventsRequireAlt) {
+		if (this._terminal.core.mouseStateService.areMouseEventsActive) {
+			if (this._terminal.core.optionsService.rawOptions.mouseEventsRequireAlt) {
 				this._altMouseCursor?.resetClass();
 				this._terminal.selectionService!.enable();
 			} else {
@@ -509,11 +509,11 @@ export class MouseService {
 		if (ev.altKey || ev.ctrlKey || ev.shiftKey) {
 			return (
 				amount *
-				this._terminal.optionsService.rawOptions.fastScrollSensitivity *
-				this._terminal.optionsService.rawOptions.scrollSensitivity
+				this._terminal.core.optionsService.rawOptions.fastScrollSensitivity *
+				this._terminal.core.optionsService.rawOptions.scrollSensitivity
 			);
 		}
-		return amount * this._terminal.optionsService.rawOptions.scrollSensitivity;
+		return amount * this._terminal.core.optionsService.rawOptions.scrollSensitivity;
 	}
 
 	/**
@@ -546,7 +546,7 @@ export class MouseService {
 				Math.floor(Math.abs(this._wheelPartialScroll)) * (this._wheelPartialScroll > 0 ? 1 : -1);
 			this._wheelPartialScroll %= 1;
 		} else if (ev.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
-			amount *= this._terminal.bufferService.rows;
+			amount *= this._terminal.core.bufferService.rows;
 		}
 		return amount;
 	}
@@ -565,9 +565,9 @@ export class MouseService {
 		// range check for col/row
 		if (
 			e.col < 0 ||
-			e.col >= this._terminal.bufferService.cols ||
+			e.col >= this._terminal.core.bufferService.cols ||
 			e.row < 0 ||
-			e.row >= this._terminal.bufferService.rows
+			e.row >= this._terminal.core.bufferService.rows
 		) {
 			return false;
 		}
@@ -594,23 +594,23 @@ export class MouseService {
 		if (
 			e.action === CoreMouseAction.MOVE &&
 			this._lastEvent &&
-			this._equalEvents(this._lastEvent, e, this._terminal.mouseStateService.isPixelEncoding)
+			this._equalEvents(this._lastEvent, e, this._terminal.core.mouseStateService.isPixelEncoding)
 		) {
 			return false;
 		}
 
 		// apply protocol restrictions
-		if (!this._terminal.mouseStateService.restrictMouseEvent(e)) {
+		if (!this._terminal.core.mouseStateService.restrictMouseEvent(e)) {
 			return false;
 		}
 
 		// encode report and send
-		const report = this._terminal.mouseStateService.encodeMouseEvent(e);
+		const report = this._terminal.core.mouseStateService.encodeMouseEvent(e);
 		if (report) {
-			if (this._terminal.mouseStateService.isDefaultEncoding) {
-				this._terminal.coreService.triggerBinaryEvent(report);
+			if (this._terminal.core.mouseStateService.isDefaultEncoding) {
+				this._terminal.core.coreService.triggerBinaryEvent(report);
 			} else {
-				this._terminal.coreService.triggerDataEvent(report, true);
+				this._terminal.core.coreService.triggerDataEvent(report, true);
 			}
 		}
 

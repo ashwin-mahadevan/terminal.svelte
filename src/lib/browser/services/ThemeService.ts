@@ -61,10 +61,10 @@ export class ThemeService {
 			ansi: DEFAULT_ANSI_COLORS.slice()
 		};
 		this._updateRestoreColors();
-		this._setTheme(this._terminal.optionsService.rawOptions.theme);
+		this._setTheme(this._terminal.core.optionsService.rawOptions.theme);
 
-		this._themeListener = this._terminal.optionsService.onSpecificOptionChange('theme', () =>
-			this._setTheme(this._terminal.optionsService.rawOptions.theme)
+		this._themeListener = this._terminal.core.optionsService.onSpecificOptionChange('theme', () =>
+			this._setTheme(this._terminal.core.optionsService.rawOptions.theme)
 		);
 	}
 

@@ -18,13 +18,13 @@ export class TextBlinkStateManager {
 		private readonly _renderCallback: () => void,
 		private readonly _terminal: CoreBrowserTerminal
 	) {
-		this._blinkIntervalListener = this._terminal.optionsService.onSpecificOptionChange(
+		this._blinkIntervalListener = this._terminal.core.optionsService.onSpecificOptionChange(
 			'blinkIntervalDuration',
 			(duration) => {
 				this.setIntervalDuration(duration);
 			}
 		);
-		this.setIntervalDuration(this._terminal.optionsService.rawOptions.blinkIntervalDuration);
+		this.setIntervalDuration(this._terminal.core.optionsService.rawOptions.blinkIntervalDuration);
 	}
 
 	public dispose(): void {

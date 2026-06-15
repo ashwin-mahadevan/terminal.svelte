@@ -49,14 +49,14 @@ export class SelectionRenderModel {
 		}
 
 		// Translate from buffer position to viewport position
-		const viewportY = terminal.bufferService.buffers.active.ydisp;
+		const viewportY = terminal.core.bufferService.buffers.active.ydisp;
 		const viewportStartRow = start[1] - viewportY;
 		const viewportEndRow = end[1] - viewportY;
 		const viewportCappedStartRow = Math.max(viewportStartRow, 0);
-		const viewportCappedEndRow = Math.min(viewportEndRow, terminal.bufferService.rows - 1);
+		const viewportCappedEndRow = Math.min(viewportEndRow, terminal.core.bufferService.rows - 1);
 
 		// No need to draw the selection
-		if (viewportCappedStartRow >= terminal.bufferService.rows || viewportCappedEndRow < 0) {
+		if (viewportCappedStartRow >= terminal.core.bufferService.rows || viewportCappedEndRow < 0) {
 			this.clear();
 			return;
 		}
@@ -75,7 +75,7 @@ export class SelectionRenderModel {
 		if (!this.hasSelection) {
 			return false;
 		}
-		y -= terminal.bufferService.buffers.active.ydisp;
+		y -= terminal.core.bufferService.buffers.active.ydisp;
 		if (this.columnSelectMode) {
 			if (this.startCol <= this.endCol) {
 				return (

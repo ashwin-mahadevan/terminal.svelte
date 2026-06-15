@@ -227,9 +227,9 @@ export class DomRendererRowFactory {
 			}
 
 			if (
-				!this._terminal.coreService.isCursorHidden &&
+				!this._terminal.core.coreService.isCursorHidden &&
 				isCursorCell &&
-				this._terminal.coreService.isCursorInitialized
+				this._terminal.core.coreService.isCursorInitialized
 			) {
 				classes.push(RowCss.CURSOR_CLASS);
 				if (this._terminal.coreBrowserService!.isFocused) {
@@ -294,7 +294,7 @@ export class DomRendererRowFactory {
 					} else {
 						let fg = cell.getUnderlineColor();
 						if (
-							this._terminal.optionsService.rawOptions.drawBoldTextInBrightColors &&
+							this._terminal.core.optionsService.rawOptions.drawBoldTextInBrightColors &&
 							cell.isBold() &&
 							fg < 8
 						) {
@@ -403,7 +403,7 @@ export class DomRendererRowFactory {
 					if (
 						cell.isBold() &&
 						fg < 8 &&
-						this._terminal.optionsService.rawOptions.drawBoldTextInBrightColors
+						this._terminal.core.optionsService.rawOptions.drawBoldTextInBrightColors
 					) {
 						fg += 8;
 					}
