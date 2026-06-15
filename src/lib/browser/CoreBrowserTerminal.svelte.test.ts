@@ -156,7 +156,8 @@ describe('CoreBrowserTerminal', () => {
 					preventDefault: () => {},
 					stopPropagation: () => {},
 					type: 'keypress',
-					keyCode: 13
+					keyCode: 13,
+					key: '\r'
 				} as KeyboardEvent;
 				term.keyPress(evKeyPress);
 			}));
@@ -230,7 +231,8 @@ describe('CoreBrowserTerminal', () => {
 			preventDefault: () => {},
 			stopPropagation: () => {},
 			type: 'keypress',
-			keyCode: 77
+			keyCode: 77,
+			key: 'M'
 		} as KeyboardEvent;
 
 		it('should process the keydown/keypress event based on what the handler returns', () => {
@@ -1039,12 +1041,11 @@ describe('CoreBrowserTerminal', () => {
 						stopPropagation: () => {},
 						type: 'keypress',
 						altKey: null,
-						charCode: null,
-						keyCode: null
+						key: null
 						// TODO: Fix this upstream type error.
 						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					} as any;
-					const keys = ['@', '@', '\\', '\\', '|', '|'];
+					const keys = ['@', '\\', '|'];
 
 					term.onKey((e) => {
 						if (e.key) {
@@ -1058,29 +1059,11 @@ describe('CoreBrowserTerminal', () => {
 					});
 
 					evKeyPress.altKey = true;
-					// @
-					evKeyPress.charCode = null;
-					evKeyPress.keyCode = 64;
+					evKeyPress.key = '@';
 					term.keyPress(evKeyPress);
-					// Firefox @
-					evKeyPress.charCode = 64;
-					evKeyPress.keyCode = 0;
+					evKeyPress.key = '\\';
 					term.keyPress(evKeyPress);
-					// \
-					evKeyPress.charCode = null;
-					evKeyPress.keyCode = 92;
-					term.keyPress(evKeyPress);
-					// Firefox \
-					evKeyPress.charCode = 92;
-					evKeyPress.keyCode = 0;
-					term.keyPress(evKeyPress);
-					// |
-					evKeyPress.charCode = null;
-					evKeyPress.keyCode = 124;
-					term.keyPress(evKeyPress);
-					// Firefox |
-					evKeyPress.charCode = 124;
-					evKeyPress.keyCode = 0;
+					evKeyPress.key = '|';
 					term.keyPress(evKeyPress);
 				}));
 		});
@@ -1157,12 +1140,11 @@ describe('CoreBrowserTerminal', () => {
 						stopPropagation: () => {},
 						type: 'keypress',
 						altKey: null,
-						charCode: null,
-						keyCode: null
+						key: null
 						// TODO: Fix this upstream type error.
 						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					} as any;
-					const keys = ['@', '@', '\\', '\\', '|', '|'];
+					const keys = ['@', '\\', '|'];
 
 					term.onKey((e) => {
 						if (e.key) {
@@ -1178,29 +1160,11 @@ describe('CoreBrowserTerminal', () => {
 					evKeyPress.altKey = true;
 					evKeyPress.ctrlKey = true;
 
-					// @
-					evKeyPress.charCode = null;
-					evKeyPress.keyCode = 64;
+					evKeyPress.key = '@';
 					term.keyPress(evKeyPress);
-					// Firefox @
-					evKeyPress.charCode = 64;
-					evKeyPress.keyCode = 0;
+					evKeyPress.key = '\\';
 					term.keyPress(evKeyPress);
-					// \
-					evKeyPress.charCode = null;
-					evKeyPress.keyCode = 92;
-					term.keyPress(evKeyPress);
-					// Firefox \
-					evKeyPress.charCode = 92;
-					evKeyPress.keyCode = 0;
-					term.keyPress(evKeyPress);
-					// |
-					evKeyPress.charCode = null;
-					evKeyPress.keyCode = 124;
-					term.keyPress(evKeyPress);
-					// Firefox |
-					evKeyPress.charCode = 124;
-					evKeyPress.keyCode = 0;
+					evKeyPress.key = '|';
 					term.keyPress(evKeyPress);
 				}));
 		});

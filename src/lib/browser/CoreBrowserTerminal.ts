@@ -957,8 +957,6 @@ export class CoreBrowserTerminal {
 	 * @param ev The keypress event to be handled.
 	 */
 	public _keyPress = (ev: KeyboardEvent): boolean => {
-		let key;
-
 		this._keyPressHandled = false;
 
 		if (this._keyDownHandled) {
@@ -969,21 +967,15 @@ export class CoreBrowserTerminal {
 			return false;
 		}
 
-		if (ev.charCode) {
-			key = ev.charCode;
-		} else if (ev.which === null || ev.which === undefined) {
-			key = ev.keyCode;
-		} else if (ev.which !== 0 && ev.charCode !== 0) {
-			key = ev.which;
-		} else {
+		if (ev.key.length !== 1) {
 			return false;
 		}
 
-		if (!key || ((ev.altKey || ev.ctrlKey || ev.metaKey) && !this._isThirdLevelShift(ev))) {
+		const key = ev.key;
+
+		if ((ev.altKey || ev.ctrlKey || ev.metaKey) && !this._isThirdLevelShift(ev)) {
 			return false;
 		}
-
-		key = String.fromCharCode(key);
 
 		this._onKey.fire({ key, domEvent: ev });
 		this._showCursor();
