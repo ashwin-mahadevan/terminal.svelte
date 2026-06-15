@@ -99,24 +99,3 @@ export function moveTextAreaUnderMouseCursor(
 
 	textarea.focus();
 }
-
-/**
- * Bind to right-click event and allow right-click copy and paste.
- */
-export function rightClickHandler(
-	ev: MouseEvent,
-	textarea: HTMLTextAreaElement,
-	screenElement: HTMLElement,
-	selectionService: SelectionService,
-	shouldSelectWord: boolean
-): void {
-	moveTextAreaUnderMouseCursor(ev, textarea, screenElement);
-
-	if (shouldSelectWord) {
-		selectionService.rightClickSelect(ev);
-	}
-
-	// Get textarea ready to copy from the context menu
-	textarea.value = selectionService.selectionText;
-	textarea.select();
-}

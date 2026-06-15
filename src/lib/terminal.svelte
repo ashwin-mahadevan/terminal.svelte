@@ -9,8 +9,7 @@
 	import {
 		copyHandler,
 		handlePasteEvent,
-		moveTextAreaUnderMouseCursor,
-		rightClickHandler
+		moveTextAreaUnderMouseCursor
 	} from '$lib/browser/Clipboard';
 	import { isFirefox, isLinux } from '$lib/common/Platform';
 	import { browser } from '$app/environment';
@@ -230,25 +229,23 @@
 	}}
 	onmousedown={(event) => {
 		if (isFirefox && event.button === 2) {
-			rightClickHandler(
-				event,
-				terminal.textarea!,
-				terminal.screenElement!,
-				terminal.selectionService!,
-				terminal.core.optionsService.options.rightClickSelectsWord
-			);
+			moveTextAreaUnderMouseCursor(event, terminal.textarea!, terminal.screenElement!);
+			if (terminal.core.optionsService.options.rightClickSelectsWord) {
+				terminal.selectionService!.rightClickSelect(event);
+			}
+			terminal.textarea!.value = terminal.selectionService!.selectionText;
+			terminal.textarea!.select();
 		}
 		terminal.selectionService!.handleMouseDown(event);
 	}}
 	oncontextmenu={(event) => {
 		if (isFirefox) {
-			rightClickHandler(
-				event,
-				terminal.textarea!,
-				terminal.screenElement!,
-				terminal.selectionService!,
-				terminal.core.optionsService.options.rightClickSelectsWord
-			);
+			moveTextAreaUnderMouseCursor(event, terminal.textarea!, terminal.screenElement!);
+			if (terminal.core.optionsService.options.rightClickSelectsWord) {
+				terminal.selectionService!.rightClickSelect(event);
+			}
+			terminal.textarea!.value = terminal.selectionService!.selectionText;
+			terminal.textarea!.select();
 		}
 	}}
 	onauxclick={(event) => {
