@@ -14,3 +14,9 @@ After every change, before committing:
 Only commit once all pass. ESLint must run before Prettier — ESLint reorders imports, and Prettier must run on top of those changes or `mise checks` will fail on formatting.
 
 Commit atomically: one commit per logical unit of change, not batched at the end.
+
+## Architecture
+
+`CoreBrowserTerminal` is the user-interface part of xterm.js. One goal of this project is to migrate its functionality into the `Terminal` Svelte component using Svelte reactivity.
+
+`CoreTerminal` is the headless part of xterm.js. One goal of this project is to migrate its functionality into the `Emulator` class using Svelte reactivity.

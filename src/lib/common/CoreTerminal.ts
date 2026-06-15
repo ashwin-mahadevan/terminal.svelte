@@ -42,6 +42,8 @@ interface ITerminalScrollEvent {
 	position: number;
 }
 
+// This class is the headless part of xterm.js. One of the goals of this project (terminal.svelte)
+// is to migrate this class's functionality into the Emulator class with svelte reactivity.
 export class CoreTerminal {
 	public readonly _store = new DisposableStore();
 	public readonly bufferService: BufferService;
