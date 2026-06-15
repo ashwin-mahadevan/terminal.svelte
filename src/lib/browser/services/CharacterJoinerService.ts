@@ -9,7 +9,7 @@ import type { ICharacterJoiner } from '$lib/browser/Types';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import { WHITESPACE_CELL_CHAR, Content } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { BufferService } from '$lib/common/services/BufferService';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 
 export class JoinedCellData extends AttributeData implements ICellData {
 	private _width: number;
@@ -63,7 +63,7 @@ export class CharacterJoinerService {
 	private _nextCharacterJoinerId: number = 0;
 	private _workCell: CellData = new CellData();
 
-	constructor(private _bufferService: BufferService) {}
+	constructor(private readonly _terminal: CoreTerminal) {}
 
 	public register(handler: (text: string) => [number, number][]): number {
 		const joiner: ICharacterJoiner = {
@@ -91,7 +91,7 @@ export class CharacterJoinerService {
 			return [];
 		}
 
-		const line = this._bufferService.buffer.lines.get(row);
+		const line = this._terminal.bufferService.buffer.lines.get(row);
 		if (!line || line.length === 0) {
 			return [];
 		}
@@ -145,7 +145,7 @@ export class CharacterJoinerService {
 		}
 
 		// Process any trailing ranges.
-		if (this._bufferService.cols - rangeStartColumn > 1) {
+		if (this._terminal.bufferService.cols - rangeStartColumn > 1) {
 			const joinedRanges = this._getJoinedRanges(
 				lineStr,
 				rangeStartStringIndex,
@@ -224,7 +224,7 @@ export class CharacterJoinerService {
 			return;
 		}
 
-		for (let x = startCol; x < this._bufferService.cols; x++) {
+		for (let x = startCol; x < this._terminal.bufferService.cols; x++) {
 			const width = line.getWidth(x);
 			const length = line.getString(x).length || WHITESPACE_CELL_CHAR.length;
 
@@ -272,7 +272,7 @@ export class CharacterJoinerService {
 		// If there is still a range left at the end, it must extend all the way to
 		// the end of the line.
 		if (currentRange) {
-			currentRange[1] = this._bufferService.cols;
+			currentRange[1] = this._terminal.bufferService.cols;
 		}
 	}
 

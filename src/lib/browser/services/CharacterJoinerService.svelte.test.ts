@@ -8,7 +8,7 @@ import { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerSer
 import { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferLineStringCache } from '$lib/common/buffer/BufferLineStringCache';
 import { CellData } from '$lib/common/buffer/CellData';
-import { createMockBufferService, createCellData } from '$lib/common/TestUtils';
+import { createMockBufferService, createCellData, createMockTerminal } from '$lib/common/TestUtils';
 
 const TEST_STRING_CACHE = new BufferLineStringCache();
 
@@ -46,7 +46,8 @@ describe('CharacterJoinerService', () => {
 			line6.setCell(i + oldSize, sub.loadCell(i, new CellData()));
 		lines.set(6, line6);
 
-		return new CharacterJoinerService(bufferService);
+		const terminal = createMockTerminal({ bufferService });
+		return new CharacterJoinerService(terminal);
 	}
 
 	it('has no joiners upon creation', () => {

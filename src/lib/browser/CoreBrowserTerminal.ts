@@ -547,7 +547,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			})
 		);
 
-		this.characterJoinerService = new CharacterJoinerService(this.bufferService);
+		this.characterJoinerService = new CharacterJoinerService(this);
 
 		this.renderService = new RenderService(this);
 		this.bufferService.onResize(() => this.renderService!.resize());
