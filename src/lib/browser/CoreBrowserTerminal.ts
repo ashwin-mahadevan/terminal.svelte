@@ -22,7 +22,6 @@
  */
 
 import type { ITerminalOptions } from '$lib/common/services/Services';
-import type { IModes } from '$lib/xterm';
 import {
 	copyHandler,
 	handlePasteEvent,
@@ -137,7 +136,8 @@ export class CoreBrowserTerminal {
 	public get onFocus(): IEvent<void> {
 		return this._onFocus.event;
 	}
-	private _onBlur = new LegacyEmitter<void>();
+
+	_onBlur = new LegacyEmitter<void>();
 	public get onBlur(): IEvent<void> {
 		return this._onBlur.event;
 	}
@@ -162,39 +162,6 @@ export class CoreBrowserTerminal {
 	}
 	public get hasValidCharSize(): boolean {
 		return this._charWidth > 0 && this._charHeight > 0;
-	}
-
-	public get modes(): IModes {
-		const m = this.core.coreService.decPrivateModes;
-		let mouseTrackingMode: IModes['mouseTrackingMode'] = 'none';
-		switch (this.core.mouseStateService.activeProtocol) {
-			case 'X10':
-				mouseTrackingMode = 'x10';
-				break;
-			case 'VT200':
-				mouseTrackingMode = 'vt200';
-				break;
-			case 'DRAG':
-				mouseTrackingMode = 'drag';
-				break;
-			case 'ANY':
-				mouseTrackingMode = 'any';
-				break;
-		}
-		return {
-			applicationCursorKeysMode: m.applicationCursorKeys,
-			applicationKeypadMode: m.applicationKeypad,
-			bracketedPasteMode: m.bracketedPasteMode,
-			insertMode: this.core.coreService.modes.insertMode,
-			mouseTrackingMode,
-			originMode: m.origin,
-			reverseWraparoundMode: m.reverseWraparound,
-			sendFocusMode: m.sendFocus,
-			showCursor: !this.core.coreService.isCursorHidden,
-			synchronizedOutputMode: m.synchronizedOutput,
-			win32InputMode: m.win32InputMode,
-			wraparoundMode: m.wraparound
-		};
 	}
 
 	/**
@@ -408,24 +375,6 @@ export class CoreBrowserTerminal {
 		this.element!.classList.add('focus');
 		this._showCursor();
 		this._onFocus.fire();
-	};
-
-	/**
-	 * Binds the desired blur behavior on a given terminal object.
-	 */
-	public _handleTextAreaBlur = (): void => {
-		// Text can safely be removed on blur. Doing it earlier could interfere with
-		// screen readers reading it out.
-		this.textarea!.value = '';
-		this.refresh(
-			this.core.bufferService.buffers.active.y,
-			this.core.bufferService.buffers.active.y
-		);
-		if (this.core.coreService.decPrivateModes.sendFocus) {
-			this.core.coreService.triggerDataEvent(C0.ESC + '[O');
-		}
-		this.element!.classList.remove('focus');
-		this._onBlur.fire();
 	};
 
 	public _compositionStart = (): void => {

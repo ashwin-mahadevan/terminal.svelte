@@ -637,42 +637,40 @@ function _serializeScrollRegion(terminal: CoreBrowserTerminal): string {
 
 function _serializeModes(terminal: CoreBrowserTerminal): string {
 	let content = '';
-	const modes = terminal.modes;
+	const m = terminal.core.coreService.decPrivateModes;
 
 	// Default: false
-	if (modes.applicationCursorKeysMode) content += '\x1b[?1h';
-	if (modes.applicationKeypadMode) content += '\x1b[?66h';
-	if (modes.bracketedPasteMode) content += '\x1b[?2004h';
-	if (modes.insertMode) content += '\x1b[4h';
-	if (modes.originMode) content += '\x1b[?6h';
-	if (modes.reverseWraparoundMode) content += '\x1b[?45h';
-	if (modes.sendFocusMode) content += '\x1b[?1004h';
+	if (m.applicationCursorKeys) content += '\x1b[?1h';
+	if (m.applicationKeypad) content += '\x1b[?66h';
+	if (m.bracketedPasteMode) content += '\x1b[?2004h';
+	if (terminal.core.coreService.modes.insertMode) content += '\x1b[4h';
+	if (m.origin) content += '\x1b[?6h';
+	if (m.reverseWraparound) content += '\x1b[?45h';
+	if (m.sendFocus) content += '\x1b[?1004h';
 	// synchronizedOutputMode doesn't need to be serialized as it's a temporary mode
 
 	// Default: true
-	if (modes.wraparoundMode === false) content += '\x1b[?7l';
+	if (!m.wraparound) content += '\x1b[?7l';
 
-	// Default: 'none'
-	if (modes.mouseTrackingMode !== 'none') {
-		switch (modes.mouseTrackingMode) {
-			case 'x10':
-				content += '\x1b[?9h';
-				break;
-			case 'vt200':
-				content += '\x1b[?1000h';
-				break;
-			case 'drag':
-				content += '\x1b[?1002h';
-				break;
-			case 'any':
-				content += '\x1b[?1003h';
-				break;
-		}
+	// Default: none
+	switch (terminal.core.mouseStateService.activeProtocol) {
+		case 'X10':
+			content += '\x1b[?9h';
+			break;
+		case 'VT200':
+			content += '\x1b[?1000h';
+			break;
+		case 'DRAG':
+			content += '\x1b[?1002h';
+			break;
+		case 'ANY':
+			content += '\x1b[?1003h';
+			break;
 	}
 
 	// Cursor visibility (DECTCEM)
 	// Default: visible
-	if (!modes.showCursor) {
+	if (terminal.core.coreService.isCursorHidden) {
 		content += '\x1b[?25l';
 	}
 

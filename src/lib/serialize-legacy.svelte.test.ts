@@ -197,14 +197,14 @@ describe('SerializeAddon', () => {
 		describe('cursor visibility', () => {
 			it('should serialize hidden cursor', async () => {
 				await writeP(terminal, 'hello\x1b[?25l');
-				expect(terminal.modes.showCursor).toBe(false);
+				expect(terminal.core.coreService.isCursorHidden).toBe(true);
 				const result = serialize(terminal);
 				expect(result.includes('\x1b[?25l')).toBe(true);
 			});
 
 			it('should not serialize visible cursor (default state)', async () => {
 				await writeP(terminal, 'hello');
-				expect(terminal.modes.showCursor).toBe(true);
+				expect(terminal.core.coreService.isCursorHidden).toBe(false);
 				const result = serialize(terminal);
 				expect(result.includes('\x1b[?25l')).toBe(false);
 				expect(result.includes('\x1b[?25h')).toBe(false);
@@ -222,7 +222,7 @@ describe('SerializeAddon', () => {
 				const made = makeTerminal({ cols: 10, rows: 2 });
 				track(made.term, made.el);
 				await writeP(made.term, serialized);
-				expect(made.term.modes.showCursor).toBe(false);
+				expect(made.term.core.coreService.isCursorHidden).toBe(true);
 			});
 		});
 	});
