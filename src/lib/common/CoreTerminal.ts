@@ -56,6 +56,10 @@ export abstract class CoreTerminal {
 	public inputHandler: InputHandler;
 	private _writeBuffer: WriteBuffer;
 	private _windowsWrappingHeuristics = new MutableDisposable();
+	private _scrollToBottomListener: IDisposable;
+	private _userInputListener: IDisposable;
+	private _windowsPtyOptionListener: IDisposable;
+	private _bufferScrollListener: IDisposable;
 
 	/**
 	 * Internally we track the source of the scroll but this is meaningless outside the library so
@@ -95,22 +99,22 @@ export abstract class CoreTerminal {
 		// Register input handler and handle/forward events
 		this.inputHandler = new InputHandler(this);
 		// Setup listeners
-		this._store.add(this.coreService.onRequestScrollToBottom(() => this.scrollToBottom(true)));
-		this._store.add(this.coreService.onUserInput(() => this._writeBuffer.handleUserInput()));
-		this._store.add(
-			this.optionsService.onSpecificOptionChange('windowsPty', () =>
-				this._handleWindowsPtyOptionChange()
-			)
+		this._scrollToBottomListener = this.coreService.onRequestScrollToBottom(() =>
+			this.scrollToBottom(true)
 		);
-		this._store.add(
-			this.bufferService.onScroll(() => {
-				this._onScroll.fire({ position: this.bufferService.buffer.ydisp });
-				this.inputHandler.markRangeDirty(
-					this.bufferService.buffer.scrollTop,
-					this.bufferService.buffer.scrollBottom
-				);
-			})
+		this._userInputListener = this.coreService.onUserInput(() =>
+			this._writeBuffer.handleUserInput()
 		);
+		this._windowsPtyOptionListener = this.optionsService.onSpecificOptionChange('windowsPty', () =>
+			this._handleWindowsPtyOptionChange()
+		);
+		this._bufferScrollListener = this.bufferService.onScroll(() => {
+			this._onScroll.fire({ position: this.bufferService.buffer.ydisp });
+			this.inputHandler.markRangeDirty(
+				this.bufferService.buffer.scrollTop,
+				this.bufferService.buffer.scrollBottom
+			);
+		});
 		// Setup WriteBuffer
 		this._writeBuffer = new WriteBuffer((data, promiseResult) =>
 			this.inputHandler.parse(data, promiseResult)
@@ -119,6 +123,10 @@ export abstract class CoreTerminal {
 
 	public dispose(): void {
 		this._store.dispose();
+		this._scrollToBottomListener.dispose();
+		this._userInputListener.dispose();
+		this._windowsPtyOptionListener.dispose();
+		this._bufferScrollListener.dispose();
 		this._writeBuffer.dispose();
 		this.inputHandler.dispose();
 		this._windowsWrappingHeuristics.dispose();
