@@ -76,19 +76,20 @@
 			terminal.core.options.scrollback === 0 || !showScrollbar
 				? 0
 				: (terminal.core.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
-		const cols = Math.max(
+		emulator.columns = Math.max(
 			2,
 			Math.floor(
 				(clientWidth - scrollbarWidth) / terminal.renderService!.dimensions!.css.cell.width
 			)
 		);
-		const rows = Math.max(
+		emulator.rows = Math.max(
 			1,
 			Math.floor(clientHeight / terminal!.renderService!.dimensions!.css.cell.height)
 		);
-		terminal.core.resize(cols, rows);
-		emulator.columns = cols;
-		emulator.rows = rows;
+	});
+
+	$effect(() => {
+		terminal.core.resize(emulator.columns, emulator.rows);
 	});
 
 	// OSC 52 clipboard read/report, inlined from the upstream ClipboardAddon.
