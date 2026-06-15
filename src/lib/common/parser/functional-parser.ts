@@ -110,8 +110,8 @@ export function parse(
 			return {
 				state: codepoint === 0x1b ? ParserState.ESCAPE : next,
 				event: { type: 'osc-end', success: !ABORT_CODES.has(codepoint) },
-				collect,
-				params
+				collect: 0,
+				params: zdmParams()
 			};
 
 		case ParserAction.DCS_HOOK:
@@ -129,8 +129,8 @@ export function parse(
 			return {
 				state: codepoint === 0x1b ? ParserState.ESCAPE : next,
 				event: { type: 'dcs-unhook', success: !ABORT_CODES.has(codepoint) },
-				collect,
-				params
+				collect: 0,
+				params: zdmParams()
 			};
 
 		case ParserAction.APC_START:
@@ -148,8 +148,8 @@ export function parse(
 			return {
 				state: codepoint === 0x1b ? ParserState.ESCAPE : next,
 				event: { type: 'apc-end', success: !ABORT_CODES.has(codepoint) },
-				collect,
-				params
+				collect: 0,
+				params: zdmParams()
 			};
 
 		default:
