@@ -138,13 +138,10 @@ export class CoreBrowserTerminal {
 	public get onWillOpen(): IEvent<HTMLElement> {
 		return this._onWillOpen.event;
 	}
-	private readonly _onCharSizeChange = new LegacyEmitter<void>();
-	public readonly onCharSizeChange = this._onCharSizeChange.event;
-
 	// Pixel size of a single cell, measured externally by the host (see
 	// `setCharSize`). This is the single source of truth every browser consumer
-	// reads — the renderer's geometry, mouse coordinate mapping and the
-	// `onCharSizeChange` relayout all derive from it.
+	// reads — the renderer's geometry, mouse coordinate mapping and relayout all
+	// derive from it.
 	private _charWidth = 0;
 	private _charHeight = 0;
 	public get charWidth(): number {
@@ -159,14 +156,14 @@ export class CoreBrowserTerminal {
 
 	/**
 	 * Set the cell size in CSS pixels, measured externally by the host (the
-	 * font is now CSS-driven rather than configured via options). Firing
-	 * `onCharSizeChange` relayouts the grid, scrollbar, selection and cursor
-	 * exactly like the old internal font measurement did.
+	 * font is now CSS-driven rather than configured via options). Calls
+	 * `handleCharSizeChanged` to relayout the grid, scrollbar, selection and
+	 * cursor exactly like the old internal font measurement did.
 	 */
 	public setCharSize(width: number, height: number): void {
 		this._charWidth = width;
 		this._charHeight = height;
-		this._onCharSizeChange.fire();
+		this.renderService?.handleCharSizeChanged();
 	}
 
 	requestFocusListener: IDisposable;
@@ -232,7 +229,7 @@ export class CoreBrowserTerminal {
 		this._onFocus.dispose();
 		this._onBlur.dispose();
 		this._onWillOpen.dispose();
-		this._onCharSizeChange.dispose();
+
 		this.requestFocusListener.dispose();
 		this.requestRefreshRowsListener.dispose();
 		this.requestResetListener.dispose();

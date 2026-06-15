@@ -59,7 +59,7 @@ export class RenderService {
 	private _dprChangeListener!: IDisposable;
 	private _bufferResizeListener!: IDisposable;
 	private _bufferActivateListener!: IDisposable;
-	private _charSizeChangeListener!: IDisposable;
+
 	private _decorationRegisteredListener!: IDisposable;
 	private _decorationRemovedListener!: IDisposable;
 	private _drawBoldTextGlyphListener!: IDisposable;
@@ -94,9 +94,6 @@ export class RenderService {
 		);
 		this._bufferActivateListener = this._terminal.core.bufferService.buffers.onBufferActivate(() =>
 			this._renderer.value?.clear()
-		);
-		this._charSizeChangeListener = this._terminal.onCharSizeChange(() =>
-			this.handleCharSizeChanged()
 		);
 
 		// Do a full refresh whenever any decoration is added or removed. This may not actually result
@@ -164,7 +161,7 @@ export class RenderService {
 		this._dprChangeListener.dispose();
 		this._bufferResizeListener.dispose();
 		this._bufferActivateListener.dispose();
-		this._charSizeChangeListener.dispose();
+
 		this._decorationRegisteredListener.dispose();
 		this._decorationRemovedListener.dispose();
 		this._drawBoldTextGlyphListener.dispose();
