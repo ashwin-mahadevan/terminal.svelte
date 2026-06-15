@@ -61,24 +61,24 @@
 
 	$effect(() => {
 		if (!ondata) return;
-		const disposable = terminal.coreService.onData(ondata);
+		const disposable = terminal.core.coreService.onData(ondata);
 		return () => disposable.dispose();
 	});
 
 	$effect(() => {
 		if (!onbell) return;
-		const disposable = terminal.inputHandler.onRequestBell(onbell);
+		const disposable = terminal.core.inputHandler.onRequestBell(onbell);
 		return () => disposable.dispose();
 	});
 
 	$effect(() => {
 		terminal.setCharSize(measureWidth / MEASURE_COLS, measureHeight);
 
-		const showScrollbar = terminal.options.scrollbar?.showScrollbar ?? true;
+		const showScrollbar = terminal.core.options.scrollbar?.showScrollbar ?? true;
 		const scrollbarWidth =
-			terminal.options.scrollback === 0 || !showScrollbar
+			terminal.core.options.scrollback === 0 || !showScrollbar
 				? 0
-				: (terminal.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
+				: (terminal.core.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
 		const cols = Math.max(
 			2,
 			Math.floor(
@@ -120,24 +120,24 @@
 
 	$effect(() => {
 		if (!onbinary) return;
-		const disposable = terminal.coreService.onBinary(onbinary);
+		const disposable = terminal.core.coreService.onBinary(onbinary);
 		return () => disposable.dispose();
 	});
 
 	$effect(() => {
 		if (!onlinefeed) return;
-		const disposable = terminal.inputHandler.onLineFeed(onlinefeed);
+		const disposable = terminal.core.inputHandler.onLineFeed(onlinefeed);
 		return () => disposable.dispose();
 	});
 
 	$effect(() => {
 		if (!oncursormove) return;
-		const disposable = terminal.inputHandler.onCursorMove(oncursormove);
+		const disposable = terminal.core.inputHandler.onCursorMove(oncursormove);
 		return () => disposable.dispose();
 	});
 
 	$effect(() => {
-		const disposable = terminal.inputHandler.onTitleChange((t) => {
+		const disposable = terminal.core.inputHandler.onTitleChange((t) => {
 			emulator.title = t;
 		});
 		return () => disposable.dispose();
@@ -157,7 +157,7 @@
 	});
 
 	$effect(() => {
-		const disposable = terminal.onScroll((position) => {
+		const disposable = terminal.core.onScroll((position) => {
 			emulator.scrollPosition = position;
 		});
 		return () => disposable.dispose();
@@ -174,7 +174,7 @@
 	});
 
 	export function write(data: string) {
-		return new Promise<void>((resolve) => terminal.write(data, resolve));
+		return new Promise<void>((resolve) => terminal.core.write(data, resolve));
 	}
 
 	export function serialize(options?: ISerializeOptions): string {

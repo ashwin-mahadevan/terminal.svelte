@@ -20,7 +20,7 @@ export function setOrReportClipboard(
 	// Report the clipboard back to the application.
 	if (payload === '?') {
 		return navigator.clipboard.readText().then((text) => {
-			terminal.coreService.triggerDataEvent(`\x1b]52;${selection};${btoa(text)}\x07`, false);
+			terminal.core.coreService.triggerDataEvent(`\x1b]52;${selection};${btoa(text)}\x07`, false);
 			return true;
 		});
 	}

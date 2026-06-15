@@ -237,7 +237,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 		// handle row separator
 		if (!isLastRow) {
 			// Enable BCE
-			if (row - this._firstRow >= this._terminal.bufferService.rows) {
+			if (row - this._firstRow >= this._terminal.core.bufferService.rows) {
 				this._buffer.lines
 					.get(this._cursorStyleRow)
 					?.loadCell(this._cursorStyleCol, this._backgroundCell);
@@ -515,7 +515,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 
 		// the fixup is only required for data without scrollback
 		// because it will always be placed at last line otherwise
-		if (this._buffer.lines.length - this._firstRow <= this._terminal.bufferService.rows) {
+		if (this._buffer.lines.length - this._firstRow <= this._terminal.core.bufferService.rows) {
 			rowEnd = this._lastContentCursorRow + 1 - this._firstRow;
 			this._lastCursorCol = this._lastContentCursorCol;
 			this._lastCursorRow = this._lastContentCursorRow;
@@ -564,7 +564,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 		// likely be the only consumer
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const curAttrData: IAttributeData = (this._terminal as any).inputHandler._curAttrData;
+		const curAttrData: IAttributeData = (this._terminal as any).core.inputHandler._curAttrData;
 		const sgrSeq = this._diffStyle(curAttrData, this._cursorStyle);
 		if (sgrSeq.length > 0) {
 			content += `\u001b[${sgrSeq.join(';')}m`;
@@ -583,7 +583,7 @@ function _serializeBufferByScrollback(
 	const correctRows =
 		scrollback === undefined
 			? maxRows
-			: constrain(scrollback + terminal.bufferService.rows, 0, maxRows);
+			: constrain(scrollback + terminal.core.bufferService.rows, 0, maxRows);
 	return _serializeBufferByRange(
 		terminal,
 		buffer,
@@ -606,7 +606,7 @@ function _serializeBufferByRange(
 		{
 			start: { x: 0, y: typeof range.start === 'number' ? range.start : range.start.line },
 			end: {
-				x: terminal.bufferService.cols,
+				x: terminal.core.bufferService.cols,
 				y: typeof range.end === 'number' ? range.end : range.end.line
 			}
 		},
@@ -621,13 +621,13 @@ function _serializeBufferByRange(
 function _serializeScrollRegion(terminal: CoreBrowserTerminal): string {
 	// HACK: Internal API access since scroll region is not exposed in the public API
 	// TODO: Fix this upstream type error.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const buffer = (terminal as any).bufferService.buffers.active;
+
+	const buffer = terminal.core.bufferService.buffers.active;
 	const scrollTop: number = buffer.scrollTop;
 	const scrollBottom: number = buffer.scrollBottom;
 
 	// Only serialize if scroll region is not the default (full terminal size)
-	if (scrollTop !== 0 || scrollBottom !== terminal.bufferService.rows - 1) {
+	if (scrollTop !== 0 || scrollBottom !== terminal.core.bufferService.rows - 1) {
 		// DECSTBM uses 1-based indices: CSI Ps ; Ps r
 		return `\x1b[${scrollTop + 1};${scrollBottom + 1}r`;
 	}
@@ -682,19 +682,24 @@ function _serializeModes(terminal: CoreBrowserTerminal): string {
 export function serialize(terminal: CoreBrowserTerminal, options?: ISerializeOptions): string {
 	// Normal buffer
 	let content = options?.range
-		? _serializeBufferByRange(terminal, terminal.bufferService.buffers.normal, options.range, true)
+		? _serializeBufferByRange(
+				terminal,
+				terminal.core.bufferService.buffers.normal,
+				options.range,
+				true
+			)
 		: _serializeBufferByScrollback(
 				terminal,
-				terminal.bufferService.buffers.normal,
+				terminal.core.bufferService.buffers.normal,
 				options?.scrollback
 			);
 
 	// Alternate buffer
 	if (!options?.excludeAltBuffer) {
-		if (terminal.bufferService.buffers.active === terminal.bufferService.buffers.alt) {
+		if (terminal.core.bufferService.buffers.active === terminal.core.bufferService.buffers.alt) {
 			const alternativeScreenContent = _serializeBufferByScrollback(
 				terminal,
-				terminal.bufferService.buffers.alt,
+				terminal.core.bufferService.buffers.alt,
 				undefined
 			);
 			content += `\u001b[?1049h\u001b[H${alternativeScreenContent}`;
