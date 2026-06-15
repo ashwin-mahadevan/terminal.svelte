@@ -177,29 +177,19 @@
 		return () => disposable.dispose();
 	});
 
-	export function write(data: string) {
-		return new Promise<void>((resolve) => terminal.core.write(data, resolve));
-	}
+	export const write = (data: string) =>
+		new Promise<void>((resolve) => terminal.core.write(data, resolve));
 
-	export function serialize(options?: ISerializeOptions): string {
-		return internalSerialize(terminal, options);
-	}
+	export const serialize = (options?: ISerializeOptions): string =>
+		internalSerialize(terminal, options);
 
-	export function focus(): void {
-		terminal.textarea?.focus({ preventScroll: true });
-	}
+	export const focus = (): void => terminal.textarea?.focus({ preventScroll: true });
 
-	export function blur(): void {
-		terminal.textarea?.blur();
-	}
+	export const blur = (): void => terminal.textarea?.blur();
 
-	export function selectAll(): void {
-		terminal.selectionService?.selectAll();
-	}
+	export const selectAll = (): void => terminal.selectionService?.selectAll();
 
-	export function scrollLines(amount: number): void {
-		terminal.scrollLines(amount);
-	}
+	export const scrollLines = (amount: number): void => terminal.scrollLines(amount);
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
