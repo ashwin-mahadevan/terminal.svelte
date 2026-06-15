@@ -57,7 +57,6 @@ export class DomRenderer {
 	private readonly _onRequestRedraw = new LegacyEmitter<IRequestRedrawEvent>();
 	public readonly onRequestRedraw = this._onRequestRedraw.event;
 
-	private _optionChangeListener!: IDisposable;
 	private _themeChangeListener!: IDisposable;
 	private _showLinkUnderlineListener!: IDisposable;
 	private _hideLinkUnderlineListener!: IDisposable;
@@ -74,9 +73,6 @@ export class DomRenderer {
 
 		this.dimensions = createRenderDimensions();
 		this._updateDimensions();
-		this._optionChangeListener = this._terminal.optionsService.onOptionChange(() =>
-			this._handleOptionsChanged()
-		);
 
 		this._themeChangeListener = this._terminal.themeService!.onChangeColors((e) =>
 			this._injectCss(e)
@@ -119,7 +115,6 @@ export class DomRenderer {
 		this._cursorBlinkStateManager.dispose();
 		this._textBlinkStateManager.dispose();
 		this._onRequestRedraw.dispose();
-		this._optionChangeListener.dispose();
 		this._themeChangeListener.dispose();
 		this._showLinkUnderlineListener.dispose();
 		this._hideLinkUnderlineListener.dispose();
@@ -503,13 +498,6 @@ export class DomRenderer {
 	public handleCursorMove(): void {
 		// Reset idle timer on cursor movement (which happens on input)
 		this._cursorBlinkStateManager.restartBlinkAnimation();
-	}
-
-	private _handleOptionsChanged(): void {
-		// Force a refresh
-		this._updateDimensions();
-		// Refresh CSS
-		this._injectCss(this._terminal.themeService!.colors);
 	}
 
 	public clear(): void {

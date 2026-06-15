@@ -59,7 +59,6 @@ export class RenderService {
 	private _dprChangeListener!: IDisposable;
 	private _bufferResizeListener!: IDisposable;
 	private _bufferActivateListener!: IDisposable;
-	private _optionChangeListener!: IDisposable;
 	private _charSizeChangeListener!: IDisposable;
 	private _decorationRegisteredListener!: IDisposable;
 	private _decorationRemovedListener!: IDisposable;
@@ -93,9 +92,6 @@ export class RenderService {
 		this._bufferResizeListener = this._terminal.bufferService.onResize(() => this._fullRefresh());
 		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() =>
 			this._renderer.value?.clear()
-		);
-		this._optionChangeListener = this._terminal.optionsService.onOptionChange(() =>
-			this._handleOptionsChanged()
 		);
 		this._charSizeChangeListener = this._terminal.onCharSizeChange(() =>
 			this.handleCharSizeChanged()
@@ -163,7 +159,6 @@ export class RenderService {
 		this._dprChangeListener.dispose();
 		this._bufferResizeListener.dispose();
 		this._bufferActivateListener.dispose();
-		this._optionChangeListener.dispose();
 		this._charSizeChangeListener.dispose();
 		this._decorationRegisteredListener.dispose();
 		this._decorationRemovedListener.dispose();
@@ -279,14 +274,6 @@ export class RenderService {
 	}
 
 	public resize(): void {
-		this._fireOnCanvasResize();
-	}
-
-	private _handleOptionsChanged(): void {
-		if (!this._renderer.value) {
-			return;
-		}
-		this.refreshRows(0, this._terminal.bufferService.rows - 1);
 		this._fireOnCanvasResize();
 	}
 
