@@ -34,13 +34,8 @@ import { InputHandler } from '$lib/common/InputHandler';
 import { WriteBuffer } from '$lib/common/input/WriteBuffer';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
 import { LegacyEmitter } from '$lib/common/Event';
-import type { IEvent } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
-
-interface ITerminalScrollEvent {
-	position: number;
-}
 
 // This class is the headless part of xterm.js. One of the goals of this project (terminal.svelte)
 // is to migrate this class's functionality into the Emulator class with svelte reactivity.
@@ -61,21 +56,8 @@ export class CoreTerminal {
 	private _windowsPtyOptionListener: IDisposable;
 	private _bufferScrollListener: IDisposable;
 
-	/**
-	 * Internally we track the source of the scroll but this is meaningless outside the library so
-	 * it's filtered out.
-	 */
-	public _onScrollApi?: LegacyEmitter<number>;
-	public _onScroll = new LegacyEmitter<ITerminalScrollEvent>();
-	public get onScroll(): IEvent<number> {
-		if (!this._onScrollApi) {
-			this._onScrollApi = new LegacyEmitter<number>();
-			this._onScroll.event((ev) => {
-				this._onScrollApi?.fire(ev.position);
-			});
-		}
-		return this._onScrollApi.event;
-	}
+	public _onScroll = new LegacyEmitter<number>();
+	public readonly onScroll = this._onScroll.event;
 
 	constructor(options: Partial<ITerminalOptions>) {
 		// Setup and initialize services
@@ -94,7 +76,7 @@ export class CoreTerminal {
 			this._handleWindowsPtyOptionChange()
 		);
 		this._bufferScrollListener = this.bufferService.onScroll(() => {
-			this._onScroll.fire({ position: this.bufferService.buffer.ydisp });
+			this._onScroll.fire(this.bufferService.buffer.ydisp);
 			this.inputHandler.markRangeDirty(
 				this.bufferService.buffer.scrollTop,
 				this.bufferService.buffer.scrollBottom
@@ -119,7 +101,6 @@ export class CoreTerminal {
 		this.mouseStateService.dispose();
 		this.unicodeService.dispose();
 		this._onScroll.dispose();
-		this._onScrollApi?.dispose();
 	}
 
 	public write(data: string | Uint8Array, callback?: () => void): void {

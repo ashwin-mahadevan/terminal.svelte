@@ -1059,7 +1059,7 @@ export class CoreBrowserTerminal {
 		}
 		// IMPORTANT: Fire scroll event before viewport is reset. This ensures embedders get the clear
 		// scroll event and that the viewport's state will be valid for immediate writes.
-		this.core._onScroll.fire({ position: this.core.bufferService.buffers.active.ydisp });
+		this.core._onScroll.fire(this.core.bufferService.buffers.active.ydisp);
 		this.refresh(0, this.core.bufferService.rows - 1);
 	}
 
