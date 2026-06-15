@@ -23,7 +23,7 @@
 
 import type { ITerminalOptions } from '$lib/common/services/Services';
 import type { IModes, IParser } from '$lib/xterm';
-import { ParserApi } from '$lib/common/public/ParserApi';
+import type { Params } from '$lib/common/parser/Params';
 import {
 	copyHandler,
 	handlePasteEvent,
@@ -250,7 +250,20 @@ export class CoreBrowserTerminal {
 	constructor(options: Partial<ITerminalOptions> = {}) {
 		this.core = new CoreTerminal(options);
 
-		this.parser = new ParserApi(this.core);
+		this.parser = {
+			registerCsiHandler: (id, callback) =>
+				this.core.inputHandler.registerCsiHandler(id, (params: Params) =>
+					callback(params.toArray())
+				),
+			registerDcsHandler: (id, callback) =>
+				this.core.inputHandler.registerDcsHandler(id, (data: string, params: Params) =>
+					callback(data, params.toArray())
+				),
+			registerEscHandler: (id, handler) => this.core.inputHandler.registerEscHandler(id, handler),
+			registerOscHandler: (ident, callback) =>
+				this.core.inputHandler.registerOscHandler(ident, callback),
+			registerApcHandler: (id, callback) => this.core.inputHandler.registerApcHandler(id, callback)
+		};
 		this.requestFocusListener = this.core.inputHandler.onRequestSendFocus(() =>
 			this._reportFocus()
 		);
