@@ -81,8 +81,14 @@
 			terminal.core.options.scrollback === 0 || !showScrollbar
 				? 0
 				: (terminal.core.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
+
+		// This isn't derived.by since emulator owns the state.
 		emulator.columns = Math.max(2, Math.floor((clientWidth - scrollbarWidth) / cellWidth));
-		emulator.rows = Math.max(1, Math.floor(clientHeight / measureHeight));
+	});
+
+	$effect(() => {
+		// This isn't derived.by since emulator owns the state.
+		emulator.rows = Math.max(1, Math.floor(clientHeight / cellHeight));
 	});
 
 	$effect(() => {
