@@ -42,8 +42,8 @@ interface ITerminalScrollEvent {
 	position: number;
 }
 
-export abstract class CoreTerminal {
-	protected readonly _store = new DisposableStore();
+export class CoreTerminal {
+	public readonly _store = new DisposableStore();
 	public readonly bufferService: BufferService;
 	public readonly charsetService: CharsetService;
 	public readonly oscLinkService: OscLinkService;
@@ -65,8 +65,8 @@ export abstract class CoreTerminal {
 	 * Internally we track the source of the scroll but this is meaningless outside the library so
 	 * it's filtered out.
 	 */
-	protected _onScrollApi?: LegacyEmitter<number>;
-	protected _onScroll = new LegacyEmitter<ITerminalScrollEvent>();
+	public _onScrollApi?: LegacyEmitter<number>;
+	public _onScroll = new LegacyEmitter<ITerminalScrollEvent>();
 	public get onScroll(): IEvent<number> {
 		if (!this._onScrollApi) {
 			this._onScrollApi = new LegacyEmitter<number>();
@@ -199,7 +199,7 @@ export abstract class CoreTerminal {
 		}
 	}
 
-	protected _setup(): void {
+	public _setup(): void {
 		this._handleWindowsPtyOptionChange();
 	}
 
