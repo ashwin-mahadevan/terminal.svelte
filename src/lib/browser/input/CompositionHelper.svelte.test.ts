@@ -65,8 +65,7 @@ function setupCompositionHelper() {
 	const compositionHelper = new CompositionHelper({
 		textarea,
 		compositionView,
-		bufferService,
-		coreService,
+		core: { bufferService, coreService },
 		renderService: new MockRenderService()
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

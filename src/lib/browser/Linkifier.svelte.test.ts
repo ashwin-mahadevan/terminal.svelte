@@ -62,7 +62,7 @@ describe('Linkifier2', () => {
 				screenElement: document.createElement('div'),
 				mouseCoordsService: null,
 				renderService: null,
-				bufferService,
+				core: { bufferService },
 				linkProviderService: new LinkProviderService()
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -98,7 +98,7 @@ describe('Linkifier2', () => {
 				screenElement: document.createElement('div'),
 				mouseCoordsService: null,
 				renderService: null,
-				bufferService,
+				core: { bufferService },
 				linkProviderService: new LinkProviderService()
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -134,7 +134,7 @@ describe('Linkifier2', () => {
 				screenElement: document.createElement('div'),
 				mouseCoordsService: null,
 				renderService: null,
-				bufferService,
+				core: { bufferService },
 				linkProviderService: new LinkProviderService()
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -170,7 +170,7 @@ describe('Linkifier2', () => {
 				screenElement: document.createElement('div'),
 				mouseCoordsService: null,
 				renderService: null,
-				bufferService,
+				core: { bufferService },
 				linkProviderService: new LinkProviderService()
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any

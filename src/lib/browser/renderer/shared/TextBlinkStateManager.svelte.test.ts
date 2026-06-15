@@ -12,7 +12,7 @@ const createMockTerminal = (
 	optionsService = createMockOptionsService({ blinkIntervalDuration: 100 })
 ): CoreBrowserTerminal =>
 	({
-		optionsService
+		core: { optionsService }
 	}) as unknown as CoreBrowserTerminal;
 
 describe('TextBlinkStateManager', () => {

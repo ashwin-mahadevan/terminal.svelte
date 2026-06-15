@@ -278,7 +278,7 @@ describe('ThemeService', () => {
 		it('should not throw when not setting all colors', () => {
 			const terminal = new CoreBrowserTerminal({});
 			expect(() => {
-				terminal.optionsService.options.theme = {};
+				terminal.core.optionsService.options.theme = {};
 			}).not.toThrow();
 		});
 
@@ -287,13 +287,13 @@ describe('ThemeService', () => {
 			const themeService = new ThemeService(terminal);
 			expect(themeService.colors.background.css).toBe('#000000');
 			expect(themeService.colors.foreground.css).toBe('#ffffff');
-			terminal.optionsService.options.theme = {
+			terminal.core.optionsService.options.theme = {
 				background: '#FF0000',
 				foreground: '#00FF00'
 			};
 			expect(themeService.colors.background.css).toBe('#FF0000');
 			expect(themeService.colors.foreground.css).toBe('#00FF00');
-			terminal.optionsService.options.theme = {
+			terminal.core.optionsService.options.theme = {
 				background: '#0000FF'
 			};
 			expect(themeService.colors.background.css).toBe('#0000FF');
@@ -304,7 +304,7 @@ describe('ThemeService', () => {
 		it('should set all extended ansi colors in reverse order', () => {
 			const terminal = new CoreBrowserTerminal({});
 			const themeService = new ThemeService(terminal);
-			terminal.optionsService.options.theme = {
+			terminal.core.optionsService.options.theme = {
 				extendedAnsi: DEFAULT_ANSI_COLORS.map((a) => a.css)
 					.slice()
 					.reverse()
@@ -320,7 +320,7 @@ describe('ThemeService', () => {
 		it('should set one extended ansi color and keep the other default', () => {
 			const terminal = new CoreBrowserTerminal({});
 			const themeService = new ThemeService(terminal);
-			terminal.optionsService.options.theme = {
+			terminal.core.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
 			};
 
@@ -331,35 +331,35 @@ describe('ThemeService', () => {
 		it('should set extended ansi colors to the default when they are unset', () => {
 			const terminal = new CoreBrowserTerminal({});
 			const themeService = new ThemeService(terminal);
-			terminal.optionsService.options.theme = {
+			terminal.core.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
 			};
 			expect(themeService.colors.ansi[16].css).toBe('#ffffff');
 
-			terminal.optionsService.options.theme = {
+			terminal.core.optionsService.options.theme = {
 				extendedAnsi: []
 			};
 			expect(themeService.colors.ansi[16].css).toBe(DEFAULT_ANSI_COLORS[16].css);
 
-			terminal.optionsService.options.theme = {
+			terminal.core.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
 			};
 			expect(themeService.colors.ansi[16].css).toBe('#ffffff');
 
-			terminal.optionsService.options.theme = {};
+			terminal.core.optionsService.options.theme = {};
 			expect(themeService.colors.ansi[16].css).toBe(DEFAULT_ANSI_COLORS[16].css);
 		});
 
 		it('should set extended ansi colors to the default when they are partially unset', () => {
 			const terminal = new CoreBrowserTerminal({});
 			const themeService = new ThemeService(terminal);
-			terminal.optionsService.options.theme = {
+			terminal.core.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff', '#000000']
 			};
 			expect(themeService.colors.ansi[16].css).toBe('#ffffff');
 			expect(themeService.colors.ansi[17].css).toBe('#000000');
 
-			terminal.optionsService.options.theme = {
+			terminal.core.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
 			};
 			expect(themeService.colors.ansi[16].css).toBe('#ffffff');

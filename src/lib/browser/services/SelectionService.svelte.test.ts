@@ -60,11 +60,13 @@ class TestSelectionService extends SelectionService {
 			element: null,
 			screenElement: null,
 			linkifier: null,
-			bufferService,
-			coreService: new MockCoreService(),
+			core: {
+				bufferService,
+				coreService: new MockCoreService(),
+				optionsService,
+				mouseStateService
+			},
 			mouseService: new MockMouseService(),
-			optionsService,
-			mouseStateService,
 			renderService,
 			coreBrowserService: new MockCoreBrowserService()
 			// TODO: Fix this upstream type error.

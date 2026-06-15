@@ -137,10 +137,7 @@ describe('MouseService _triggerMouseEvent', () => {
 					y: 0
 				})
 			},
-			mouseStateService,
-			coreService,
-			bufferService,
-			optionsService,
+			core: { mouseStateService, coreService, bufferService, optionsService },
 			selectionService: new MockSelectionService(),
 			coreBrowserService: new MockCoreBrowserService()
 			// TODO: Fix this upstream type error.
@@ -930,14 +927,16 @@ describe('MouseService mouseEventsRequireAlt', () => {
 					y: 0
 				})
 			},
-			mouseStateService,
-			coreService: {
-				triggerDataEvent: () => {},
-				triggerBinaryEvent: () => {},
-				decPrivateModes: { applicationCursorKeys: false }
+			core: {
+				mouseStateService,
+				coreService: {
+					triggerDataEvent: () => {},
+					triggerBinaryEvent: () => {},
+					decPrivateModes: { applicationCursorKeys: false }
+				},
+				bufferService,
+				optionsService
 			},
-			bufferService,
-			optionsService,
 			selectionService,
 			coreBrowserService: new MockCoreBrowserService()
 			// TODO: Fix this upstream type error.
@@ -988,14 +987,16 @@ describe('MouseService mouseEventsRequireAlt', () => {
 			mouseCoordsService: {
 				getMouseReportCoords: () => ({ col: 0, row: 0, x: 0, y: 0 })
 			},
-			mouseStateService,
-			coreService: {
-				triggerDataEvent: (data: string) => reports.push(data),
-				triggerBinaryEvent: () => {},
-				decPrivateModes: { applicationCursorKeys: false }
+			core: {
+				mouseStateService,
+				coreService: {
+					triggerDataEvent: (data: string) => reports.push(data),
+					triggerBinaryEvent: () => {},
+					decPrivateModes: { applicationCursorKeys: false }
+				},
+				bufferService,
+				optionsService
 			},
-			bufferService,
-			optionsService,
 			selectionService: new TestSelectionService(),
 			coreBrowserService: new MockCoreBrowserService()
 			// TODO: Fix this upstream type error.

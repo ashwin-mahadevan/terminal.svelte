@@ -134,10 +134,12 @@ function createMockTerminalForRowFactory(overrides?: {
 	return {
 		document,
 		characterJoinerService: overrides?.characterJoinerService ?? createMockCharacterJoinerService(),
-		optionsService:
-			overrides?.optionsService ?? createMockOptionsService({ drawBoldTextInBrightColors: true }),
+		core: {
+			optionsService:
+				overrides?.optionsService ?? createMockOptionsService({ drawBoldTextInBrightColors: true }),
+			coreService: overrides?.coreService ?? createMockCoreService()
+		},
 		coreBrowserService: overrides?.coreBrowserService ?? createMockCoreBrowserService(),
-		coreService: overrides?.coreService ?? createMockCoreService(),
 		decorationService: overrides?.decorationService ?? createMockDecorationService(),
 		themeService: overrides?.themeService ?? createMockThemeService()
 	} as unknown as CoreBrowserTerminal;

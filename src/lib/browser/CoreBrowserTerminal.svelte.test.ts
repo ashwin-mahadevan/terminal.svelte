@@ -27,7 +27,7 @@ class TestTerminal extends CoreBrowserTerminal {
 		return this._keyPress(ev);
 	}
 	public writeP(data: string | Uint8Array): Promise<void> {
-		return new Promise((r) => this.write(data, r));
+		return new Promise((r) => this.core.write(data, r));
 	}
 }
 
@@ -75,7 +75,7 @@ describe('CoreBrowserTerminal', () => {
 
 	it('should not mutate the options parameter', () => {
 		const term = createTestTerminal(termOptions);
-		term.options.cols = 1000;
+		term.core.options.cols = 1000;
 
 		expect(termOptions).toEqual({
 			cols: INIT_COLS,
@@ -90,18 +90,18 @@ describe('CoreBrowserTerminal', () => {
 		});
 		it('should fire the onData evnet', () =>
 			new Promise<void>((done) => {
-				term.coreService.onData((e) => {
+				term.core.coreService.onData((e) => {
 					expect(e).toBe('fake');
 					done();
 				});
-				term.coreService.triggerDataEvent('fake');
+				term.core.coreService.triggerDataEvent('fake');
 			}));
 		it('should fire the onCursorMove event', () => {
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				let fired = false;
-				term.inputHandler.onCursorMove(() => {
+				term.core.inputHandler.onCursorMove(() => {
 					fired = true;
 					expect(fired).toBe(true);
 					r();
@@ -114,7 +114,7 @@ describe('CoreBrowserTerminal', () => {
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				let fired = false;
-				term.inputHandler.onLineFeed(() => {
+				term.core.inputHandler.onLineFeed(() => {
 					fired = true;
 					expect(fired).toBe(true);
 					r();
@@ -126,7 +126,7 @@ describe('CoreBrowserTerminal', () => {
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
-				term.onScroll((e) => {
+				term.core.onScroll((e) => {
 					expect(typeof e).toBe('number');
 					r();
 				});
@@ -138,7 +138,7 @@ describe('CoreBrowserTerminal', () => {
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				await term.writeP('\n'.repeat(INIT_ROWS));
-				term.onScroll((e) => {
+				term.core.onScroll((e) => {
 					expect(typeof e).toBe('number');
 					r();
 				});
@@ -180,7 +180,7 @@ describe('CoreBrowserTerminal', () => {
 			}));
 		it('should fire the onResize event', () =>
 			new Promise<void>((done) => {
-				term.bufferService.onResize((e) => {
+				term.core.bufferService.onResize((e) => {
 					expect(typeof e.cols).toBe('number');
 					expect(typeof e.rows).toBe('number');
 					done();
@@ -189,29 +189,29 @@ describe('CoreBrowserTerminal', () => {
 			}));
 		it('should fire the onScroll event', () =>
 			new Promise<void>((done) => {
-				term.onScroll((e) => {
+				term.core.onScroll((e) => {
 					expect(typeof e).toBe('number');
 					done();
 				});
-				term.scroll(DEFAULT_ATTR_DATA.clone());
+				term.core.scroll(DEFAULT_ATTR_DATA.clone());
 			}));
 		it('should fire the onTitleChange event', () =>
 			new Promise<void>((done) => {
-				term.inputHandler.onTitleChange((e) => {
+				term.core.inputHandler.onTitleChange((e) => {
 					expect(e).toBe('title');
 					done();
 				});
-				term.write('\x1b]2;title\x07');
+				term.core.write('\x1b]2;title\x07');
 			}));
 		it('should fire the onBell event', () =>
 			new Promise<void>((done) => {
 				let fired = false;
-				term.inputHandler.onRequestBell(() => {
+				term.core.inputHandler.onRequestBell(() => {
 					fired = true;
 					expect(fired).toBe(true);
 					done();
 				});
-				term.write('\x07');
+				term.core.write('\x07');
 			}));
 	});
 
@@ -277,54 +277,60 @@ describe('CoreBrowserTerminal', () => {
 			term = createTestTerminal();
 		});
 		it('should clear a buffer equal to rows', () => {
-			const promptLine = term.bufferService.buffers.active.lines.get(
-				term.bufferService.buffers.active.ybase + term.bufferService.buffers.active.y
+			const promptLine = term.core.bufferService.buffers.active.lines.get(
+				term.core.bufferService.buffers.active.ybase + term.core.bufferService.buffers.active.y
 			);
 			term.clear();
-			expect(term.bufferService.buffers.active.y).toBe(0);
-			expect(term.bufferService.buffers.active.ybase).toBe(0);
-			expect(term.bufferService.buffers.active.ydisp).toBe(0);
-			expect(term.bufferService.buffers.active.lines.length).toBe(term.bufferService.rows);
-			expect(term.bufferService.buffers.active.lines.get(0)).toEqual(promptLine);
-			for (let i = 1; i < term.bufferService.rows; i++) {
-				expect(term.bufferService.buffers.active.lines.get(i)).toEqual(
-					term.bufferService.buffers.active.getBlankLine(DEFAULT_ATTR_DATA)
+			expect(term.core.bufferService.buffers.active.y).toBe(0);
+			expect(term.core.bufferService.buffers.active.ybase).toBe(0);
+			expect(term.core.bufferService.buffers.active.ydisp).toBe(0);
+			expect(term.core.bufferService.buffers.active.lines.length).toBe(
+				term.core.bufferService.rows
+			);
+			expect(term.core.bufferService.buffers.active.lines.get(0)).toEqual(promptLine);
+			for (let i = 1; i < term.core.bufferService.rows; i++) {
+				expect(term.core.bufferService.buffers.active.lines.get(i)).toEqual(
+					term.core.bufferService.buffers.active.getBlankLine(DEFAULT_ATTR_DATA)
 				);
 			}
 		});
 		it('should clear a buffer larger than rows', async () => {
 			// Fill the buffer with dummy rows
-			await term.writeP('test\n'.repeat(term.bufferService.rows * 2));
+			await term.writeP('test\n'.repeat(term.core.bufferService.rows * 2));
 
-			const promptLine = term.bufferService.buffers.active.lines.get(
-				term.bufferService.buffers.active.ybase + term.bufferService.buffers.active.y
+			const promptLine = term.core.bufferService.buffers.active.lines.get(
+				term.core.bufferService.buffers.active.ybase + term.core.bufferService.buffers.active.y
 			);
 			term.clear();
-			expect(term.bufferService.buffers.active.y).toBe(0);
-			expect(term.bufferService.buffers.active.ybase).toBe(0);
-			expect(term.bufferService.buffers.active.ydisp).toBe(0);
-			expect(term.bufferService.buffers.active.lines.length).toBe(term.bufferService.rows);
-			expect(term.bufferService.buffers.active.lines.get(0)).toEqual(promptLine);
-			for (let i = 1; i < term.bufferService.rows; i++) {
-				expect(term.bufferService.buffers.active.lines.get(i)).toEqual(
-					term.bufferService.buffers.active.getBlankLine(DEFAULT_ATTR_DATA)
+			expect(term.core.bufferService.buffers.active.y).toBe(0);
+			expect(term.core.bufferService.buffers.active.ybase).toBe(0);
+			expect(term.core.bufferService.buffers.active.ydisp).toBe(0);
+			expect(term.core.bufferService.buffers.active.lines.length).toBe(
+				term.core.bufferService.rows
+			);
+			expect(term.core.bufferService.buffers.active.lines.get(0)).toEqual(promptLine);
+			for (let i = 1; i < term.core.bufferService.rows; i++) {
+				expect(term.core.bufferService.buffers.active.lines.get(i)).toEqual(
+					term.core.bufferService.buffers.active.getBlankLine(DEFAULT_ATTR_DATA)
 				);
 			}
 		});
 		it('should not break the prompt when cleared twice', () => {
-			const promptLine = term.bufferService.buffers.active.lines.get(
-				term.bufferService.buffers.active.ybase + term.bufferService.buffers.active.y
+			const promptLine = term.core.bufferService.buffers.active.lines.get(
+				term.core.bufferService.buffers.active.ybase + term.core.bufferService.buffers.active.y
 			);
 			term.clear();
 			term.clear();
-			expect(term.bufferService.buffers.active.y).toBe(0);
-			expect(term.bufferService.buffers.active.ybase).toBe(0);
-			expect(term.bufferService.buffers.active.ydisp).toBe(0);
-			expect(term.bufferService.buffers.active.lines.length).toBe(term.bufferService.rows);
-			expect(term.bufferService.buffers.active.lines.get(0)).toEqual(promptLine);
-			for (let i = 1; i < term.bufferService.rows; i++) {
-				expect(term.bufferService.buffers.active.lines.get(i)).toEqual(
-					term.bufferService.buffers.active.getBlankLine(DEFAULT_ATTR_DATA)
+			expect(term.core.bufferService.buffers.active.y).toBe(0);
+			expect(term.core.bufferService.buffers.active.ybase).toBe(0);
+			expect(term.core.bufferService.buffers.active.ydisp).toBe(0);
+			expect(term.core.bufferService.buffers.active.lines.length).toBe(
+				term.core.bufferService.rows
+			);
+			expect(term.core.bufferService.buffers.active.lines.get(0)).toEqual(promptLine);
+			for (let i = 1; i < term.core.bufferService.rows; i++) {
+				expect(term.core.bufferService.buffers.active.lines.get(i)).toEqual(
+					term.core.bufferService.buffers.active.getBlankLine(DEFAULT_ATTR_DATA)
 				);
 			}
 		});
@@ -342,7 +348,7 @@ describe('CoreBrowserTerminal', () => {
 		});
 		it('should fire data event', () =>
 			new Promise<void>((done) => {
-				term.coreService.onData((e) => {
+				term.core.coreService.onData((e) => {
 					expect(e).toBe('foo');
 					done();
 				});
@@ -350,7 +356,7 @@ describe('CoreBrowserTerminal', () => {
 			}));
 		it('should sanitize \\n chars', () =>
 			new Promise<void>((done) => {
-				term.coreService.onData((e) => {
+				term.core.coreService.onData((e) => {
 					expect(e).toBe('\rfoo\rbar\r');
 					done();
 				});
@@ -360,7 +366,7 @@ describe('CoreBrowserTerminal', () => {
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
-				term.coreService.onData((e) => {
+				term.core.coreService.onData((e) => {
 					expect(e).toBe('\x1b[200~foo\x1b[201~');
 					r();
 				});
@@ -381,126 +387,126 @@ describe('CoreBrowserTerminal', () => {
 					await term.writeP('test\r\n');
 				}
 				const startYDisp = INIT_ROWS + 1;
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollLines(-1);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp - 1);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp - 1);
 				term.scrollLines(1);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 			});
 			it('should scroll multiple lines', async () => {
 				for (let i = 0; i < INIT_ROWS * 2; i++) {
 					await term.writeP('test\r\n');
 				}
 				const startYDisp = INIT_ROWS + 1;
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollLines(-5);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp - 5);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp - 5);
 				term.scrollLines(5);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 			});
 			it('should not scroll beyond the bounds of the buffer', async () => {
 				for (let i = 0; i < INIT_ROWS * 2; i++) {
 					await term.writeP('test\r\n');
 				}
 				const startYDisp = INIT_ROWS + 1;
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollLines(1);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				for (let i = 0; i < startYDisp; i++) {
 					term.scrollLines(-1);
 				}
-				expect(term.bufferService.buffers.active.ydisp).toBe(0);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(0);
 				term.scrollLines(-1);
-				expect(term.bufferService.buffers.active.ydisp).toBe(0);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(0);
 			});
 		});
 
 		describe('scrollPages', () => {
 			it('should scroll a single page', async () => {
-				for (let i = 0; i < term.bufferService.rows * 3; i++) {
+				for (let i = 0; i < term.core.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				const startYDisp = term.bufferService.rows * 2 + 1;
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				const startYDisp = term.core.bufferService.rows * 2 + 1;
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollPages(-1);
-				expect(term.bufferService.buffers.active.ydisp).toBe(
-					startYDisp - (term.bufferService.rows - 1)
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(
+					startYDisp - (term.core.bufferService.rows - 1)
 				);
 				term.scrollPages(1);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 			});
 			it('should scroll a multiple pages', async () => {
-				for (let i = 0; i < term.bufferService.rows * 3; i++) {
+				for (let i = 0; i < term.core.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				const startYDisp = term.bufferService.rows * 2 + 1;
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				const startYDisp = term.core.bufferService.rows * 2 + 1;
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollPages(-2);
-				expect(term.bufferService.buffers.active.ydisp).toBe(
-					startYDisp - (term.bufferService.rows - 1) * 2
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(
+					startYDisp - (term.core.bufferService.rows - 1) * 2
 				);
 				term.scrollPages(2);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 			});
 		});
 
 		describe('scrollToTop', () => {
 			beforeEach(async () => {
-				for (let i = 0; i < term.bufferService.rows * 3; i++) {
+				for (let i = 0; i < term.core.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
 			});
 			it('should scroll to the top', () => {
-				expect(term.bufferService.buffers.active.ydisp).not.toBe(0);
+				expect(term.core.bufferService.buffers.active.ydisp).not.toBe(0);
 				term.scrollToTop();
-				expect(term.bufferService.buffers.active.ydisp).toBe(0);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(0);
 			});
 		});
 
 		describe('scrollToBottom', () => {
 			it('should scroll to the bottom', async () => {
-				for (let i = 0; i < term.bufferService.rows * 3; i++) {
+				for (let i = 0; i < term.core.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				const startYDisp = term.bufferService.rows * 2 + 1;
+				const startYDisp = term.core.bufferService.rows * 2 + 1;
 				term.scrollLines(-1);
 				term.scrollToBottom();
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollPages(-1);
 				term.scrollToBottom();
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollToTop();
 				term.scrollToBottom();
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 			});
 		});
 
 		describe('scrollToLine', () => {
 			it('should scroll to requested line', async () => {
-				for (let i = 0; i < term.bufferService.rows * 3; i++) {
+				for (let i = 0; i < term.core.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				const startYDisp = term.bufferService.rows * 2 + 1;
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				const startYDisp = term.core.bufferService.rows * 2 + 1;
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollToLine(0);
-				expect(term.bufferService.buffers.active.ydisp).toBe(0);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(0);
 				term.scrollToLine(10);
-				expect(term.bufferService.buffers.active.ydisp).toBe(10);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(10);
 				term.scrollToLine(startYDisp);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollToLine(20);
-				expect(term.bufferService.buffers.active.ydisp).toBe(20);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(20);
 			});
 			it('should not scroll beyond boundary lines', async () => {
-				for (let i = 0; i < term.bufferService.rows * 3; i++) {
+				for (let i = 0; i < term.core.bufferService.rows * 3; i++) {
 					await term.writeP('test\r\n');
 				}
-				const startYDisp = term.bufferService.rows * 2 + 1;
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				const startYDisp = term.core.bufferService.rows * 2 + 1;
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollToLine(-1);
-				expect(term.bufferService.buffers.active.ydisp).toBe(0);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(0);
 				term.scrollToLine(startYDisp + 1);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 			});
 		});
 
@@ -514,44 +520,44 @@ describe('CoreBrowserTerminal', () => {
 					stopPropagation: () => {}
 				} as KeyboardEvent;
 
-				term.bufferService.buffers.active.ydisp = 0;
-				term.bufferService.buffers.active.ybase = 40;
+				term.core.bufferService.buffers.active.ydisp = 0;
+				term.core.bufferService.buffers.active.ybase = 40;
 				term.keyPress(event);
 
 				// Ensure that now the terminal is scrolled to bottom
-				expect(term.bufferService.buffers.active.ydisp).toBe(
-					term.bufferService.buffers.active.ybase
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(
+					term.core.bufferService.buffers.active.ybase
 				);
 			});
 
 			it('should not scroll down, when a custom keydown handler prevents the event', async () => {
 				// Add some output to the terminal
-				await term.writeP('test\r\n'.repeat(term.bufferService.rows * 3));
-				const startYDisp = term.bufferService.rows * 2 + 1;
+				await term.writeP('test\r\n'.repeat(term.core.bufferService.rows * 3));
+				const startYDisp = term.core.bufferService.rows * 2 + 1;
 				term.attachCustomKeyEventHandler(() => {
 					return false;
 				});
 
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
 				term.scrollLines(-1);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp - 1);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp - 1);
 				term.keyPress({ keyCode: 0 } as KeyboardEvent);
-				expect(term.bufferService.buffers.active.ydisp).toBe(startYDisp - 1);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp - 1);
 			});
 		});
 
 		describe('keyDown', () => {
 			it('should not scroll down on modifier-only input in win32 input mode', async () => {
-				term.options.vtExtensions = { win32InputMode: true };
-				term.coreService.decPrivateModes.win32InputMode = true;
+				term.core.options.vtExtensions = { win32InputMode: true };
+				term.core.coreService.decPrivateModes.win32InputMode = true;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				(term as any).textarea = { value: '' };
 
-				await term.writeP('test\r\n'.repeat(term.bufferService.rows * 3));
-				const startYDisp = term.bufferService.buffers.active.ydisp;
+				await term.writeP('test\r\n'.repeat(term.core.bufferService.rows * 3));
+				const startYDisp = term.core.bufferService.buffers.active.ydisp;
 				term.scrollLines(-1);
-				const scrolledYDisp = term.bufferService.buffers.active.ydisp;
+				const scrolledYDisp = term.core.bufferService.buffers.active.ydisp;
 				expect(scrolledYDisp).toBe(startYDisp - 1);
 
 				const evKeyDown = {
@@ -572,33 +578,38 @@ describe('CoreBrowserTerminal', () => {
 				} as KeyboardEvent;
 
 				term.keyDown(evKeyDown);
-				expect(term.bufferService.buffers.active.ydisp).toBe(scrolledYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(scrolledYDisp);
 				term._keyup(evKeyUp);
-				expect(term.bufferService.buffers.active.ydisp).toBe(scrolledYDisp);
+				expect(term.core.bufferService.buffers.active.ydisp).toBe(scrolledYDisp);
 			});
 		});
 
 		describe('scroll() function', () => {
 			describe('when scrollback > 0', () => {
 				it('should create a new line and scroll', () => {
-					term.bufferService.buffers.active.lines.get(0)!.setCell(0, createCellData(0, 'a', 0));
-					term.bufferService.buffers.active.lines
+					term.core.bufferService.buffers.active.lines
+						.get(0)!
+						.setCell(0, createCellData(0, 'a', 0));
+					term.core.bufferService.buffers.active.lines
 						.get(INIT_ROWS - 1)!
 						.setCell(0, createCellData(0, 'b', 0));
-					term.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
-					term.scroll(DEFAULT_ATTR_DATA.clone());
-					expect(term.bufferService.buffers.active.lines.length).toBe(INIT_ROWS + 1);
+					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
+					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS + 1);
 					expect(
-						term.bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(0)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('a');
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(INIT_ROWS - 1)!
 							.loadCell(0, new CellData())
 							.getChars()
 					).toBe('b');
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(INIT_ROWS)!
 							.loadCell(0, new CellData())
 							.getChars()
@@ -606,115 +617,190 @@ describe('CoreBrowserTerminal', () => {
 				});
 
 				it('should properly scroll inside a scroll region (scrollTop set)', () => {
-					term.bufferService.buffers.active.lines.get(0)!.setCell(0, createCellData(0, 'a', 0));
-					term.bufferService.buffers.active.lines.get(1)!.setCell(0, createCellData(0, 'b', 0));
-					term.bufferService.buffers.active.lines.get(2)!.setCell(0, createCellData(0, 'c', 0));
-					term.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
-					term.bufferService.buffers.active.scrollTop = 1;
-					term.scroll(DEFAULT_ATTR_DATA.clone());
-					expect(term.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
+					term.core.bufferService.buffers.active.lines
+						.get(0)!
+						.setCell(0, createCellData(0, 'a', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(1)!
+						.setCell(0, createCellData(0, 'b', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(2)!
+						.setCell(0, createCellData(0, 'c', 0));
+					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
+					term.core.bufferService.buffers.active.scrollTop = 1;
+					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					expect(
-						term.bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(0)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('a');
 					expect(
-						term.bufferService.buffers.active.lines.get(1)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(1)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('c');
 				});
 
 				it('should properly scroll inside a scroll region (scrollBottom set)', () => {
-					term.bufferService.buffers.active.lines.get(0)!.setCell(0, createCellData(0, 'a', 0));
-					term.bufferService.buffers.active.lines.get(1)!.setCell(0, createCellData(0, 'b', 0));
-					term.bufferService.buffers.active.lines.get(2)!.setCell(0, createCellData(0, 'c', 0));
-					term.bufferService.buffers.active.lines.get(3)!.setCell(0, createCellData(0, 'd', 0));
-					term.bufferService.buffers.active.lines.get(4)!.setCell(0, createCellData(0, 'e', 0));
-					term.bufferService.buffers.active.y = 3;
-					term.bufferService.buffers.active.scrollBottom = 3;
-					term.scroll(DEFAULT_ATTR_DATA.clone());
-					expect(term.bufferService.buffers.active.lines.length).toBe(INIT_ROWS + 1);
+					term.core.bufferService.buffers.active.lines
+						.get(0)!
+						.setCell(0, createCellData(0, 'a', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(1)!
+						.setCell(0, createCellData(0, 'b', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(2)!
+						.setCell(0, createCellData(0, 'c', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(3)!
+						.setCell(0, createCellData(0, 'd', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(4)!
+						.setCell(0, createCellData(0, 'e', 0));
+					term.core.bufferService.buffers.active.y = 3;
+					term.core.bufferService.buffers.active.scrollBottom = 3;
+					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS + 1);
 					// 'a' should be pushed to the scrollback
 					expect(
-						term.bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(0)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('a');
 					expect(
-						term.bufferService.buffers.active.lines.get(1)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(1)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('b');
 					expect(
-						term.bufferService.buffers.active.lines.get(2)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(2)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('c');
 					expect(
-						term.bufferService.buffers.active.lines.get(3)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(3)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('d');
 					// a blank line should be added at scrollBottom's index
 					expect(
-						term.bufferService.buffers.active.lines.get(4)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(4)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('');
 					expect(
-						term.bufferService.buffers.active.lines.get(5)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(5)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('e');
 				});
 
 				it('should properly scroll inside a scroll region (scrollTop and scrollBottom set)', () => {
-					term.bufferService.buffers.active.lines.get(0)!.setCell(0, createCellData(0, 'a', 0));
-					term.bufferService.buffers.active.lines.get(1)!.setCell(0, createCellData(0, 'b', 0));
-					term.bufferService.buffers.active.lines.get(2)!.setCell(0, createCellData(0, 'c', 0));
-					term.bufferService.buffers.active.lines.get(3)!.setCell(0, createCellData(0, 'd', 0));
-					term.bufferService.buffers.active.lines.get(4)!.setCell(0, createCellData(0, 'e', 0));
-					term.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
-					term.bufferService.buffers.active.scrollTop = 1;
-					term.bufferService.buffers.active.scrollBottom = 3;
-					term.scroll(DEFAULT_ATTR_DATA.clone());
-					expect(term.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
+					term.core.bufferService.buffers.active.lines
+						.get(0)!
+						.setCell(0, createCellData(0, 'a', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(1)!
+						.setCell(0, createCellData(0, 'b', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(2)!
+						.setCell(0, createCellData(0, 'c', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(3)!
+						.setCell(0, createCellData(0, 'd', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(4)!
+						.setCell(0, createCellData(0, 'e', 0));
+					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
+					term.core.bufferService.buffers.active.scrollTop = 1;
+					term.core.bufferService.buffers.active.scrollBottom = 3;
+					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					expect(
-						term.bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(0)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('a');
 					// 'b' should be removed from the buffer
 					expect(
-						term.bufferService.buffers.active.lines.get(1)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(1)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('c');
 					expect(
-						term.bufferService.buffers.active.lines.get(2)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(2)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('d');
 					// a blank line should be added at scrollBottom's index
 					expect(
-						term.bufferService.buffers.active.lines.get(3)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(3)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('');
 					expect(
-						term.bufferService.buffers.active.lines.get(4)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(4)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('e');
 				});
 			});
 
 			describe('when scrollback === 0', () => {
 				beforeEach(() => {
-					term.optionsService.options.scrollback = 0;
-					expect(term.bufferService.buffers.active.lines.maxLength).toBe(INIT_ROWS);
+					term.core.optionsService.options.scrollback = 0;
+					expect(term.core.bufferService.buffers.active.lines.maxLength).toBe(INIT_ROWS);
 				});
 
 				it('should create a new line and shift everything up', () => {
-					term.bufferService.buffers.active.lines.get(0)!.setCell(0, createCellData(0, 'a', 0));
-					term.bufferService.buffers.active.lines.get(1)!.setCell(0, createCellData(0, 'b', 0));
-					term.bufferService.buffers.active.lines
+					term.core.bufferService.buffers.active.lines
+						.get(0)!
+						.setCell(0, createCellData(0, 'a', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(1)!
+						.setCell(0, createCellData(0, 'b', 0));
+					term.core.bufferService.buffers.active.lines
 						.get(INIT_ROWS - 1)!
 						.setCell(0, createCellData(0, 'c', 0));
-					term.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
-					expect(term.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
-					term.scroll(DEFAULT_ATTR_DATA.clone());
-					expect(term.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
+					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
+					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
+					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					// 'a' gets pushed out of buffer
 					expect(
-						term.bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(0)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('b');
 					expect(
-						term.bufferService.buffers.active.lines.get(1)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(1)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('');
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(INIT_ROWS - 2)!
 							.loadCell(0, new CellData())
 							.getChars()
 					).toBe('c');
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(INIT_ROWS - 1)!
 							.loadCell(0, new CellData())
 							.getChars()
@@ -722,76 +808,138 @@ describe('CoreBrowserTerminal', () => {
 				});
 
 				it('should properly scroll inside a scroll region (scrollTop set)', () => {
-					term.bufferService.buffers.active.lines.get(0)!.setCell(0, createCellData(0, 'a', 0));
-					term.bufferService.buffers.active.lines.get(1)!.setCell(0, createCellData(0, 'b', 0));
-					term.bufferService.buffers.active.lines.get(2)!.setCell(0, createCellData(0, 'c', 0));
-					term.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
-					term.bufferService.buffers.active.scrollTop = 1;
-					term.scroll(DEFAULT_ATTR_DATA.clone());
-					expect(term.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
+					term.core.bufferService.buffers.active.lines
+						.get(0)!
+						.setCell(0, createCellData(0, 'a', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(1)!
+						.setCell(0, createCellData(0, 'b', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(2)!
+						.setCell(0, createCellData(0, 'c', 0));
+					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
+					term.core.bufferService.buffers.active.scrollTop = 1;
+					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					expect(
-						term.bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(0)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('a');
 					expect(
-						term.bufferService.buffers.active.lines.get(1)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(1)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('c');
 				});
 
 				it('should properly scroll inside a scroll region (scrollBottom set)', () => {
-					term.bufferService.buffers.active.lines.get(0)!.setCell(0, createCellData(0, 'a', 0));
-					term.bufferService.buffers.active.lines.get(1)!.setCell(0, createCellData(0, 'b', 0));
-					term.bufferService.buffers.active.lines.get(2)!.setCell(0, createCellData(0, 'c', 0));
-					term.bufferService.buffers.active.lines.get(3)!.setCell(0, createCellData(0, 'd', 0));
-					term.bufferService.buffers.active.lines.get(4)!.setCell(0, createCellData(0, 'e', 0));
-					term.bufferService.buffers.active.y = 3;
-					term.bufferService.buffers.active.scrollBottom = 3;
-					term.scroll(DEFAULT_ATTR_DATA.clone());
-					expect(term.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
+					term.core.bufferService.buffers.active.lines
+						.get(0)!
+						.setCell(0, createCellData(0, 'a', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(1)!
+						.setCell(0, createCellData(0, 'b', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(2)!
+						.setCell(0, createCellData(0, 'c', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(3)!
+						.setCell(0, createCellData(0, 'd', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(4)!
+						.setCell(0, createCellData(0, 'e', 0));
+					term.core.bufferService.buffers.active.y = 3;
+					term.core.bufferService.buffers.active.scrollBottom = 3;
+					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					expect(
-						term.bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(0)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('b');
 					expect(
-						term.bufferService.buffers.active.lines.get(1)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(1)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('c');
 					expect(
-						term.bufferService.buffers.active.lines.get(2)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(2)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('d');
 					// a blank line should be added at scrollBottom's index
 					expect(
-						term.bufferService.buffers.active.lines.get(3)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(3)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('');
 					expect(
-						term.bufferService.buffers.active.lines.get(4)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(4)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('e');
 				});
 
 				it('should properly scroll inside a scroll region (scrollTop and scrollBottom set)', () => {
-					term.bufferService.buffers.active.lines.get(0)!.setCell(0, createCellData(0, 'a', 0));
-					term.bufferService.buffers.active.lines.get(1)!.setCell(0, createCellData(0, 'b', 0));
-					term.bufferService.buffers.active.lines.get(2)!.setCell(0, createCellData(0, 'c', 0));
-					term.bufferService.buffers.active.lines.get(3)!.setCell(0, createCellData(0, 'd', 0));
-					term.bufferService.buffers.active.lines.get(4)!.setCell(0, createCellData(0, 'e', 0));
-					term.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
-					term.bufferService.buffers.active.scrollTop = 1;
-					term.bufferService.buffers.active.scrollBottom = 3;
-					term.scroll(DEFAULT_ATTR_DATA.clone());
-					expect(term.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
+					term.core.bufferService.buffers.active.lines
+						.get(0)!
+						.setCell(0, createCellData(0, 'a', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(1)!
+						.setCell(0, createCellData(0, 'b', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(2)!
+						.setCell(0, createCellData(0, 'c', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(3)!
+						.setCell(0, createCellData(0, 'd', 0));
+					term.core.bufferService.buffers.active.lines
+						.get(4)!
+						.setCell(0, createCellData(0, 'e', 0));
+					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
+					term.core.bufferService.buffers.active.scrollTop = 1;
+					term.core.bufferService.buffers.active.scrollBottom = 3;
+					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					expect(
-						term.bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(0)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('a');
 					// 'b' should be removed from the buffer
 					expect(
-						term.bufferService.buffers.active.lines.get(1)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(1)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('c');
 					expect(
-						term.bufferService.buffers.active.lines.get(2)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(2)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('d');
 					// a blank line should be added at scrollBottom's index
 					expect(
-						term.bufferService.buffers.active.lines.get(3)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(3)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('');
 					expect(
-						term.bufferService.buffers.active.lines.get(4)!.loadCell(0, new CellData()).getChars()
+						term.core.bufferService.buffers.active.lines
+							.get(4)!
+							.loadCell(0, new CellData())
+							.getChars()
 					).toBe('e');
 				});
 			});
@@ -806,7 +954,7 @@ describe('CoreBrowserTerminal', () => {
 
 		describe('with macOptionIsMeta', () => {
 			beforeEach(() => {
-				term.options.macOptionIsMeta = true;
+				term.core.options.macOptionIsMeta = true;
 			});
 
 			it('should interfere with the alt key on keyDown', () => {
@@ -1075,12 +1223,12 @@ describe('CoreBrowserTerminal', () => {
 				await term.writeP(values.join('\r\n'));
 				for (let idx = 0; idx < values.length; idx++) {
 					const expected = values[idx];
-					const tchar = term.bufferService.buffers.active.lines.get(idx)!.loadCell(0, cell);
+					const tchar = term.core.bufferService.buffers.active.lines.get(idx)!.loadCell(0, cell);
 					expect(tchar.getChars()).toBe(expected);
 					expect(tchar.getChars().length).toBe(2);
 					expect(tchar.getWidth()).toBe(1);
 					expect(
-						term.bufferService.buffers.active.lines.get(idx)!.loadCell(1, cell).getChars()
+						term.core.bufferService.buffers.active.lines.get(idx)!.loadCell(1, cell).getChars()
 					).toBe('');
 				}
 			});
@@ -1092,24 +1240,26 @@ describe('CoreBrowserTerminal', () => {
 					values.push(high + String.fromCharCode(j));
 				}
 				await term.writeP(
-					values.map((value, idx) => `\x1b[${idx + 1};${term.bufferService.cols}H${value}`).join('')
+					values
+						.map((value, idx) => `\x1b[${idx + 1};${term.core.bufferService.cols}H${value}`)
+						.join('')
 				);
 				for (let idx = 0; idx < values.length; idx++) {
 					const expected = values[idx];
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(idx)!
-							.loadCell(term.bufferService.cols - 1, cell)
+							.loadCell(term.core.bufferService.cols - 1, cell)
 							.getChars()
 					).toBe(expected);
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(idx)!
-							.loadCell(term.bufferService.cols - 1, cell)
+							.loadCell(term.core.bufferService.cols - 1, cell)
 							.getChars().length
 					).toBe(2);
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(idx + 1)!
 							.loadCell(0, cell)
 							.getChars()
@@ -1119,39 +1269,41 @@ describe('CoreBrowserTerminal', () => {
 			it(`${range}: 2 characters per cell over line end with autowrap`, async (): Promise<void> => {
 				const high = String.fromCharCode(0xd800);
 				const cell = new CellData();
-				term.resize(term.bufferService.cols, 40);
+				term.resize(term.core.bufferService.cols, 40);
 				const values: string[] = [];
 				for (let j = i; j <= i + 0xf; j++) {
 					values.push(high + String.fromCharCode(j));
 				}
 				await term.writeP(
 					values
-						.map((value, idx) => `\x1b[${idx * 2 + 1};${term.bufferService.cols}H` + 'a' + value)
+						.map(
+							(value, idx) => `\x1b[${idx * 2 + 1};${term.core.bufferService.cols}H` + 'a' + value
+						)
 						.join('')
 				);
 				for (let idx = 0; idx < values.length; idx++) {
 					const expected = values[idx];
 					const row = idx * 2;
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(row)!
-							.loadCell(term.bufferService.cols - 1, cell)
+							.loadCell(term.core.bufferService.cols - 1, cell)
 							.getChars()
 					).toBe('a');
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(row + 1)!
 							.loadCell(0, cell)
 							.getChars()
 					).toBe(expected);
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(row + 1)!
 							.loadCell(0, cell)
 							.getChars().length
 					).toBe(2);
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(row + 1)!
 							.loadCell(1, cell)
 							.getChars()
@@ -1172,25 +1324,25 @@ describe('CoreBrowserTerminal', () => {
 				await term.writeP(
 					'\x1b[?7l' +
 						values
-							.map((value, idx) => `\x1b[${idx + 1};${term.bufferService.cols}H` + 'a' + value)
+							.map((value, idx) => `\x1b[${idx + 1};${term.core.bufferService.cols}H` + 'a' + value)
 							.join('')
 				);
 				for (let idx = 0; idx < values.length; idx++) {
 					const expected = values[idx];
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(idx)!
-							.loadCell(term.bufferService.cols - 1, cell)
+							.loadCell(term.core.bufferService.cols - 1, cell)
 							.getChars()
 					).toBe(expected);
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(idx)!
-							.loadCell(term.bufferService.cols - 1, cell)
+							.loadCell(term.core.bufferService.cols - 1, cell)
 							.getChars().length
 					).toBe(2);
 					expect(
-						term.bufferService.buffers.active.lines
+						term.core.bufferService.buffers.active.lines
 							.get(idx + 1)!
 							.loadCell(1, cell)
 							.getChars()
@@ -1207,12 +1359,12 @@ describe('CoreBrowserTerminal', () => {
 				await term.writeP(values.join('\r\n'));
 				for (let idx = 0; idx < values.length; idx++) {
 					const expected = values[idx];
-					const tchar = term.bufferService.buffers.active.lines.get(idx)!.loadCell(0, cell);
+					const tchar = term.core.bufferService.buffers.active.lines.get(idx)!.loadCell(0, cell);
 					expect(tchar.getChars()).toBe(expected);
 					expect(tchar.getChars().length).toBe(2);
 					expect(tchar.getWidth()).toBe(1);
 					expect(
-						term.bufferService.buffers.active.lines.get(idx)!.loadCell(1, cell).getChars()
+						term.core.bufferService.buffers.active.lines.get(idx)!.loadCell(1, cell).getChars()
 					).toBe('');
 				}
 			});
@@ -1227,45 +1379,47 @@ describe('CoreBrowserTerminal', () => {
 		const cell = new CellData();
 		it('café', async () => {
 			await term.writeP('café');
-			term.bufferService.buffers.active.lines.get(0)!.loadCell(3, cell);
+			term.core.bufferService.buffers.active.lines.get(0)!.loadCell(3, cell);
 			expect(cell.getChars()).toBe('é');
 			expect(cell.getChars().length).toBe(2);
 			expect(cell.getWidth()).toBe(1);
 		});
 		it('café - end of line', async () => {
-			term.bufferService.buffers.active.x = term.bufferService.cols - 1 - 3;
+			term.core.bufferService.buffers.active.x = term.core.bufferService.cols - 1 - 3;
 			await term.writeP('café');
-			term.bufferService.buffers.active.lines.get(0)!.loadCell(term.bufferService.cols - 1, cell);
+			term.core.bufferService.buffers.active.lines
+				.get(0)!
+				.loadCell(term.core.bufferService.cols - 1, cell);
 			expect(cell.getChars()).toBe('é');
 			expect(cell.getChars().length).toBe(2);
 			expect(cell.getWidth()).toBe(1);
-			term.bufferService.buffers.active.lines.get(0)!.loadCell(1, cell);
+			term.core.bufferService.buffers.active.lines.get(0)!.loadCell(1, cell);
 			expect(cell.getChars()).toBe('');
 			expect(cell.getChars().length).toBe(0);
 			expect(cell.getWidth()).toBe(1);
 		});
 		it('multiple combined é', async () => {
 			await term.writeP('é'.repeat(99));
-			for (let i = 0; i < term.bufferService.cols; ++i) {
-				term.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
+			for (let i = 0; i < term.core.bufferService.cols; ++i) {
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
 				expect(cell.getChars()).toBe('é');
 				expect(cell.getChars().length).toBe(2);
 				expect(cell.getWidth()).toBe(1);
 			}
-			term.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
+			term.core.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
 			expect(cell.getChars()).toBe('é');
 			expect(cell.getChars().length).toBe(2);
 			expect(cell.getWidth()).toBe(1);
 		});
 		it('multiple surrogate with combined', async () => {
 			await term.writeP('𐀀́'.repeat(99));
-			for (let i = 0; i < term.bufferService.cols; ++i) {
-				term.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
+			for (let i = 0; i < term.core.bufferService.cols; ++i) {
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
 				expect(cell.getChars()).toBe('𐀀́');
 				expect(cell.getChars().length).toBe(3);
 				expect(cell.getWidth()).toBe(1);
 			}
-			term.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
+			term.core.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
 			expect(cell.getChars()).toBe('𐀀́');
 			expect(cell.getChars().length).toBe(3);
 			expect(cell.getWidth()).toBe(1);
@@ -1279,20 +1433,20 @@ describe('CoreBrowserTerminal', () => {
 		});
 		const cell = new CellData();
 		it('cursor movement even', async () => {
-			expect(term.bufferService.buffers.active.x).toBe(0);
+			expect(term.core.bufferService.buffers.active.x).toBe(0);
 			await term.writeP('￥');
-			expect(term.bufferService.buffers.active.x).toBe(2);
+			expect(term.core.bufferService.buffers.active.x).toBe(2);
 		});
 		it('cursor movement odd', async () => {
-			term.bufferService.buffers.active.x = 1;
-			expect(term.bufferService.buffers.active.x).toBe(1);
+			term.core.bufferService.buffers.active.x = 1;
+			expect(term.core.bufferService.buffers.active.x).toBe(1);
 			await term.writeP('￥');
-			expect(term.bufferService.buffers.active.x).toBe(3);
+			expect(term.core.bufferService.buffers.active.x).toBe(3);
 		});
 		it('line of ￥ even', async () => {
 			await term.writeP('￥'.repeat(49));
-			for (let i = 0; i < term.bufferService.cols; ++i) {
-				term.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
+			for (let i = 0; i < term.core.bufferService.cols; ++i) {
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
 				if (i % 2) {
 					expect(cell.getChars()).toBe('');
 					expect(cell.getChars().length).toBe(0);
@@ -1303,16 +1457,16 @@ describe('CoreBrowserTerminal', () => {
 					expect(cell.getWidth()).toBe(2);
 				}
 			}
-			term.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
+			term.core.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
 			expect(cell.getChars()).toBe('￥');
 			expect(cell.getChars().length).toBe(1);
 			expect(cell.getWidth()).toBe(2);
 		});
 		it('line of ￥ odd', async () => {
-			term.bufferService.buffers.active.x = 1;
+			term.core.bufferService.buffers.active.x = 1;
 			await term.writeP('￥'.repeat(49));
-			for (let i = 1; i < term.bufferService.cols - 1; ++i) {
-				term.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
+			for (let i = 1; i < term.core.bufferService.cols - 1; ++i) {
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
 				if (!(i % 2)) {
 					expect(cell.getChars()).toBe('');
 					expect(cell.getChars().length).toBe(0);
@@ -1323,20 +1477,22 @@ describe('CoreBrowserTerminal', () => {
 					expect(cell.getWidth()).toBe(2);
 				}
 			}
-			term.bufferService.buffers.active.lines.get(0)!.loadCell(term.bufferService.cols - 1, cell);
+			term.core.bufferService.buffers.active.lines
+				.get(0)!
+				.loadCell(term.core.bufferService.cols - 1, cell);
 			expect(cell.getChars()).toBe('');
 			expect(cell.getChars().length).toBe(0);
 			expect(cell.getWidth()).toBe(1);
-			term.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
+			term.core.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
 			expect(cell.getChars()).toBe('￥');
 			expect(cell.getChars().length).toBe(1);
 			expect(cell.getWidth()).toBe(2);
 		});
 		it('line of ￥ with combining odd', async () => {
-			term.bufferService.buffers.active.x = 1;
+			term.core.bufferService.buffers.active.x = 1;
 			await term.writeP('￥́'.repeat(49));
-			for (let i = 1; i < term.bufferService.cols - 1; ++i) {
-				term.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
+			for (let i = 1; i < term.core.bufferService.cols - 1; ++i) {
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
 				if (!(i % 2)) {
 					expect(cell.getChars()).toBe('');
 					expect(cell.getChars().length).toBe(0);
@@ -1347,19 +1503,21 @@ describe('CoreBrowserTerminal', () => {
 					expect(cell.getWidth()).toBe(2);
 				}
 			}
-			term.bufferService.buffers.active.lines.get(0)!.loadCell(term.bufferService.cols - 1, cell);
+			term.core.bufferService.buffers.active.lines
+				.get(0)!
+				.loadCell(term.core.bufferService.cols - 1, cell);
 			expect(cell.getChars()).toBe('');
 			expect(cell.getChars().length).toBe(0);
 			expect(cell.getWidth()).toBe(1);
-			term.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
+			term.core.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
 			expect(cell.getChars()).toBe('￥́');
 			expect(cell.getChars().length).toBe(2);
 			expect(cell.getWidth()).toBe(2);
 		});
 		it('line of ￥ with combining even', async () => {
 			await term.writeP('￥́'.repeat(49));
-			for (let i = 0; i < term.bufferService.cols; ++i) {
-				term.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
+			for (let i = 0; i < term.core.bufferService.cols; ++i) {
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
 				if (i % 2) {
 					expect(cell.getChars()).toBe('');
 					expect(cell.getChars().length).toBe(0);
@@ -1370,16 +1528,16 @@ describe('CoreBrowserTerminal', () => {
 					expect(cell.getWidth()).toBe(2);
 				}
 			}
-			term.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
+			term.core.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
 			expect(cell.getChars()).toBe('￥́');
 			expect(cell.getChars().length).toBe(2);
 			expect(cell.getWidth()).toBe(2);
 		});
 		it('line of surrogate fullwidth with combining odd', async () => {
-			term.bufferService.buffers.active.x = 1;
+			term.core.bufferService.buffers.active.x = 1;
 			await term.writeP('𠹭́'.repeat(49));
-			for (let i = 1; i < term.bufferService.cols - 1; ++i) {
-				term.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
+			for (let i = 1; i < term.core.bufferService.cols - 1; ++i) {
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
 				if (!(i % 2)) {
 					expect(cell.getChars()).toBe('');
 					expect(cell.getChars().length).toBe(0);
@@ -1390,19 +1548,21 @@ describe('CoreBrowserTerminal', () => {
 					expect(cell.getWidth()).toBe(2);
 				}
 			}
-			term.bufferService.buffers.active.lines.get(0)!.loadCell(term.bufferService.cols - 1, cell);
+			term.core.bufferService.buffers.active.lines
+				.get(0)!
+				.loadCell(term.core.bufferService.cols - 1, cell);
 			expect(cell.getChars()).toBe('');
 			expect(cell.getChars().length).toBe(0);
 			expect(cell.getWidth()).toBe(1);
-			term.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
+			term.core.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
 			expect(cell.getChars()).toBe('𠹭́');
 			expect(cell.getChars().length).toBe(3);
 			expect(cell.getWidth()).toBe(2);
 		});
 		it('line of surrogate fullwidth with combining even', async () => {
 			await term.writeP('𠹭́'.repeat(49));
-			for (let i = 0; i < term.bufferService.cols; ++i) {
-				term.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
+			for (let i = 0; i < term.core.bufferService.cols; ++i) {
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(i, cell);
 				if (i % 2) {
 					expect(cell.getChars()).toBe('');
 					expect(cell.getChars().length).toBe(0);
@@ -1413,7 +1573,7 @@ describe('CoreBrowserTerminal', () => {
 					expect(cell.getWidth()).toBe(2);
 				}
 			}
-			term.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
+			term.core.bufferService.buffers.active.lines.get(1)!.loadCell(0, cell);
 			expect(cell.getChars()).toBe('𠹭́');
 			expect(cell.getChars().length).toBe(3);
 			expect(cell.getWidth()).toBe(2);
@@ -1428,74 +1588,82 @@ describe('CoreBrowserTerminal', () => {
 		const cell = new CellData();
 		it('halfwidth - all', async () => {
 			await term.writeP('0123456789'.repeat(8).slice(-80));
-			term.bufferService.buffers.active.x = 10;
-			term.bufferService.buffers.active.y = 0;
-			term.write('\x1b[4h');
+			term.core.bufferService.buffers.active.x = 10;
+			term.core.bufferService.buffers.active.y = 0;
+			term.core.write('\x1b[4h');
 			await term.writeP('abcde');
-			expect(term.bufferService.buffers.active.lines.get(0)!.length).toBe(term.bufferService.cols);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(10, cell).getChars()).toBe(
-				'a'
+			expect(term.core.bufferService.buffers.active.lines.get(0)!.length).toBe(
+				term.core.bufferService.cols
 			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(14, cell).getChars()).toBe(
-				'e'
-			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(15, cell).getChars()).toBe(
-				'0'
-			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(79, cell).getChars()).toBe(
-				'4'
-			);
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(10, cell).getChars()
+			).toBe('a');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(14, cell).getChars()
+			).toBe('e');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(15, cell).getChars()
+			).toBe('0');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(79, cell).getChars()
+			).toBe('4');
 		});
 		it('fullwidth - insert', async () => {
 			await term.writeP('0123456789'.repeat(8).slice(-80));
-			term.bufferService.buffers.active.x = 10;
-			term.bufferService.buffers.active.y = 0;
-			term.write('\x1b[4h');
+			term.core.bufferService.buffers.active.x = 10;
+			term.core.bufferService.buffers.active.y = 0;
+			term.core.write('\x1b[4h');
 			await term.writeP('￥￥￥');
-			expect(term.bufferService.buffers.active.lines.get(0)!.length).toBe(term.bufferService.cols);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(10, cell).getChars()).toBe(
-				'￥'
+			expect(term.core.bufferService.buffers.active.lines.get(0)!.length).toBe(
+				term.core.bufferService.cols
 			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(11, cell).getChars()).toBe(
-				''
-			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(14, cell).getChars()).toBe(
-				'￥'
-			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(15, cell).getChars()).toBe(
-				''
-			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(79, cell).getChars()).toBe(
-				'3'
-			);
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(10, cell).getChars()
+			).toBe('￥');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(11, cell).getChars()
+			).toBe('');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(14, cell).getChars()
+			).toBe('￥');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(15, cell).getChars()
+			).toBe('');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(79, cell).getChars()
+			).toBe('3');
 		});
 		it('fullwidth - right border', async () => {
 			await term.writeP('￥'.repeat(40));
-			term.bufferService.buffers.active.x = 10;
-			term.bufferService.buffers.active.y = 0;
-			term.write('\x1b[4h');
+			term.core.bufferService.buffers.active.x = 10;
+			term.core.bufferService.buffers.active.y = 0;
+			term.core.write('\x1b[4h');
 			await term.writeP('a');
-			expect(term.bufferService.buffers.active.lines.get(0)!.length).toBe(term.bufferService.cols);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(10, cell).getChars()).toBe(
-				'a'
+			expect(term.core.bufferService.buffers.active.lines.get(0)!.length).toBe(
+				term.core.bufferService.cols
 			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(11, cell).getChars()).toBe(
-				'￥'
-			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(79, cell).getChars()).toBe(
-				''
-			); // fullwidth char got replaced
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(10, cell).getChars()
+			).toBe('a');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(11, cell).getChars()
+			).toBe('￥');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(79, cell).getChars()
+			).toBe(''); // fullwidth char got replaced
 			await term.writeP('b');
-			expect(term.bufferService.buffers.active.lines.get(0)!.length).toBe(term.bufferService.cols);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(11, cell).getChars()).toBe(
-				'b'
+			expect(term.core.bufferService.buffers.active.lines.get(0)!.length).toBe(
+				term.core.bufferService.cols
 			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(12, cell).getChars()).toBe(
-				'￥'
-			);
-			expect(term.bufferService.buffers.active.lines.get(0)!.loadCell(79, cell).getChars()).toBe(
-				''
-			); // empty cell after fullwidth
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(11, cell).getChars()
+			).toBe('b');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(12, cell).getChars()
+			).toBe('￥');
+			expect(
+				term.core.bufferService.buffers.active.lines.get(0)!.loadCell(79, cell).getChars()
+			).toBe(''); // empty cell after fullwidth
 		});
 	});
 
@@ -1509,9 +1677,9 @@ describe('CoreBrowserTerminal', () => {
 
 			const normalTerminal = new TestTerminal({ rows: 5, cols: 10, windowsPty: {} });
 			await normalTerminal.writeP(data.join(''));
-			expect(normalTerminal.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(false);
-			expect(normalTerminal.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(false);
-			expect(normalTerminal.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
+			expect(normalTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(false);
+			expect(normalTerminal.core.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(false);
+			expect(normalTerminal.core.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
 
 			const windowsModeTerminal = new TestTerminal({
 				rows: 5,
@@ -1519,10 +1687,16 @@ describe('CoreBrowserTerminal', () => {
 				windowsPty: { backend: 'conpty', buildNumber: 19000 }
 			});
 			await windowsModeTerminal.writeP(data.join(''));
-			expect(windowsModeTerminal.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(false);
+			expect(windowsModeTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(
+				false
+			);
 			// This line should wrap in Windows mode as the previous line ends in a non-null character
-			expect(windowsModeTerminal.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(true);
-			expect(windowsModeTerminal.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
+			expect(windowsModeTerminal.core.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(
+				true
+			);
+			expect(windowsModeTerminal.core.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(
+				false
+			);
 		});
 
 		it('should mark lines as wrapped when the line ends in a non-null character after a CUP', async () => {
@@ -1534,9 +1708,9 @@ describe('CoreBrowserTerminal', () => {
 
 			const normalTerminal = new TestTerminal({ rows: 5, cols: 10, windowsPty: {} });
 			await normalTerminal.writeP(data.join(''));
-			expect(normalTerminal.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(false);
-			expect(normalTerminal.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(false);
-			expect(normalTerminal.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
+			expect(normalTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(false);
+			expect(normalTerminal.core.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(false);
+			expect(normalTerminal.core.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
 
 			const windowsModeTerminal = new TestTerminal({
 				rows: 5,
@@ -1544,10 +1718,16 @@ describe('CoreBrowserTerminal', () => {
 				windowsPty: { backend: 'conpty', buildNumber: 19000 }
 			});
 			await windowsModeTerminal.writeP(data.join(''));
-			expect(windowsModeTerminal.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(false);
+			expect(windowsModeTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(
+				false
+			);
 			// This line should wrap in Windows mode as the previous line ends in a non-null character
-			expect(windowsModeTerminal.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(true);
-			expect(windowsModeTerminal.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
+			expect(windowsModeTerminal.core.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(
+				true
+			);
+			expect(windowsModeTerminal.core.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(
+				false
+			);
 		});
 	});
 
@@ -1556,33 +1736,33 @@ describe('CoreBrowserTerminal', () => {
 		const termNotConverting = createTestTerminal({ cols: 15, rows: 10 });
 		await termNotConverting.writeP('Hello\nWorld');
 		expect(
-			termNotConverting.bufferService.buffers.active.lines.get(0)!.translateToString(false)
+			termNotConverting.core.bufferService.buffers.active.lines.get(0)!.translateToString(false)
 		).toBe('Hello          ');
 		expect(
-			termNotConverting.bufferService.buffers.active.lines.get(1)!.translateToString(false)
+			termNotConverting.core.bufferService.buffers.active.lines.get(1)!.translateToString(false)
 		).toBe('     World     ');
 		expect(
-			termNotConverting.bufferService.buffers.active.lines.get(0)!.translateToString(true)
+			termNotConverting.core.bufferService.buffers.active.lines.get(0)!.translateToString(true)
 		).toBe('Hello');
 		expect(
-			termNotConverting.bufferService.buffers.active.lines.get(1)!.translateToString(true)
+			termNotConverting.core.bufferService.buffers.active.lines.get(1)!.translateToString(true)
 		).toBe('     World');
 
 		// converting
 		const termConverting = createTestTerminal({ cols: 15, rows: 10, convertEol: true });
 		await termConverting.writeP('Hello\nWorld');
-		expect(termConverting.bufferService.buffers.active.lines.get(0)!.translateToString(false)).toBe(
-			'Hello          '
-		);
-		expect(termConverting.bufferService.buffers.active.lines.get(1)!.translateToString(false)).toBe(
-			'World          '
-		);
-		expect(termConverting.bufferService.buffers.active.lines.get(0)!.translateToString(true)).toBe(
-			'Hello'
-		);
-		expect(termConverting.bufferService.buffers.active.lines.get(1)!.translateToString(true)).toBe(
-			'World'
-		);
+		expect(
+			termConverting.core.bufferService.buffers.active.lines.get(0)!.translateToString(false)
+		).toBe('Hello          ');
+		expect(
+			termConverting.core.bufferService.buffers.active.lines.get(1)!.translateToString(false)
+		).toBe('World          ');
+		expect(
+			termConverting.core.bufferService.buffers.active.lines.get(0)!.translateToString(true)
+		).toBe('Hello');
+		expect(
+			termConverting.core.bufferService.buffers.active.lines.get(1)!.translateToString(true)
+		).toBe('World');
 	});
 
 	// FIXME: move to common/CoreTerminal.test once the trimming is moved over
@@ -1593,26 +1773,26 @@ describe('CoreBrowserTerminal', () => {
 			const term = createTestTerminal();
 			const markers: IMarker[] = [];
 			const disposeStack: IMarker[] = [];
-			term.optionsService.options.scrollback = 1;
+			term.core.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('\x1b[r0\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('1\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('2\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('3\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('4');
 			for (let i = 0; i < markers.length; ++i) {
@@ -1625,26 +1805,26 @@ describe('CoreBrowserTerminal', () => {
 			const term = createTestTerminal();
 			const markers: IMarker[] = [];
 			const disposeStack: IMarker[] = [];
-			term.optionsService.options.scrollback = 1;
+			term.core.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('\x1b[r0\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('1\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('2\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('3\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('4');
 			for (let i = 0; i < markers.length; ++i) {
@@ -1669,26 +1849,26 @@ describe('CoreBrowserTerminal', () => {
 			const term = createTestTerminal();
 			const markers: IMarker[] = [];
 			const disposeStack: IMarker[] = [];
-			term.optionsService.options.scrollback = 1;
+			term.core.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('\x1b[r0\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('1\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('2\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('3\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('4');
 			for (let i = 0; i < markers.length; ++i) {
@@ -1703,26 +1883,26 @@ describe('CoreBrowserTerminal', () => {
 			const term = createTestTerminal();
 			const markers: IMarker[] = [];
 			const disposeStack: IMarker[] = [];
-			term.optionsService.options.scrollback = 1;
+			term.core.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('\x1b[r0\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('1\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('2\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('3\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('4');
 			for (let i = 0; i < markers.length; ++i) {
@@ -1738,26 +1918,26 @@ describe('CoreBrowserTerminal', () => {
 			const term = createTestTerminal();
 			const markers: IMarker[] = [];
 			const disposeStack: IMarker[] = [];
-			term.optionsService.options.scrollback = 1;
+			term.core.optionsService.options.scrollback = 1;
 			term.resize(10, 5);
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('\x1b[r0\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('1\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('2\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('3\r\n');
 			markers.push(
-				term.bufferService.buffers.active.addMarker(term.bufferService.buffers.active.y)
+				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
 			await term.writeP('4');
 			for (let i = 0; i < markers.length; ++i) {
@@ -1776,14 +1956,14 @@ describe('CoreBrowserTerminal', () => {
 			term = createTestTerminal();
 		});
 		it('get options', () => {
-			expect(term.options.cols).toBe(80);
-			expect(term.options.rows).toBe(24);
+			expect(term.core.options.cols).toBe(80);
+			expect(term.core.options.rows).toBe(24);
 		});
 		it('set options', async () => {
-			term.options.cols = 40;
-			expect(term.options.cols).toBe(40);
-			term.options.rows = 20;
-			expect(term.options.rows).toBe(20);
+			term.core.options.cols = 40;
+			expect(term.core.options.cols).toBe(40);
+			term.core.options.rows = 20;
+			expect(term.core.options.rows).toBe(20);
 		});
 	});
 });
