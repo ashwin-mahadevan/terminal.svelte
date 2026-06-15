@@ -185,7 +185,7 @@ describe('CoreBrowserTerminal', () => {
 					expect(typeof e.rows).toBe('number');
 					done();
 				});
-				term.resize(1, 1);
+				term.core.resize(1, 1);
 			}));
 		it('should fire the onScroll event', () =>
 			new Promise<void>((done) => {
@@ -1269,7 +1269,7 @@ describe('CoreBrowserTerminal', () => {
 			it(`${range}: 2 characters per cell over line end with autowrap`, async (): Promise<void> => {
 				const high = String.fromCharCode(0xd800);
 				const cell = new CellData();
-				term.resize(term.core.bufferService.cols, 40);
+				term.core.resize(term.core.bufferService.cols, 40);
 				const values: string[] = [];
 				for (let j = i; j <= i + 0xf; j++) {
 					values.push(high + String.fromCharCode(j));
@@ -1774,7 +1774,7 @@ describe('CoreBrowserTerminal', () => {
 			const markers: IMarker[] = [];
 			const disposeStack: IMarker[] = [];
 			term.core.optionsService.options.scrollback = 1;
-			term.resize(10, 5);
+			term.core.resize(10, 5);
 			markers.push(
 				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
@@ -1806,7 +1806,7 @@ describe('CoreBrowserTerminal', () => {
 			const markers: IMarker[] = [];
 			const disposeStack: IMarker[] = [];
 			term.core.optionsService.options.scrollback = 1;
-			term.resize(10, 5);
+			term.core.resize(10, 5);
 			markers.push(
 				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
@@ -1850,7 +1850,7 @@ describe('CoreBrowserTerminal', () => {
 			const markers: IMarker[] = [];
 			const disposeStack: IMarker[] = [];
 			term.core.optionsService.options.scrollback = 1;
-			term.resize(10, 5);
+			term.core.resize(10, 5);
 			markers.push(
 				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
@@ -1884,7 +1884,7 @@ describe('CoreBrowserTerminal', () => {
 			const markers: IMarker[] = [];
 			const disposeStack: IMarker[] = [];
 			term.core.optionsService.options.scrollback = 1;
-			term.resize(10, 5);
+			term.core.resize(10, 5);
 			markers.push(
 				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
@@ -1919,7 +1919,7 @@ describe('CoreBrowserTerminal', () => {
 			const markers: IMarker[] = [];
 			const disposeStack: IMarker[] = [];
 			term.core.optionsService.options.scrollback = 1;
-			term.resize(10, 5);
+			term.core.resize(10, 5);
 			markers.push(
 				term.core.bufferService.buffers.active.addMarker(term.core.bufferService.buffers.active.y)
 			);
@@ -1944,7 +1944,7 @@ describe('CoreBrowserTerminal', () => {
 				const marker = markers[i];
 				marker.onDispose(() => disposeStack.push(marker));
 			}
-			term.resize(10, 2);
+			term.core.resize(10, 2);
 			expect(disposeStack).toEqual([markers[0], markers[1]]);
 			expect(markers.map((el) => el.line)).toEqual([-1, -1, 0, 1, 2]);
 		});

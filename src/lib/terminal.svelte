@@ -86,7 +86,7 @@
 			1,
 			Math.floor(clientHeight / terminal!.renderService!.dimensions!.css.cell.height)
 		);
-		terminal.resize(cols, rows);
+		terminal.core.resize(cols, rows);
 		emulator.columns = cols;
 		emulator.rows = rows;
 	});

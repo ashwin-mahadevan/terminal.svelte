@@ -1030,20 +1030,6 @@ export class CoreBrowserTerminal {
 	};
 
 	/**
-	 * Resizes the terminal.
-	 *
-	 * @param x The number of columns to resize to.
-	 * @param y The number of rows to resize to.
-	 */
-	public resize(x: number, y: number): void {
-		if (x === this.core.bufferService.cols && y === this.core.bufferService.rows) {
-			return;
-		}
-
-		this.core.resize(x, y);
-	}
-
-	/**
 	 * Clear the entire buffer, making the prompt line the new first line.
 	 */
 	public clear(): void {
