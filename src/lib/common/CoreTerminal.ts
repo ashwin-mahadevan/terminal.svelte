@@ -22,7 +22,7 @@
  */
 
 import type { ITerminalOptions } from '$lib/common/services/Services';
-import { BufferService, BufferServiceConstants } from '$lib/common/services/BufferService';
+import { BufferService } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
 import type { IAttributeData } from '$lib/common/Types';
 import { CoreService } from '$lib/common/services/CoreService';
@@ -146,13 +146,6 @@ export class CoreTerminal {
 	}
 
 	public resize(x: number, y: number): void {
-		if (isNaN(x) || isNaN(y)) {
-			return;
-		}
-
-		x = Math.max(x, BufferServiceConstants.MINIMUM_COLS);
-		y = Math.max(y, BufferServiceConstants.MINIMUM_ROWS);
-
 		// Flush pending writes before resize to avoid race conditions where async
 		// writes are processed with incorrect dimensions
 		this._writeBuffer.flushSync();
