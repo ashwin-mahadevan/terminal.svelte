@@ -22,7 +22,6 @@ export class MouseCoordsService {
 			element,
 			colCount,
 			rowCount,
-			this._terminal.hasValidCharSize,
 			this._terminal.renderService!.dimensions.css.cell.width,
 			this._terminal.renderService!.dimensions.css.cell.height,
 			isSelection

@@ -27,7 +27,6 @@ describe('Mouse getCoords', () => {
 			document.createElement('div'),
 			10,
 			10,
-			true,
 			CHAR_WIDTH,
 			CHAR_HEIGHT
 		);
@@ -38,7 +37,6 @@ describe('Mouse getCoords', () => {
 			document.createElement('div'),
 			10,
 			10,
-			true,
 			CHAR_WIDTH,
 			CHAR_HEIGHT
 		);
@@ -49,7 +47,6 @@ describe('Mouse getCoords', () => {
 			document.createElement('div'),
 			10,
 			10,
-			true,
 			CHAR_WIDTH,
 			CHAR_HEIGHT
 		);
@@ -60,7 +57,6 @@ describe('Mouse getCoords', () => {
 			document.createElement('div'),
 			10,
 			10,
-			true,
 			CHAR_WIDTH,
 			CHAR_HEIGHT
 		);
@@ -84,7 +80,6 @@ describe('Mouse getCoords', () => {
 			document.createElement('div'),
 			10,
 			10,
-			true,
 			CHAR_WIDTH,
 			CHAR_HEIGHT
 		);
@@ -96,7 +91,6 @@ describe('Mouse getCoords', () => {
 			document.createElement('div'),
 			10,
 			10,
-			true,
 			CHAR_WIDTH,
 			CHAR_HEIGHT
 		);
