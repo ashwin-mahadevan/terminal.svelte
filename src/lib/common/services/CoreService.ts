@@ -87,6 +87,7 @@ export class CoreService {
 
 		// Fire onUserInput so listeners can react as well (eg. clear selection)
 		if (wasUserInput) {
+			this._terminal._writeBuffer.handleUserInput();
 			this._onUserInput.fire();
 		}
 

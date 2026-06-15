@@ -56,9 +56,8 @@ export class CoreTerminal {
 	public readonly optionsService: OptionsService;
 
 	public inputHandler: InputHandler;
-	private _writeBuffer: WriteBuffer;
+	public _writeBuffer: WriteBuffer;
 	private _windowsWrappingHeuristics = new MutableDisposable();
-	private _userInputListener: IDisposable;
 	private _windowsPtyOptionListener: IDisposable;
 	private _bufferScrollListener: IDisposable;
 
@@ -91,9 +90,6 @@ export class CoreTerminal {
 		// Register input handler and handle/forward events
 		this.inputHandler = new InputHandler(this);
 		// Setup listeners
-		this._userInputListener = this.coreService.onUserInput(() =>
-			this._writeBuffer.handleUserInput()
-		);
 		this._windowsPtyOptionListener = this.optionsService.onSpecificOptionChange('windowsPty', () =>
 			this._handleWindowsPtyOptionChange()
 		);
@@ -112,7 +108,6 @@ export class CoreTerminal {
 
 	public dispose(): void {
 		this._store.dispose();
-		this._userInputListener.dispose();
 		this._windowsPtyOptionListener.dispose();
 		this._bufferScrollListener.dispose();
 		this._writeBuffer.dispose();
