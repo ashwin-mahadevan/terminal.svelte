@@ -106,12 +106,12 @@ function runFunctional(input: string): SemanticEvent[] {
 	const events: ParseEvent[] = [];
 
 	for (let i = 0; i < length; i++) {
-		const { action, state: nextState } = transition(state, container[i]);
+		const { action, state: tableNextState } = transition(state, container[i]);
 		const result = dispatch(action, container[i], collect, params);
 		events.push(...result.events);
 		collect = result.collect;
 		params = result.params;
-		state = nextState;
+		state = result.nextState ?? tableNextState;
 	}
 
 	return aggregate(events);
@@ -122,6 +122,12 @@ function runFunctional(input: string): SemanticEvent[] {
 function runReference(input: string): SemanticEvent[] {
 	const parser = new EscapeSequenceParser();
 	const out: SemanticEvent[] = [];
+
+	// The constructor registers a handler that swallows ESC \ (7-bit ST) so it
+	// doesn't bubble to the fallback. Remove it so the reference emits the same
+	// esc event the functional parser produces, letting both models agree on the
+	// raw FSM output without this higher-level policy applied on top.
+	parser.clearEscHandler({ final: '\\' });
 
 	parser.setPrintHandler((data, start, end) => {
 		out.push({ type: 'print', text: utf32ToString(data, start, end) });
@@ -193,11 +199,6 @@ function runReference(input: string): SemanticEvent[] {
 }
 
 // ─── Inputs ───────────────────────────────────────────────────────────────────
-//
-// Terminators: OSC sequences use BEL (0x07) or C1 ST (0x9c). DCS and APC
-// sequences use C1 ST (0x9c). ESC \ (7-bit ST) is intentionally avoided
-// because EscapeSequenceParser swallows it via a built-in ESC handler, which
-// would cause a spurious mismatch (functional emits esc event, reference does not).
 
 const CASES: { label: string; input: string }[] = [
 	{ label: 'plain text', input: 'hello' },
@@ -212,7 +213,10 @@ const CASES: { label: string; input: string }[] = [
 	{ label: 'OSC — window title, C1 ST terminator', input: '\x1b]2;hello\x9c' },
 	{ label: 'OSC — C1 introducer, BEL terminator', input: '\x9d2;hello\x07' },
 	{ label: 'DCS passthrough', input: '\x1bPq\x9c' },
+	{ label: 'DCS — ESC \\ terminator', input: '\x1bPq\x1b\\' },
 	{ label: 'APC sequence', input: '\x1b_Gdata\x9c' },
+	{ label: 'APC — ESC \\ terminator', input: '\x1b_Gdata\x1b\\' },
+	{ label: 'OSC — ESC \\ terminator', input: '\x1b]2;hello\x1b\\' },
 	{ label: 'SOS/PM — fully ignored', input: '\x1b^ignored\x9c' },
 	{ label: 'C1 CSI introducer', input: '\x9b31m' },
 	{ label: 'mixed: text + CSI + text + execute', input: 'abc\x1b[31mdef\n' },

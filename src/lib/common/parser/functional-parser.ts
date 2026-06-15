@@ -1,6 +1,5 @@
 import { VT500_TRANSITION_TABLE } from '$lib/common/parser/EscapeSequenceParser';
-import { ParserAction } from '$lib/common/parser/Constants';
-import type { ParserState } from '$lib/common/parser/Constants';
+import { ParserAction, ParserState } from '$lib/common/parser/Constants';
 import type { ParamsArray } from '$lib/common/parser/Types';
 import { Params } from '$lib/common/parser/Params';
 
@@ -28,6 +27,11 @@ export type DispatchResult = {
 	events: ParseEvent[];
 	collect: number;
 	params: Params;
+	// When set, the driver must use this instead of the state returned by transition().
+	// Needed for OSC_END/DCS_UNHOOK/APC_END when the terminator is ESC (0x1b): the
+	// transition table says GROUND, but the correct next state is ESCAPE so that the
+	// trailing \ of a 7-bit ST (ESC \) is processed in ESCAPE state, not printed.
+	nextState?: ParserState;
 };
 
 /**
@@ -117,7 +121,12 @@ export function dispatch(
 			return { events: [{ type: 'osc-put', codepoint: code }], collect, params };
 
 		case ParserAction.OSC_END:
-			return { events: [{ type: 'osc-end', success: !ABORT_CODES.has(code) }], collect, params };
+			return {
+				events: [{ type: 'osc-end', success: !ABORT_CODES.has(code) }],
+				collect,
+				params,
+				nextState: code === 0x1b ? ParserState.ESCAPE : undefined
+			};
 
 		case ParserAction.DCS_HOOK:
 			return {
@@ -133,7 +142,8 @@ export function dispatch(
 			return {
 				events: [{ type: 'dcs-unhook', success: !ABORT_CODES.has(code) }],
 				collect,
-				params
+				params,
+				nextState: code === 0x1b ? ParserState.ESCAPE : undefined
 			};
 
 		case ParserAction.APC_START:
@@ -150,7 +160,8 @@ export function dispatch(
 			return {
 				events: [{ type: 'apc-end', success: !ABORT_CODES.has(code) }],
 				collect,
-				params
+				params,
+				nextState: code === 0x1b ? ParserState.ESCAPE : undefined
 			};
 
 		default:
