@@ -62,7 +62,7 @@ import { Linkifier } from './Linkifier';
 import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import { MutableDisposable } from '$lib/common/Lifecycle';
 import { isChromeOS, isFirefox, isLinux, isMac, isWindows } from '$lib/common/Platform';
 
 export class CoreBrowserTerminal extends CoreTerminal {
@@ -256,19 +256,11 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this.keyboardService = new KeyboardService(this);
 		this.linkProviderService = new LinkProviderService();
 		this.linkProviderService.registerLinkProvider(new OscLinkProvider(this));
-
-		this._store.add(
-			toDisposable(() => {
-				this._customKeyEventHandler = undefined;
-				// The root element is the caller-owned host (see open()), so we must not
-				// remove it — its owner (e.g. Svelte unmounting the component) discards
-				// it along with every child we inserted.
-			})
-		);
 	}
 
 	public override dispose(): void {
 		super.dispose();
+		this._customKeyEventHandler = undefined;
 		this._linkifier?.dispose();
 		this._accessibilityManager.dispose();
 		this.coreBrowserService?.dispose();
