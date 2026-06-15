@@ -22,13 +22,7 @@
  */
 
 import type { ITerminalOptions } from '$lib/common/services/Services';
-import {
-	copyHandler,
-	handlePasteEvent,
-	moveTextAreaUnderMouseCursor,
-	paste,
-	rightClickHandler
-} from '$lib/browser/Clipboard';
+import { paste } from '$lib/browser/Clipboard';
 import * as Strings from '$lib/browser/LocalizableStrings';
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
 import type { CharacterJoinerHandler, CustomKeyEventHandler } from '$lib/browser/Types';
@@ -61,7 +55,7 @@ import { LegacyEmitter } from '$lib/common/Event';
 import type { IEvent } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { MutableDisposable } from '$lib/common/Lifecycle';
-import { isChromeOS, isFirefox, isLinux, isMac, isWindows } from '$lib/common/Platform';
+import { isChromeOS, isMac, isWindows } from '$lib/common/Platform';
 
 // This class is the user-interface part of xterm.js. One of the goals of this project (terminal.svelte)
 // is to migrate this class's functionality into the Terminal component with svelte reactivity.
@@ -126,7 +120,7 @@ export class CoreBrowserTerminal {
 	 */
 	private _unprocessedDeadKey: boolean = false;
 
-	private _compositionHelper: CompositionHelper | undefined;
+	public _compositionHelper: CompositionHelper | undefined;
 	private _accessibilityManager = new MutableDisposable<AccessibilityManager>();
 
 	private readonly _onKey = new LegacyEmitter<{ key: string; domEvent: KeyboardEvent }>();
@@ -368,68 +362,7 @@ export class CoreBrowserTerminal {
 		this._onFocus.fire();
 	};
 
-	public _compositionStart = (): void => {
-		// Ensure the textarea is synced to the latest cursor location before composition begins. This
-		// is to workaround a problem where highly dynamic TUIs like agentic CLIs reprint agressively
-		// would cause the IME to appear in the wrong position. The theory is that when the IME is
-		// triggered during a partial render the textarea position becomes locked and will not move
-		// until it is hidden and a custom move occurs.
-		this._syncTextArea();
-		this._compositionHelper!.compositionstart();
-		this._compositionHelper!.updateCompositionElements();
-	};
-
-	public _compositionUpdate = (e: CompositionEvent): void => {
-		this._compositionHelper!.compositionupdate(e);
-	};
-
-	public _compositionEnd = (): void => {
-		this._compositionHelper!.compositionend();
-	};
-
-	public _copy = (event: ClipboardEvent): void => {
-		if (!this.selectionService?.hasSelection) {
-			return;
-		}
-		copyHandler(event, this.selectionService!);
-	};
-
-	public _paste = (event: ClipboardEvent): void => {
-		handlePasteEvent(event, this.textarea!, this.core.coreService, this.core.optionsService);
-	};
-
-	public _mouseDown = (event: MouseEvent): void => {
-		if (isFirefox && event.button === 2) {
-			rightClickHandler(
-				event,
-				this.textarea!,
-				this.screenElement!,
-				this.selectionService!,
-				this.core.optionsService.options.rightClickSelectsWord
-			);
-		}
-		this.selectionService!.handleMouseDown(event);
-	};
-
-	public _contextMenu = (event: MouseEvent): void => {
-		if (isFirefox) {
-			rightClickHandler(
-				event,
-				this.textarea!,
-				this.screenElement!,
-				this.selectionService!,
-				this.core.optionsService.options.rightClickSelectsWord
-			);
-		}
-	};
-
-	public _auxClick = (event: MouseEvent): void => {
-		if (isLinux && event.button === 1) {
-			moveTextAreaUnderMouseCursor(event, this.textarea!, this.screenElement!);
-		}
-	};
-
-	private _syncTextArea(): void {
+	public _syncTextArea(): void {
 		if (
 			!this.textarea ||
 			!this.core.bufferService.buffers.active.isCursorInViewport ||

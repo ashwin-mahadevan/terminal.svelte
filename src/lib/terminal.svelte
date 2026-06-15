@@ -6,8 +6,16 @@
 	import { setOrReportClipboard } from '$lib/clipboard';
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
+	import {
+		copyHandler,
+		handlePasteEvent,
+		moveTextAreaUnderMouseCursor,
+		rightClickHandler
+	} from '$lib/browser/Clipboard';
+	import { isFirefox, isLinux } from '$lib/common/Platform';
 	import { browser } from '$app/environment';
 	import { Emulator } from './emulator.svelte';
+	import { C0 } from './common/data/EscapeSequences';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -207,11 +215,47 @@
 	bind:this={element}
 	bind:clientWidth
 	bind:clientHeight
-	oncopy={terminal._copy}
-	onpaste={terminal._paste}
-	onmousedown={terminal._mouseDown}
-	oncontextmenu={terminal._contextMenu}
-	onauxclick={terminal._auxClick}
+	oncopy={(event) => {
+		if (terminal.selectionService?.hasSelection) {
+			copyHandler(event, terminal.selectionService!);
+		}
+	}}
+	onpaste={(event) => {
+		handlePasteEvent(
+			event,
+			terminal.textarea!,
+			terminal.core.coreService,
+			terminal.core.optionsService
+		);
+	}}
+	onmousedown={(event) => {
+		if (isFirefox && event.button === 2) {
+			rightClickHandler(
+				event,
+				terminal.textarea!,
+				terminal.screenElement!,
+				terminal.selectionService!,
+				terminal.core.optionsService.options.rightClickSelectsWord
+			);
+		}
+		terminal.selectionService!.handleMouseDown(event);
+	}}
+	oncontextmenu={(event) => {
+		if (isFirefox) {
+			rightClickHandler(
+				event,
+				terminal.textarea!,
+				terminal.screenElement!,
+				terminal.selectionService!,
+				terminal.core.optionsService.options.rightClickSelectsWord
+			);
+		}
+	}}
+	onauxclick={(event) => {
+		if (isLinux && event.button === 1) {
+			moveTextAreaUnderMouseCursor(event, terminal.textarea!, terminal.screenElement!);
+		}
+	}}
 	role="application"
 >
 	<div bind:this={scrollableEl}>
@@ -233,13 +277,45 @@
 					onkeydowncapture={terminal._keyDown}
 					onkeyupcapture={terminal._keyup}
 					onkeypresscapture={terminal._keyPress}
-					oncompositionstart={terminal._compositionStart}
-					oncompositionupdate={terminal._compositionUpdate}
-					oncompositionend={terminal._compositionEnd}
-					oninputcapture={terminal._inputEvent}
-					onpaste={terminal._paste}
+					oncompositionstart={() => {
+						// Ensure the textarea is synced to the latest cursor location before composition begins. This
+						// is to workaround a problem where highly dynamic TUIs like agentic CLIs reprint agressively
+						// would cause the IME to appear in the wrong position. The theory is that when the IME is
+						// triggered during a partial render the textarea position becomes locked and will not move
+						// until it is hidden and a custom move occurs.
+						terminal._syncTextArea();
+						terminal._compositionHelper!.compositionstart();
+						terminal._compositionHelper!.updateCompositionElements();
+					}}
+					oncompositionupdate={(e) => terminal._compositionHelper!.compositionupdate(e)}
+					oncompositionend={() => terminal._compositionHelper!.compositionend()}
+					oninputcapture={(e) => terminal._inputEvent(e as unknown as InputEvent)}
+					onpaste={(event) => {
+						handlePasteEvent(
+							event,
+							terminal.textarea!,
+							terminal.core.coreService,
+							terminal.core.optionsService
+						);
+					}}
 					onfocus={terminal._handleTextAreaFocus}
-					onblur={terminal._handleTextAreaBlur}
+					onblur={() => {
+						// Text can safely be removed on blur. Doing it earlier could interfere with
+						// screen readers reading it out.
+						textareaEl.value = '';
+
+						terminal.refresh(
+							terminal.core.bufferService.buffers.active.y,
+							terminal.core.bufferService.buffers.active.y
+						);
+
+						if (terminal.core.coreService.decPrivateModes.sendFocus) {
+							terminal.core.coreService.triggerDataEvent(C0.ESC + '[O');
+						}
+
+						element.classList.remove('focus');
+						terminal._onBlur.fire();
+					}}
 				></textarea>
 				<div class="composition-view" bind:this={compositionEl}></div>
 			</div>
