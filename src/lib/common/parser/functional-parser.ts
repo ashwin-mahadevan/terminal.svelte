@@ -23,35 +23,12 @@ export type ParseEvent =
 	| { type: 'apc-put'; codepoint: number }
 	| { type: 'apc-end'; success: boolean };
 
-export type DispatchResult = {
-	events: ParseEvent[];
+export type ParseResult = {
+	state: ParserState;
+	event: ParseEvent | undefined;
 	collect: number;
 	params: Params;
-	// When set, the driver must use this instead of the state returned by transition().
-	// Needed for OSC_END/DCS_UNHOOK/APC_END when the terminator is ESC (0x1b): the
-	// transition table says GROUND, but the correct next state is ESCAPE so that the
-	// trailing \ of a 7-bit ST (ESC \) is processed in ESCAPE state, not printed.
-	nextState?: ParserState;
 };
-
-/**
- * Pure transition lookup: given the current parser state and an incoming codepoint,
- * returns the action to take and the next state.
- */
-export function transition(
-	state: ParserState,
-	codepoint: number
-): { action: ParserAction; state: ParserState } {
-	const entry =
-		VT500_TRANSITION_TABLE.table[
-			(state << TRANSITION_ACTION_SHIFT) |
-				(codepoint < NON_ASCII_PRINTABLE ? codepoint : NON_ASCII_PRINTABLE)
-		];
-	return {
-		action: (entry >> TRANSITION_ACTION_SHIFT) as ParserAction,
-		state: (entry & TRANSITION_STATE_MASK) as ParserState
-	};
-}
 
 function zdmParams(): Params {
 	const p = new Params();
@@ -60,112 +37,123 @@ function zdmParams(): Params {
 }
 
 /**
- * Pure dispatch: given an action and the accumulated parser context (current codepoint,
- * collect buffer, params), returns the observable events produced by that action along
- * with updated collect and params.
+ * Pure parser step: given the current parser state and accumulated context,
+ * consume one codepoint and return the new state, any emitted event, and
+ * updated collect/params.
  *
- * Actions that accumulate state (COLLECT, PARAM, CLEAR) produce no events but return
- * updated collect/params. Dispatching actions (CSI_DISPATCH, ESC_DISPATCH, etc.) produce
- * events and leave collect/params unchanged. IGNORE and ERROR produce nothing.
+ * Each step produces at most one event. Actions that only mutate accumulation
+ * state (COLLECT, PARAM, CLEAR) return event: undefined.
  *
- * Note: `code` extends the (action, collect, params) baseline because several actions
- * require the current codepoint — EXECUTE/PRINT carry the byte value, *_END actions use
- * it to determine success (0x18/0x1a are abort codes), and APC_START uses it to form the
- * sequence identifier.
+ * One imperative fixup from EscapeSequenceParser is replicated here:
+ * OSC_END, DCS_UNHOOK, and APC_END override the table's GROUND next-state to
+ * ESCAPE when the terminating byte is ESC (0x1b), so that the trailing \ of a
+ * 7-bit ST (ESC \) is processed in ESCAPE state rather than printed.
  */
-export function dispatch(
-	action: ParserAction,
-	code: number,
+export function parse(
+	state: ParserState,
+	codepoint: number,
 	collect: number,
 	params: Params
-): DispatchResult {
+): ParseResult {
+	const entry =
+		VT500_TRANSITION_TABLE.table[
+			(state << TRANSITION_ACTION_SHIFT) |
+				(codepoint < NON_ASCII_PRINTABLE ? codepoint : NON_ASCII_PRINTABLE)
+		];
+	const action = (entry >> TRANSITION_ACTION_SHIFT) as ParserAction;
+	const next = (entry & TRANSITION_STATE_MASK) as ParserState;
+
 	switch (action) {
 		case ParserAction.COLLECT:
-			return { events: [], collect: (collect << 8) | code, params };
+			return { state: next, event: undefined, collect: (collect << 8) | codepoint, params };
 
 		case ParserAction.PARAM: {
-			const next = params.clone();
-			if (code === 0x3b) next.addParam(0);
-			else if (code === 0x3a) next.addSubParam(-1);
-			else next.addDigit(code - 48);
-			return { events: [], collect, params: next };
+			const p = params.clone();
+			if (codepoint === 0x3b) p.addParam(0);
+			else if (codepoint === 0x3a) p.addSubParam(-1);
+			else p.addDigit(codepoint - 48);
+			return { state: next, event: undefined, collect, params: p };
 		}
 
 		case ParserAction.CLEAR:
-			return { events: [], collect: 0, params: zdmParams() };
+			return { state: next, event: undefined, collect: 0, params: zdmParams() };
 
 		case ParserAction.PRINT:
-			return { events: [{ type: 'print', codepoint: code }], collect, params };
+			return { state: next, event: { type: 'print', codepoint }, collect, params };
 
 		case ParserAction.EXECUTE:
-			return { events: [{ type: 'execute', code }], collect, params };
+			return { state: next, event: { type: 'execute', code: codepoint }, collect, params };
 
 		case ParserAction.CSI_DISPATCH:
 			return {
-				events: [{ type: 'csi', ident: (collect << 8) | code, params: params.toArray() }],
+				state: next,
+				event: { type: 'csi', ident: (collect << 8) | codepoint, params: params.toArray() },
 				collect,
 				params
 			};
 
 		case ParserAction.ESC_DISPATCH:
 			return {
-				events: [{ type: 'esc', ident: (collect << 8) | code }],
+				state: next,
+				event: { type: 'esc', ident: (collect << 8) | codepoint },
 				collect,
 				params
 			};
 
 		case ParserAction.OSC_START:
-			return { events: [{ type: 'osc-start' }], collect, params };
+			return { state: next, event: { type: 'osc-start' }, collect, params };
 
 		case ParserAction.OSC_PUT:
-			return { events: [{ type: 'osc-put', codepoint: code }], collect, params };
+			return { state: next, event: { type: 'osc-put', codepoint }, collect, params };
 
 		case ParserAction.OSC_END:
 			return {
-				events: [{ type: 'osc-end', success: !ABORT_CODES.has(code) }],
+				state: codepoint === 0x1b ? ParserState.ESCAPE : next,
+				event: { type: 'osc-end', success: !ABORT_CODES.has(codepoint) },
 				collect,
-				params,
-				nextState: code === 0x1b ? ParserState.ESCAPE : undefined
+				params
 			};
 
 		case ParserAction.DCS_HOOK:
 			return {
-				events: [{ type: 'dcs-hook', ident: (collect << 8) | code, params: params.toArray() }],
+				state: next,
+				event: { type: 'dcs-hook', ident: (collect << 8) | codepoint, params: params.toArray() },
 				collect,
 				params
 			};
 
 		case ParserAction.DCS_PUT:
-			return { events: [{ type: 'dcs-put', codepoint: code }], collect, params };
+			return { state: next, event: { type: 'dcs-put', codepoint }, collect, params };
 
 		case ParserAction.DCS_UNHOOK:
 			return {
-				events: [{ type: 'dcs-unhook', success: !ABORT_CODES.has(code) }],
+				state: codepoint === 0x1b ? ParserState.ESCAPE : next,
+				event: { type: 'dcs-unhook', success: !ABORT_CODES.has(codepoint) },
 				collect,
-				params,
-				nextState: code === 0x1b ? ParserState.ESCAPE : undefined
+				params
 			};
 
 		case ParserAction.APC_START:
 			return {
-				events: [{ type: 'apc-start', ident: (collect << 8) | code }],
+				state: next,
+				event: { type: 'apc-start', ident: (collect << 8) | codepoint },
 				collect,
 				params
 			};
 
 		case ParserAction.APC_PUT:
-			return { events: [{ type: 'apc-put', codepoint: code }], collect, params };
+			return { state: next, event: { type: 'apc-put', codepoint }, collect, params };
 
 		case ParserAction.APC_END:
 			return {
-				events: [{ type: 'apc-end', success: !ABORT_CODES.has(code) }],
+				state: codepoint === 0x1b ? ParserState.ESCAPE : next,
+				event: { type: 'apc-end', success: !ABORT_CODES.has(codepoint) },
 				collect,
-				params,
-				nextState: code === 0x1b ? ParserState.ESCAPE : undefined
+				params
 			};
 
 		default:
-			// IGNORE, ERROR: no observable output, no state change
-			return { events: [], collect, params };
+			// IGNORE, ERROR
+			return { state: next, event: undefined, collect, params };
 	}
 }

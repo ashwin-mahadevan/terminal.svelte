@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { EscapeSequenceParser } from '$lib/common/parser/EscapeSequenceParser';
 import { StringToUtf32, utf32ToString } from '$lib/common/input/TextDecoder';
 import { Params } from '$lib/common/parser/Params';
-import { ParserAction, ParserState } from '$lib/common/parser/Constants';
-import { transition, dispatch } from '$lib/common/parser/functional-parser';
+import { ParserState } from '$lib/common/parser/Constants';
+import { parse } from '$lib/common/parser/functional-parser';
 import type { ParseEvent } from '$lib/common/parser/functional-parser';
 import type { ParamsArray } from '$lib/common/parser/Types';
 
@@ -106,12 +106,11 @@ function runFunctional(input: string): SemanticEvent[] {
 	const events: ParseEvent[] = [];
 
 	for (let i = 0; i < length; i++) {
-		const { action, state: tableNextState } = transition(state, container[i]);
-		const result = dispatch(action, container[i], collect, params);
-		events.push(...result.events);
+		const result = parse(state, container[i], collect, params);
+		if (result.event) events.push(result.event);
+		state = result.state;
 		collect = result.collect;
 		params = result.params;
-		state = result.nextState ?? tableNextState;
 	}
 
 	return aggregate(events);
@@ -228,165 +227,162 @@ const CASES: { label: string; input: string }[] = [
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('functional-parser', () => {
-	describe('transition()', () => {
-		it('printable in GROUND → PRINT, stay GROUND', () => {
-			const t = transition(ParserState.GROUND, 0x41 /* A */);
-			expect(t.action).toBe(ParserAction.PRINT);
-			expect(t.state).toBe(ParserState.GROUND);
+	describe('parse()', () => {
+		const p0 = new Params();
+		p0.addParam(0);
+
+		describe('state transitions', () => {
+			it('printable in GROUND → print event, stay GROUND', () => {
+				const r = parse(ParserState.GROUND, 0x41 /* A */, 0, p0);
+				expect(r.state).toBe(ParserState.GROUND);
+				expect(r.event).toEqual({ type: 'print', codepoint: 0x41 });
+			});
+
+			it('ESC in GROUND → no event, go to ESCAPE', () => {
+				const r = parse(ParserState.GROUND, 0x1b, 0, p0);
+				expect(r.state).toBe(ParserState.ESCAPE);
+				expect(r.event).toBeUndefined();
+			});
+
+			it('newline in GROUND → execute event, stay GROUND', () => {
+				const r = parse(ParserState.GROUND, 0x0a, 0, p0);
+				expect(r.state).toBe(ParserState.GROUND);
+				expect(r.event).toEqual({ type: 'execute', code: 0x0a });
+			});
+
+			it('[ in ESCAPE → no event, go to CSI_ENTRY', () => {
+				const r = parse(ParserState.ESCAPE, 0x5b /* [ */, 0, p0);
+				expect(r.state).toBe(ParserState.CSI_ENTRY);
+				expect(r.event).toBeUndefined();
+			});
+
+			it('] in ESCAPE → osc-start event, go to OSC_STRING', () => {
+				const r = parse(ParserState.ESCAPE, 0x5d /* ] */, 0, p0);
+				expect(r.state).toBe(ParserState.OSC_STRING);
+				expect(r.event).toEqual({ type: 'osc-start' });
+			});
+
+			it('digit in CSI_ENTRY → no event, go to CSI_PARAM', () => {
+				const r = parse(ParserState.CSI_ENTRY, 0x33 /* 3 */, 0, p0);
+				expect(r.state).toBe(ParserState.CSI_PARAM);
+				expect(r.event).toBeUndefined();
+			});
+
+			it('final byte in CSI_PARAM → csi event, go to GROUND', () => {
+				const r = parse(ParserState.CSI_PARAM, 0x6d /* m */, 0, p0);
+				expect(r.state).toBe(ParserState.GROUND);
+				expect(r.event?.type).toBe('csi');
+			});
+
+			it('ESC is a global anywhere rule — interrupts CSI_PARAM', () => {
+				const r = parse(ParserState.CSI_PARAM, 0x1b, 0, p0);
+				expect(r.state).toBe(ParserState.ESCAPE);
+				expect(r.event).toBeUndefined();
+			});
+
+			it('prefix byte in CSI_ENTRY → no event, go to CSI_PARAM', () => {
+				const r = parse(ParserState.CSI_ENTRY, 0x3f /* ? */, 0, p0);
+				expect(r.state).toBe(ParserState.CSI_PARAM);
+				expect(r.event).toBeUndefined();
+			});
+
+			it('ESC in OSC_STRING → osc-end, override to ESCAPE (not GROUND)', () => {
+				const r = parse(ParserState.OSC_STRING, 0x1b, 0, p0);
+				expect(r.state).toBe(ParserState.ESCAPE);
+				expect(r.event).toEqual({ type: 'osc-end', success: true });
+			});
 		});
 
-		it('ESC in GROUND → CLEAR, go to ESCAPE', () => {
-			const t = transition(ParserState.GROUND, 0x1b);
-			expect(t.action).toBe(ParserAction.CLEAR);
-			expect(t.state).toBe(ParserState.ESCAPE);
+		describe('accumulation', () => {
+			it('COLLECT updates collect register', () => {
+				// SP (0x20) in ESCAPE triggers COLLECT
+				const r = parse(ParserState.ESCAPE, 0x20, 0, p0);
+				expect(r.event).toBeUndefined();
+				expect(r.collect).toBe(0x20);
+			});
+
+			it('COLLECT shifts and ORs for two bytes', () => {
+				const r1 = parse(ParserState.ESCAPE, 0x20, 0, p0);
+				// second COLLECT in ESCAPE_INTERMEDIATE
+				const r2 = parse(ParserState.ESCAPE_INTERMEDIATE, 0x21, r1.collect, r1.params);
+				expect(r2.collect).toBe((0x20 << 8) | 0x21);
+			});
+
+			it('PARAM accumulates digits', () => {
+				const r1 = parse(ParserState.CSI_ENTRY, 0x33 /* 3 */, 0, p0);
+				const r2 = parse(ParserState.CSI_PARAM, 0x31 /* 1 */, r1.collect, r1.params);
+				expect(r2.event).toBeUndefined();
+				expect(r2.params.toArray()).toEqual([31]);
+			});
+
+			it('PARAM ; adds a new parameter', () => {
+				const p = new Params();
+				p.addParam(1);
+				const r = parse(ParserState.CSI_PARAM, 0x3b /* ; */, 0, p);
+				expect(r.params.toArray()).toEqual([1, 0]);
+			});
+
+			it('PARAM : adds a sub-parameter', () => {
+				const p = new Params();
+				p.addParam(38);
+				const r1 = parse(ParserState.CSI_PARAM, 0x3a /* : */, 0, p);
+				const r2 = parse(ParserState.CSI_PARAM, 0x32 /* 2 */, 0, r1.params);
+				expect(r2.params.toArray()).toEqual([38, [2]]);
+			});
+
+			it('CLEAR resets collect to 0 and params to ZDM [0]', () => {
+				const p = new Params();
+				p.addParam(42);
+				// [ in ESCAPE triggers CLEAR
+				const r = parse(ParserState.ESCAPE, 0x5b /* [ */, 0x3f, p);
+				expect(r.event).toBeUndefined();
+				expect(r.collect).toBe(0);
+				expect(r.params.toArray()).toEqual([0]);
+			});
+
+			it('does not mutate the Params passed in', () => {
+				const p = new Params();
+				p.addParam(5);
+				parse(ParserState.CSI_PARAM, 0x33 /* 3 */, 0, p);
+				expect(p.toArray()).toEqual([5]);
+			});
 		});
 
-		it('newline in GROUND → EXECUTE, stay GROUND', () => {
-			const t = transition(ParserState.GROUND, 0x0a);
-			expect(t.action).toBe(ParserAction.EXECUTE);
-			expect(t.state).toBe(ParserState.GROUND);
-		});
+		describe('events', () => {
+			it('csi event encodes ident from collect + final byte', () => {
+				const p = new Params();
+				p.addParam(25);
+				// ? (0x3f) collected, h (0x68) is final byte in CSI_PARAM
+				const r = parse(ParserState.CSI_PARAM, 0x68 /* h */, 0x3f /* ? */, p);
+				expect(r.event).toEqual({ type: 'csi', ident: (0x3f << 8) | 0x68, params: [25] });
+			});
 
-		it('[ in ESCAPE → CLEAR, go to CSI_ENTRY', () => {
-			const t = transition(ParserState.ESCAPE, 0x5b /* [ */);
-			expect(t.action).toBe(ParserAction.CLEAR);
-			expect(t.state).toBe(ParserState.CSI_ENTRY);
-		});
+			it('esc event encodes ident from collect + final byte', () => {
+				const r = parse(ParserState.ESCAPE, 0x4d /* M */, 0, p0);
+				expect(r.event).toEqual({ type: 'esc', ident: 0x4d });
+			});
 
-		it('] in ESCAPE → OSC_START, go to OSC_STRING', () => {
-			const t = transition(ParserState.ESCAPE, 0x5d /* ] */);
-			expect(t.action).toBe(ParserAction.OSC_START);
-			expect(t.state).toBe(ParserState.OSC_STRING);
-		});
+			it('osc-end BEL → success: true', () => {
+				const r = parse(ParserState.OSC_STRING, 0x07, 0, p0);
+				expect(r.event).toEqual({ type: 'osc-end', success: true });
+			});
 
-		it('digit in CSI_ENTRY → PARAM, go to CSI_PARAM', () => {
-			const t = transition(ParserState.CSI_ENTRY, 0x33 /* 3 */);
-			expect(t.action).toBe(ParserAction.PARAM);
-			expect(t.state).toBe(ParserState.CSI_PARAM);
-		});
+			it('osc-end CAN (0x18) → success: false', () => {
+				const r = parse(ParserState.OSC_STRING, 0x18, 0, p0);
+				expect(r.event).toEqual({ type: 'osc-end', success: false });
+			});
 
-		it('final byte in CSI_PARAM → CSI_DISPATCH, go to GROUND', () => {
-			const t = transition(ParserState.CSI_PARAM, 0x6d /* m */);
-			expect(t.action).toBe(ParserAction.CSI_DISPATCH);
-			expect(t.state).toBe(ParserState.GROUND);
-		});
+			it('osc-end SUB (0x1a) → success: false', () => {
+				const r = parse(ParserState.OSC_STRING, 0x1a, 0, p0);
+				expect(r.event).toEqual({ type: 'osc-end', success: false });
+			});
 
-		it('ESC is a global anywhere rule — interrupts CSI_PARAM', () => {
-			const t = transition(ParserState.CSI_PARAM, 0x1b);
-			expect(t.action).toBe(ParserAction.CLEAR);
-			expect(t.state).toBe(ParserState.ESCAPE);
-		});
-
-		it('prefix byte in CSI_ENTRY → COLLECT, go to CSI_PARAM', () => {
-			const t = transition(ParserState.CSI_ENTRY, 0x3f /* ? */);
-			expect(t.action).toBe(ParserAction.COLLECT);
-			expect(t.state).toBe(ParserState.CSI_PARAM);
-		});
-	});
-
-	describe('dispatch()', () => {
-		const emptyParams = new Params();
-		emptyParams.addParam(0);
-
-		it('PRINT → print event, collect/params unchanged', () => {
-			const r = dispatch(ParserAction.PRINT, 0x41 /* A */, 0, emptyParams);
-			expect(r.events).toEqual([{ type: 'print', codepoint: 0x41 }]);
-			expect(r.collect).toBe(0);
-		});
-
-		it('EXECUTE → execute event', () => {
-			const r = dispatch(ParserAction.EXECUTE, 0x0a, 0, emptyParams);
-			expect(r.events).toEqual([{ type: 'execute', code: 0x0a }]);
-		});
-
-		it('COLLECT → updates collect, no events', () => {
-			const r = dispatch(ParserAction.COLLECT, 0x3f /* ? */, 0, emptyParams);
-			expect(r.events).toEqual([]);
-			expect(r.collect).toBe(0x3f);
-		});
-
-		it('COLLECT shifts and ORs for two bytes', () => {
-			const r1 = dispatch(ParserAction.COLLECT, 0x20, 0, emptyParams);
-			const r2 = dispatch(ParserAction.COLLECT, 0x21, r1.collect, r1.params);
-			expect(r2.collect).toBe((0x20 << 8) | 0x21);
-		});
-
-		it('PARAM (digits) → accumulates value, no events', () => {
-			const r1 = dispatch(ParserAction.PARAM, 0x33 /* 3 */, 0, emptyParams);
-			const r2 = dispatch(ParserAction.PARAM, 0x31 /* 1 */, 0, r1.params);
-			expect(r2.events).toEqual([]);
-			expect(r2.params.toArray()).toEqual([31]);
-		});
-
-		it('PARAM ; → adds new param', () => {
-			const p = new Params();
-			p.addParam(1);
-			const r = dispatch(ParserAction.PARAM, 0x3b /* ; */, 0, p);
-			expect(r.params.toArray()).toEqual([1, 0]);
-		});
-
-		it('PARAM : → adds sub-param', () => {
-			const p = new Params();
-			p.addParam(38);
-			const r1 = dispatch(ParserAction.PARAM, 0x3a /* : */, 0, p);
-			const r2 = dispatch(ParserAction.PARAM, 0x32 /* 2 */, 0, r1.params);
-			expect(r2.params.toArray()).toEqual([38, [2]]);
-		});
-
-		it('CLEAR → resets collect to 0 and params to ZDM [0]', () => {
-			const p = new Params();
-			p.addParam(42);
-			const r = dispatch(ParserAction.CLEAR, 0x1b, 0x3f, p);
-			expect(r.events).toEqual([]);
-			expect(r.collect).toBe(0);
-			expect(r.params.toArray()).toEqual([0]);
-		});
-
-		it('CSI_DISPATCH → csi event with ident and params snapshot', () => {
-			const p = new Params();
-			p.addParam(31);
-			const r = dispatch(ParserAction.CSI_DISPATCH, 0x6d /* m */, 0, p);
-			expect(r.events).toEqual([{ type: 'csi', ident: 0x6d, params: [31] }]);
-		});
-
-		it('CSI_DISPATCH with collect byte → ident encodes collect', () => {
-			const p = new Params();
-			p.addParam(25);
-			const r = dispatch(ParserAction.CSI_DISPATCH, 0x68 /* h */, 0x3f /* ? */, p);
-			expect(r.events).toEqual([{ type: 'csi', ident: (0x3f << 8) | 0x68, params: [25] }]);
-		});
-
-		it('ESC_DISPATCH → esc event', () => {
-			const r = dispatch(ParserAction.ESC_DISPATCH, 0x4d /* M */, 0, emptyParams);
-			expect(r.events).toEqual([{ type: 'esc', ident: 0x4d }]);
-		});
-
-		it('OSC_END with BEL → success: true', () => {
-			const r = dispatch(ParserAction.OSC_END, 0x07, 0, emptyParams);
-			expect(r.events).toEqual([{ type: 'osc-end', success: true }]);
-		});
-
-		it('OSC_END with CAN (0x18) → success: false', () => {
-			const r = dispatch(ParserAction.OSC_END, 0x18, 0, emptyParams);
-			expect(r.events).toEqual([{ type: 'osc-end', success: false }]);
-		});
-
-		it('OSC_END with SUB (0x1a) → success: false', () => {
-			const r = dispatch(ParserAction.OSC_END, 0x1a, 0, emptyParams);
-			expect(r.events).toEqual([{ type: 'osc-end', success: false }]);
-		});
-
-		it('IGNORE → no events, collect/params unchanged', () => {
-			const r = dispatch(ParserAction.IGNORE, 0x7f, 0x3f, emptyParams);
-			expect(r.events).toEqual([]);
-			expect(r.collect).toBe(0x3f);
-		});
-
-		it('dispatch does not mutate the Params passed in', () => {
-			const p = new Params();
-			p.addParam(5);
-			dispatch(ParserAction.PARAM, 0x33, 0, p);
-			expect(p.toArray()).toEqual([5]); // original unchanged
+			it('IGNORE produces no event and leaves collect unchanged', () => {
+				// DEL (0x7f) in CSI_IGNORE triggers IGNORE
+				const r = parse(ParserState.CSI_IGNORE, 0x7f, 0x3f, p0);
+				expect(r.event).toBeUndefined();
+				expect(r.collect).toBe(0x3f);
+			});
 		});
 	});
 
