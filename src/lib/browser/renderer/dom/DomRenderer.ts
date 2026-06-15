@@ -64,11 +64,8 @@ export class DomRenderer {
 	private _mouseDownListener!: IDisposable;
 
 	// The row container is created and lifecycle-managed by the Svelte host; the
-	// renderer only populates and styles it. See terminal.svelte.
-	private get _rowContainer(): HTMLElement {
-		return this._terminal.rowContainer!;
-	}
-
+	// renderer only populates and styles it via this._terminal.rowContainer. See
+	// terminal.svelte.
 	constructor(private readonly _terminal: CoreBrowserTerminal) {
 		this._refreshRowElements(this._terminal.bufferService.cols, this._terminal.bufferService.rows);
 		this._selectionContainer = this._terminal.document!.createElement('div');
@@ -107,7 +104,7 @@ export class DomRenderer {
 		);
 
 		this._cursorBlinkStateManager = new CursorBlinkStateManager(
-			this._rowContainer,
+			this._terminal.rowContainer!,
 			this._terminal.coreBrowserService!
 		);
 		this._mouseDownListener = addDisposableListener(this._terminal.document!, 'mousedown', () =>
@@ -124,7 +121,7 @@ export class DomRenderer {
 		this._terminal.element!.classList.remove(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
 		// The row container itself is lifecycle-managed by the Svelte host, so we only
 		// empty out the row elements we created; the Svelte host removes the container.
-		this._rowContainer.replaceChildren();
+		this._terminal.rowContainer!.replaceChildren();
 		this._selectionContainer.remove();
 		this._themeStyleElement.remove();
 		this._dimensionsStyleElement.remove();
@@ -326,13 +323,13 @@ export class DomRenderer {
 		// Add missing elements
 		for (let i = this._rowElements.length; i <= rows; i++) {
 			const row = this._terminal.document!.createElement('div');
-			this._rowContainer.appendChild(row);
+			this._terminal.rowContainer!.appendChild(row);
 			this._rowElements.push(row);
 			this._rowHasBlinkingCells.push(false);
 		}
 		// Remove excess elements
 		while (this._rowElements.length > rows) {
-			this._rowContainer.removeChild(this._rowElements.pop()!);
+			this._terminal.rowContainer!.removeChild(this._rowElements.pop()!);
 			if (this._rowHasBlinkingCells.pop()) {
 				this._rowHasBlinkingCellsCount--;
 			}
@@ -354,13 +351,13 @@ export class DomRenderer {
 	}
 
 	public handleBlur(): void {
-		this._rowContainer.classList.remove(Constants.FOCUS_CLASS);
+		this._terminal.rowContainer!.classList.remove(Constants.FOCUS_CLASS);
 		this._cursorBlinkStateManager.pause();
 		this.renderRows(0, this._terminal.bufferService.rows - 1);
 	}
 
 	public handleFocus(): void {
-		this._rowContainer.classList.add(Constants.FOCUS_CLASS);
+		this._terminal.rowContainer!.classList.add(Constants.FOCUS_CLASS);
 		this._cursorBlinkStateManager.resume();
 		this.renderRows(this._terminal.bufferService.buffer.y, this._terminal.bufferService.buffer.y);
 	}
