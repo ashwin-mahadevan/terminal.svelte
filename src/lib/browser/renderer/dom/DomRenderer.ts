@@ -41,7 +41,6 @@ export class DomRenderer {
 
 	private _themeStyleElement!: HTMLStyleElement;
 	private _dimensionsStyleElement!: HTMLStyleElement;
-	private _rowContainer: HTMLElement;
 	private _rowElements: HTMLElement[] = [];
 	private _selectionContainer: HTMLElement;
 	private _selectionRenderModel: SelectionRenderModel = createSelectionRenderModel();
@@ -64,11 +63,13 @@ export class DomRenderer {
 	private _hideLinkUnderlineListener!: IDisposable;
 	private _mouseDownListener!: IDisposable;
 
+	// The row container is created and lifecycle-managed by the Svelte host; the
+	// renderer only populates and styles it. See terminal.svelte.
+	private get _rowContainer(): HTMLElement {
+		return this._terminal.rowContainer!;
+	}
+
 	constructor(private readonly _terminal: CoreBrowserTerminal) {
-		this._rowContainer = this._terminal.document!.createElement('div');
-		this._rowContainer.classList.add(Constants.ROW_CONTAINER_CLASS);
-		this._rowContainer.style.lineHeight = 'normal';
-		this._rowContainer.setAttribute('aria-hidden', 'true');
 		this._refreshRowElements(this._terminal.bufferService.cols, this._terminal.bufferService.rows);
 		this._selectionContainer = this._terminal.document!.createElement('div');
 		this._selectionContainer.classList.add(Constants.SELECTION_CLASS);
@@ -96,7 +97,6 @@ export class DomRenderer {
 		);
 
 		this._terminal.element!.classList.add(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
-		this._terminal.screenElement!.appendChild(this._rowContainer);
 		this._terminal.screenElement!.appendChild(this._selectionContainer);
 
 		this._showLinkUnderlineListener = this._terminal.linkifier!.onShowLinkUnderline((e) =>
@@ -122,9 +122,9 @@ export class DomRenderer {
 
 	public dispose(): void {
 		this._terminal.element!.classList.remove(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
-		// Outside influences such as React unmounts may manipulate the DOM before our disposal.
-		// https://github.com/xtermjs/xterm.js/issues/2960
-		this._rowContainer.remove();
+		// The row container itself is lifecycle-managed by the Svelte host, so we only
+		// empty out the row elements we created; the Svelte host removes the container.
+		this._rowContainer.replaceChildren();
 		this._selectionContainer.remove();
 		this._themeStyleElement.remove();
 		this._dimensionsStyleElement.remove();

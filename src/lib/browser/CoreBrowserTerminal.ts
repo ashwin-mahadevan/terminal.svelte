@@ -68,6 +68,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 	public textarea: HTMLTextAreaElement | undefined;
 	public element: HTMLElement | undefined;
 	public screenElement: HTMLElement | undefined;
+	public rowContainer: HTMLElement | undefined;
 
 	public document: Document | undefined;
 	public helperContainer: HTMLElement | undefined;
@@ -494,7 +495,8 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		helpers: HTMLDivElement,
 		textarea: HTMLTextAreaElement,
 		compositionView: HTMLDivElement,
-		scrollableContainer: HTMLDivElement
+		scrollableContainer: HTMLDivElement,
+		rowContainer: HTMLDivElement
 	): void {
 		this.document = parent.ownerDocument;
 
@@ -506,6 +508,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this.textarea = textarea;
 		this.compositionView = compositionView;
 		this.scrollableContainer = scrollableContainer;
+		this.rowContainer = rowContainer;
 
 		textarea.setAttribute('aria-label', Strings.promptLabel.get());
 		if (!isChromeOS) {

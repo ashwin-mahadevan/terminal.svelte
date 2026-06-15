@@ -32,6 +32,7 @@
 	let helpersEl: HTMLDivElement;
 	let textareaEl: HTMLTextAreaElement;
 	let compositionEl: HTMLDivElement;
+	let rowContainerEl: HTMLDivElement;
 	let clientWidth = $state<number>()!;
 	let clientHeight = $state<number>()!;
 
@@ -45,7 +46,15 @@
 	let measureHeight = $state<number>()!;
 
 	onMount(() => {
-		terminal.open(element, screenEl, helpersEl, textareaEl, compositionEl, scrollableEl);
+		terminal.open(
+			element,
+			screenEl,
+			helpersEl,
+			textareaEl,
+			compositionEl,
+			scrollableEl,
+			rowContainerEl
+		);
 		isOpen = true;
 		return () => terminal.dispose();
 	});
@@ -233,6 +242,12 @@
 				></textarea>
 				<div class="composition-view" bind:this={compositionEl}></div>
 			</div>
+			<div
+				class="xterm-rows"
+				aria-hidden="true"
+				style:line-height="normal"
+				bind:this={rowContainerEl}
+			></div>
 		</div>
 	</div>
 	<span

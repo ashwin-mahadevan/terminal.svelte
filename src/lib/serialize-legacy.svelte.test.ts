@@ -59,12 +59,13 @@ describe('SerializeAddon', () => {
 		const helpersEl = document.createElement('div');
 		const textareaEl = document.createElement('textarea');
 		const compositionEl = document.createElement('div');
+		const rowContainerEl = document.createElement('div');
 		helpersEl.append(textareaEl, compositionEl);
-		screenEl.appendChild(helpersEl);
+		screenEl.append(helpersEl, rowContainerEl);
 		scrollableEl.appendChild(screenEl);
 		el.appendChild(scrollableEl);
 		const term = new CoreBrowserTerminal(opts);
-		term.open(el, screenEl, helpersEl, textareaEl, compositionEl, scrollableEl);
+		term.open(el, screenEl, helpersEl, textareaEl, compositionEl, scrollableEl, rowContainerEl);
 		return { term, el };
 	}
 
