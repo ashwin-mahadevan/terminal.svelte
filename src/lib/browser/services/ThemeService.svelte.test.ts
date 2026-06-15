@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { ThemeService } from '$lib/browser/services/ThemeService';
-import { OptionsService } from '$lib/common/services/OptionsService';
+import { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 
 // NOTE: the upstream test set up a jsdom window and stubbed
@@ -15,8 +15,8 @@ import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 describe('ThemeService', () => {
 	describe('constructor', () => {
 		it('should fill all colors with values', () => {
-			const optionsService = new OptionsService({});
-			const themeService = new ThemeService(optionsService);
+			const terminal = new CoreBrowserTerminal({});
+			const themeService = new ThemeService(terminal);
 			for (const key of Object.keys(themeService.colors)) {
 				if (!['ansi', 'selectionForeground'].includes(key)) {
 					// A #rrggbb or rgba(...)
@@ -29,8 +29,8 @@ describe('ThemeService', () => {
 		});
 
 		it('should fill 240 colors with expected values', () => {
-			const optionsService = new OptionsService({});
-			const themeService = new ThemeService(optionsService);
+			const terminal = new CoreBrowserTerminal({});
+			const themeService = new ThemeService(terminal);
 			expect(themeService.colors.ansi[16].css).toBe('#000000');
 			expect(themeService.colors.ansi[17].css).toBe('#00005f');
 			expect(themeService.colors.ansi[18].css).toBe('#000087');
@@ -276,24 +276,24 @@ describe('ThemeService', () => {
 
 	describe('setTheme', () => {
 		it('should not throw when not setting all colors', () => {
-			const optionsService = new OptionsService({});
+			const terminal = new CoreBrowserTerminal({});
 			expect(() => {
-				optionsService.options.theme = {};
+				terminal.optionsService.options.theme = {};
 			}).not.toThrow();
 		});
 
 		it('should set a partial set of colors, using the default if not present', () => {
-			const optionsService = new OptionsService({});
-			const themeService = new ThemeService(optionsService);
+			const terminal = new CoreBrowserTerminal({});
+			const themeService = new ThemeService(terminal);
 			expect(themeService.colors.background.css).toBe('#000000');
 			expect(themeService.colors.foreground.css).toBe('#ffffff');
-			optionsService.options.theme = {
+			terminal.optionsService.options.theme = {
 				background: '#FF0000',
 				foreground: '#00FF00'
 			};
 			expect(themeService.colors.background.css).toBe('#FF0000');
 			expect(themeService.colors.foreground.css).toBe('#00FF00');
-			optionsService.options.theme = {
+			terminal.optionsService.options.theme = {
 				background: '#0000FF'
 			};
 			expect(themeService.colors.background.css).toBe('#0000FF');
@@ -302,9 +302,9 @@ describe('ThemeService', () => {
 		});
 
 		it('should set all extended ansi colors in reverse order', () => {
-			const optionsService = new OptionsService({});
-			const themeService = new ThemeService(optionsService);
-			optionsService.options.theme = {
+			const terminal = new CoreBrowserTerminal({});
+			const themeService = new ThemeService(terminal);
+			terminal.optionsService.options.theme = {
 				extendedAnsi: DEFAULT_ANSI_COLORS.map((a) => a.css)
 					.slice()
 					.reverse()
@@ -318,9 +318,9 @@ describe('ThemeService', () => {
 		});
 
 		it('should set one extended ansi color and keep the other default', () => {
-			const optionsService = new OptionsService({});
-			const themeService = new ThemeService(optionsService);
-			optionsService.options.theme = {
+			const terminal = new CoreBrowserTerminal({});
+			const themeService = new ThemeService(terminal);
+			terminal.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
 			};
 
@@ -329,37 +329,37 @@ describe('ThemeService', () => {
 		});
 
 		it('should set extended ansi colors to the default when they are unset', () => {
-			const optionsService = new OptionsService({});
-			const themeService = new ThemeService(optionsService);
-			optionsService.options.theme = {
+			const terminal = new CoreBrowserTerminal({});
+			const themeService = new ThemeService(terminal);
+			terminal.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
 			};
 			expect(themeService.colors.ansi[16].css).toBe('#ffffff');
 
-			optionsService.options.theme = {
+			terminal.optionsService.options.theme = {
 				extendedAnsi: []
 			};
 			expect(themeService.colors.ansi[16].css).toBe(DEFAULT_ANSI_COLORS[16].css);
 
-			optionsService.options.theme = {
+			terminal.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
 			};
 			expect(themeService.colors.ansi[16].css).toBe('#ffffff');
 
-			optionsService.options.theme = {};
+			terminal.optionsService.options.theme = {};
 			expect(themeService.colors.ansi[16].css).toBe(DEFAULT_ANSI_COLORS[16].css);
 		});
 
 		it('should set extended ansi colors to the default when they are partially unset', () => {
-			const optionsService = new OptionsService({});
-			const themeService = new ThemeService(optionsService);
-			optionsService.options.theme = {
+			const terminal = new CoreBrowserTerminal({});
+			const themeService = new ThemeService(terminal);
+			terminal.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff', '#000000']
 			};
 			expect(themeService.colors.ansi[16].css).toBe('#ffffff');
 			expect(themeService.colors.ansi[17].css).toBe('#000000');
 
-			optionsService.options.theme = {
+			terminal.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
 			};
 			expect(themeService.colors.ansi[16].css).toBe('#ffffff');

@@ -533,7 +533,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 			(this.document ?? typeof window !== 'undefined') ? window.document : (null as any)
 		);
 
-		this.themeService = new ThemeService(this.optionsService);
+		this.themeService = new ThemeService(this);
 
 		// CSI ? 996 n - color scheme query (https://contour-terminal.org/vt-extensions/color-palette-update-notifications/)
 		this._store.add(this.inputHandler.onRequestColorSchemeQuery(() => this._reportColorScheme()));

@@ -8,7 +8,7 @@ import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 import { color, css, NULL_COLOR } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { ITheme } from '$lib/common/services/Services';
-import type { OptionsService } from '$lib/common/services/OptionsService';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { AllColorIndex, IColor } from '$lib/common/Types';
 import { SpecialColorIndex } from '$lib/common/Types';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -43,7 +43,7 @@ export class ThemeService {
 
 	private readonly _themeListener: IDisposable;
 
-	constructor(private readonly _optionsService: OptionsService) {
+	constructor(private readonly _terminal: CoreBrowserTerminal) {
 		this._colors = {
 			foreground: DEFAULT_FOREGROUND,
 			background: DEFAULT_BACKGROUND,
@@ -61,10 +61,10 @@ export class ThemeService {
 			ansi: DEFAULT_ANSI_COLORS.slice()
 		};
 		this._updateRestoreColors();
-		this._setTheme(this._optionsService.rawOptions.theme);
+		this._setTheme(this._terminal.optionsService.rawOptions.theme);
 
-		this._themeListener = this._optionsService.onSpecificOptionChange('theme', () =>
-			this._setTheme(this._optionsService.rawOptions.theme)
+		this._themeListener = this._terminal.optionsService.onSpecificOptionChange('theme', () =>
+			this._setTheme(this._terminal.optionsService.rawOptions.theme)
 		);
 	}
 
