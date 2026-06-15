@@ -79,15 +79,6 @@ export class CoreTerminal {
 		return this._onScrollApi.event;
 	}
 
-	public get options(): Required<ITerminalOptions> {
-		return this.optionsService.options;
-	}
-	public set options(options: ITerminalOptions) {
-		for (const key in options) {
-			this.optionsService.options[key] = options[key];
-		}
-	}
-
 	constructor(options: Partial<ITerminalOptions>) {
 		// Setup and initialize services
 		this.optionsService = new OptionsService(options);

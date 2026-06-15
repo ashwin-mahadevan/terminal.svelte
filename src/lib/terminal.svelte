@@ -76,11 +76,12 @@
 	});
 
 	$effect(() => {
-		const showScrollbar = terminal.core.options.scrollbar?.showScrollbar ?? true;
+		const showScrollbar = terminal.core.optionsService.options.scrollbar?.showScrollbar ?? true;
 		const scrollbarWidth =
-			terminal.core.options.scrollback === 0 || !showScrollbar
+			terminal.core.optionsService.options.scrollback === 0 || !showScrollbar
 				? 0
-				: (terminal.core.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
+				: (terminal.core.optionsService.options.scrollbar?.width ??
+					ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
 
 		// This isn't derived.by since emulator owns the state.
 		emulator.columns = Math.max(2, Math.floor((clientWidth - scrollbarWidth) / cellWidth));

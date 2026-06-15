@@ -465,7 +465,7 @@ export class CoreBrowserTerminal {
 				this.textarea!,
 				this.screenElement!,
 				this.selectionService!,
-				this.core.options.rightClickSelectsWord
+				this.core.optionsService.options.rightClickSelectsWord
 			);
 		}
 		this.selectionService!.handleMouseDown(event);
@@ -478,7 +478,7 @@ export class CoreBrowserTerminal {
 				this.textarea!,
 				this.screenElement!,
 				this.selectionService!,
-				this.core.options.rightClickSelectsWord
+				this.core.optionsService.options.rightClickSelectsWord
 			);
 		}
 	};
@@ -652,7 +652,7 @@ export class CoreBrowserTerminal {
 		// apply mouse event classes set by escape codes before terminal was attached
 		if (
 			this.core.mouseStateService.areMouseEventsActive &&
-			!this.core.options.mouseEventsRequireAlt
+			!this.core.optionsService.options.mouseEventsRequireAlt
 		) {
 			this.selectionService.disable();
 			this.element.classList.add(MouseEventCssClasses.ENABLE_MOUSE_EVENTS);
@@ -661,7 +661,7 @@ export class CoreBrowserTerminal {
 			this.element.classList.remove(MouseEventCssClasses.ENABLE_MOUSE_EVENTS);
 		}
 
-		if (this.core.options.screenReaderMode) {
+		if (this.core.optionsService.options.screenReaderMode) {
 			// Note that this must be done *after* the renderer is created in order to
 			// ensure the correct order of the dprchange event
 			this._accessibilityManager.value = new AccessibilityManager(this);
@@ -671,8 +671,8 @@ export class CoreBrowserTerminal {
 			(e) => this._handleScreenReaderModeOptionChange(e)
 		);
 
-		const showScrollbar = this.core.options.scrollbar?.showScrollbar ?? true;
-		const overviewRulerWidth = this.core.options.scrollbar?.width;
+		const showScrollbar = this.core.optionsService.options.scrollbar?.showScrollbar ?? true;
+		const overviewRulerWidth = this.core.optionsService.options.scrollbar?.width;
 		if (showScrollbar && overviewRulerWidth) {
 			this._overviewRulerRenderer = new OverviewRulerRenderer(this);
 		}
@@ -811,11 +811,12 @@ export class CoreBrowserTerminal {
 		}
 
 		// Ignore composing with Alt key on Mac when macOptionIsMeta is enabled
-		const shouldIgnoreComposition = isMac && this.core.options.macOptionIsMeta && event.altKey;
+		const shouldIgnoreComposition =
+			isMac && this.core.optionsService.options.macOptionIsMeta && event.altKey;
 
 		if (!shouldIgnoreComposition && !this._compositionHelper!.keydown(event)) {
 			if (
-				this.core.options.scrollOnUserInput &&
+				this.core.optionsService.options.scrollOnUserInput &&
 				this.core.bufferService.buffers.active.ybase !==
 					this.core.bufferService.buffers.active.ydisp
 			) {
@@ -911,7 +912,11 @@ export class CoreBrowserTerminal {
 
 	private _isThirdLevelShift(ev: KeyboardEvent): boolean {
 		const thirdLevelKey =
-			(isMac && !this.core.options.macOptionIsMeta && ev.altKey && !ev.ctrlKey && !ev.metaKey) ||
+			(isMac &&
+				!this.core.optionsService.options.macOptionIsMeta &&
+				ev.altKey &&
+				!ev.ctrlKey &&
+				!ev.metaKey) ||
 			(isWindows && ev.altKey && ev.ctrlKey && !ev.metaKey) ||
 			(isWindows && ev.getModifierState('AltGraph'));
 
@@ -1071,8 +1076,8 @@ export class CoreBrowserTerminal {
 		 * Since _setup handles a full terminal creation, we have to carry forward
 		 * a few things that should not reset.
 		 */
-		this.core.options.rows = this.core.bufferService.rows;
-		this.core.options.cols = this.core.bufferService.cols;
+		this.core.optionsService.options.rows = this.core.bufferService.rows;
+		this.core.optionsService.options.cols = this.core.bufferService.cols;
 		const customKeyEventHandler = this._customKeyEventHandler;
 
 		this._setup();

@@ -75,7 +75,7 @@ describe('CoreBrowserTerminal', () => {
 
 	it('should not mutate the options parameter', () => {
 		const term = createTestTerminal(termOptions);
-		term.core.options.cols = 1000;
+		term.core.optionsService.options.cols = 1000;
 
 		expect(termOptions).toEqual({
 			cols: INIT_COLS,
@@ -548,7 +548,7 @@ describe('CoreBrowserTerminal', () => {
 
 		describe('keyDown', () => {
 			it('should not scroll down on modifier-only input in win32 input mode', async () => {
-				term.core.options.vtExtensions = { win32InputMode: true };
+				term.core.optionsService.options.vtExtensions = { win32InputMode: true };
 				term.core.coreService.decPrivateModes.win32InputMode = true;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -954,7 +954,7 @@ describe('CoreBrowserTerminal', () => {
 
 		describe('with macOptionIsMeta', () => {
 			beforeEach(() => {
-				term.core.options.macOptionIsMeta = true;
+				term.core.optionsService.options.macOptionIsMeta = true;
 			});
 
 			it('should interfere with the alt key on keyDown', () => {
@@ -1956,14 +1956,14 @@ describe('CoreBrowserTerminal', () => {
 			term = createTestTerminal();
 		});
 		it('get options', () => {
-			expect(term.core.options.cols).toBe(80);
-			expect(term.core.options.rows).toBe(24);
+			expect(term.core.optionsService.options.cols).toBe(80);
+			expect(term.core.optionsService.options.rows).toBe(24);
 		});
 		it('set options', async () => {
-			term.core.options.cols = 40;
-			expect(term.core.options.cols).toBe(40);
-			term.core.options.rows = 20;
-			expect(term.core.options.rows).toBe(20);
+			term.core.optionsService.options.cols = 40;
+			expect(term.core.optionsService.options.cols).toBe(40);
+			term.core.optionsService.options.rows = 20;
+			expect(term.core.optionsService.options.rows).toBe(20);
 		});
 	});
 });
