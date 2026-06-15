@@ -5,13 +5,8 @@
 
 import type { IColorZone } from '$lib/browser/decorations/ColorZoneStore';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
-import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
-import type { RenderService } from '$lib/browser/services/RenderService';
-import type { ThemeService } from '$lib/browser/services/ThemeService';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { DecorationService } from '$lib/common/services/DecorationService';
-import type { BufferService } from '$lib/common/services/BufferService';
-import type { OptionsService } from '$lib/common/services/OptionsService';
 
 const enum Constants {
 	OVERVIEW_RULER_BORDER_WIDTH = 1
@@ -43,14 +38,6 @@ export class OverviewRulerRenderer {
 	private readonly _canvas: HTMLCanvasElement;
 	private readonly _ctx: CanvasRenderingContext2D;
 	private readonly _colorZoneStore: ColorZoneStore = new ColorZoneStore();
-	private get _width(): number {
-		const scrollbar = this._optionsService.rawOptions.scrollbar;
-		const showScrollbar = scrollbar?.showScrollbar ?? true;
-		if (!showScrollbar) {
-			return 0;
-		}
-		return scrollbar?.width ?? 0;
-	}
 	private _animationFrame: number | undefined;
 
 	private _decorationRegisteredListener!: IDisposable;
@@ -67,20 +54,11 @@ export class OverviewRulerRenderer {
 	private _shouldUpdateAnchor: boolean | undefined = true;
 	private _lastKnownBufferLength: number = 0;
 
-	constructor(
-		private readonly _element: HTMLElement,
-		private readonly _screenElement: HTMLElement,
-		private readonly _bufferService: BufferService,
-		private readonly _decorationService: DecorationService,
-		private readonly _renderService: RenderService,
-		private readonly _optionsService: OptionsService,
-		private readonly _themeService: ThemeService,
-		private readonly _coreBrowserService: CoreBrowserService
-	) {
-		this._canvas = this._coreBrowserService.mainDocument.createElement('canvas');
+	constructor(private readonly _terminal: CoreBrowserTerminal) {
+		this._canvas = this._terminal.coreBrowserService!.mainDocument.createElement('canvas');
 		this._canvas.classList.add('xterm-decoration-overview-ruler');
 		this._refreshCanvasDimensions();
-		this._element.prepend(this._canvas);
+		this._terminal.element!.prepend(this._canvas);
 
 		const ctx = this._canvas.getContext('2d');
 		if (!ctx) {
@@ -89,36 +67,45 @@ export class OverviewRulerRenderer {
 			this._ctx = ctx;
 		}
 
-		this._decorationRegisteredListener = this._decorationService.onDecorationRegistered(() =>
-			this._queueRefresh(undefined, true)
+		this._decorationRegisteredListener = this._terminal.decorationService.onDecorationRegistered(
+			() => this._queueRefresh(undefined, true)
 		);
-		this._decorationRemovedListener = this._decorationService.onDecorationRemoved(() =>
+		this._decorationRemovedListener = this._terminal.decorationService.onDecorationRemoved(() =>
 			this._queueRefresh(undefined, true)
 		);
 
-		this._renderedViewportChangeListener = this._renderService.onRenderedViewportChange(() =>
-			this._queueRefresh()
+		this._renderedViewportChangeListener = this._terminal.renderService!.onRenderedViewportChange(
+			() => this._queueRefresh()
 		);
-		this._bufferActivateListener = this._bufferService.buffers.onBufferActivate(() => {
+		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() => {
 			this._canvas!.style.display =
-				this._bufferService.buffer === this._bufferService.buffers.alt ? 'none' : 'block';
+				this._terminal.bufferService.buffer === this._terminal.bufferService.buffers.alt
+					? 'none'
+					: 'block';
 		});
-		this._bufferScrollListener = this._bufferService.onScroll(() => {
-			if (this._lastKnownBufferLength !== this._bufferService.buffers.normal.lines.length) {
+		this._bufferScrollListener = this._terminal.bufferService.onScroll(() => {
+			if (
+				this._lastKnownBufferLength !== this._terminal.bufferService.buffers.normal.lines.length
+			) {
 				this._refreshDrawHeightConstants();
 				this._refreshColorZonePadding();
 			}
 		});
 
-		this._dimensionsChangeListener = this._renderService.onDimensionsChange(() =>
+		this._dimensionsChangeListener = this._terminal.renderService!.onDimensionsChange(() =>
 			this._queueRefresh(true)
 		);
 
-		this._dprChangeListener = this._coreBrowserService.onDprChange(() => this._queueRefresh(true));
-		this._scrollbarOptionListener = this._optionsService.onSpecificOptionChange('scrollbar', () =>
+		this._dprChangeListener = this._terminal.coreBrowserService!.onDprChange(() =>
 			this._queueRefresh(true)
 		);
-		this._themeChangeListener = this._themeService.onChangeColors(() => this._queueRefresh());
+		this._scrollbarOptionListener = this._terminal.optionsService.onSpecificOptionChange(
+			'scrollbar',
+			() => this._queueRefresh(true)
+		);
+		this._themeChangeListener = this._terminal.themeService!.onChangeColors(() =>
+			this._queueRefresh()
+		);
 		this._queueRefresh(true);
 	}
 
@@ -160,7 +147,7 @@ export class OverviewRulerRenderer {
 	private _refreshDrawHeightConstants(): void {
 		drawHeight.full = Math.round(2 * devicePixelRatio);
 		// Calculate actual pixels per line
-		const pixelsPerLine = this._canvas.height / this._bufferService.buffer.lines.length;
+		const pixelsPerLine = this._canvas.height / this._terminal.bufferService.buffer.lines.length;
 		// Clamp actual pixels within a range
 		const nonFullHeight = Math.round(Math.max(Math.min(pixelsPerLine, 12), 6) * devicePixelRatio);
 		drawHeight.left = nonFullHeight;
@@ -171,41 +158,51 @@ export class OverviewRulerRenderer {
 	private _refreshColorZonePadding(): void {
 		this._colorZoneStore.setPadding({
 			full: Math.floor(
-				(this._bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
+				(this._terminal.bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
 					drawHeight.full
 			),
 			left: Math.floor(
-				(this._bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
+				(this._terminal.bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
 					drawHeight.left
 			),
 			center: Math.floor(
-				(this._bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
+				(this._terminal.bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
 					drawHeight.center
 			),
 			right: Math.floor(
-				(this._bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
+				(this._terminal.bufferService.buffers.active.lines.length / (this._canvas.height - 1)) *
 					drawHeight.right
 			)
 		});
-		this._lastKnownBufferLength = this._bufferService.buffers.normal.lines.length;
+		this._lastKnownBufferLength = this._terminal.bufferService.buffers.normal.lines.length;
 	}
 
 	private _refreshCanvasDimensions(): void {
-		if (this._isDisposed || !this._renderService.hasRenderer()) {
+		if (this._isDisposed || !this._terminal.renderService!.hasRenderer()) {
 			return;
 		}
-		const cssCanvasHeight = this._renderService.dimensions.css.canvas.height;
-		const deviceCanvasHeight = this._renderService.dimensions.device.canvas.height;
-		this._canvas.style.width = `${this._width}px`;
-		this._canvas.width = Math.round(this._width * devicePixelRatio);
+		const width = this._getWidth();
+		const cssCanvasHeight = this._terminal.renderService!.dimensions.css.canvas.height;
+		const deviceCanvasHeight = this._terminal.renderService!.dimensions.device.canvas.height;
+		this._canvas.style.width = `${width}px`;
+		this._canvas.width = Math.round(width * devicePixelRatio);
 		this._canvas.style.height = `${cssCanvasHeight}px`;
 		this._canvas.height = deviceCanvasHeight;
 		this._refreshDrawConstants();
 		this._refreshColorZonePadding();
 	}
 
+	private _getWidth(): number {
+		const scrollbar = this._terminal.optionsService.rawOptions.scrollbar;
+		const showScrollbar = scrollbar?.showScrollbar ?? true;
+		if (!showScrollbar) {
+			return 0;
+		}
+		return scrollbar?.width ?? 0;
+	}
+
 	private _refreshDecorations(): void {
-		if (this._isDisposed || !this._renderService.hasRenderer()) {
+		if (this._isDisposed || !this._terminal.renderService!.hasRenderer()) {
 			return;
 		}
 		if (this._shouldUpdateDimensions) {
@@ -213,7 +210,7 @@ export class OverviewRulerRenderer {
 		}
 		this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 		this._colorZoneStore.clear();
-		for (const decoration of this._decorationService.decorations) {
+		for (const decoration of this._terminal.decorationService.decorations) {
 			this._colorZoneStore.addDecoration(decoration);
 		}
 		this._ctx.lineWidth = 1;
@@ -234,9 +231,9 @@ export class OverviewRulerRenderer {
 	}
 
 	private _renderRulerOutline(): void {
-		this._ctx.fillStyle = this._themeService.colors.overviewRulerBorder.css;
+		this._ctx.fillStyle = this._terminal.themeService!.colors.overviewRulerBorder.css;
 		this._ctx.fillRect(0, 0, Constants.OVERVIEW_RULER_BORDER_WIDTH, this._canvas.height);
-		if (this._optionsService.rawOptions.scrollbar?.overviewRuler?.showTopBorder) {
+		if (this._terminal.optionsService.rawOptions.scrollbar?.overviewRuler?.showTopBorder) {
 			this._ctx.fillRect(
 				Constants.OVERVIEW_RULER_BORDER_WIDTH,
 				0,
@@ -244,7 +241,7 @@ export class OverviewRulerRenderer {
 				Constants.OVERVIEW_RULER_BORDER_WIDTH
 			);
 		}
-		if (this._optionsService.rawOptions.scrollbar?.overviewRuler?.showBottomBorder) {
+		if (this._terminal.optionsService.rawOptions.scrollbar?.overviewRuler?.showBottomBorder) {
 			this._ctx.fillRect(
 				Constants.OVERVIEW_RULER_BORDER_WIDTH,
 				this._canvas.height - Constants.OVERVIEW_RULER_BORDER_WIDTH,
@@ -260,14 +257,14 @@ export class OverviewRulerRenderer {
 			/* x */ drawX[zone.position || 'full'],
 			/* y */ Math.round(
 				(this._canvas.height - 1) * // -1 to ensure at least 2px are allowed for decoration on last line
-					(zone.startBufferLine / this._bufferService.buffers.active.lines.length) -
+					(zone.startBufferLine / this._terminal.bufferService.buffers.active.lines.length) -
 					drawHeight[zone.position || 'full'] / 2
 			),
 			/* w */ drawWidth[zone.position || 'full'],
 			/* h */ Math.round(
 				(this._canvas.height - 1) * // -1 to ensure at least 2px are allowed for decoration on last line
 					((zone.endBufferLine - zone.startBufferLine) /
-						this._bufferService.buffers.active.lines.length) +
+						this._terminal.bufferService.buffers.active.lines.length) +
 					drawHeight[zone.position || 'full']
 			)
 		);

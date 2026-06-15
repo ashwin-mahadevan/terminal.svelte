@@ -643,30 +643,12 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		const showScrollbar = this.options.scrollbar?.showScrollbar ?? true;
 		const overviewRulerWidth = this.options.scrollbar?.width;
 		if (showScrollbar && overviewRulerWidth) {
-			this._overviewRulerRenderer = new OverviewRulerRenderer(
-				this.element!,
-				this.screenElement,
-				this.bufferService,
-				this.decorationService,
-				this.renderService,
-				this.optionsService,
-				this.themeService,
-				this.coreBrowserService
-			);
+			this._overviewRulerRenderer = new OverviewRulerRenderer(this);
 		}
 		this.optionsService.onSpecificOptionChange('scrollbar', (value) => {
 			const shouldShow = (value?.showScrollbar ?? true) && !!value?.width;
 			if (!this._overviewRulerRenderer && shouldShow && this.element && this.screenElement) {
-				this._overviewRulerRenderer = new OverviewRulerRenderer(
-					this.element,
-					this.screenElement,
-					this.bufferService,
-					this.decorationService,
-					this.renderService!,
-					this.optionsService,
-					this.themeService!,
-					this.coreBrowserService!
-				);
+				this._overviewRulerRenderer = new OverviewRulerRenderer(this);
 			}
 		});
 
