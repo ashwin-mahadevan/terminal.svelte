@@ -125,12 +125,13 @@ export class SelectionService {
 
 	private _bufferActivateListener!: IDisposable;
 	private _bufferResizeListener!: IDisposable;
+	private _userInputListener!: IDisposable;
 
 	constructor(private readonly _terminal: CoreBrowserTerminal) {
 		// Init listeners
 		this._mouseMoveListener = (event) => this._handleMouseMove(event as MouseEvent);
 		this._mouseUpListener = (event) => this._handleMouseUp(event as MouseEvent);
-		this._terminal.coreService.onUserInput(() => {
+		this._userInputListener = this._terminal.coreService.onUserInput(() => {
 			if (this.hasSelection) {
 				this.clearSelection();
 			}
@@ -162,6 +163,7 @@ export class SelectionService {
 		this._onRedrawRequest.dispose();
 		this._onSelectionChange.dispose();
 		this._onRequestScrollLines.dispose();
+		this._userInputListener.dispose();
 		this._bufferActivateListener.dispose();
 		this._bufferResizeListener.dispose();
 		this._removeMouseDownListeners();
