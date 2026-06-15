@@ -68,24 +68,19 @@
 		return () => disposable.dispose();
 	});
 
+	let cellWidth = $derived.by(() => measureWidth / MEASURE_COLS);
+	let cellHeight = $derived.by(() => measureHeight); // TODO: Actually measure.
+
 	$effect(() => {
-		terminal.setCharSize(measureWidth / MEASURE_COLS, measureHeight);
+		terminal.setCharSize(cellWidth, cellHeight);
 
 		const showScrollbar = terminal.core.options.scrollbar?.showScrollbar ?? true;
 		const scrollbarWidth =
 			terminal.core.options.scrollback === 0 || !showScrollbar
 				? 0
 				: (terminal.core.options.scrollbar?.width ?? ViewportConstants.DEFAULT_SCROLL_BAR_WIDTH);
-		emulator.columns = Math.max(
-			2,
-			Math.floor(
-				(clientWidth - scrollbarWidth) / terminal.renderService!.dimensions!.css.cell.width
-			)
-		);
-		emulator.rows = Math.max(
-			1,
-			Math.floor(clientHeight / terminal!.renderService!.dimensions!.css.cell.height)
-		);
+		emulator.columns = Math.max(2, Math.floor((clientWidth - scrollbarWidth) / cellWidth));
+		emulator.rows = Math.max(1, Math.floor(clientHeight / measureHeight));
 	});
 
 	$effect(() => {
