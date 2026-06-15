@@ -93,9 +93,18 @@ function aggregate(events: ParseEvent[]): SemanticEvent[] {
 	return out;
 }
 
+// ─── Run result ───────────────────────────────────────────────────────────────
+
+type RunResult = {
+	events: SemanticEvent[];
+	state: number;
+	collect: number;
+	params: ParamsArray;
+};
+
 // ─── Functional driver ────────────────────────────────────────────────────────
 
-function runFunctional(input: string): SemanticEvent[] {
+function runFunctional(input: string): RunResult {
 	const container = new Uint32Array(input.length * 2);
 	const length = new StringToUtf32().decode(input, container);
 
@@ -113,12 +122,12 @@ function runFunctional(input: string): SemanticEvent[] {
 		params = result.params;
 	}
 
-	return aggregate(events);
+	return { events: aggregate(events), state, collect, params: params.toArray() };
 }
 
 // ─── Reference driver ─────────────────────────────────────────────────────────
 
-function runReference(input: string): SemanticEvent[] {
+function runReference(input: string): RunResult {
 	const parser = new EscapeSequenceParser();
 	const out: SemanticEvent[] = [];
 
@@ -194,7 +203,12 @@ function runReference(input: string): SemanticEvent[] {
 	const container = new Uint32Array(input.length * 2);
 	void parser.parse(container, new StringToUtf32().decode(input, container));
 
-	return out;
+	return {
+		events: out,
+		state: parser.currentState,
+		collect: (parser as unknown as { _collect: number })._collect,
+		params: (parser as unknown as { _params: Params })._params.toArray()
+	};
 }
 
 // ─── Inputs ───────────────────────────────────────────────────────────────────
@@ -221,7 +235,14 @@ const CASES: { label: string; input: string }[] = [
 	{ label: 'mixed: text + CSI + text + execute', input: 'abc\x1b[31mdef\n' },
 	{ label: 'unicode text (astral codepoint)', input: 'abc\u{1F600}def' },
 	{ label: 'CSI — abort mid-sequence (CAN)', input: '\x1b[31\x18' },
-	{ label: 'multiple CSI sequences', input: '\x1b[1m\x1b[32m\x1b[0m' }
+	{ label: 'multiple CSI sequences', input: '\x1b[1m\x1b[32m\x1b[0m' },
+	// C1 OSC (0x9d) enters via OSC_START — no CLEAR — so collect/params from a
+	// preceding CSI are still live when OSC_END fires. The reference resets them;
+	// a bug that skips the reset would leave stale values in the final state.
+	{ label: 'OSC after CSI — OSC_END resets collect and params', input: '\x1b[?25h\x9d2;title\x9c' },
+	// DCS params accumulated in DCS_PARAM are live at DCS_HOOK and must be reset
+	// at DCS_UNHOOK; a bug that skips the reset leaves stale params in the final state.
+	{ label: 'DCS with params — DCS_UNHOOK resets params', input: '\x1bP1q\x9c' }
 ];
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
