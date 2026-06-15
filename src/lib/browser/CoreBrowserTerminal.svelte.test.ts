@@ -175,7 +175,8 @@ describe('CoreBrowserTerminal', () => {
 					preventDefault: () => {},
 					stopPropagation: () => {},
 					type: 'keydown',
-					keyCode: 13
+					keyCode: 13,
+					key: 'Enter'
 				} as KeyboardEvent;
 				term.keyDown(evKeyDown);
 			}));
@@ -225,7 +226,8 @@ describe('CoreBrowserTerminal', () => {
 			preventDefault: () => {},
 			stopPropagation: () => {},
 			type: 'keydown',
-			keyCode: 77
+			keyCode: 77,
+			key: 'M'
 		} as KeyboardEvent;
 		const evKeyPress = {
 			preventDefault: () => {},
@@ -244,13 +246,13 @@ describe('CoreBrowserTerminal', () => {
 			expect(term.keyPress(evKeyPress)).toBe(true);
 
 			keydownSpy.mockClear();
-			term.attachCustomKeyEventHandler((ev) => ev.keyCode === 77);
+			term.attachCustomKeyEventHandler((ev) => ev.key === 'M');
 			term.keyDown(evKeyDown);
 			expect(keydownSpy).toHaveBeenCalled();
 			expect(term.keyPress(evKeyPress)).toBe(true);
 
 			keydownSpy.mockClear();
-			term.attachCustomKeyEventHandler((ev) => ev.keyCode !== 77);
+			term.attachCustomKeyEventHandler((ev) => ev.key !== 'M');
 			term.keyDown(evKeyDown);
 			expect(keydownSpy).not.toHaveBeenCalled();
 			expect(term.keyPress(evKeyPress)).toBe(false);
@@ -260,7 +262,7 @@ describe('CoreBrowserTerminal', () => {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const keydownSpy = vi.spyOn((term as any)._compositionHelper, 'keydown');
 
-			term.attachCustomKeyEventHandler((ev) => ev.keyCode !== 77);
+			term.attachCustomKeyEventHandler((ev) => ev.key !== 'M');
 			term.keyDown(evKeyDown);
 			expect(keydownSpy).not.toHaveBeenCalled();
 			expect(term.keyPress(evKeyPress)).toBe(false);
@@ -972,13 +974,13 @@ describe('CoreBrowserTerminal', () => {
 				const pdSpy = vi.spyOn(evKeyDown, 'preventDefault');
 
 				evKeyDown.altKey = true;
-				evKeyDown.keyCode = 81;
+				evKeyDown.code = 'KeyQ';
 				term.keyDown(evKeyDown);
 				expect(pdSpy).toHaveBeenCalled();
 
 				pdSpy.mockClear();
 				evKeyDown.altKey = true;
-				evKeyDown.keyCode = 192;
+				evKeyDown.code = 'Backquote';
 				term.keyDown(evKeyDown);
 				expect(pdSpy).toHaveBeenCalled();
 			});

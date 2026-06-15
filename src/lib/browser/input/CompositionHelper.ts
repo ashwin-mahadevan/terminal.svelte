@@ -110,13 +110,12 @@ export class CompositionHelper {
 	 */
 	public keydown(ev: KeyboardEvent): boolean {
 		if (this._isComposing || this._isSendingComposition) {
-			if (ev.keyCode === 20 || ev.keyCode === 229) {
-				// 20 is CapsLock, 229 is Enter
-				// Continue composing if the keyCode is the "composition character"
+			if (ev.key === 'CapsLock' || ev.key === 'Process') {
+				// Continue composing if the key is CapsLock or the IME composition key
 				return false;
 			}
-			if (ev.keyCode === 16 || ev.keyCode === 17 || ev.keyCode === 18) {
-				// Continue composing if the keyCode is a modifier key
+			if (ev.key === 'Shift' || ev.key === 'Control' || ev.key === 'Alt') {
+				// Continue composing if a modifier key was pressed
 				return false;
 			}
 			// Finish composition immediately. This is mainly here for the case where enter is
@@ -124,8 +123,8 @@ export class CompositionHelper {
 			this._finalizeComposition(false);
 		}
 
-		if (ev.keyCode === 229) {
-			// If the "composition character" is used but gets to this point it means a non-composition
+		if (ev.key === 'Process') {
+			// If the IME composition key is used but gets to this point it means a non-composition
 			// character (eg. numbers and punctuation) was pressed when the IME was active.
 			this._handleAnyTextareaChanges();
 			return false;

@@ -12,7 +12,6 @@ function createEvent(partialEvent: Partial<IKeyboardEvent> = {}): IKeyboardEvent
 		ctrlKey: partialEvent.ctrlKey || false,
 		shiftKey: partialEvent.shiftKey || false,
 		metaKey: partialEvent.metaKey || false,
-		keyCode: partialEvent.keyCode ?? 0,
 		code: partialEvent.code || '',
 		key: partialEvent.key || '',
 		type: partialEvent.type || 'keydown'

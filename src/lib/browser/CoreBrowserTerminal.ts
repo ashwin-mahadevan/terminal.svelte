@@ -925,7 +925,7 @@ export class CoreBrowserTerminal {
 		}
 
 		// Don't invoke for arrows, pageDown, home, backspace, etc. (on non-keypress events)
-		return thirdLevelKey && (!ev.keyCode || ev.keyCode > 47);
+		return thirdLevelKey && ev.key.length === 1;
 	}
 
 	public _keyup = (ev: KeyboardEvent) => {
@@ -1126,14 +1126,5 @@ export class CoreBrowserTerminal {
  */
 
 function wasModifierKeyOnlyEvent(ev: KeyboardEvent): boolean {
-	return (
-		ev.keyCode === 16 || // Shift
-		ev.keyCode === 17 || // Ctrl
-		ev.keyCode === 18 || // Alt
-		ev.keyCode === 91 || // Meta (Left)
-		ev.keyCode === 92 || // Meta (Right)
-		ev.keyCode === 93 || // Meta (Menu)
-		ev.keyCode === 224 || // Meta (Firefox)
-		ev.key === 'Meta'
-	);
+	return ev.key === 'Shift' || ev.key === 'Control' || ev.key === 'Alt' || ev.key === 'Meta';
 }

@@ -8,32 +8,32 @@ import type { IKeyboardEvent, IKeyboardResult } from '$lib/common/Types';
 import { KeyboardResultType } from '$lib/common/Types';
 import { C0 } from '$lib/common/data/EscapeSequences';
 
-// reg + shift key mappings for digits and special chars
-const KEYCODE_KEY_MAPPINGS: { [key: number]: [string, string] } = {
+// reg + shift key mappings for digits and special chars, keyed by KeyboardEvent.code
+const CODE_KEY_MAPPINGS: { [code: string]: [string, string] } = {
 	// digits 0-9
-	48: ['0', ')'],
-	49: ['1', '!'],
-	50: ['2', '@'],
-	51: ['3', '#'],
-	52: ['4', '$'],
-	53: ['5', '%'],
-	54: ['6', '^'],
-	55: ['7', '&'],
-	56: ['8', '*'],
-	57: ['9', '('],
+	Digit0: ['0', ')'],
+	Digit1: ['1', '!'],
+	Digit2: ['2', '@'],
+	Digit3: ['3', '#'],
+	Digit4: ['4', '$'],
+	Digit5: ['5', '%'],
+	Digit6: ['6', '^'],
+	Digit7: ['7', '&'],
+	Digit8: ['8', '*'],
+	Digit9: ['9', '('],
 
 	// special chars
-	186: [';', ':'],
-	187: ['=', '+'],
-	188: [',', '<'],
-	189: ['-', '_'],
-	190: ['.', '>'],
-	191: ['/', '?'],
-	192: ['`', '~'],
-	219: ['[', '{'],
-	220: ['\\', '|'],
-	221: [']', '}'],
-	222: ["'", '"']
+	Semicolon: [';', ':'],
+	Equal: ['=', '+'],
+	Comma: [',', '<'],
+	Minus: ['-', '_'],
+	Period: ['.', '>'],
+	Slash: ['/', '?'],
+	Backquote: ['`', '~'],
+	BracketLeft: ['[', '{'],
+	Backslash: ['\\', '|'],
+	BracketRight: [']', '}'],
+	Quote: ["'", '"']
 };
 
 export function evaluateKeyboardEvent(
@@ -52,43 +52,42 @@ export function evaluateKeyboardEvent(
 	};
 	const modifiers =
 		(ev.shiftKey ? 1 : 0) | (ev.altKey ? 2 : 0) | (ev.ctrlKey ? 4 : 0) | (ev.metaKey ? 8 : 0);
-	switch (ev.keyCode) {
-		case 0:
-			if (ev.key === 'UIKeyInputUpArrow') {
-				if (applicationCursorMode) {
-					result.key = C0.ESC + 'OA';
-				} else {
-					result.key = C0.ESC + '[A';
-				}
-			} else if (ev.key === 'UIKeyInputLeftArrow') {
-				if (applicationCursorMode) {
-					result.key = C0.ESC + 'OD';
-				} else {
-					result.key = C0.ESC + '[D';
-				}
-			} else if (ev.key === 'UIKeyInputRightArrow') {
-				if (applicationCursorMode) {
-					result.key = C0.ESC + 'OC';
-				} else {
-					result.key = C0.ESC + '[C';
-				}
-			} else if (ev.key === 'UIKeyInputDownArrow') {
-				if (applicationCursorMode) {
-					result.key = C0.ESC + 'OB';
-				} else {
-					result.key = C0.ESC + '[B';
-				}
+	switch (ev.key) {
+		case 'UIKeyInputUpArrow':
+			if (applicationCursorMode) {
+				result.key = C0.ESC + 'OA';
+			} else {
+				result.key = C0.ESC + '[A';
 			}
 			break;
-		case 8:
-			// backspace
+		case 'UIKeyInputLeftArrow':
+			if (applicationCursorMode) {
+				result.key = C0.ESC + 'OD';
+			} else {
+				result.key = C0.ESC + '[D';
+			}
+			break;
+		case 'UIKeyInputRightArrow':
+			if (applicationCursorMode) {
+				result.key = C0.ESC + 'OC';
+			} else {
+				result.key = C0.ESC + '[C';
+			}
+			break;
+		case 'UIKeyInputDownArrow':
+			if (applicationCursorMode) {
+				result.key = C0.ESC + 'OB';
+			} else {
+				result.key = C0.ESC + '[B';
+			}
+			break;
+		case 'Backspace':
 			result.key = ev.ctrlKey ? '\b' : C0.DEL; // ^H or ^?
 			if (ev.altKey) {
 				result.key = C0.ESC + result.key;
 			}
 			break;
-		case 9:
-			// tab
+		case 'Tab':
 			if (ev.shiftKey) {
 				result.key = C0.ESC + '[Z';
 				break;
@@ -96,27 +95,18 @@ export function evaluateKeyboardEvent(
 			result.key = C0.HT;
 			result.cancel = true;
 			break;
-		case 13:
-			// return/enter
-			if (ev.key === 'c' && ev.ctrlKey) {
-				// HACK: Safari on iPad, iOS, AppleVisionPro sends key 13 when typing ctrl-c on hardware
-				// keyboard
-				result.key = C0.ETX;
-			} else {
-				result.key = ev.altKey ? C0.ESC + C0.CR : C0.CR;
-			}
+		case 'Enter':
+			result.key = ev.altKey ? C0.ESC + C0.CR : C0.CR;
 			result.cancel = true;
 			break;
-		case 27:
-			// escape
+		case 'Escape':
 			result.key = C0.ESC;
 			if (ev.altKey) {
 				result.key = C0.ESC + C0.ESC;
 			}
 			result.cancel = true;
 			break;
-		case 37:
-			// left-arrow
+		case 'ArrowLeft':
 			if (ev.metaKey) {
 				break;
 			}
@@ -128,8 +118,7 @@ export function evaluateKeyboardEvent(
 				result.key = C0.ESC + '[D';
 			}
 			break;
-		case 39:
-			// right-arrow
+		case 'ArrowRight':
 			if (ev.metaKey) {
 				break;
 			}
@@ -141,8 +130,7 @@ export function evaluateKeyboardEvent(
 				result.key = C0.ESC + '[C';
 			}
 			break;
-		case 38:
-			// up-arrow
+		case 'ArrowUp':
 			if (ev.metaKey) {
 				break;
 			}
@@ -154,8 +142,7 @@ export function evaluateKeyboardEvent(
 				result.key = C0.ESC + '[A';
 			}
 			break;
-		case 40:
-			// down-arrow
+		case 'ArrowDown':
 			if (ev.metaKey) {
 				break;
 			}
@@ -167,24 +154,20 @@ export function evaluateKeyboardEvent(
 				result.key = C0.ESC + '[B';
 			}
 			break;
-		case 45:
-			// insert
+		case 'Insert':
 			if (!ev.shiftKey && !ev.ctrlKey) {
-				// <Ctrl> or <Shift> + <Insert> are used to
-				// copy-paste on some systems.
+				// <Ctrl> or <Shift> + <Insert> are used to copy-paste on some systems.
 				result.key = C0.ESC + '[2~';
 			}
 			break;
-		case 46:
-			// delete
+		case 'Delete':
 			if (modifiers) {
 				result.key = C0.ESC + '[3;' + (modifiers + 1) + '~';
 			} else {
 				result.key = C0.ESC + '[3~';
 			}
 			break;
-		case 36:
-			// home
+		case 'Home':
 			if (modifiers) {
 				result.key = C0.ESC + '[1;' + (modifiers + 1) + 'H';
 			} else if (applicationCursorMode) {
@@ -193,8 +176,7 @@ export function evaluateKeyboardEvent(
 				result.key = C0.ESC + '[H';
 			}
 			break;
-		case 35:
-			// end
+		case 'End':
 			if (modifiers) {
 				result.key = C0.ESC + '[1;' + (modifiers + 1) + 'F';
 			} else if (applicationCursorMode) {
@@ -203,8 +185,7 @@ export function evaluateKeyboardEvent(
 				result.key = C0.ESC + '[F';
 			}
 			break;
-		case 33:
-			// page up
+		case 'PageUp':
 			if (ev.shiftKey) {
 				result.type = KeyboardResultType.PAGE_UP;
 			} else if (ev.ctrlKey) {
@@ -213,8 +194,7 @@ export function evaluateKeyboardEvent(
 				result.key = C0.ESC + '[5~';
 			}
 			break;
-		case 34:
-			// page down
+		case 'PageDown':
 			if (ev.shiftKey) {
 				result.type = KeyboardResultType.PAGE_DOWN;
 			} else if (ev.ctrlKey) {
@@ -223,85 +203,84 @@ export function evaluateKeyboardEvent(
 				result.key = C0.ESC + '[6~';
 			}
 			break;
-		case 112:
-			// F1-F12
+		case 'F1':
 			if (modifiers) {
 				result.key = C0.ESC + '[1;' + (modifiers + 1) + 'P';
 			} else {
 				result.key = C0.ESC + 'OP';
 			}
 			break;
-		case 113:
+		case 'F2':
 			if (modifiers) {
 				result.key = C0.ESC + '[1;' + (modifiers + 1) + 'Q';
 			} else {
 				result.key = C0.ESC + 'OQ';
 			}
 			break;
-		case 114:
+		case 'F3':
 			if (modifiers) {
 				result.key = C0.ESC + '[1;' + (modifiers + 1) + 'R';
 			} else {
 				result.key = C0.ESC + 'OR';
 			}
 			break;
-		case 115:
+		case 'F4':
 			if (modifiers) {
 				result.key = C0.ESC + '[1;' + (modifiers + 1) + 'S';
 			} else {
 				result.key = C0.ESC + 'OS';
 			}
 			break;
-		case 116:
+		case 'F5':
 			if (modifiers) {
 				result.key = C0.ESC + '[15;' + (modifiers + 1) + '~';
 			} else {
 				result.key = C0.ESC + '[15~';
 			}
 			break;
-		case 117:
+		case 'F6':
 			if (modifiers) {
 				result.key = C0.ESC + '[17;' + (modifiers + 1) + '~';
 			} else {
 				result.key = C0.ESC + '[17~';
 			}
 			break;
-		case 118:
+		case 'F7':
 			if (modifiers) {
 				result.key = C0.ESC + '[18;' + (modifiers + 1) + '~';
 			} else {
 				result.key = C0.ESC + '[18~';
 			}
 			break;
-		case 119:
+		case 'F8':
 			if (modifiers) {
 				result.key = C0.ESC + '[19;' + (modifiers + 1) + '~';
 			} else {
 				result.key = C0.ESC + '[19~';
 			}
 			break;
-		case 120:
+		case 'F9':
 			if (modifiers) {
 				result.key = C0.ESC + '[20;' + (modifiers + 1) + '~';
 			} else {
 				result.key = C0.ESC + '[20~';
 			}
 			break;
-		case 121:
+		case 'F10':
 			if (modifiers) {
 				result.key = C0.ESC + '[21;' + (modifiers + 1) + '~';
 			} else {
 				result.key = C0.ESC + '[21~';
 			}
 			break;
-		case 122:
+		case 'F11':
 			if (modifiers) {
 				result.key = C0.ESC + '[23;' + (modifiers + 1) + '~';
 			} else {
 				result.key = C0.ESC + '[23~';
 			}
 			break;
-		case 123:
+		case 'F12':
 			if (modifiers) {
 				result.key = C0.ESC + '[24;' + (modifiers + 1) + '~';
 			} else {
@@ -309,40 +288,39 @@ export function evaluateKeyboardEvent(
 			}
 			break;
 		default:
-			// a-z and space
 			if (ev.ctrlKey && !ev.shiftKey && !ev.altKey && !ev.metaKey) {
-				if (ev.keyCode >= 65 && ev.keyCode <= 90) {
-					result.key = String.fromCharCode(ev.keyCode - 64);
-				} else if (ev.keyCode === 32) {
+				if (ev.code.startsWith('Key') && ev.code.length === 4) {
+					result.key = String.fromCharCode(ev.code.charCodeAt(3) - 64);
+				} else if (ev.code === 'Space') {
 					result.key = C0.NUL;
-				} else if (ev.keyCode >= 51 && ev.keyCode <= 55) {
+				} else if (ev.code >= 'Digit3' && ev.code <= 'Digit7') {
 					// escape, file sep, group sep, record sep, unit sep
-					result.key = String.fromCharCode(ev.keyCode - 51 + 27);
-				} else if (ev.keyCode === 56) {
+					result.key = String.fromCharCode(ev.code.charCodeAt(5) - 51 + 27);
+				} else if (ev.code === 'Digit8') {
 					result.key = C0.DEL;
 				} else if (ev.key === '/') {
 					result.key = C0.US; // https://github.com/xtermjs/xterm.js/issues/5457
-				} else if (ev.keyCode === 219) {
+				} else if (ev.code === 'BracketLeft') {
 					result.key = C0.ESC;
-				} else if (ev.keyCode === 220) {
+				} else if (ev.code === 'Backslash') {
 					result.key = C0.FS;
-				} else if (ev.keyCode === 221) {
+				} else if (ev.code === 'BracketRight') {
 					result.key = C0.GS;
 				}
 			} else if ((!isMac || macOptionIsMeta) && ev.altKey && !ev.metaKey) {
 				// On macOS this is a third level shift when !macOptionIsMeta. Use <Esc> instead.
-				const keyMapping = KEYCODE_KEY_MAPPINGS[ev.keyCode];
+				const keyMapping = CODE_KEY_MAPPINGS[ev.code];
 				const key = keyMapping?.[!ev.shiftKey ? 0 : 1];
 				if (key) {
 					result.key = C0.ESC + key;
-				} else if (ev.keyCode >= 65 && ev.keyCode <= 90) {
-					const keyCode = ev.ctrlKey ? ev.keyCode - 64 : ev.keyCode + 32;
-					let keyString = String.fromCharCode(keyCode);
+				} else if (ev.code.startsWith('Key') && ev.code.length === 4) {
+					const charCode = ev.ctrlKey ? ev.code.charCodeAt(3) - 64 : ev.code.charCodeAt(3) + 32;
+					let keyString = String.fromCharCode(charCode);
 					if (ev.shiftKey) {
 						keyString = keyString.toUpperCase();
 					}
 					result.key = C0.ESC + keyString;
-				} else if (ev.keyCode === 32) {
+				} else if (ev.code === 'Space') {
 					result.key = C0.ESC + (ev.ctrlKey ? C0.NUL : ' ');
 				} else if (ev.key === 'Dead' && ev.code.startsWith('Key')) {
 					// Reference: https://github.com/xtermjs/xterm.js/issues/3725
@@ -358,18 +336,11 @@ export function evaluateKeyboardEvent(
 					result.cancel = true;
 				}
 			} else if (isMac && !ev.altKey && !ev.ctrlKey && !ev.shiftKey && ev.metaKey) {
-				if (ev.keyCode === 65) {
+				if (ev.code === 'KeyA') {
 					// cmd + a
 					result.type = KeyboardResultType.SELECT_ALL;
 				}
-			} else if (
-				ev.key &&
-				!ev.ctrlKey &&
-				!ev.altKey &&
-				!ev.metaKey &&
-				ev.keyCode >= 48 &&
-				ev.key.length === 1
-			) {
+			} else if (ev.key && !ev.ctrlKey && !ev.altKey && !ev.metaKey && ev.key.length === 1) {
 				// Include only keys that that result in a _single_ character; don't include num lock,
 				// volume up, etc.
 				result.key = ev.key;

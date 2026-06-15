@@ -349,8 +349,7 @@ export class Win32InputMode {
 		if (vk !== undefined) {
 			return vk;
 		}
-		// Fall back to keyCode for unmapped keys
-		return ev.keyCode || 0;
+		return 0;
 	}
 
 	/**
