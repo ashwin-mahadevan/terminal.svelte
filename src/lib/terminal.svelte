@@ -6,7 +6,7 @@
 	import { setOrReportClipboard } from '$lib/clipboard';
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
-	import { copyHandler, handlePasteEvent } from '$lib/browser/Clipboard';
+	import { paste } from '$lib/browser/Clipboard';
 	import { isFirefox, isLinux } from '$lib/common/Platform';
 	import { browser } from '$app/environment';
 	import { Emulator } from './emulator.svelte';
@@ -212,16 +212,22 @@
 	bind:clientHeight
 	oncopy={(event) => {
 		if (terminal.selectionService?.hasSelection) {
-			copyHandler(event, terminal.selectionService!);
+			if (event.clipboardData) {
+				event.clipboardData.setData('text/plain', terminal.selectionService!.selectionText);
+			}
+			event.preventDefault();
 		}
 	}}
 	onpaste={(event) => {
-		handlePasteEvent(
-			event,
-			terminal.textarea!,
-			terminal.core.coreService,
-			terminal.core.optionsService
-		);
+		event.stopPropagation();
+		if (event.clipboardData) {
+			paste(
+				event.clipboardData.getData('text/plain'),
+				terminal.textarea!,
+				terminal.core.coreService,
+				terminal.core.optionsService
+			);
+		}
 	}}
 	onmousedown={(event) => {
 		if (isFirefox && event.button === 2) {
@@ -302,12 +308,15 @@
 					oncompositionend={() => terminal._compositionHelper!.compositionend()}
 					oninputcapture={(e) => terminal._inputEvent(e as unknown as InputEvent)}
 					onpaste={(event) => {
-						handlePasteEvent(
-							event,
-							terminal.textarea!,
-							terminal.core.coreService,
-							terminal.core.optionsService
-						);
+						event.stopPropagation();
+						if (event.clipboardData) {
+							paste(
+								event.clipboardData.getData('text/plain'),
+								terminal.textarea!,
+								terminal.core.coreService,
+								terminal.core.optionsService
+							);
+						}
 					}}
 					onfocus={() => {
 						if (terminal.core.coreService.decPrivateModes.sendFocus) {

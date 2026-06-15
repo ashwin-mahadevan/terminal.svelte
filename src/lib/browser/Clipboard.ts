@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import type { SelectionService } from '$lib/browser/services/SelectionService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 
@@ -29,34 +28,6 @@ export function bracketTextForPaste(text: string, bracketedPasteMode: boolean): 
 	// eslint-disable-next-line no-control-regex
 	const sanitizedText = text.replace(/\x1b/g, '\u241b');
 	return `\x1b[200~${sanitizedText}\x1b[201~`;
-}
-
-/**
- * Binds copy functionality to the given terminal.
- * @param ev The original copy event to be handled
- */
-export function copyHandler(ev: ClipboardEvent, selectionService: SelectionService): void {
-	if (ev.clipboardData) {
-		ev.clipboardData.setData('text/plain', selectionService.selectionText);
-	}
-	// Prevent or the original text will be copied.
-	ev.preventDefault();
-}
-
-/**
- * Redirect the clipboard's data to the terminal's input handler.
- */
-export function handlePasteEvent(
-	ev: ClipboardEvent,
-	textarea: HTMLTextAreaElement,
-	coreService: CoreService,
-	optionsService: OptionsService
-): void {
-	ev.stopPropagation();
-	if (ev.clipboardData) {
-		const text = ev.clipboardData.getData('text/plain');
-		paste(text, textarea, coreService, optionsService);
-	}
 }
 
 export function paste(
