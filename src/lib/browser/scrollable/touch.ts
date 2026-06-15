@@ -387,8 +387,10 @@ export class Gesture {
 	}
 
 	private _newGestureEvent(type: string, initialTarget?: EventTarget): IGestureEvent {
-		const event = document.createEvent('CustomEvent') as unknown as IGestureEvent;
-		event.initEvent(type, false, true);
+		const event = new CustomEvent(type, {
+			bubbles: false,
+			cancelable: true
+		}) as unknown as IGestureEvent;
 		event.initialTarget = initialTarget;
 		event.tapCount = 0;
 		return event;

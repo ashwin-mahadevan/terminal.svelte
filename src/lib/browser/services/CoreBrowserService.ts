@@ -125,21 +125,21 @@ class ScreenDprMonitor {
 		}
 
 		// Clear listeners for old DPR
-		this._resolutionMediaMatchList?.removeListener(this._outerListener);
+		this._resolutionMediaMatchList?.removeEventListener('change', this._outerListener);
 
 		// Add listeners for new DPR
 		this._currentDevicePixelRatio = this._parentWindow.devicePixelRatio;
 		this._resolutionMediaMatchList = this._parentWindow.matchMedia(
 			`screen and (resolution: ${this._parentWindow.devicePixelRatio}dppx)`
 		);
-		this._resolutionMediaMatchList.addListener(this._outerListener);
+		this._resolutionMediaMatchList.addEventListener('change', this._outerListener);
 	}
 
 	public clearListener(): void {
 		if (!this._resolutionMediaMatchList || !this._outerListener) {
 			return;
 		}
-		this._resolutionMediaMatchList.removeListener(this._outerListener);
+		this._resolutionMediaMatchList.removeEventListener('change', this._outerListener);
 		this._resolutionMediaMatchList = undefined;
 		this._outerListener = undefined;
 	}

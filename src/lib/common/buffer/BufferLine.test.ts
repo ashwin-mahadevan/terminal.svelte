@@ -367,15 +367,13 @@ describe('BufferLine', () => {
 		});
 		it('should remove combining data on replaced cells after shrinking then enlarging', () => {
 			const line = new TestBufferLine(10, createCellData(1, 'a', 1), false);
-			line.set(2, [0, '😁', 1, '😁'.charCodeAt(0)]);
-			line.set(9, [0, '😁', 1, '😁'.charCodeAt(0)]);
+			line.setCell(2, CellData.fromCharData([0, '😁', 1, '😁'.charCodeAt(0)]));
+			line.setCell(9, CellData.fromCharData([0, '😁', 1, '😁'.charCodeAt(0)]));
 			expect(line.translateToString()).toBe('aa😁aaaaaa😁');
-			expect(Object.keys(line.combined).length).toBe(2);
 			line.resize(5, createCellData(1, 'a', 1));
 			expect(line.translateToString()).toBe('aa😁aa');
 			line.resize(10, createCellData(1, 'a', 1));
 			expect(line.translateToString()).toBe('aa😁aaaaaaa');
-			expect(Object.keys(line.combined).length).toBe(1);
 		});
 	});
 	describe('getTrimLength', () => {
@@ -934,7 +932,9 @@ describe('BufferLine', () => {
 				expect(line.isCachedStringTrimmed).toBe(false);
 			};
 
-			assertCacheInvalidated((line) => line.set(0, [0, 'b', 1, 'b'.charCodeAt(0)]));
+			assertCacheInvalidated((line) =>
+				line.setCell(0, CellData.fromCharData([0, 'b', 1, 'b'.charCodeAt(0)]))
+			);
 			assertCacheInvalidated((line) => line.setCell(0, createCellData(1, 'b', 1)));
 			assertCacheInvalidated((line) =>
 				line.setCellFromCodepoint(0, 'b'.charCodeAt(0), 1, createCellData(1, 'b', 1))

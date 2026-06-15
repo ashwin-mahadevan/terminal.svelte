@@ -3,11 +3,7 @@
  * @license MIT
  */
 
-import {
-	CHAR_DATA_CODE_INDEX,
-	NULL_CELL_CODE,
-	WHITESPACE_CELL_CODE
-} from '$lib/common/buffer/Constants';
+import { NULL_CELL_CODE, WHITESPACE_CELL_CODE } from '$lib/common/buffer/Constants';
 import type { BufferService } from '$lib/common/services/BufferService';
 
 export function updateWindowsModeWrappedState(bufferService: BufferService): void {
@@ -24,14 +20,12 @@ export function updateWindowsModeWrappedState(bufferService: BufferService): voi
 	const line = bufferService.buffer.lines.get(
 		bufferService.buffer.ybase + bufferService.buffer.y - 1
 	);
-	const lastChar = line?.get(bufferService.cols - 1);
+	const lastCharCode = line?.getCodePoint(bufferService.cols - 1);
 
 	const nextLine = bufferService.buffer.lines.get(
 		bufferService.buffer.ybase + bufferService.buffer.y
 	);
-	if (nextLine && lastChar) {
-		nextLine.isWrapped =
-			lastChar[CHAR_DATA_CODE_INDEX] !== NULL_CELL_CODE &&
-			lastChar[CHAR_DATA_CODE_INDEX] !== WHITESPACE_CELL_CODE;
+	if (nextLine && lastCharCode !== undefined) {
+		nextLine.isWrapped = lastCharCode !== NULL_CELL_CODE && lastCharCode !== WHITESPACE_CELL_CODE;
 	}
 }

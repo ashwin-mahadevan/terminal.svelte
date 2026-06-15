@@ -202,7 +202,7 @@ export class StandardWheelEvent {
 		this.browserEvent = e ?? null;
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		this.target = e ? (e.target ?? (e as any).targetNode ?? e.srcElement ?? null) : null;
+		this.target = e ? (e.target ?? (e as any).targetNode ?? null) : null;
 
 		this.deltaY = deltaY;
 		this.deltaX = deltaX;
