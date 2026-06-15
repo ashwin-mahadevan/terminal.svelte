@@ -97,7 +97,7 @@
 
 	// OSC 52 clipboard read/report, inlined from the upstream ClipboardAddon.
 	$effect(() => {
-		const disposable = terminal.parser.registerOscHandler(52, (data) =>
+		const disposable = terminal.core.inputHandler.registerOscHandler(52, (data) =>
 			setOrReportClipboard(terminal, data)
 		);
 		return () => disposable.dispose();
@@ -111,7 +111,7 @@
 		return () => disposable.dispose();
 	});
 
-	$effect(() => terminal.parser.registerOscHandler(9, emulator.progress.handle).dispose);
+	$effect(() => terminal.core.inputHandler.registerOscHandler(9, emulator.progress.handle).dispose);
 
 	$effect(() => {
 		if (!onkey) return;

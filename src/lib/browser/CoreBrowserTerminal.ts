@@ -22,8 +22,7 @@
  */
 
 import type { ITerminalOptions } from '$lib/common/services/Services';
-import type { IModes, IParser } from '$lib/xterm';
-import type { Params } from '$lib/common/parser/Params';
+import type { IModes } from '$lib/xterm';
 import {
 	copyHandler,
 	handlePasteEvent,
@@ -165,8 +164,6 @@ export class CoreBrowserTerminal {
 		return this._charWidth > 0 && this._charHeight > 0;
 	}
 
-	public readonly parser: IParser;
-
 	public get modes(): IModes {
 		const m = this.core.coreService.decPrivateModes;
 		let mouseTrackingMode: IModes['mouseTrackingMode'] = 'none';
@@ -250,20 +247,6 @@ export class CoreBrowserTerminal {
 	constructor(options: Partial<ITerminalOptions> = {}) {
 		this.core = new CoreTerminal(options);
 
-		this.parser = {
-			registerCsiHandler: (id, callback) =>
-				this.core.inputHandler.registerCsiHandler(id, (params: Params) =>
-					callback(params.toArray())
-				),
-			registerDcsHandler: (id, callback) =>
-				this.core.inputHandler.registerDcsHandler(id, (data: string, params: Params) =>
-					callback(data, params.toArray())
-				),
-			registerEscHandler: (id, handler) => this.core.inputHandler.registerEscHandler(id, handler),
-			registerOscHandler: (ident, callback) =>
-				this.core.inputHandler.registerOscHandler(ident, callback),
-			registerApcHandler: (id, callback) => this.core.inputHandler.registerApcHandler(id, callback)
-		};
 		this.requestFocusListener = this.core.inputHandler.onRequestSendFocus(() =>
 			this._reportFocus()
 		);
