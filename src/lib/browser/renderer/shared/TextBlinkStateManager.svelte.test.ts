@@ -6,9 +6,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
 import { createMockOptionsService } from '$lib/common/TestUtils';
-import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 
-const coreBrowserService = {} as unknown as CoreBrowserService;
+const createMockTerminal = (
+	optionsService = createMockOptionsService({ blinkIntervalDuration: 100 })
+): CoreBrowserTerminal =>
+	({
+		optionsService
+	}) as unknown as CoreBrowserTerminal;
 
 describe('TextBlinkStateManager', () => {
 	beforeEach(() => {
@@ -20,11 +25,7 @@ describe('TextBlinkStateManager', () => {
 	});
 
 	it('starts interval only when needed', () => {
-		const manager = new TextBlinkStateManager(
-			() => {},
-			coreBrowserService,
-			createMockOptionsService({ blinkIntervalDuration: 100 })
-		);
+		const manager = new TextBlinkStateManager(() => {}, createMockTerminal());
 		expect(vi.getTimerCount()).toBe(0);
 		manager.setNeedsBlinkInViewport(true);
 		expect(vi.getTimerCount()).toBe(1);
@@ -32,13 +33,9 @@ describe('TextBlinkStateManager', () => {
 
 	it('stops interval and restores blink visibility when no longer needed', () => {
 		let renderCount = 0;
-		const manager = new TextBlinkStateManager(
-			() => {
-				renderCount++;
-			},
-			coreBrowserService,
-			createMockOptionsService({ blinkIntervalDuration: 100 })
-		);
+		const manager = new TextBlinkStateManager(() => {
+			renderCount++;
+		}, createMockTerminal());
 		manager.setNeedsBlinkInViewport(true);
 		vi.advanceTimersByTime(100);
 		const rendersAfterTick = renderCount;
@@ -50,11 +47,7 @@ describe('TextBlinkStateManager', () => {
 	});
 
 	it('pauses while viewport is hidden and resumes when visible', () => {
-		const manager = new TextBlinkStateManager(
-			() => {},
-			coreBrowserService,
-			createMockOptionsService({ blinkIntervalDuration: 100 })
-		);
+		const manager = new TextBlinkStateManager(() => {}, createMockTerminal());
 		manager.setNeedsBlinkInViewport(true);
 		expect(vi.getTimerCount()).toBe(1);
 		manager.setViewportVisible(false);
@@ -66,8 +59,7 @@ describe('TextBlinkStateManager', () => {
 	it('does not start interval when duration is zero', () => {
 		const manager = new TextBlinkStateManager(
 			() => {},
-			coreBrowserService,
-			createMockOptionsService({ blinkIntervalDuration: 0 })
+			createMockTerminal(createMockOptionsService({ blinkIntervalDuration: 0 }))
 		);
 		manager.setNeedsBlinkInViewport(true);
 		expect(vi.getTimerCount()).toBe(0);

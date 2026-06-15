@@ -104,8 +104,7 @@ export class DomRenderer {
 		);
 		this._textBlinkStateManager = new TextBlinkStateManager(
 			() => this._onRequestRedraw.fire({ start: 0, end: this._terminal.bufferService.rows - 1 }),
-			this._terminal.coreBrowserService!,
-			this._terminal.optionsService
+			this._terminal
 		);
 	}
 

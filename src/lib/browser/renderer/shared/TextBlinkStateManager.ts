@@ -3,9 +3,8 @@
  * @license MIT
  */
 
-import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { OptionsService } from '$lib/common/services/OptionsService';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 
 export class TextBlinkStateManager {
 	private _intervalDuration: number = 0;
@@ -17,16 +16,15 @@ export class TextBlinkStateManager {
 
 	constructor(
 		private readonly _renderCallback: () => void,
-		private readonly _coreBrowserService: CoreBrowserService,
-		private readonly _optionsService: OptionsService
+		private readonly _terminal: CoreBrowserTerminal
 	) {
-		this._blinkIntervalListener = this._optionsService.onSpecificOptionChange(
+		this._blinkIntervalListener = this._terminal.optionsService.onSpecificOptionChange(
 			'blinkIntervalDuration',
 			(duration) => {
 				this.setIntervalDuration(duration);
 			}
 		);
-		this.setIntervalDuration(this._optionsService.rawOptions.blinkIntervalDuration);
+		this.setIntervalDuration(this._terminal.optionsService.rawOptions.blinkIntervalDuration);
 	}
 
 	public dispose(): void {
