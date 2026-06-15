@@ -83,15 +83,7 @@ export class DomRenderer {
 		);
 		this._injectCss(this._terminal.themeService!.colors);
 
-		this._rowFactory = new DomRendererRowFactory(
-			document,
-			this._terminal.characterJoinerService!,
-			this._terminal.optionsService,
-			this._terminal.coreBrowserService!,
-			this._terminal.coreService,
-			this._terminal.decorationService,
-			this._terminal.themeService!
-		);
+		this._rowFactory = new DomRendererRowFactory(this._terminal);
 
 		this._terminal.element!.classList.add(Constants.TERMINAL_CLASS_PREFIX + this._terminalClass);
 		this._terminal.screenElement!.appendChild(this._selectionContainer);

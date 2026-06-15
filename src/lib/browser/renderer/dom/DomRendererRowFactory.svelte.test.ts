@@ -6,6 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { DomRendererRowFactory } from '$lib/browser/renderer/dom/DomRendererRowFactory';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import {
 	DEFAULT_ATTR,
 	FgFlags,
@@ -122,20 +123,32 @@ function createMockThemeService(): ThemeService {
 	return new MockThemeService() as unknown as ThemeService;
 }
 
+function createMockTerminalForRowFactory(overrides?: {
+	characterJoinerService?: CharacterJoinerService;
+	optionsService?: ReturnType<typeof createMockOptionsService>;
+	coreBrowserService?: CoreBrowserService;
+	coreService?: ReturnType<typeof createMockCoreService>;
+	decorationService?: ReturnType<typeof createMockDecorationService>;
+	themeService?: ThemeService;
+}): CoreBrowserTerminal {
+	return {
+		document,
+		characterJoinerService: overrides?.characterJoinerService ?? createMockCharacterJoinerService(),
+		optionsService:
+			overrides?.optionsService ?? createMockOptionsService({ drawBoldTextInBrightColors: true }),
+		coreBrowserService: overrides?.coreBrowserService ?? createMockCoreBrowserService(),
+		coreService: overrides?.coreService ?? createMockCoreService(),
+		decorationService: overrides?.decorationService ?? createMockDecorationService(),
+		themeService: overrides?.themeService ?? createMockThemeService()
+	} as unknown as CoreBrowserTerminal;
+}
+
 const TEST_STRING_CACHE = new BufferLineStringCache();
 
 describe('DomRendererRowFactory', () => {
 	describe('createRow', () => {
 		it('should not create anything for an empty row', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(2);
 			const spans = rowFactory.createRow(
 				lineData,
@@ -153,15 +166,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('should set correct attributes for double width characters', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(2);
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, '語', 2));
 			// There should be no element for the following "empty" cell
@@ -182,15 +187,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('should add class for cursor and cursor style', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(2);
 			for (const style of ['block', 'bar', 'underline']) {
 				const spans = rowFactory.createRow(
@@ -212,15 +209,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('should add class for cursor blink', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(2);
 			const spans = rowFactory.createRow(
 				lineData,
@@ -244,13 +233,9 @@ describe('DomRendererRowFactory', () => {
 			const coreBrowserService = new MockCoreBrowserService();
 			coreBrowserService.isFocused = false;
 			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				coreBrowserService as unknown as CoreBrowserService,
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
+				createMockTerminalForRowFactory({
+					coreBrowserService: coreBrowserService as unknown as CoreBrowserService
+				})
 			);
 			for (const inactiveStyle of ['outline', 'block', 'bar', 'underline', 'none']) {
 				const spans = rowFactory.createRow(
@@ -280,13 +265,9 @@ describe('DomRendererRowFactory', () => {
 			const coreService = createMockCoreService();
 			coreService.isCursorInitialized = false;
 			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService(),
-				createMockCoreBrowserService(),
-				coreService,
-				createMockDecorationService(),
-				createMockThemeService()
+				createMockTerminalForRowFactory({
+					coreService
+				})
 			);
 			const spans = rowFactory.createRow(
 				lineData,
@@ -305,15 +286,7 @@ describe('DomRendererRowFactory', () => {
 
 		describe('attributes', () => {
 			it('should add class for bold', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.BOLD;
@@ -334,15 +307,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should add class for italic', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.ITALIC;
@@ -363,15 +328,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should add class for dim', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.DIM;
@@ -393,15 +350,7 @@ describe('DomRendererRowFactory', () => {
 
 			describe('underline', () => {
 				it('should add class for straight underline style', () => {
-					const rowFactory = new DomRendererRowFactory(
-						document,
-						createMockCharacterJoinerService(),
-						createMockOptionsService({ drawBoldTextInBrightColors: true }),
-						createMockCoreBrowserService(),
-						createMockCoreService(),
-						createMockDecorationService(),
-						createMockThemeService()
-					);
+					const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 					const lineData = createEmptyLineData(2);
 					const cell = createCellData(0, 'a', 1);
 					cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.UNDERLINE;
@@ -423,15 +372,7 @@ describe('DomRendererRowFactory', () => {
 					expect(extractHtml(spans)).toBe('<span class="xterm-underline-1">a</span>');
 				});
 				it('should add class for double underline style', () => {
-					const rowFactory = new DomRendererRowFactory(
-						document,
-						createMockCharacterJoinerService(),
-						createMockOptionsService({ drawBoldTextInBrightColors: true }),
-						createMockCoreBrowserService(),
-						createMockCoreService(),
-						createMockDecorationService(),
-						createMockThemeService()
-					);
+					const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 					const lineData = createEmptyLineData(2);
 					const cell = createCellData(0, 'a', 1);
 					cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.UNDERLINE;
@@ -453,15 +394,7 @@ describe('DomRendererRowFactory', () => {
 					expect(extractHtml(spans)).toBe('<span class="xterm-underline-2">a</span>');
 				});
 				it('should add class for curly underline style', () => {
-					const rowFactory = new DomRendererRowFactory(
-						document,
-						createMockCharacterJoinerService(),
-						createMockOptionsService({ drawBoldTextInBrightColors: true }),
-						createMockCoreBrowserService(),
-						createMockCoreService(),
-						createMockDecorationService(),
-						createMockThemeService()
-					);
+					const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 					const lineData = createEmptyLineData(2);
 					const cell = createCellData(0, 'a', 1);
 					cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.UNDERLINE;
@@ -483,15 +416,7 @@ describe('DomRendererRowFactory', () => {
 					expect(extractHtml(spans)).toBe('<span class="xterm-underline-3">a</span>');
 				});
 				it('should add class for double dotted style', () => {
-					const rowFactory = new DomRendererRowFactory(
-						document,
-						createMockCharacterJoinerService(),
-						createMockOptionsService({ drawBoldTextInBrightColors: true }),
-						createMockCoreBrowserService(),
-						createMockCoreService(),
-						createMockDecorationService(),
-						createMockThemeService()
-					);
+					const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 					const lineData = createEmptyLineData(2);
 					const cell = createCellData(0, 'a', 1);
 					cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.UNDERLINE;
@@ -513,15 +438,7 @@ describe('DomRendererRowFactory', () => {
 					expect(extractHtml(spans)).toBe('<span class="xterm-underline-4">a</span>');
 				});
 				it('should add class for dashed underline style', () => {
-					const rowFactory = new DomRendererRowFactory(
-						document,
-						createMockCharacterJoinerService(),
-						createMockOptionsService({ drawBoldTextInBrightColors: true }),
-						createMockCoreBrowserService(),
-						createMockCoreService(),
-						createMockDecorationService(),
-						createMockThemeService()
-					);
+					const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 					const lineData = createEmptyLineData(2);
 					const cell = createCellData(0, 'a', 1);
 					cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.UNDERLINE;
@@ -545,15 +462,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should add class for overline', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.bg = DEFAULT_ATTR_DATA.bg | BgFlags.OVERLINE;
@@ -574,15 +483,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should add class for strikethrough', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.STRIKETHROUGH;
@@ -603,15 +504,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should hide blinking text when blink is off', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.fg = DEFAULT_ATTR_DATA.fg | FgFlags.BLINK | FgFlags.UNDERLINE;
@@ -649,15 +542,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should add classes for 256 foreground colors', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_P256;
@@ -682,15 +567,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should add classes for 256 background colors', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.bg |= Attributes.CM_P256;
@@ -715,15 +592,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should correctly invert colors', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_P16 | 2 | FgFlags.INVERSE;
@@ -745,15 +614,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should correctly invert default fg color', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= FgFlags.INVERSE;
@@ -775,15 +636,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should correctly invert default bg color', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_P16 | 1 | FgFlags.INVERSE;
@@ -804,15 +657,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should turn bold fg text bright', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= FgFlags.BOLD | Attributes.CM_P16;
@@ -837,15 +682,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should set style attribute for RBG', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_RGB | (1 << 16) | (2 << 8) | 3;
@@ -869,15 +706,7 @@ describe('DomRendererRowFactory', () => {
 			});
 
 			it('should correctly invert RGB colors', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				const cell = createCellData(0, 'a', 1);
 				cell.fg |= Attributes.CM_RGB | (1 << 16) | (2 << 8) | 3 | FgFlags.INVERSE;
@@ -903,15 +732,7 @@ describe('DomRendererRowFactory', () => {
 
 		describe('selectionForeground', () => {
 			it('should force selected cells with content to be rendered above the background', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 				lineData.setCell(1, createCellData(DEFAULT_ATTR, 'b', 1));
@@ -933,15 +754,7 @@ describe('DomRendererRowFactory', () => {
 				);
 			});
 			it('should force whitespace cells to be rendered above the background', () => {
-				const rowFactory = new DomRendererRowFactory(
-					document,
-					createMockCharacterJoinerService(),
-					createMockOptionsService({ drawBoldTextInBrightColors: true }),
-					createMockCoreBrowserService(),
-					createMockCoreService(),
-					createMockDecorationService(),
-					createMockThemeService()
-				);
+				const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 				const lineData = createEmptyLineData(2);
 				lineData.setCell(1, createCellData(DEFAULT_ATTR, 'a', 1));
 				rowFactory.handleSelectionChanged([0, 0], [2, 0], false);
@@ -966,15 +779,7 @@ describe('DomRendererRowFactory', () => {
 
 	describe('createRow with merged spans', () => {
 		it('should not create anything for an empty row', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(10);
 			const spans = rowFactory.createRow(
 				lineData,
@@ -992,15 +797,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('can merge adjacent codepoints with matching attributes', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(10);
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, 'b', 1));
@@ -1021,15 +818,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('should not merge on FG change', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(10);
 			const aColor1 = createCellData(DEFAULT_ATTR, 'a', 1);
 			aColor1.fg |= Attributes.CM_P16 | 1;
@@ -1057,15 +846,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('should not merge cursor cell', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(10);
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, 'a', 1));
@@ -1090,15 +871,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('should handle BCE correctly', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(10);
 			const nullCell = lineData.loadCell(0, new CellData());
 			nullCell.bg = Attributes.CM_P16 | 1;
@@ -1124,15 +897,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('should handle BCE for multiple cells', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(10);
 			const nullCell = lineData.loadCell(0, new CellData());
 			nullCell.bg = Attributes.CM_P16 | 1;
@@ -1196,15 +961,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('should not merge across link borders', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(10);
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, 'a', 1));
@@ -1231,15 +988,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('empty cells included in link underline', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(10);
 			lineData.setCell(0, createCellData(DEFAULT_ATTR, 'a', 1));
 			lineData.setCell(1, createCellData(DEFAULT_ATTR, 'a', 1));
@@ -1263,15 +1012,7 @@ describe('DomRendererRowFactory', () => {
 		});
 
 		it('link range gets capped to actual line borders', () => {
-			const rowFactory = new DomRendererRowFactory(
-				document,
-				createMockCharacterJoinerService(),
-				createMockOptionsService({ drawBoldTextInBrightColors: true }),
-				createMockCoreBrowserService(),
-				createMockCoreService(),
-				createMockDecorationService(),
-				createMockThemeService()
-			);
+			const rowFactory = new DomRendererRowFactory(createMockTerminalForRowFactory());
 			const lineData = createEmptyLineData(10);
 			for (let i = 0; i < 10; ++i) {
 				lineData.setCell(i, createCellData(DEFAULT_ATTR, 'a', 1));

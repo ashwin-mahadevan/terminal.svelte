@@ -8,12 +8,7 @@ import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { INVERTED_DEFAULT_COLOR } from '$lib/browser/renderer/shared/Constants';
 import { WHITESPACE_CELL_CHAR, Attributes } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { DecorationService } from '$lib/common/services/DecorationService';
-import type { OptionsService } from '$lib/common/services/OptionsService';
-import type { CoreService } from '$lib/common/services/CoreService';
-import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
-import type { ThemeService } from '$lib/browser/services/ThemeService';
-import type { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
+import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { JoinedCellData } from '$lib/browser/services/CharacterJoinerService';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 
@@ -40,15 +35,7 @@ export class DomRendererRowFactory {
 	private _selectionEnd: [number, number] | undefined;
 	private _columnSelectMode: boolean = false;
 
-	constructor(
-		private readonly _document: Document,
-		private readonly _characterJoinerService: CharacterJoinerService,
-		private readonly _optionsService: OptionsService,
-		private readonly _coreBrowserService: CoreBrowserService,
-		private readonly _coreService: CoreService,
-		private readonly _decorationService: DecorationService,
-		private readonly _themeService: ThemeService
-	) {}
+	constructor(private readonly _terminal: CoreBrowserTerminal) {}
 
 	public handleSelectionChanged(
 		start: [number, number] | undefined,
@@ -77,8 +64,8 @@ export class DomRendererRowFactory {
 		if (rowInfo) {
 			rowInfo.hasBlinkingCells = false;
 		}
-		const joinedRanges = this._characterJoinerService.getJoinedCharacters(row);
-		const colors = this._themeService.colors;
+		const joinedRanges = this._terminal.characterJoinerService!.getJoinedCharacters(row);
+		const colors = this._terminal.themeService!.colors;
 
 		let lineLength = lineData.getNoBgTrimmedLength();
 		if (isCursorRow && lineLength < cursorX + 1) {
@@ -163,7 +150,7 @@ export class DomRendererRowFactory {
 			let isDecorated = false;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			this._decorationService.forEachDecorationAtCell(x, row, undefined, (d) => {
+			this._terminal.decorationService.forEachDecorationAtCell(x, row, undefined, (d) => {
 				isDecorated = true;
 			});
 
@@ -174,7 +161,7 @@ export class DomRendererRowFactory {
 			}
 
 			if (!charElement) {
-				charElement = this._document.createElement('span');
+				charElement = this._terminal.document!.createElement('span');
 			} else {
 				/**
 				 * chars can only be merged on existing span if:
@@ -215,7 +202,7 @@ export class DomRendererRowFactory {
 					if (cellAmount) {
 						charElement.textContent = text;
 					}
-					charElement = this._document.createElement('span');
+					charElement = this._terminal.document!.createElement('span');
 					cellAmount = 0;
 
 					// TODO: Remove this upstream type-ignore
@@ -240,12 +227,12 @@ export class DomRendererRowFactory {
 			}
 
 			if (
-				!this._coreService.isCursorHidden &&
+				!this._terminal.coreService.isCursorHidden &&
 				isCursorCell &&
-				this._coreService.isCursorInitialized
+				this._terminal.coreService.isCursorInitialized
 			) {
 				classes.push(RowCss.CURSOR_CLASS);
-				if (this._coreBrowserService.isFocused) {
+				if (this._terminal.coreBrowserService!.isFocused) {
 					if (cursorBlink) {
 						classes.push(RowCss.CURSOR_BLINK_CLASS);
 					}
@@ -307,7 +294,7 @@ export class DomRendererRowFactory {
 					} else {
 						let fg = cell.getUnderlineColor();
 						if (
-							this._optionsService.rawOptions.drawBoldTextInBrightColors &&
+							this._terminal.optionsService.rawOptions.drawBoldTextInBrightColors &&
 							cell.isBold() &&
 							fg < 8
 						) {
@@ -352,7 +339,7 @@ export class DomRendererRowFactory {
 			// Apply any decoration foreground/background overrides, this must happen after inverse has
 			// been applied
 			let isTop = false;
-			this._decorationService.forEachDecorationAtCell(x, row, undefined, (d) => {
+			this._terminal.decorationService.forEachDecorationAtCell(x, row, undefined, (d) => {
 				if (d.options.layer !== 'top' && isTop) {
 					return;
 				}
@@ -370,7 +357,7 @@ export class DomRendererRowFactory {
 			// Apply selection
 			if (!isTop && isInSelection) {
 				// Force the element above the selection layer to support opaque selections.
-				const selectionBg = this._coreBrowserService.isFocused
+				const selectionBg = this._terminal.coreBrowserService!.isFocused
 					? colors.selectionBackgroundOpaque
 					: colors.selectionInactiveBackgroundOpaque;
 				bg = (selectionBg.rgba >> 8) & 0xffffff;
@@ -416,7 +403,7 @@ export class DomRendererRowFactory {
 					if (
 						cell.isBold() &&
 						fg < 8 &&
-						this._optionsService.rawOptions.drawBoldTextInBrightColors
+						this._terminal.optionsService.rawOptions.drawBoldTextInBrightColors
 					) {
 						fg += 8;
 					}
