@@ -619,15 +619,7 @@ export class CoreBrowserTerminal extends CoreTerminal {
 		this._store.add(this._onScroll.event(onScroll));
 		this._store.add(this.inputHandler.onScroll(onScroll));
 
-		this._store.add(
-			new BufferDecorationRenderer(
-				this.screenElement,
-				this.bufferService,
-				this.coreBrowserService,
-				this.decorationService,
-				this.renderService
-			)
-		);
+		this._store.add(new BufferDecorationRenderer(this));
 		// apply mouse event classes set by escape codes before terminal was attached
 		if (this.mouseStateService.areMouseEventsActive && !this.options.mouseEventsRequireAlt) {
 			this.selectionService.disable();
