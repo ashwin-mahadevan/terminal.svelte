@@ -171,15 +171,6 @@ export class CoreBrowserTerminal {
 	 * exactly like the old internal font measurement did.
 	 */
 	public setCharSize(width: number, height: number): void {
-		// Ignore non-positive values; the measuring element is likely
-		// `display: none` or not yet laid out, in which case we keep the
-		// previous size rather than collapsing the grid.
-		if (width <= 0 || height <= 0) {
-			return;
-		}
-		if (width === this._charWidth && height === this._charHeight) {
-			return;
-		}
 		this._charWidth = width;
 		this._charHeight = height;
 		this._onCharSizeChange.fire();
