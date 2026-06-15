@@ -8,8 +8,8 @@ import { MicrotaskTimer } from '$lib/common/Async';
 import { css } from '$lib/common/Color';
 import { DisposableStore, MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
+import type { CoreTerminal } from '$lib/common/CoreTerminal';
 import type { IInternalDecoration } from '$lib/common/services/Services';
-import type { BufferService } from '$lib/common/services/BufferService';
 import { SortedList } from '$lib/common/SortedList';
 import type { IColor } from '$lib/common/Types';
 import type { IDecoration, IDecorationOptions } from '$lib/xterm';
@@ -43,13 +43,13 @@ export class DecorationService {
 		return this._decorations.values();
 	}
 
-	constructor(private readonly _bufferService: BufferService) {
+	constructor(private readonly _terminal: CoreTerminal) {
 		this._decorations = new SortedList((e) => e?.marker.line);
 
-		this._bufferActivateListener = this._bufferService.buffers.onBufferActivate(() => {
-			this._lineCache.attachToBufferLines(this._bufferService.buffer.lines);
+		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() => {
+			this._lineCache.attachToBufferLines(this._terminal.bufferService.buffer.lines);
 		});
-		this._lineCache.attachToBufferLines(this._bufferService.buffer.lines);
+		this._lineCache.attachToBufferLines(this._terminal.bufferService.buffer.lines);
 	}
 
 	public dispose(): void {
