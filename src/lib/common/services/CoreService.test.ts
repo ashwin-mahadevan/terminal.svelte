@@ -22,15 +22,6 @@ describe('CoreService', () => {
 			);
 			expect(coreService.isCursorInitialized).toBe(false);
 		});
-		it('should be true when showCursorImmediately is true', () => {
-			const coreServiceWithOption = new CoreService(
-				createMockTerminal({
-					bufferService: createMockBufferService(80, 30),
-					optionsService: createMockOptionsService({ showCursorImmediately: true })
-				})
-			);
-			expect(coreServiceWithOption.isCursorInitialized).toBe(true);
-		});
 	});
 
 	describe('reset', () => {

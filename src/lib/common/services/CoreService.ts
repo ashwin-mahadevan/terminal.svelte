@@ -53,7 +53,7 @@ export class CoreService {
 	private readonly _terminal: LegacyEmulator;
 	constructor(_terminal: LegacyEmulator) {
 		this._terminal = _terminal;
-		this.isCursorInitialized = _terminal.optionsService.rawOptions.showCursorImmediately ?? false;
+		this.isCursorInitialized = false;
 		this.modes = structuredClone(DEFAULT_MODES);
 		this.decPrivateModes = structuredClone(DEFAULT_DEC_PRIVATE_MODES);
 		this.kittyKeyboard = DEFAULT_KITTY_KEYBOARD_STATE();

@@ -9,7 +9,6 @@ import type { ITerminalOptions } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
 export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
-	showCursorImmediately: false,
 	cursorBlink: false,
 	blinkIntervalDuration: 0,
 	cursorStyle: 'block',

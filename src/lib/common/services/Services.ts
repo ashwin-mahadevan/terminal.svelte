@@ -35,7 +35,6 @@ export interface ITerminalOptions {
 	macOptionClickForcesSelection?: boolean;
 	mouseEventsRequireAlt?: boolean;
 	reflowCursorLine?: boolean;
-	showCursorImmediately?: boolean;
 	screenReaderMode?: boolean;
 	scrollback?: number;
 	scrollOnUserInput?: boolean;
