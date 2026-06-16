@@ -4,9 +4,9 @@
  */
 
 import { getCoords, getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 export class MouseCoordsService {
-	constructor(private readonly _terminal: CoreBrowserTerminal) {}
+	constructor(private readonly _terminal: LegacyBrowserTerminal) {}
 
 	public getCoords(
 		event: { clientX: number; clientY: number },

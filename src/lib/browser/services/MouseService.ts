@@ -4,7 +4,7 @@
  */
 
 import { addDisposableListener } from '$lib/browser/Dom';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { ICoreMouseEvent } from '$lib/common/Types';
 import { CoreMouseAction, CoreMouseButton, CoreMouseEventType } from '$lib/common/Types';
 import { C0 } from '$lib/common/data/EscapeSequences';
@@ -35,7 +35,7 @@ export class MouseService {
 	private _touchScrollAccumulator: number = 0;
 	private _altMouseCursor: AltMouseCursorController | undefined;
 
-	constructor(private readonly _terminal: CoreBrowserTerminal) {}
+	constructor(private readonly _terminal: LegacyBrowserTerminal) {}
 
 	public bindMouse(
 		target: IMouseServiceTarget,

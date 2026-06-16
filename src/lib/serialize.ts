@@ -7,7 +7,7 @@
 
 import type { IBufferCell } from '$lib/xterm';
 import type { IBufferRange } from '$lib/browser/Types';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { Marker } from '$lib/common/buffer/Marker';
 import type { IAttributeData } from '$lib/common/Types';
@@ -207,7 +207,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 
 	constructor(
 		buffer: Buffer,
-		private readonly _terminal: CoreBrowserTerminal
+		private readonly _terminal: LegacyBrowserTerminal
 	) {
 		super(buffer);
 	}
@@ -575,7 +575,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 }
 
 function _serializeBufferByScrollback(
-	terminal: CoreBrowserTerminal,
+	terminal: LegacyBrowserTerminal,
 	buffer: Buffer,
 	scrollback?: number
 ): string {
@@ -596,7 +596,7 @@ function _serializeBufferByScrollback(
 }
 
 function _serializeBufferByRange(
-	terminal: CoreBrowserTerminal,
+	terminal: LegacyBrowserTerminal,
 	buffer: Buffer,
 	range: ISerializeRange,
 	excludeFinalCursorPosition: boolean
@@ -618,7 +618,7 @@ function _serializeBufferByRange(
  * Serializes the scroll region (DECSTBM) if it's not set to the full terminal size.
  * Uses internal API access since scroll region is not exposed in the public API.
  */
-function _serializeScrollRegion(terminal: CoreBrowserTerminal): string {
+function _serializeScrollRegion(terminal: LegacyBrowserTerminal): string {
 	// HACK: Internal API access since scroll region is not exposed in the public API
 	// TODO: Fix this upstream type error.
 
@@ -635,7 +635,7 @@ function _serializeScrollRegion(terminal: CoreBrowserTerminal): string {
 	return '';
 }
 
-function _serializeModes(terminal: CoreBrowserTerminal): string {
+function _serializeModes(terminal: LegacyBrowserTerminal): string {
 	let content = '';
 	const m = terminal.core.coreService.decPrivateModes;
 
@@ -677,7 +677,7 @@ function _serializeModes(terminal: CoreBrowserTerminal): string {
 	return content;
 }
 
-export function serialize(terminal: CoreBrowserTerminal, options?: ISerializeOptions): string {
+export function serialize(terminal: LegacyBrowserTerminal, options?: ISerializeOptions): string {
 	// Normal buffer
 	let content = options?.range
 		? _serializeBufferByRange(

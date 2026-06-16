@@ -12,7 +12,7 @@ import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkSta
 import type { IRenderDimensions, IRequestRedrawEvent } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { ILinkifierEvent, ReadonlyColorSet } from '$lib/browser/Types';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { color } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -65,7 +65,7 @@ export class DomRenderer {
 	// The row container is created and lifecycle-managed by the Svelte host; the
 	// renderer only populates and styles it via this._terminal.rowContainer. See
 	// terminal.svelte.
-	constructor(private readonly _terminal: CoreBrowserTerminal) {
+	constructor(private readonly _terminal: LegacyBrowserTerminal) {
 		this._refreshRowElements(
 			this._terminal.core.bufferService.cols,
 			this._terminal.core.bufferService.rows

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+	import { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 	import { ViewportConstants } from '$lib/browser/shared/Constants';
 	import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
 	import { serialize as internalSerialize } from '$lib/serialize';
@@ -22,7 +22,7 @@
 
 	const { ondata, onbell, onkey, onbinary, onlinefeed, oncursormove }: Props = $props();
 
-	const terminal = (browser && new CoreBrowserTerminal()) as CoreBrowserTerminal;
+	const terminal = (browser && new LegacyBrowserTerminal()) as LegacyBrowserTerminal;
 
 	export const emulator = new Emulator();
 

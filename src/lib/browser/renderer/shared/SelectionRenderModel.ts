@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 
 export class SelectionRenderModel {
 	public hasSelection!: boolean;
@@ -35,7 +35,7 @@ export class SelectionRenderModel {
 	}
 
 	public update(
-		terminal: CoreBrowserTerminal,
+		terminal: LegacyBrowserTerminal,
 		start: [number, number] | undefined,
 		end: [number, number] | undefined,
 		columnSelectMode: boolean = false
@@ -71,7 +71,7 @@ export class SelectionRenderModel {
 		this.endCol = end[0];
 	}
 
-	public isCellSelected(terminal: CoreBrowserTerminal, x: number, y: number): boolean {
+	public isCellSelected(terminal: LegacyBrowserTerminal, x: number, y: number): boolean {
 		if (!this.hasSelection) {
 			return false;
 		}

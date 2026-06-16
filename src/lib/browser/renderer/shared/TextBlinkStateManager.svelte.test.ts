@@ -6,14 +6,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
 import { createMockOptionsService } from '$lib/common/TestUtils';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 
 const createMockTerminal = (
 	optionsService = createMockOptionsService({ blinkIntervalDuration: 100 })
-): CoreBrowserTerminal =>
+): LegacyBrowserTerminal =>
 	({
 		core: { optionsService }
-	}) as unknown as CoreBrowserTerminal;
+	}) as unknown as LegacyBrowserTerminal;
 
 describe('TextBlinkStateManager', () => {
 	beforeEach(() => {

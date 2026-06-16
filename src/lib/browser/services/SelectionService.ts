@@ -11,7 +11,7 @@ import type {
 	ISelectionRedrawRequestEvent,
 	ISelectionRequestScrollLinesEvent
 } from '$lib/browser/selection/Types';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { MutableDisposable } from '$lib/common/Lifecycle';
 import * as Browser from '$lib/common/Platform';
@@ -127,7 +127,7 @@ export class SelectionService {
 	private _bufferResizeListener!: IDisposable;
 	private _userInputListener!: IDisposable;
 
-	constructor(private readonly _terminal: CoreBrowserTerminal) {
+	constructor(private readonly _terminal: LegacyBrowserTerminal) {
 		// Init listeners
 		this._mouseMoveListener = (event) => this._handleMouseMove(event as MouseEvent);
 		this._mouseUpListener = (event) => this._handleMouseUp(event as MouseEvent);

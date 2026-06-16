@@ -8,7 +8,7 @@ import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { INVERTED_DEFAULT_COLOR } from '$lib/browser/renderer/shared/Constants';
 import { WHITESPACE_CELL_CHAR, Attributes } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { JoinedCellData } from '$lib/browser/services/CharacterJoinerService';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 
@@ -35,7 +35,7 @@ export class DomRendererRowFactory {
 	private _selectionEnd: [number, number] | undefined;
 	private _columnSelectMode: boolean = false;
 
-	constructor(private readonly _terminal: CoreBrowserTerminal) {}
+	constructor(private readonly _terminal: LegacyBrowserTerminal) {}
 
 	public handleSelectionChanged(
 		start: [number, number] | undefined,

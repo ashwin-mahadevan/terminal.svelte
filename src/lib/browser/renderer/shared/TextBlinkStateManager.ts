@@ -4,7 +4,7 @@
  */
 
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 
 export class TextBlinkStateManager {
 	private _intervalDuration: number = 0;
@@ -16,7 +16,7 @@ export class TextBlinkStateManager {
 
 	constructor(
 		private readonly _renderCallback: () => void,
-		private readonly _terminal: CoreBrowserTerminal
+		private readonly _terminal: LegacyBrowserTerminal
 	) {
 		this._blinkIntervalListener = this._terminal.core.optionsService.onSpecificOptionChange(
 			'blinkIntervalDuration',

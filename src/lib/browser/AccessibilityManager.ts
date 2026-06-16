@@ -5,7 +5,7 @@
 
 import * as Strings from '$lib/browser/LocalizableStrings';
 import type { IRenderDebouncer } from '$lib/browser/Types';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { Buffer } from '$lib/common/buffer/Buffer';
@@ -64,7 +64,7 @@ export class AccessibilityManager {
 
 	private _charsToAnnounce: string = '';
 
-	constructor(private readonly _terminal: CoreBrowserTerminal) {
+	constructor(private readonly _terminal: LegacyBrowserTerminal) {
 		this._accessibilityContainer = document.createElement('div');
 		this._accessibilityContainer.classList.add('xterm-accessibility');
 

@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { DomRendererRowFactory } from '$lib/browser/renderer/dom/DomRendererRowFactory';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
-import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import {
 	DEFAULT_ATTR,
 	FgFlags,
@@ -123,7 +123,7 @@ function createMockTerminalForRowFactory(overrides?: {
 	coreService?: ReturnType<typeof createMockCoreService>;
 	decorationService?: ReturnType<typeof createMockDecorationService>;
 	themeService?: ThemeService;
-}): CoreBrowserTerminal {
+}): LegacyBrowserTerminal {
 	return {
 		document,
 		characterJoinerService: overrides?.characterJoinerService ?? createMockCharacterJoinerService(),
@@ -135,7 +135,7 @@ function createMockTerminalForRowFactory(overrides?: {
 		coreBrowserService: overrides?.coreBrowserService ?? createMockCoreBrowserService(),
 		decorationService: overrides?.decorationService ?? createMockDecorationService(),
 		themeService: overrides?.themeService ?? createMockThemeService()
-	} as unknown as CoreBrowserTerminal;
+	} as unknown as LegacyBrowserTerminal;
 }
 
 const TEST_STRING_CACHE = new BufferLineStringCache();
