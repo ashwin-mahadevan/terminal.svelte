@@ -244,7 +244,7 @@ export namespace rgb {
 	 * @param b The blue channel (0x00 to 0xFF).
 	 * @see https://www.w3.org/TR/WCAG20/#relativeluminancedef
 	 */
-	export function relativeLuminance2(r: number, g: number, b: number): number {
+	function relativeLuminance2(r: number, g: number, b: number): number {
 		const rs = r / 255;
 		const gs = g / 255;
 		const bs = b / 255;

@@ -11,7 +11,7 @@ import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
-export const enum BufferServiceConstants {
+const enum BufferServiceConstants {
 	MINIMUM_COLS = 2, // Less than 2 can mess with wide chars
 	MINIMUM_ROWS = 1
 }
