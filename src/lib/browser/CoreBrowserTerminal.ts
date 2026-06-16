@@ -171,7 +171,6 @@ export class LegacyBrowserTerminal {
 	colorListener: IDisposable;
 
 	// Listeners registered in open()
-	private _disableStdinListener: IDisposable | undefined;
 	private _colorSchemeQueryListener: IDisposable | undefined;
 	private _themeColorsChangeListener: IDisposable | undefined;
 	private _cursorMoveListener: IDisposable | undefined;
@@ -233,7 +232,6 @@ export class LegacyBrowserTerminal {
 		this.requestResetListener.dispose();
 		this.requestWindowsOptionsReportListener.dispose();
 		this.colorListener.dispose();
-		this._disableStdinListener?.dispose();
 		this._colorSchemeQueryListener?.dispose();
 		this._themeColorsChangeListener?.dispose();
 		this._cursorMoveListener?.dispose();
@@ -408,12 +406,6 @@ export class LegacyBrowserTerminal {
 			// https://issuetracker.google.com/issues/260170397
 			textarea.setAttribute('aria-multiline', 'false');
 		}
-		this._disableStdinListener = this.core.optionsService.onSpecificOptionChange(
-			'disableStdin',
-			() => (textarea.readOnly = this.core.optionsService.rawOptions.disableStdin)
-		);
-		textarea.readOnly = this.core.optionsService.rawOptions.disableStdin;
-
 		// Register the core browser service before the generic textarea handlers are registered so it
 		// handles them first. Otherwise the renderers may use the wrong focus state.
 		this.coreBrowserService = new CoreBrowserService(textarea);

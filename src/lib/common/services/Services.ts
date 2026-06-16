@@ -29,7 +29,6 @@ export interface ITerminalOptions {
 	cursorStyle?: CursorStyle;
 	cursorWidth?: number;
 	cursorInactiveStyle?: CursorInactiveStyle;
-	disableStdin?: boolean;
 	drawBoldTextInBrightColors?: boolean;
 	fastScrollSensitivity?: number;
 	ignoreBracketedPasteMode?: boolean;

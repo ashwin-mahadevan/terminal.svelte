@@ -32,7 +32,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	macOptionIsMeta: false,
 	macOptionClickForcesSelection: false,
 	mouseEventsRequireAlt: false,
-	disableStdin: false,
 	tabStopWidth: 8,
 	theme: {},
 	reflowCursorLine: false,

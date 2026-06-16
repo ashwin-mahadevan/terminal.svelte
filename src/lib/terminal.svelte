@@ -18,9 +18,10 @@
 		onbinary?: (data: string) => void;
 		onlinefeed?: () => void;
 		oncursormove?: () => void;
+		readonly?: boolean;
 	};
 
-	const { ondata, onbell, onkey, onbinary, onlinefeed, oncursormove }: Props = $props();
+	const { ondata, onbell, onkey, onbinary, onlinefeed, oncursormove, readonly }: Props = $props();
 
 	const terminal = (browser && new LegacyBrowserTerminal()) as LegacyBrowserTerminal;
 
@@ -296,6 +297,7 @@
 					spellcheck="false"
 					tabindex="0"
 					bind:this={textareaEl}
+					{readonly}
 					onkeydowncapture={terminal._keyDown}
 					onkeyupcapture={terminal._keyup}
 					onkeypresscapture={terminal._keyPress}
