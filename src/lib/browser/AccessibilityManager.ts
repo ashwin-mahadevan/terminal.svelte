@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import type { IRenderDebouncer } from '$lib/browser/Types';
 import type { LegacyComponent } from '$lib/browser/legacy-component';
 import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
 import type { IDisposable } from '$lib/common/Lifecycle';
@@ -33,7 +32,7 @@ export class AccessibilityManager {
 
 	private _liveRegion: HTMLElement;
 	private _liveRegionLineCount: number = 0;
-	private _liveRegionDebouncer!: IRenderDebouncer;
+	private _liveRegionDebouncer: TimeBasedDebouncer;
 
 	private _resizeListener!: IDisposable;
 	private _renderListener!: IDisposable;

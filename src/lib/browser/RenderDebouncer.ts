@@ -3,12 +3,10 @@
  * @license MIT
  */
 
-import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
-
 /**
  * Debounces calls to render terminal rows using animation frames.
  */
-export class RenderDebouncer implements IRenderDebouncerWithCallback {
+export class RenderDebouncer {
 	private _rowStart: number | undefined;
 	private _rowEnd: number | undefined;
 	private _rowCount: number | undefined;

@@ -4,7 +4,6 @@
  */
 
 import { RenderDebouncer } from '$lib/browser/RenderDebouncer';
-import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions } from '$lib/browser/renderer/shared/Types';
 import type { LegacyComponent } from '$lib/browser/legacy-component';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
@@ -26,7 +25,7 @@ const enum Constants {
 
 export class RenderService {
 	private readonly _renderer: DomRenderer;
-	private _renderDebouncer!: IRenderDebouncerWithCallback;
+	private _renderDebouncer;
 	private _pausedResizeTask!: DebouncedIdleTask;
 	private readonly _observerDisposable = new MutableDisposable();
 	private _intersectionObserver: IntersectionObserver | undefined;

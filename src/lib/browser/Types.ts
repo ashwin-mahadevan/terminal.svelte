@@ -78,15 +78,6 @@ export interface ICharacterJoiner {
 	handler: CharacterJoinerHandler;
 }
 
-export interface IRenderDebouncer {
-	dispose(): void;
-	refresh(rowStart: number | undefined, rowEnd: number | undefined, rowCount: number): void;
-}
-
-export interface IRenderDebouncerWithCallback extends IRenderDebouncer {
-	addRefreshCallback(callback: FrameRequestCallback): number;
-}
-
 // An IIFE to generate DEFAULT_ANSI_COLORS.
 export const DEFAULT_ANSI_COLORS = Object.freeze(
 	(() => {
