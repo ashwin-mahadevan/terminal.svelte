@@ -187,7 +187,7 @@ export class OverviewRulerRenderer {
 	}
 
 	private _refreshCanvasDimensions(): void {
-		if (this._isDisposed || !this._terminal.renderService!.hasRenderer()) {
+		if (this._isDisposed) {
 			return;
 		}
 		const width = this._getWidth();
@@ -211,7 +211,7 @@ export class OverviewRulerRenderer {
 	}
 
 	private _refreshDecorations(): void {
-		if (this._isDisposed || !this._terminal.renderService!.hasRenderer()) {
+		if (this._isDisposed) {
 			return;
 		}
 		if (this._shouldUpdateDimensions) {

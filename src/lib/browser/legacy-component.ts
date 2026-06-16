@@ -27,7 +27,6 @@ import { Viewport } from '$lib/browser/Viewport';
 import { BufferDecorationRenderer } from '$lib/browser/decorations/BufferDecorationRenderer';
 import { OverviewRulerRenderer } from '$lib/browser/decorations/OverviewRulerRenderer';
 import { CompositionHelper } from '$lib/browser/input/CompositionHelper';
-import { DomRenderer } from '$lib/browser/renderer/dom/DomRenderer';
 import { CharacterJoinerService } from '$lib/browser/services/CharacterJoinerService';
 import { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import { LinkProviderService } from '$lib/browser/services/LinkProviderService';
@@ -396,22 +395,19 @@ export class LegacyComponent {
 
 		this.characterJoinerService = new CharacterJoinerService(this.core);
 
-		this.renderService = new RenderService(this);
-		this.core.bufferService.onResize(() => this.renderService!.resize());
-
 		this._compositionHelper = new CompositionHelper(this);
 
 		this.mouseCoordsService = new MouseCoordsService(this);
 
 		this._linkifier = new Linkifier(this);
 
+		this.renderService = new RenderService(this);
+		this.core.bufferService.onResize(() => this.renderService!.resize());
+
 		try {
 			this._onWillOpen.fire(this.element);
 		} catch (e) {
 			console.error('onWillOpen handler threw an exception', e);
-		}
-		if (!this.renderService.hasRenderer()) {
-			this.renderService.setRenderer(new DomRenderer(this));
 		}
 
 		this._cursorMoveListener = this.core.inputHandler.onCursorMove(() => {

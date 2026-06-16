@@ -12,7 +12,7 @@ import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
 import type { CoreService } from '$lib/common/services/CoreService';
 import { LegacyEmitter } from '$lib/common/Event';
-import type { DomRenderer } from '../renderer/dom/DomRenderer';
+import { DomRenderer } from '../renderer/dom/DomRenderer';
 
 interface ISelectionState {
 	start: [number, number] | undefined;
@@ -25,7 +25,7 @@ const enum Constants {
 }
 
 export class RenderService {
-	private readonly _renderer = new MutableDisposable<DomRenderer>();
+	private readonly _renderer: DomRenderer;
 	private _renderDebouncer!: IRenderDebouncerWithCallback;
 	private _pausedResizeTask!: DebouncedIdleTask;
 	private readonly _observerDisposable = new MutableDisposable();
@@ -67,7 +67,7 @@ export class RenderService {
 	private _themeChangeListener!: IDisposable;
 
 	public get dimensions(): IRenderDimensions {
-		return this._renderer.value!.dimensions;
+		return this._renderer.dimensions;
 	}
 
 	constructor(terminal: LegacyComponent) {
@@ -89,7 +89,7 @@ export class RenderService {
 			this._fullRefresh()
 		);
 		this._bufferActivateListener = this._terminal.core.bufferService.buffers.onBufferActivate(() =>
-			this._renderer.value?.clear()
+			this._renderer.clear()
 		);
 
 		// Do a full refresh whenever any decoration is added or removed. This may not actually result
@@ -139,6 +139,11 @@ export class RenderService {
 		);
 
 		this._registerIntersectionObserver(this._terminal.screenElement!);
+
+		this._renderer = new DomRenderer(terminal);
+		this._renderer.onRequestRedraw((e) => this.refreshRows(e.start, e.end, e.sync, true));
+		this._needsSelectionRefresh = true;
+		this._fullRefresh();
 	}
 
 	public dispose(): void {
@@ -183,7 +188,7 @@ export class RenderService {
 	private _handleIntersectionChange(entry: IntersectionObserverEntry): void {
 		this._isPaused =
 			entry.isIntersecting === undefined ? entry.intersectionRatio === 0 : !entry.isIntersecting;
-		this._renderer.value?.handleViewportVisibilityChange?.(!this._isPaused);
+		this._renderer.handleViewportVisibilityChange?.(!this._isPaused);
 
 		if (!this._isPaused && this._needsFullRefresh) {
 			this._pausedResizeTask.flush();
@@ -226,10 +231,6 @@ export class RenderService {
 	}
 
 	private _renderRows(start: number, end: number): void {
-		if (!this._renderer.value) {
-			return;
-		}
-
 		// Skip rendering if synchronized output mode is enabled. This check must happen here
 		// (in addition to refreshRows) to handle renders that were queued before the mode was enabled.
 		if (this._terminal.core.coreService.decPrivateModes.synchronizedOutput) {
@@ -244,11 +245,11 @@ export class RenderService {
 		end = Math.min(end, this._terminal.core.bufferService.rows - 1);
 
 		// Render
-		this._renderer.value.renderRows(start, end);
+		this._renderer.renderRows(start, end);
 
 		// Update selection if needed
 		if (this._needsSelectionRefresh) {
-			this._renderer.value.handleSelectionChanged(
+			this._renderer.handleSelectionChanged(
 				this._selectionState.start,
 				this._selectionState.end,
 				this._selectionState.columnSelectMode
@@ -269,33 +270,14 @@ export class RenderService {
 	}
 
 	private _fireOnCanvasResize(): void {
-		if (!this._renderer.value) {
-			return;
-		}
 		// Don't fire the event if the dimensions haven't changed
 		if (
-			this._renderer.value.dimensions.css.canvas.width === this._canvasWidth &&
-			this._renderer.value.dimensions.css.canvas.height === this._canvasHeight
+			this._renderer.dimensions.css.canvas.width === this._canvasWidth &&
+			this._renderer.dimensions.css.canvas.height === this._canvasHeight
 		) {
 			return;
 		}
-		this._onDimensionsChange.fire(this._renderer.value.dimensions);
-	}
-
-	public hasRenderer(): boolean {
-		return !!this._renderer.value;
-	}
-
-	public setRenderer(renderer: DomRenderer): void {
-		this._renderer.value = renderer;
-		// If the value was not set, the terminal is being disposed so ignore it
-		if (this._renderer.value) {
-			this._renderer.value.onRequestRedraw((e) => this.refreshRows(e.start, e.end, e.sync, true));
-
-			// Force a refresh
-			this._needsSelectionRefresh = true;
-			this._fullRefresh();
-		}
+		this._onDimensionsChange.fire(this._renderer.dimensions);
 	}
 
 	public addRefreshCallback(callback: FrameRequestCallback): number {
@@ -311,45 +293,36 @@ export class RenderService {
 	}
 
 	public clearTextureAtlas(): void {
-		if (!this._renderer.value) {
-			return;
-		}
 		// TODO: Simplify. This was commented out since we've removed WebGL support.
-		// this._renderer.value.clearTextureAtlas?.();
+		// this._renderer.clearTextureAtlas?.();
 		this._fullRefresh();
 	}
 
 	public handleDevicePixelRatioChange(): void {
-		if (!this._renderer.value) {
-			return;
-		}
-		this._renderer.value.handleDevicePixelRatioChange();
+		this._renderer.handleDevicePixelRatioChange();
 		this.refreshRows(0, this._terminal.core.bufferService.rows - 1);
 	}
 
 	public handleResize(cols: number, rows: number): void {
-		if (!this._renderer.value) {
-			return;
-		}
 		if (this._isPaused) {
-			this._pausedResizeTask.set(() => this._renderer.value?.handleResize(cols, rows));
+			this._pausedResizeTask.set(() => this._renderer.handleResize(cols, rows));
 		} else {
-			this._renderer.value.handleResize(cols, rows);
+			this._renderer.handleResize(cols, rows);
 		}
 		this._fullRefresh();
 	}
 
 	// TODO: Is this useful when we have onResize?
 	public handleCharSizeChanged(): void {
-		this._renderer.value?.handleCharSizeChanged();
+		this._renderer.handleCharSizeChanged();
 	}
 
 	public handleBlur(): void {
-		this._renderer.value?.handleBlur();
+		this._renderer.handleBlur();
 	}
 
 	public handleFocus(): void {
-		this._renderer.value?.handleFocus();
+		this._renderer.handleFocus();
 	}
 
 	public handleSelectionChanged(
@@ -360,15 +333,15 @@ export class RenderService {
 		this._selectionState.start = start;
 		this._selectionState.end = end;
 		this._selectionState.columnSelectMode = columnSelectMode;
-		this._renderer.value?.handleSelectionChanged(start, end, columnSelectMode);
+		this._renderer.handleSelectionChanged(start, end, columnSelectMode);
 	}
 
 	public handleCursorMove(): void {
-		this._renderer.value?.handleCursorMove();
+		this._renderer.handleCursorMove();
 	}
 
 	public clear(): void {
-		this._renderer.value?.clear();
+		this._renderer.clear();
 	}
 }
 
