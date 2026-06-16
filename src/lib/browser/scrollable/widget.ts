@@ -22,7 +22,7 @@ export abstract class Widget {
 	protected _onclick(domNode: HTMLElement, listener: (e: StandardMouseEvent) => void): void {
 		this._disposables.push(
 			dom.addDisposableListener(domNode, dom.eventType.CLICK, (e: MouseEvent) =>
-				listener(new StandardMouseEvent(dom.getWindow(domNode), e))
+				listener(new StandardMouseEvent(e))
 			)
 		);
 	}
@@ -30,7 +30,7 @@ export abstract class Widget {
 	protected _onmouseover(domNode: HTMLElement, listener: (e: StandardMouseEvent) => void): void {
 		this._disposables.push(
 			dom.addDisposableListener(domNode, dom.eventType.MOUSE_OVER, (e: MouseEvent) =>
-				listener(new StandardMouseEvent(dom.getWindow(domNode), e))
+				listener(new StandardMouseEvent(e))
 			)
 		);
 	}
@@ -38,7 +38,7 @@ export abstract class Widget {
 	protected _onmouseleave(domNode: HTMLElement, listener: (e: StandardMouseEvent) => void): void {
 		this._disposables.push(
 			dom.addDisposableListener(domNode, dom.eventType.MOUSE_LEAVE, (e: MouseEvent) =>
-				listener(new StandardMouseEvent(dom.getWindow(domNode), e))
+				listener(new StandardMouseEvent(e))
 			)
 		);
 	}

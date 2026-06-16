@@ -119,7 +119,7 @@ export class StandardMouseEvent {
 	public readonly metaKey: boolean;
 	public readonly timestamp: number;
 
-	constructor(targetWindow: Window, e: MouseEvent) {
+	constructor(e: MouseEvent) {
 		this.timestamp = Date.now();
 		this.browserEvent = e;
 		this.leftButton = e.button === 0;
@@ -153,7 +153,7 @@ export class StandardMouseEvent {
 		}
 
 		const iframeOffsets = IframeUtils.getPositionOfChildWindowRelativeToAncestorWindow(
-			targetWindow,
+			window,
 			e.view
 		);
 		this.posx -= iframeOffsets.left;
