@@ -189,19 +189,6 @@
 	});
 
 	$effect(() => {
-		const focusDisposable = terminal.onFocus(() => {
-			emulator.focused = true;
-		});
-		const blurDisposable = terminal.onBlur(() => {
-			emulator.focused = false;
-		});
-		return () => {
-			focusDisposable.dispose();
-			blurDisposable.dispose();
-		};
-	});
-
-	$effect(() => {
 		const disposable = terminal.core.onScroll((position) => {
 			emulator.scrollPosition = position;
 		});
@@ -352,6 +339,7 @@
 							terminal.core.coreService.triggerDataEvent(C0.ESC + '[I');
 						}
 						terminal._showCursor();
+						emulator.focused = true;
 						terminal._onFocus.fire();
 					}}
 					onblur={() => {
@@ -368,6 +356,7 @@
 							terminal.core.coreService.triggerDataEvent(C0.ESC + '[O');
 						}
 
+						emulator.focused = false;
 						terminal._onBlur.fire();
 					}}
 				></textarea>
