@@ -207,7 +207,7 @@ export class SmoothScrollableElement extends Widget {
 				forceIntegerValues: true,
 				smoothScrollDuration: 0,
 				scheduleAtNextAnimationFrame: (callback) =>
-					dom.scheduleAtNextAnimationFrame(dom.getWindow(element), callback)
+					dom.scheduleAtNextAnimationFrame(window, callback)
 			});
 		}
 
