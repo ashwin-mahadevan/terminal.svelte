@@ -6,7 +6,7 @@
 	import { serialize as internalSerialize } from '$lib/serialize';
 	import type { ISerializeOptions } from '$lib/serialize';
 	import { paste } from '$lib/browser/Clipboard';
-	import { isFirefox, isLinux } from '$lib/common/Platform';
+	import { isFirefox, isLinux, isMac } from '$lib/common/Platform';
 	import { browser } from '$app/environment';
 	import { Emulator } from './emulator.svelte';
 	import { C0 } from './common/data/EscapeSequences';
@@ -19,9 +19,21 @@
 		onlinefeed?: () => void;
 		oncursormove?: () => void;
 		readonly?: boolean;
+		rightClickSelectsWord?: boolean;
+		ignoreBracketedPasteMode?: boolean;
 	};
 
-	const { ondata, onbell, onkey, onbinary, onlinefeed, oncursormove, readonly }: Props = $props();
+	const {
+		ondata,
+		onbell,
+		onkey,
+		onbinary,
+		onlinefeed,
+		oncursormove,
+		readonly,
+		rightClickSelectsWord = isMac,
+		ignoreBracketedPasteMode = false
+	}: Props = $props();
 
 	const terminal = (browser && new LegacyBrowserTerminal()) as LegacyBrowserTerminal;
 
@@ -231,7 +243,7 @@
 				event.clipboardData.getData('text/plain'),
 				textareaEl,
 				terminal.core.coreService,
-				terminal.core.optionsService
+				ignoreBracketedPasteMode
 			);
 		}
 	}}
@@ -244,7 +256,7 @@
 			textareaEl.style.top = `${event.clientY - pos.top - 10}px`;
 			textareaEl.style.zIndex = '1000';
 			textareaEl.focus();
-			if (terminal.core.optionsService.options.rightClickSelectsWord) {
+			if (rightClickSelectsWord) {
 				terminal.selectionService!.rightClickSelect(event);
 			}
 			textareaEl.value = terminal.selectionService!.selectionText;
@@ -261,7 +273,7 @@
 			textareaEl.style.top = `${event.clientY - pos.top - 10}px`;
 			textareaEl.style.zIndex = '1000';
 			textareaEl.focus();
-			if (terminal.core.optionsService.options.rightClickSelectsWord) {
+			if (rightClickSelectsWord) {
 				terminal.selectionService!.rightClickSelect(event);
 			}
 			textareaEl.value = terminal.selectionService!.selectionText;
@@ -321,7 +333,7 @@
 								event.clipboardData.getData('text/plain'),
 								textareaEl,
 								terminal.core.coreService,
-								terminal.core.optionsService
+								ignoreBracketedPasteMode
 							);
 						}
 					}}

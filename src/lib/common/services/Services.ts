@@ -31,13 +31,11 @@ export interface ITerminalOptions {
 	cursorInactiveStyle?: CursorInactiveStyle;
 	drawBoldTextInBrightColors?: boolean;
 	fastScrollSensitivity?: number;
-	ignoreBracketedPasteMode?: boolean;
 	linkHandler?: ILinkHandler | null;
 	macOptionIsMeta?: boolean;
 	macOptionClickForcesSelection?: boolean;
 	mouseEventsRequireAlt?: boolean;
 	reflowCursorLine?: boolean;
-	rightClickSelectsWord?: boolean;
 	rows?: number;
 	showCursorImmediately?: boolean;
 	screenReaderMode?: boolean;

@@ -4,7 +4,6 @@
  */
 
 import type { IDisposable } from '$lib/common/Lifecycle';
-import { isMac } from '$lib/common/Platform';
 import type { CursorStyle } from '$lib/common/Types';
 import type { ITerminalOptions } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -20,7 +19,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	cursorInactiveStyle: 'outline',
 	drawBoldTextInBrightColors: true,
 	fastScrollSensitivity: 5,
-	ignoreBracketedPasteMode: false,
 	linkHandler: null,
 	scrollback: 1000,
 	scrollbar: { showScrollbar: true },
@@ -35,7 +33,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	tabStopWidth: 8,
 	theme: {},
 	reflowCursorLine: false,
-	rightClickSelectsWord: isMac,
 	windowOptions: {},
 	windowsPty: {},
 	wordSeparator: ' ()[]{}\',"`',

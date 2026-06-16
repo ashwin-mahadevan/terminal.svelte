@@ -6,12 +6,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { paste } from '$lib/browser/Clipboard';
 import type { CoreService } from '$lib/common/services/CoreService';
-import type { OptionsService } from '$lib/common/services/OptionsService';
 import { LegacyEmitter } from '$lib/common/Event';
 
 function makeDeps(): {
 	coreService: CoreService;
-	optionsService: OptionsService;
 	textarea: HTMLTextAreaElement;
 } {
 	const dataEmitter = new LegacyEmitter<string>();
@@ -22,20 +20,16 @@ function makeDeps(): {
 			dataEmitter.fire(data);
 		}
 	} as unknown as CoreService;
-	const optionsService = {
-		rawOptions: { ignoreBracketedPasteMode: false }
-	} as unknown as OptionsService;
 	const textarea = { value: '' } as HTMLTextAreaElement;
-	return { coreService, optionsService, textarea };
+	return { coreService, textarea };
 }
 
 describe('paste', () => {
 	let coreService: CoreService;
-	let optionsService: OptionsService;
 	let textarea: HTMLTextAreaElement;
 
 	beforeEach(() => {
-		({ coreService, optionsService, textarea } = makeDeps());
+		({ coreService, textarea } = makeDeps());
 	});
 
 	it('should fire data event', () =>
@@ -44,7 +38,7 @@ describe('paste', () => {
 				expect(e).toBe('foo');
 				done();
 			});
-			paste('foo', textarea, coreService, optionsService);
+			paste('foo', textarea, coreService, false);
 		}));
 
 	it('should sanitize \\n chars', () =>
@@ -53,7 +47,7 @@ describe('paste', () => {
 				expect(e).toBe('\rfoo\rbar\r');
 				done();
 			});
-			paste('\r\nfoo\nbar\r', textarea, coreService, optionsService);
+			paste('\r\nfoo\nbar\r', textarea, coreService, false);
 		}));
 
 	it('should respect bracketed paste mode', () =>
@@ -64,6 +58,6 @@ describe('paste', () => {
 			});
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(coreService as any).decPrivateModes.bracketedPasteMode = true;
-			paste('foo', textarea, coreService, optionsService);
+			paste('foo', textarea, coreService, false);
 		}));
 });

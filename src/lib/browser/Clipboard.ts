@@ -3,19 +3,17 @@
  * @license MIT
  */
 
-import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { CoreService } from '$lib/common/services/CoreService';
 
 export function paste(
 	text: string,
 	textarea: HTMLTextAreaElement,
 	coreService: CoreService,
-	optionsService: OptionsService
+	ignoreBracketedPasteMode: boolean
 ): void {
 	text = text.replace(/\r?\n/g, '\r');
 	const bracketedPasteMode =
-		coreService.decPrivateModes.bracketedPasteMode &&
-		optionsService.rawOptions.ignoreBracketedPasteMode !== true;
+		coreService.decPrivateModes.bracketedPasteMode && !ignoreBracketedPasteMode;
 	if (bracketedPasteMode) {
 		// Sanitize pasted text to prevent injected escape sequences (e.g. exiting bracketed paste)
 		// by replacing ESC (\x1b) with its visible representation U+241B (␛).
