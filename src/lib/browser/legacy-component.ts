@@ -900,14 +900,6 @@ export class LegacyComponent {
 		this.refresh(0, this.core.bufferService.rows - 1, true);
 	}
 
-	reportFocus() {
-		if (this.element?.classList.contains('focus')) {
-			this.core.coreService.triggerDataEvent(C0.ESC + '[I');
-		} else {
-			this.core.coreService.triggerDataEvent(C0.ESC + '[O');
-		}
-	}
-
 	private _reportWindowsOptions(type: WindowsOptionsReportType): void {
 		if (!this.renderService) {
 			return;

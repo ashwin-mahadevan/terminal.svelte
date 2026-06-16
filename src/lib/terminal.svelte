@@ -182,7 +182,9 @@
 	});
 
 	$effect(() => {
-		const disposable = terminal.core.inputHandler.onRequestSendFocus(() => terminal.reportFocus());
+		const disposable = terminal.core.inputHandler.onRequestSendFocus(() => {
+			terminal.core.coreService.triggerDataEvent(emulator.focused ? C0.ESC + '[I' : C0.ESC + '[O');
+		});
 		return () => disposable.dispose();
 	});
 
@@ -230,6 +232,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	class="xterm"
+	class:focus={emulator.focused}
 	dir="ltr"
 	style:height="100%"
 	bind:this={element}
@@ -348,7 +351,6 @@
 						if (terminal.core.coreService.decPrivateModes.sendFocus) {
 							terminal.core.coreService.triggerDataEvent(C0.ESC + '[I');
 						}
-						terminal.element!.classList.add('focus');
 						terminal._showCursor();
 						terminal._onFocus.fire();
 					}}
@@ -366,7 +368,6 @@
 							terminal.core.coreService.triggerDataEvent(C0.ESC + '[O');
 						}
 
-						element.classList.remove('focus');
 						terminal._onBlur.fire();
 					}}
 				></textarea>
