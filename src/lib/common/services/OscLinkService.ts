@@ -2,7 +2,7 @@
  * Copyright (c) 2022 The xterm.js authors. All rights reserved.
  * @license MIT
  */
-import type { CoreTerminal } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/CoreTerminal';
 import type { IMarker, IOscLinkData } from '$lib/common/Types';
 
 export class OscLinkService {
@@ -22,7 +22,7 @@ export class OscLinkService {
 	 */
 	private _dataByLinkId: Map<number, IOscLinkEntryNoId | IOscLinkEntryWithId> = new Map();
 
-	constructor(private readonly _terminal: CoreTerminal) {}
+	constructor(private readonly _terminal: LegacyEmulator) {}
 
 	public registerLink(data: IOscLinkData): number {
 		const buffer = this._terminal.bufferService.buffer;

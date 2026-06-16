@@ -39,7 +39,7 @@ import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Li
 
 // This class is the headless part of xterm.js. One of the goals of this project (terminal.svelte)
 // is to migrate this class's functionality into the Emulator class with svelte reactivity.
-export class CoreTerminal {
+export class LegacyEmulator {
 	public readonly _store = new DisposableStore();
 	public readonly bufferService: BufferService;
 	public readonly charsetService: CharsetService;

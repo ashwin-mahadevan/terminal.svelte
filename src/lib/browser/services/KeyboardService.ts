@@ -12,13 +12,13 @@ import {
 import { Win32InputMode } from '$lib/common/input/Win32InputMode';
 import { isMac } from '$lib/common/Platform';
 import type { IKeyboardResult } from '$lib/common/Types';
-import type { CoreTerminal } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/CoreTerminal';
 
 export class KeyboardService {
 	private _win32InputMode: Win32InputMode | undefined;
 	private _kittyKeyboard: KittyKeyboard | undefined;
 
-	constructor(private readonly _terminal: CoreTerminal) {}
+	constructor(private readonly _terminal: LegacyEmulator) {}
 
 	private _getWin32InputMode(): Win32InputMode {
 		this._win32InputMode ??= new Win32InputMode();

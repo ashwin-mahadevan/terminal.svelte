@@ -40,7 +40,7 @@ import { SelectionService } from '$lib/browser/services/SelectionService';
 import { ThemeService } from '$lib/browser/services/ThemeService';
 import { KeyboardService } from '$lib/browser/services/KeyboardService';
 import { channels, color, rgb } from '$lib/common/Color';
-import { CoreTerminal } from '$lib/common/CoreTerminal';
+import { LegacyEmulator } from '$lib/common/CoreTerminal';
 import type { IColorEvent } from '$lib/common/Types';
 import { ColorRequestType, KeyboardResultType, SpecialColorIndex } from '$lib/common/Types';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
@@ -189,10 +189,10 @@ export class LegacyBrowserTerminal {
 	private _screenReaderModeListener: IDisposable | undefined;
 	private _renderedViewportChangeListener: IDisposable | undefined;
 
-	core: CoreTerminal;
+	core: LegacyEmulator;
 
 	constructor(options: Partial<ITerminalOptions> = {}) {
-		this.core = new CoreTerminal(options);
+		this.core = new LegacyEmulator(options);
 
 		this.requestFocusListener = this.core.inputHandler.onRequestSendFocus(() =>
 			this._reportFocus()

@@ -8,7 +8,7 @@ import { MicrotaskTimer } from '$lib/common/Async';
 import { css } from '$lib/common/Color';
 import { DisposableStore, MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { CoreTerminal } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/CoreTerminal';
 import type { IInternalDecoration } from '$lib/common/services/Services';
 import { SortedList } from '$lib/common/SortedList';
 import type { IColor } from '$lib/common/Types';
@@ -43,7 +43,7 @@ export class DecorationService {
 		return this._decorations.values();
 	}
 
-	constructor(private readonly _terminal: CoreTerminal) {
+	constructor(private readonly _terminal: LegacyEmulator) {
 		this._decorations = new SortedList((e) => e?.marker.line);
 
 		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() => {

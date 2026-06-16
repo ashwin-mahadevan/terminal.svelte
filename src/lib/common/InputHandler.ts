@@ -32,7 +32,7 @@ import {
 import { CellData } from '$lib/common/buffer/CellData';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import type { BufferService } from '$lib/common/services/BufferService';
-import type { CoreTerminal } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/CoreTerminal';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { OscHandler } from '$lib/common/parser/OscParser';
 import { DcsHandler } from '$lib/common/parser/DcsParser';
@@ -199,7 +199,7 @@ export class InputHandler {
 		position: 0
 	};
 
-	constructor(private readonly _terminal: CoreTerminal) {
+	constructor(private readonly _terminal: LegacyEmulator) {
 		this._dirtyRowTracker = new DirtyRowTracker(this._terminal.bufferService);
 
 		// Track properties used in performance critical code manually to avoid using slow getters

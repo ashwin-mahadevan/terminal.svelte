@@ -8,7 +8,7 @@ import type { IAttributeData } from '$lib/common/Types';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { Buffer } from '$lib/common/buffer/Buffer';
-import type { CoreTerminal } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/CoreTerminal';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
@@ -39,7 +39,7 @@ export class BufferService {
 	private _cachedBlankLine: BufferLine | undefined;
 	private readonly _bufferActivateListener: IDisposable;
 
-	constructor(terminal: CoreTerminal) {
+	constructor(terminal: LegacyEmulator) {
 		this.cols = Math.max(
 			terminal.optionsService.rawOptions.cols || 0,
 			BufferServiceConstants.MINIMUM_COLS

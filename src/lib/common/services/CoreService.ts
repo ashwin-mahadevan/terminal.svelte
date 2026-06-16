@@ -4,7 +4,7 @@
  */
 
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
-import type { CoreTerminal } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/CoreTerminal';
 import { LegacyEmitter } from '$lib/common/Event';
 
 const DEFAULT_MODES: IModes = Object.freeze({
@@ -50,7 +50,7 @@ export class CoreService {
 	private readonly _onBinary = new LegacyEmitter<string>();
 	public readonly onBinary = this._onBinary.event;
 
-	constructor(private readonly _terminal: CoreTerminal) {
+	constructor(private readonly _terminal: LegacyEmulator) {
 		this.isCursorInitialized = _terminal.optionsService.rawOptions.showCursorImmediately ?? false;
 		this.modes = structuredClone(DEFAULT_MODES);
 		this.decPrivateModes = structuredClone(DEFAULT_DEC_PRIVATE_MODES);
