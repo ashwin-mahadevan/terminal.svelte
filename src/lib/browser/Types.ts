@@ -6,8 +6,6 @@
 import type { IColor } from '$lib/common/Types';
 import { channels, css } from '$lib/common/Color';
 
-export type CustomKeyEventHandler = (event: KeyboardEvent) => boolean;
-
 export interface IColorSet {
 	foreground: IColor;
 	background: IColor;

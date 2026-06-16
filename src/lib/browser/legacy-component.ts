@@ -22,7 +22,7 @@
  */
 
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
-import type { CharacterJoinerHandler, CustomKeyEventHandler } from '$lib/browser/Types';
+import type { CharacterJoinerHandler } from '$lib/browser/Types';
 import { Viewport } from '$lib/browser/Viewport';
 import { BufferDecorationRenderer } from '$lib/browser/decorations/BufferDecorationRenderer';
 import { OverviewRulerRenderer } from '$lib/browser/decorations/OverviewRulerRenderer';
@@ -72,8 +72,6 @@ export class LegacyComponent {
 	}
 	private _overviewRulerRenderer: OverviewRulerRenderer | undefined;
 	private _viewport: Viewport | undefined;
-
-	private _customKeyEventHandler: CustomKeyEventHandler | undefined;
 
 	// Browser services
 	public readonly decorationService: DecorationService;
@@ -194,7 +192,6 @@ export class LegacyComponent {
 
 	dispose = () => {
 		this.core.dispose();
-		this._customKeyEventHandler = undefined;
 		this._linkifier?.dispose();
 		this._accessibilityManager.dispose();
 		this.coreBrowserService?.dispose();
@@ -301,8 +298,6 @@ export class LegacyComponent {
 
 	protected _setup(): void {
 		this.core._setup();
-
-		this._customKeyEventHandler = undefined;
 	}
 
 	private _handleScreenReaderModeOptionChange(value: boolean): void {
@@ -581,10 +576,6 @@ export class LegacyComponent {
 		}
 	}
 
-	public attachCustomKeyEventHandler(customKeyEventHandler: CustomKeyEventHandler): void {
-		this._customKeyEventHandler = customKeyEventHandler;
-	}
-
 	public registerCharacterJoiner(handler: CharacterJoinerHandler): number {
 		if (!this.characterJoinerService) {
 			throw new Error('Terminal must be opened first');
@@ -611,10 +602,6 @@ export class LegacyComponent {
 	public _keyDown = (event: KeyboardEvent): void => {
 		this._keyDownHandled = false;
 		this._keyDownSeen = true;
-
-		if (this._customKeyEventHandler && this._customKeyEventHandler(event) === false) {
-			return;
-		}
 
 		// Ignore composing with Alt key on Mac when macOptionIsMeta is enabled
 		const shouldIgnoreComposition =
@@ -737,10 +724,6 @@ export class LegacyComponent {
 	public _keyup = (ev: KeyboardEvent) => {
 		this._keyDownSeen = false;
 
-		if (this._customKeyEventHandler && this._customKeyEventHandler(ev) === false) {
-			return;
-		}
-
 		if (!wasModifierKeyOnlyEvent(ev)) {
 			this.textarea?.focus({ preventScroll: true });
 		}
@@ -766,10 +749,6 @@ export class LegacyComponent {
 		this._keyPressHandled = false;
 
 		if (this._keyDownHandled) {
-			return false;
-		}
-
-		if (this._customKeyEventHandler && this._customKeyEventHandler(ev) === false) {
 			return false;
 		}
 
@@ -870,16 +849,11 @@ export class LegacyComponent {
 	 * using DECSTR (soft reset, CSI ! p) or RIS instead (hard reset, ESC c).
 	 */
 	public reset(): void {
-		const customKeyEventHandler = this._customKeyEventHandler;
-
 		this._setup();
 		this.core.reset();
 		this.mouseService?.reset();
 		this.selectionService?.reset();
 		this.decorationService.reset();
-
-		// reattach
-		this._customKeyEventHandler = customKeyEventHandler;
 
 		// do a full screen refresh
 		this.refresh(0, this.core.bufferService.rows - 1, true);

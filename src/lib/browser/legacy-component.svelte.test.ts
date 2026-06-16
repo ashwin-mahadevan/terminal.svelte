@@ -215,64 +215,6 @@ describe('CoreBrowserTerminal', () => {
 			}));
 	});
 
-	describe('attachCustomKeyEventHandler', () => {
-		let term: TestTerminal;
-		beforeEach(() => {
-			term = createTestTerminal();
-		});
-		const evKeyDown = {
-			preventDefault: () => {},
-			stopPropagation: () => {},
-			type: 'keydown',
-			keyCode: 77,
-			key: 'M'
-		} as KeyboardEvent;
-		const evKeyPress = {
-			preventDefault: () => {},
-			stopPropagation: () => {},
-			type: 'keypress',
-			keyCode: 77,
-			key: 'M'
-		} as KeyboardEvent;
-
-		it('should process the keydown/keypress event based on what the handler returns', () => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const keydownSpy = vi.spyOn((term as any)._compositionHelper, 'keydown');
-
-			term.keyDown(evKeyDown);
-			expect(keydownSpy).toHaveBeenCalled();
-			expect(term.keyPress(evKeyPress)).toBe(true);
-
-			keydownSpy.mockClear();
-			term.attachCustomKeyEventHandler((ev) => ev.key === 'M');
-			term.keyDown(evKeyDown);
-			expect(keydownSpy).toHaveBeenCalled();
-			expect(term.keyPress(evKeyPress)).toBe(true);
-
-			keydownSpy.mockClear();
-			term.attachCustomKeyEventHandler((ev) => ev.key !== 'M');
-			term.keyDown(evKeyDown);
-			expect(keydownSpy).not.toHaveBeenCalled();
-			expect(term.keyPress(evKeyPress)).toBe(false);
-		});
-
-		it('should alive after reset(ESC c Full Reset (RIS))', () => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const keydownSpy = vi.spyOn((term as any)._compositionHelper, 'keydown');
-
-			term.attachCustomKeyEventHandler((ev) => ev.key !== 'M');
-			term.keyDown(evKeyDown);
-			expect(keydownSpy).not.toHaveBeenCalled();
-			expect(term.keyPress(evKeyPress)).toBe(false);
-
-			term.reset();
-			keydownSpy.mockClear();
-			term.keyDown(evKeyDown);
-			expect(keydownSpy).not.toHaveBeenCalled();
-			expect(term.keyPress(evKeyPress)).toBe(false);
-		});
-	});
-
 	describe('clear', () => {
 		let term: TestTerminal;
 		beforeEach(() => {
@@ -490,21 +432,6 @@ describe('CoreBrowserTerminal', () => {
 				expect(term.core.bufferService.buffers.active.ydisp).toBe(
 					term.core.bufferService.buffers.active.ybase
 				);
-			});
-
-			it('should not scroll down, when a custom keydown handler prevents the event', async () => {
-				// Add some output to the terminal
-				await term.writeP('test\r\n'.repeat(term.core.bufferService.rows * 3));
-				const startYDisp = term.core.bufferService.rows * 2 + 1;
-				term.attachCustomKeyEventHandler(() => {
-					return false;
-				});
-
-				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp);
-				term.scrollLines(-1);
-				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp - 1);
-				term.keyPress({ keyCode: 0 } as KeyboardEvent);
-				expect(term.core.bufferService.buffers.active.ydisp).toBe(startYDisp - 1);
 			});
 		});
 
