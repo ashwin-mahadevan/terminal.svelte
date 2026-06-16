@@ -105,7 +105,7 @@ export class Viewport {
 		this._updateBackgroundColorListener =
 			this._terminal.themeService!.onChangeColors(updateBackgroundColor);
 
-		this._styleElement = this._terminal.coreBrowserService!.mainDocument.createElement('style');
+		this._styleElement = document.createElement('style');
 		this._terminal.screenElement!.appendChild(this._styleElement);
 		const updateScrollbarStyle = (): void => {
 			this._styleElement.textContent = [

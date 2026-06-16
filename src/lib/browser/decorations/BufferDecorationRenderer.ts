@@ -88,7 +88,7 @@ export class BufferDecorationRenderer {
 	}
 
 	private _createElement(decoration: IInternalDecoration): HTMLElement {
-		const element = this._terminal.coreBrowserService!.mainDocument.createElement('div');
+		const element = document.createElement('div');
 		element.classList.add('xterm-decoration');
 		element.classList.toggle('xterm-decoration-top-layer', decoration?.options?.layer === 'top');
 		element.style.width = `${Math.round((decoration.options.width || 1) * this._terminal.renderService!.dimensions.css.cell.width)}px`;

@@ -7,7 +7,6 @@ import { RenderDebouncer } from '$lib/browser/RenderDebouncer';
 import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
-import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
@@ -66,7 +65,6 @@ export class RenderService {
 	private _cursorBlinkListener!: IDisposable;
 	private _cursorStyleListener!: IDisposable;
 	private _themeChangeListener!: IDisposable;
-	private _windowChangeListener!: IDisposable;
 
 	public get dimensions(): IRenderDimensions {
 		return this._renderer.value!.dimensions;
@@ -79,10 +77,8 @@ export class RenderService {
 
 		this._renderDebouncer = new RenderDebouncer((start, end) => this._renderRows(start, end));
 
-		this._syncOutputHandler = new SynchronizedOutputHandler(
-			this._terminal.coreBrowserService!,
-			this._terminal.core.coreService,
-			() => this._fullRefresh()
+		this._syncOutputHandler = new SynchronizedOutputHandler(this._terminal.core.coreService, () =>
+			this._fullRefresh()
 		);
 
 		this._dprChangeListener = this._terminal.coreBrowserService!.onDprChange(() =>
@@ -142,10 +138,7 @@ export class RenderService {
 			this._fullRefresh()
 		);
 
-		this._registerIntersectionObserver(window, this._terminal.screenElement!);
-		this._windowChangeListener = this._terminal.coreBrowserService!.onWindowChange((w) =>
-			this._registerIntersectionObserver(w, this._terminal.screenElement!)
-		);
+		this._registerIntersectionObserver(this._terminal.screenElement!);
 	}
 
 	public dispose(): void {
@@ -168,17 +161,13 @@ export class RenderService {
 		this._cursorBlinkListener.dispose();
 		this._cursorStyleListener.dispose();
 		this._themeChangeListener.dispose();
-		this._windowChangeListener.dispose();
 	}
 
-	private _registerIntersectionObserver(
-		w: Window & typeof globalThis,
-		screenElement: HTMLElement
-	): void {
+	private _registerIntersectionObserver(screenElement: HTMLElement): void {
 		// Detect whether IntersectionObserver is detected and enable renderer pause
 		// and resume based on terminal visibility if so
-		if ('IntersectionObserver' in w) {
-			const observer = new w.IntersectionObserver(
+		if ('IntersectionObserver' in window) {
+			const observer = new window.IntersectionObserver(
 				(e) => this._handleIntersectionChange(e[e.length - 1]),
 				{ threshold: 0 }
 			);
@@ -395,7 +384,6 @@ class SynchronizedOutputHandler {
 	private _isBuffering: boolean = false;
 
 	constructor(
-		private readonly _coreBrowserService: CoreBrowserService,
 		private readonly _coreService: CoreService,
 		private readonly _onTimeout: () => void
 	) {}

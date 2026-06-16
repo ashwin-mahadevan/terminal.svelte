@@ -65,11 +65,10 @@ export class AccessibilityManager {
 	private _charsToAnnounce: string = '';
 
 	constructor(private readonly _terminal: CoreBrowserTerminal) {
-		const doc = this._terminal.coreBrowserService!.mainDocument;
-		this._accessibilityContainer = doc.createElement('div');
+		this._accessibilityContainer = document.createElement('div');
 		this._accessibilityContainer.classList.add('xterm-accessibility');
 
-		this._rowContainer = doc.createElement('div');
+		this._rowContainer = document.createElement('div');
 		this._rowContainer.setAttribute('role', 'list');
 		this._rowContainer.classList.add('xterm-accessibility-tree');
 		this._rowElements = [];
@@ -89,7 +88,7 @@ export class AccessibilityManager {
 
 		this._accessibilityContainer.appendChild(this._rowContainer);
 
-		this._liveRegion = doc.createElement('div');
+		this._liveRegion = document.createElement('div');
 		this._liveRegion.classList.add('live-region');
 		this._liveRegion.setAttribute('aria-live', 'assertive');
 		this._accessibilityContainer.appendChild(this._liveRegion);
@@ -104,12 +103,12 @@ export class AccessibilityManager {
 			this._rowContainer.classList.add('debug');
 
 			// Use a `<div class="xterm">` container so that the css will still apply.
-			this._debugRootContainer = doc.createElement('div');
+			this._debugRootContainer = document.createElement('div');
 			this._debugRootContainer.classList.add('xterm');
 
-			this._debugRootContainer.appendChild(doc.createTextNode('------start a11y------'));
+			this._debugRootContainer.appendChild(document.createTextNode('------start a11y------'));
 			this._debugRootContainer.appendChild(this._accessibilityContainer);
-			this._debugRootContainer.appendChild(doc.createTextNode('------end a11y------'));
+			this._debugRootContainer.appendChild(document.createTextNode('------end a11y------'));
 
 			this._terminal.element.insertAdjacentElement('afterend', this._debugRootContainer);
 		} else {
@@ -138,7 +137,7 @@ export class AccessibilityManager {
 		this._dimensionsChangeListener = this._terminal.renderService!.onDimensionsChange(() =>
 			this._refreshRowsDimensions()
 		);
-		this._selectionChangeListener = addDisposableListener(doc, 'selectionchange', () =>
+		this._selectionChangeListener = addDisposableListener(document, 'selectionchange', () =>
 			this._handleSelectionChange()
 		);
 		this._dprChangeListener = this._terminal.coreBrowserService!.onDprChange(() =>
@@ -322,7 +321,7 @@ export class AccessibilityManager {
 			return;
 		}
 
-		const selection = this._terminal.coreBrowserService!.mainDocument.getSelection();
+		const selection = document.getSelection();
 		if (!selection) {
 			return;
 		}
@@ -464,7 +463,7 @@ export class AccessibilityManager {
 	}
 
 	private _createAccessibilityTreeNode(): HTMLElement {
-		const element = this._terminal.coreBrowserService!.mainDocument.createElement('div');
+		const element = document.createElement('div');
 		element.setAttribute('role', 'listitem');
 		element.tabIndex = -1;
 		this._refreshRowDimensions(element);

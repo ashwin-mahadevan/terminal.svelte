@@ -8,7 +8,6 @@ import type { ILink } from '$lib/browser/Types';
 export interface IMouseServiceTarget {
 	element: HTMLElement;
 	screenElement: HTMLElement;
-	document: Document;
 	handleTouchScroll?(amount: number): void;
 }
 

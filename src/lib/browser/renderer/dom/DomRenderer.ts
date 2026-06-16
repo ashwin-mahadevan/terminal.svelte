@@ -70,7 +70,7 @@ export class DomRenderer {
 			this._terminal.core.bufferService.cols,
 			this._terminal.core.bufferService.rows
 		);
-		this._selectionContainer = this._terminal.document!.createElement('div');
+		this._selectionContainer = document.createElement('div');
 		this._selectionContainer.classList.add(Constants.SELECTION_CLASS);
 		this._selectionContainer.setAttribute('aria-hidden', 'true');
 
@@ -98,7 +98,7 @@ export class DomRenderer {
 			this._terminal.rowContainer!,
 			this._terminal.coreBrowserService!
 		);
-		this._mouseDownListener = addDisposableListener(this._terminal.document!, 'mousedown', () =>
+		this._mouseDownListener = addDisposableListener(document, 'mousedown', () =>
 			this._cursorBlinkStateManager.restartBlinkAnimation()
 		);
 		this._textBlinkStateManager = new TextBlinkStateManager(
@@ -156,7 +156,7 @@ export class DomRenderer {
 		}
 
 		if (!this._dimensionsStyleElement) {
-			this._dimensionsStyleElement = this._terminal.document!.createElement('style');
+			this._dimensionsStyleElement = document.createElement('style');
 			this._terminal.screenElement!.appendChild(this._dimensionsStyleElement);
 		}
 
@@ -175,7 +175,7 @@ export class DomRenderer {
 
 	private _injectCss(colors: ReadonlyColorSet): void {
 		if (!this._themeStyleElement) {
-			this._themeStyleElement = this._terminal.document!.createElement('style');
+			this._themeStyleElement = document.createElement('style');
 			this._terminal.screenElement!.appendChild(this._themeStyleElement);
 		}
 
@@ -312,7 +312,7 @@ export class DomRenderer {
 	private _refreshRowElements(cols: number, rows: number): void {
 		// Add missing elements
 		for (let i = this._rowElements.length; i <= rows; i++) {
-			const row = this._terminal.document!.createElement('div');
+			const row = document.createElement('div');
 			this._terminal.rowContainer!.appendChild(row);
 			this._rowElements.push(row);
 			this._rowHasBlinkingCells.push(false);
@@ -403,7 +403,7 @@ export class DomRenderer {
 			newViewportEnd = viewportCappedEndRow;
 
 			// Create the selections
-			const documentFragment = this._terminal.document!.createDocumentFragment();
+			const documentFragment = document.createDocumentFragment();
 
 			if (columnSelectMode) {
 				const isXFlipped = start[0] > end[0];
@@ -492,7 +492,7 @@ export class DomRenderer {
 		colEnd: number,
 		rowCount: number = 1
 	): HTMLElement {
-		const element = this._terminal.document!.createElement('div');
+		const element = document.createElement('div');
 		const left = colStart * this.dimensions.css.cell.width;
 		let width = this.dimensions.css.cell.width * (colEnd - colStart);
 		if (left + width > this.dimensions.css.canvas.width) {

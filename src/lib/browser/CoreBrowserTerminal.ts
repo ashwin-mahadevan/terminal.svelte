@@ -64,7 +64,6 @@ export class CoreBrowserTerminal {
 	public screenElement: HTMLElement | undefined;
 	public rowContainer: HTMLElement | undefined;
 
-	public document: Document | undefined;
 	public helperContainer: HTMLElement | undefined;
 	public compositionView: HTMLElement | undefined;
 	public scrollableContainer: HTMLDivElement | undefined;
@@ -394,8 +393,6 @@ export class CoreBrowserTerminal {
 		scrollableContainer: HTMLDivElement,
 		rowContainer: HTMLDivElement
 	): void {
-		this.document = parent.ownerDocument;
-
 		this.element = parent;
 
 		// Structural elements are pre-created by the caller in their final positions.
@@ -420,14 +417,7 @@ export class CoreBrowserTerminal {
 
 		// Register the core browser service before the generic textarea handlers are registered so it
 		// handles them first. Otherwise the renderers may use the wrong focus state.
-		this.coreBrowserService = new CoreBrowserService(
-			textarea,
-			parent.ownerDocument.defaultView ?? window,
-			// Force unsafe null in node.js environment for tests
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(this.document ?? typeof window !== 'undefined') ? window.document : (null as any)
-		);
+		this.coreBrowserService = new CoreBrowserService(textarea);
 
 		this.themeService = new ThemeService(this);
 
@@ -551,7 +541,6 @@ export class CoreBrowserTerminal {
 			{
 				element: this.element!,
 				screenElement: this.screenElement!,
-				document: this.document!,
 				handleTouchScroll: (amount) => this._viewport?.handleTouchScroll(amount)
 			},
 			(disposable) => this.core._store.add(disposable),

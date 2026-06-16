@@ -161,7 +161,7 @@ export class DomRendererRowFactory {
 			}
 
 			if (!charElement) {
-				charElement = this._terminal.document!.createElement('span');
+				charElement = document.createElement('span');
 			} else {
 				/**
 				 * chars can only be merged on existing span if:
@@ -202,7 +202,7 @@ export class DomRendererRowFactory {
 					if (cellAmount) {
 						charElement.textContent = text;
 					}
-					charElement = this._terminal.document!.createElement('span');
+					charElement = document.createElement('span');
 					cellAmount = 0;
 
 					// TODO: Remove this upstream type-ignore

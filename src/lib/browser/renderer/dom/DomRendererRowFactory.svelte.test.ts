@@ -60,14 +60,7 @@ function createMockCharacterJoinerService(): CharacterJoinerService {
 
 class MockCoreBrowserService {
 	public onDprChange = new LegacyEmitter<number>().event;
-	public onWindowChange = new LegacyEmitter<Window & typeof globalThis>().event;
 	public isFocused: boolean = true;
-	public get window(): Window & typeof globalThis {
-		throw Error('Window object not available in tests');
-	}
-	public get mainDocument(): Document {
-		throw Error('Document object not available in tests');
-	}
 	public dpr: number = 1;
 }
 

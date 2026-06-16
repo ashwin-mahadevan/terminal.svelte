@@ -55,7 +55,7 @@ export class OverviewRulerRenderer {
 	private _lastKnownBufferLength: number = 0;
 
 	constructor(private readonly _terminal: CoreBrowserTerminal) {
-		this._canvas = this._terminal.coreBrowserService!.mainDocument.createElement('canvas');
+		this._canvas = document.createElement('canvas');
 		this._canvas.classList.add('xterm-decoration-overview-ruler');
 		this._refreshCanvasDimensions();
 		this._terminal.element!.prepend(this._canvas);

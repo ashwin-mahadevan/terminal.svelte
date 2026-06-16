@@ -15,23 +15,14 @@ export class CoreBrowserService {
 
 	private readonly _onDprChange = new LegacyEmitter<number>();
 	public readonly onDprChange = this._onDprChange.event;
-	private readonly _onWindowChange = new LegacyEmitter<Window & typeof globalThis>();
-	public readonly onWindowChange = this._onWindowChange.event;
 
-	private readonly _windowChangeListener: IDisposable;
 	private readonly _dprForwardListener: IDisposable;
 	private readonly _focusListener: IDisposable;
 	private readonly _blurListener: IDisposable;
 
-	constructor(
-		private _textarea: HTMLTextAreaElement,
-		private _window: Window & typeof globalThis,
-		public readonly mainDocument: Document
-	) {
-		this._screenDprMonitor = new ScreenDprMonitor(this._window);
+	constructor(private _textarea: HTMLTextAreaElement) {
+		this._screenDprMonitor = new ScreenDprMonitor();
 
-		// Monitor device pixel ratio
-		this._windowChangeListener = this.onWindowChange((w) => this._screenDprMonitor.setWindow(w));
 		this._dprForwardListener = this._screenDprMonitor.onDprChange((e) => this._onDprChange.fire(e));
 
 		this._focusListener = addDisposableListener(
@@ -48,9 +39,7 @@ export class CoreBrowserService {
 
 	public dispose(): void {
 		this._onDprChange.dispose();
-		this._onWindowChange.dispose();
 		this._screenDprMonitor.dispose();
-		this._windowChangeListener.dispose();
 		this._dprForwardListener.dispose();
 		this._focusListener.dispose();
 		this._blurListener.dispose();
@@ -84,13 +73,10 @@ class ScreenDprMonitor {
 	private readonly _onDprChange = new LegacyEmitter<number>();
 	public readonly onDprChange = this._onDprChange.event;
 
-	constructor(private _parentWindow: Window) {
-		// Initialize listener and dpr value
+	constructor() {
 		this._outerListener = () => this._setDprAndFireIfDiffers();
-		this._currentDevicePixelRatio = this._parentWindow.devicePixelRatio;
+		this._currentDevicePixelRatio = window.devicePixelRatio;
 		this._updateDpr();
-
-		// Monitor active window resize
 		this._setWindowResizeListener();
 	}
 
@@ -100,21 +86,15 @@ class ScreenDprMonitor {
 		this.clearListener();
 	}
 
-	public setWindow(parentWindow: Window): void {
-		this._parentWindow = parentWindow;
-		this._setWindowResizeListener();
-		this._setDprAndFireIfDiffers();
-	}
-
 	private _setWindowResizeListener(): void {
-		this._windowResizeListener.value = addDisposableListener(this._parentWindow, 'resize', () =>
+		this._windowResizeListener.value = addDisposableListener(window, 'resize', () =>
 			this._setDprAndFireIfDiffers()
 		);
 	}
 
 	private _setDprAndFireIfDiffers(): void {
-		if (this._parentWindow.devicePixelRatio !== this._currentDevicePixelRatio) {
-			this._onDprChange.fire(this._parentWindow.devicePixelRatio);
+		if (window.devicePixelRatio !== this._currentDevicePixelRatio) {
+			this._onDprChange.fire(window.devicePixelRatio);
 		}
 		this._updateDpr();
 	}
@@ -128,9 +108,9 @@ class ScreenDprMonitor {
 		this._resolutionMediaMatchList?.removeEventListener('change', this._outerListener);
 
 		// Add listeners for new DPR
-		this._currentDevicePixelRatio = this._parentWindow.devicePixelRatio;
-		this._resolutionMediaMatchList = this._parentWindow.matchMedia(
-			`screen and (resolution: ${this._parentWindow.devicePixelRatio}dppx)`
+		this._currentDevicePixelRatio = window.devicePixelRatio;
+		this._resolutionMediaMatchList = window.matchMedia(
+			`screen and (resolution: ${window.devicePixelRatio}dppx)`
 		);
 		this._resolutionMediaMatchList.addEventListener('change', this._outerListener);
 	}

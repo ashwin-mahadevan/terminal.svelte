@@ -944,18 +944,11 @@ describe('MouseService mouseEventsRequireAlt', () => {
 		} as any);
 		const element = createTestMouseTargetElement();
 		const screenElement = createTestMouseTargetElement();
-		const document = {
-			addEventListener: () => {},
-			removeEventListener: () => {}
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} as any;
 
 		mouseService.bindMouse(
 			{
 				element,
-				screenElement,
-				document
+				screenElement
 			},
 			(disposable) => disposable,
 			() => {}
@@ -1027,16 +1020,7 @@ describe('MouseService mouseEventsRequireAlt', () => {
 
 	it('should toggle enable-mouse-events class when alt modifier changes', () => {
 		const element = createTestMouseTargetElement();
-		const altMouseCursor = new AltMouseCursorController(
-			element,
-			{
-				addEventListener: () => {},
-				removeEventListener: () => {}
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			} as any,
-			() => true
-		);
+		const altMouseCursor = new AltMouseCursorController(element, () => true);
 
 		const sync = (altHeld: boolean) =>
 			altMouseCursor.syncFromModifier({

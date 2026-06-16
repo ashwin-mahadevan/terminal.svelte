@@ -42,7 +42,7 @@ export class MouseService {
 		register: (disposable: IDisposable) => void,
 		focus: () => void
 	): void {
-		const { element, document } = target;
+		const { element } = target;
 
 		/**
 		 * Event listener state handling.
@@ -67,7 +67,6 @@ export class MouseService {
 		};
 		this._altMouseCursor = new AltMouseCursorController(
 			element,
-			document,
 			() =>
 				this._terminal.core.mouseStateService.areMouseEventsActive &&
 				!!this._terminal.core.optionsService.rawOptions.mouseEventsRequireAlt
@@ -241,10 +240,10 @@ export class MouseService {
 		if (!ev.buttons) {
 			// if no other button is held remove global handlers
 			if (ctx.requestedEvents.mouseup) {
-				ctx.target.document.removeEventListener('mouseup', ctx.requestedEvents.mouseup);
+				document.removeEventListener('mouseup', ctx.requestedEvents.mouseup);
 			}
 			if (ctx.requestedEvents.mousedrag) {
-				ctx.target.document.removeEventListener('mousemove', ctx.requestedEvents.mousedrag);
+				document.removeEventListener('mousemove', ctx.requestedEvents.mousedrag);
 			}
 		}
 	}
@@ -291,10 +290,10 @@ export class MouseService {
 		// Note: Other emulators also do this for 'mousedown' while a button
 		// is held, we currently limit 'mousedown' to the terminal only.
 		if (ctx.requestedEvents.mouseup) {
-			ctx.target.document.addEventListener('mouseup', ctx.requestedEvents.mouseup);
+			document.addEventListener('mouseup', ctx.requestedEvents.mouseup);
 		}
 		if (ctx.requestedEvents.mousedrag) {
-			ctx.target.document.addEventListener('mousemove', ctx.requestedEvents.mousedrag);
+			document.addEventListener('mousemove', ctx.requestedEvents.mousedrag);
 		}
 	}
 
@@ -453,7 +452,7 @@ export class MouseService {
 		eventListeners: Record<'mouseup' | 'wheel' | 'mousedrag' | 'mousemove', EventListener>,
 		events: CoreMouseEventType
 	): void {
-		const { element, document } = ctx.target;
+		const { element } = ctx.target;
 		const { requestedEvents } = ctx;
 		// apply global changes on events
 		if (events) {
@@ -654,7 +653,6 @@ export class AltMouseCursorController {
 
 	constructor(
 		private readonly _element: HTMLElement,
-		private readonly _document: Document,
 		private readonly _isActive: () => boolean
 	) {}
 
@@ -671,8 +669,8 @@ export class AltMouseCursorController {
 
 		const store = new DisposableStore();
 		const syncFromModifier = (ev: KeyboardEvent | MouseEvent): void => this.syncFromModifier(ev);
-		store.add(addDisposableListener(this._document, 'keydown', syncFromModifier));
-		store.add(addDisposableListener(this._document, 'keyup', syncFromModifier));
+		store.add(addDisposableListener(document, 'keydown', syncFromModifier));
+		store.add(addDisposableListener(document, 'keyup', syncFromModifier));
 		store.add(addDisposableListener(this._element, 'mousemove', syncFromModifier));
 		const targetWindow = this._element.ownerDocument?.defaultView;
 		if (targetWindow) {
