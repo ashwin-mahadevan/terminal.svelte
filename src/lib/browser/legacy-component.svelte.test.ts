@@ -125,7 +125,7 @@ describe('CoreBrowserTerminal', () => {
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				term.core.bufferService.onScroll(() => {
-					expect(typeof term.core.bufferService.buffer.ydisp).toBe('number');
+					expect(typeof term.core.bufferService.buffers.active.ydisp).toBe('number');
 					r();
 				});
 				await term.writeP('\n'.repeat(INIT_ROWS));
@@ -137,7 +137,7 @@ describe('CoreBrowserTerminal', () => {
 			return new Promise<void>(async (r) => {
 				await term.writeP('\n'.repeat(INIT_ROWS));
 				term.core.bufferService.onScroll(() => {
-					expect(typeof term.core.bufferService.buffer.ydisp).toBe('number');
+					expect(typeof term.core.bufferService.buffers.active.ydisp).toBe('number');
 					r();
 				});
 				term.clear();
@@ -190,7 +190,7 @@ describe('CoreBrowserTerminal', () => {
 		it('should fire the onScroll event', () =>
 			new Promise<void>((done) => {
 				term.core.bufferService.onScroll(() => {
-					expect(typeof term.core.bufferService.buffer.ydisp).toBe('number');
+					expect(typeof term.core.bufferService.buffers.active.ydisp).toBe('number');
 					done();
 				});
 				term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());

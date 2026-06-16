@@ -191,10 +191,10 @@
 	$effect(() => {
 		const disposable = terminal.core.bufferService.onScroll(() => {
 			terminal.core.inputHandler.markRangeDirty(
-				terminal.core.bufferService.buffer.scrollTop,
-				terminal.core.bufferService.buffer.scrollBottom
+				terminal.core.bufferService.buffers.active.scrollTop,
+				terminal.core.bufferService.buffers.active.scrollBottom
 			);
-			emulator.scrollPosition = terminal.core.bufferService.buffer.ydisp;
+			emulator.scrollPosition = terminal.core.bufferService.buffers.active.ydisp;
 		});
 		return () => disposable.dispose();
 	});

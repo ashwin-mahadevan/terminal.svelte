@@ -136,8 +136,8 @@ export class SelectionService {
 				this.clearSelection();
 			}
 		});
-		this._trimListener.value = this._terminal.core.bufferService.buffer.lines.onTrim((amount) =>
-			this._handleTrim(amount)
+		this._trimListener.value = this._terminal.core.bufferService.buffers.active.lines.onTrim(
+			(amount) => this._handleTrim(amount)
 		);
 		this._bufferActivateListener = this._terminal.core.bufferService.buffers.onBufferActivate((e) =>
 			this._handleBufferActivate(e)
@@ -218,7 +218,7 @@ export class SelectionService {
 			return '';
 		}
 
-		const buffer = this._terminal.core.bufferService.buffer;
+		const buffer = this._terminal.core.bufferService.buffers.active;
 		const result: string[] = [];
 
 		if (this._activeSelectionMode === SelectionMode.COLUMN) {
@@ -397,7 +397,7 @@ export class SelectionService {
 	public selectLines(start: number, end: number): void {
 		this._model.clearSelection();
 		start = Math.max(start, 0);
-		end = Math.min(end, this._terminal.core.bufferService.buffer.lines.length - 1);
+		end = Math.min(end, this._terminal.core.bufferService.buffers.active.lines.length - 1);
 		this._model.selectionStart = [0, start];
 		this._model.selectionEnd = [this._terminal.core.bufferService.cols, end];
 		this.refresh();
@@ -436,7 +436,7 @@ export class SelectionService {
 		coords[1]--;
 
 		// Convert viewport coords to buffer coords
-		coords[1] += this._terminal.core.bufferService.buffer.ydisp;
+		coords[1] += this._terminal.core.bufferService.buffers.active.ydisp;
 		return coords;
 	}
 
@@ -624,7 +624,9 @@ export class SelectionService {
 		}
 
 		// Ensure the line exists
-		const line = this._terminal.core.bufferService.buffer.lines.get(this._model.selectionStart[1]);
+		const line = this._terminal.core.bufferService.buffers.active.lines.get(
+			this._model.selectionStart[1]
+		);
 		if (!line) {
 			return;
 		}
@@ -741,7 +743,7 @@ export class SelectionService {
 		// If the character is a wide character include the cell to the right in the
 		// selection. Note that selections at the very end of the line will never
 		// have a character.
-		const buffer = this._terminal.core.bufferService.buffer;
+		const buffer = this._terminal.core.bufferService.buffers.active;
 		if (this._model.selectionEnd[1] < buffer.lines.length) {
 			const line = buffer.lines.get(this._model.selectionEnd[1]);
 			if (line && line.hasWidth(this._model.selectionEnd[0]) === 0) {
@@ -778,7 +780,7 @@ export class SelectionService {
 			// If the cursor was above or below the viewport, make sure it's at the
 			// start or end of the viewport respectively. This should only happen when
 			// NOT in column select mode.
-			const buffer = this._terminal.core.bufferService.buffer;
+			const buffer = this._terminal.core.bufferService.buffers.active;
 			if (this._dragScrollAmount > 0) {
 				if (this._activeSelectionMode !== SelectionMode.COLUMN) {
 					this._model.selectionEnd[0] = this._terminal.core.bufferService.cols;
@@ -813,8 +815,8 @@ export class SelectionService {
 			this._terminal.core.optionsService.rawOptions.altClickMovesCursor
 		) {
 			if (
-				this._terminal.core.bufferService.buffer.ybase ===
-				this._terminal.core.bufferService.buffer.ydisp
+				this._terminal.core.bufferService.buffers.active.ybase ===
+				this._terminal.core.bufferService.buffers.active.ydisp
 			) {
 				const coordinates = this._terminal.mouseCoordsService!.getCoords(
 					event,
@@ -944,7 +946,7 @@ export class SelectionService {
 			return undefined;
 		}
 
-		const buffer = this._terminal.core.bufferService.buffer;
+		const buffer = this._terminal.core.bufferService.buffers.active;
 		const bufferLine = buffer.lines.get(coords[1]);
 		if (!bufferLine) {
 			return undefined;
@@ -1183,7 +1185,8 @@ export class SelectionService {
 	 * @param line The line index.
 	 */
 	protected _selectLineAt(line: number): void {
-		const wrappedRange = this._terminal.core.bufferService.buffer.getWrappedRangeForLine(line);
+		const wrappedRange =
+			this._terminal.core.bufferService.buffers.active.getWrappedRangeForLine(line);
 		const range: IBufferRange = {
 			start: { x: 0, y: wrappedRange.first },
 			end: { x: this._terminal.core.bufferService.cols - 1, y: wrappedRange.last }

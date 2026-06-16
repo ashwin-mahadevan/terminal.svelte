@@ -40,7 +40,7 @@ export class BufferDecorationRenderer {
 		this._bufferActivateListener = this._terminal.core.bufferService.buffers.onBufferActivate(
 			() => {
 				this._altBufferIsActive =
-					this._terminal.core.bufferService.buffer ===
+					this._terminal.core.bufferService.buffers.active ===
 					this._terminal.core.bufferService.buffers.alt;
 			}
 		);

@@ -350,8 +350,8 @@ export class DomRenderer {
 		this._terminal.rowContainer!.classList.add(Constants.FOCUS_CLASS);
 		this._cursorBlinkStateManager.resume();
 		this.renderRows(
-			this._terminal.core.bufferService.buffer.y,
-			this._terminal.core.bufferService.buffer.y
+			this._terminal.core.bufferService.buffers.active.y,
+			this._terminal.core.bufferService.buffers.active.y
 		);
 	}
 
@@ -460,7 +460,7 @@ export class DomRenderer {
 			renderEndRow = Math.min(renderEndRow, rows - 1);
 
 			// Ensure cursor row is included when a selection is present
-			const buffer = this._terminal.core.bufferService.buffer;
+			const buffer = this._terminal.core.bufferService.buffers.active;
 			const cursorViewportRow = buffer.y;
 			if (
 				this._selectionRenderModel.hasSelection &&
@@ -531,7 +531,7 @@ export class DomRenderer {
 	}
 
 	public renderRows(start: number, end: number): void {
-		const buffer = this._terminal.core.bufferService.buffer;
+		const buffer = this._terminal.core.bufferService.buffers.active;
 		const cursorAbsoluteY = buffer.ybase + buffer.y;
 		const cursorX = Math.min(buffer.x, this._terminal.core.bufferService.cols - 1);
 		const cursorBlink =
@@ -613,7 +613,7 @@ export class DomRenderer {
 		y2 = Math.max(Math.min(y2, maxY), 0);
 
 		cols = Math.min(cols, this._terminal.core.bufferService.cols);
-		const buffer = this._terminal.core.bufferService.buffer;
+		const buffer = this._terminal.core.bufferService.buffers.active;
 		const cursorAbsoluteY = buffer.ybase + buffer.y;
 		const cursorX = Math.min(buffer.x, cols - 1);
 		const cursorBlink = this._terminal.core.optionsService.rawOptions.cursorBlink;

@@ -218,7 +218,7 @@ export class Viewport {
 		});
 	}
 
-	private _sync(ydisp: number = this._terminal.core.bufferService.buffer.ydisp): void {
+	private _sync(ydisp: number = this._terminal.core.bufferService.buffers.active.ydisp): void {
 		if (!this._terminal.renderService || this._isSyncing) {
 			return;
 		}
@@ -237,7 +237,7 @@ export class Viewport {
 			height: this._terminal.renderService!.dimensions.css.canvas.height,
 			scrollHeight:
 				this._terminal.renderService!.dimensions.css.cell.height *
-				this._terminal.core.bufferService.buffer.lines.length
+				this._terminal.core.bufferService.buffers.active.lines.length
 		});
 		this._suppressOnScrollHandler = false;
 
@@ -263,7 +263,7 @@ export class Viewport {
 		const newRow = Math.round(
 			e.scrollTop / this._terminal.renderService!.dimensions.css.cell.height
 		);
-		const diff = newRow - this._terminal.core.bufferService.buffer.ydisp;
+		const diff = newRow - this._terminal.core.bufferService.buffers.active.ydisp;
 		if (diff !== 0) {
 			this._latestYDisp = newRow;
 			this._onRequestScrollLines.fire(diff);

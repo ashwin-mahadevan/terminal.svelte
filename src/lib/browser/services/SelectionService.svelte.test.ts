@@ -122,7 +122,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -154,7 +154,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -182,7 +182,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -253,7 +253,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -303,7 +303,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -328,7 +328,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -370,7 +370,7 @@ describe('SelectionService', () => {
 				const optionsService = createMockOptionsService();
 				const mouseStateService = new MockMouseStateService();
 				const bufferService = createMockBufferService(20, 20, optionsService);
-				const buffer = bufferService.buffer;
+				const buffer = bufferService.buffers.active;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const renderService = new MockRenderService() as any;
@@ -394,7 +394,7 @@ describe('SelectionService', () => {
 				const optionsService = createMockOptionsService();
 				const mouseStateService = new MockMouseStateService();
 				const bufferService = createMockBufferService(20, 20, optionsService);
-				const buffer = bufferService.buffer;
+				const buffer = bufferService.buffers.active;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const renderService = new MockRenderService() as any;
@@ -420,7 +420,7 @@ describe('SelectionService', () => {
 				const optionsService = createMockOptionsService();
 				const mouseStateService = new MockMouseStateService();
 				const bufferService = createMockBufferService(20, 20, optionsService);
-				const buffer = bufferService.buffer;
+				const buffer = bufferService.buffers.active;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const renderService = new MockRenderService() as any;
@@ -453,7 +453,7 @@ describe('SelectionService', () => {
 				const optionsService = createMockOptionsService();
 				const mouseStateService = new MockMouseStateService();
 				const bufferService = createMockBufferService(20, 20, optionsService);
-				const buffer = bufferService.buffer;
+				const buffer = bufferService.buffers.active;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const renderService = new MockRenderService() as any;
@@ -499,7 +499,7 @@ describe('SelectionService', () => {
 				const optionsService = createMockOptionsService();
 				const mouseStateService = new MockMouseStateService();
 				const bufferService = createMockBufferService(20, 20, optionsService);
-				const buffer = bufferService.buffer;
+				const buffer = bufferService.buffers.active;
 				// TODO: Fix this upstream type error.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const renderService = new MockRenderService() as any;
@@ -570,7 +570,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -595,7 +595,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -626,7 +626,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -654,7 +654,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -678,7 +678,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -704,7 +704,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -727,7 +727,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -783,7 +783,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -811,7 +811,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -839,7 +839,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;
@@ -867,7 +867,7 @@ describe('SelectionService', () => {
 			const optionsService = createMockOptionsService();
 			const mouseStateService = new MockMouseStateService();
 			const bufferService = createMockBufferService(20, 20, optionsService);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const renderService = new MockRenderService() as any;

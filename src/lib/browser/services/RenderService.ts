@@ -119,8 +119,8 @@ export class RenderService {
 		// Refresh the cursor line when the cursor changes
 		const cursorHandler = (): void => {
 			this.refreshRows(
-				this._terminal.core.bufferService.buffer.y,
-				this._terminal.core.bufferService.buffer.y,
+				this._terminal.core.bufferService.buffers.active.y,
+				this._terminal.core.bufferService.buffers.active.y,
 				undefined,
 				true
 			);

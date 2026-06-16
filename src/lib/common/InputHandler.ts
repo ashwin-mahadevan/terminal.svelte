@@ -203,7 +203,7 @@ export class InputHandler {
 		this._dirtyRowTracker = new DirtyRowTracker(this._terminal.bufferService);
 
 		// Track properties used in performance critical code manually to avoid using slow getters
-		this._activeBuffer = this._terminal.bufferService.buffer;
+		this._activeBuffer = this._terminal.bufferService.buffers.active;
 		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(
 			(e) => (this._activeBuffer = e.activeBuffer)
 		);
@@ -679,10 +679,12 @@ export class InputHandler {
 		// _viewport_ which is relative to ydisp, not relative to ybase.
 		const viewportEnd =
 			this._dirtyRowTracker.end +
-			(this._terminal.bufferService.buffer.ybase - this._terminal.bufferService.buffer.ydisp);
+			(this._terminal.bufferService.buffers.active.ybase -
+				this._terminal.bufferService.buffers.active.ydisp);
 		const viewportStart =
 			this._dirtyRowTracker.start +
-			(this._terminal.bufferService.buffer.ybase - this._terminal.bufferService.buffer.ydisp);
+			(this._terminal.bufferService.buffers.active.ybase -
+				this._terminal.bufferService.buffers.active.ydisp);
 		if (viewportStart < this._terminal.bufferService.rows) {
 			this._onRequestRefreshRows.fire({
 				start: Math.min(viewportStart, this._terminal.bufferService.rows - 1),
@@ -1422,7 +1424,7 @@ export class InputHandler {
 		const line = this._activeBuffer.lines.get(this._activeBuffer.ybase + y);
 		if (line) {
 			line.fill(this._activeBuffer.getNullCell(this._eraseAttrData()), respectProtect);
-			this._terminal.bufferService.buffer.clearMarkers(this._activeBuffer.ybase + y);
+			this._terminal.bufferService.buffers.active.clearMarkers(this._activeBuffer.ybase + y);
 			line.isWrapped = false;
 		}
 	}
@@ -3915,7 +3917,7 @@ export class InputHandler {
 		};
 
 		// access helpers
-		const b = this._terminal.bufferService.buffer;
+		const b = this._terminal.bufferService.buffers.active;
 		const opts = this._terminal.optionsService.rawOptions;
 		const STYLES: { [key: string]: number } = { block: 2, underline: 4, bar: 6 };
 
@@ -3993,7 +3995,8 @@ export class InputHandler {
 		}
 		const flags = params.params[0] || 0;
 		const state = this._terminal.coreService.kittyKeyboard;
-		const isAlt = this._terminal.bufferService.buffer === this._terminal.bufferService.buffers.alt;
+		const isAlt =
+			this._terminal.bufferService.buffers.active === this._terminal.bufferService.buffers.alt;
 		const stack = isAlt ? state.altStack : state.mainStack;
 
 		// Evict oldest entry if stack is full (DoS protection, limit of 16)
@@ -4019,7 +4022,8 @@ export class InputHandler {
 		}
 		const count = Math.max(1, params.params[0] || 1);
 		const state = this._terminal.coreService.kittyKeyboard;
-		const isAlt = this._terminal.bufferService.buffer === this._terminal.bufferService.buffers.alt;
+		const isAlt =
+			this._terminal.bufferService.buffers.active === this._terminal.bufferService.buffers.alt;
 		const stack = isAlt ? state.altStack : state.mainStack;
 
 		// Pop specified number of entries from stack
@@ -4045,8 +4049,8 @@ class DirtyRowTracker {
 	}
 
 	public clearRange(): void {
-		this.start = this._bufferService.buffer.y;
-		this.end = this._bufferService.buffer.y;
+		this.start = this._bufferService.buffers.active.y;
+		this.end = this._bufferService.buffers.active.y;
 	}
 
 	public markDirty(y: number): void {

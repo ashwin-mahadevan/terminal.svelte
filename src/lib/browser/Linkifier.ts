@@ -387,8 +387,10 @@ export class Linkifier {
 					// When start is 0 a scroll most likely occurred, make sure links above the fold also get
 					// cleared.
 					const start =
-						e.start === 0 ? 0 : e.start + 1 + this._terminal.core.bufferService.buffer.ydisp;
-					const end = this._terminal.core.bufferService.buffer.ydisp + 1 + e.end;
+						e.start === 0
+							? 0
+							: e.start + 1 + this._terminal.core.bufferService.buffers.active.ydisp;
+					const end = this._terminal.core.bufferService.buffers.active.ydisp + 1 + e.end;
 					// Only clear the link if the viewport change happened on this line
 					if (
 						this._currentLink.link.range.start.y >= start &&
@@ -429,7 +431,7 @@ export class Linkifier {
 
 	private _fireUnderlineEvent(link: ILink, showEvent: boolean): void {
 		const range = link.range;
-		const scrollOffset = this._terminal.core.bufferService.buffer.ydisp;
+		const scrollOffset = this._terminal.core.bufferService.buffers.active.ydisp;
 		const event = this._createLinkUnderlineEvent(
 			range.start.x - 1,
 			range.start.y - scrollOffset - 1,
@@ -487,7 +489,7 @@ export class Linkifier {
 			return;
 		}
 
-		return { x: coords[0], y: coords[1] + this._terminal.core.bufferService.buffer.ydisp };
+		return { x: coords[0], y: coords[1] + this._terminal.core.bufferService.buffers.active.ydisp };
 	}
 
 	private _createLinkUnderlineEvent(

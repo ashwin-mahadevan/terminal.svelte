@@ -25,7 +25,7 @@ export class OscLinkService {
 	constructor(private readonly _terminal: LegacyEmulator) {}
 
 	public registerLink(data: IOscLinkData): number {
-		const buffer = this._terminal.bufferService.buffer;
+		const buffer = this._terminal.bufferService.buffers.active;
 
 		// Links with no id will only ever be registered a single time
 		if (data.id === undefined) {
@@ -69,7 +69,7 @@ export class OscLinkService {
 			return;
 		}
 		if (entry.lines.every((e) => e.line !== y)) {
-			const marker = this._terminal.bufferService.buffer.addMarker(y);
+			const marker = this._terminal.bufferService.buffers.active.addMarker(y);
 			entry.lines.push(marker);
 			marker.onDispose(() => this._removeMarkerFromLink(entry, marker));
 		}

@@ -116,17 +116,19 @@ export class LegacyEmulator {
 	}
 
 	public scrollToTop(): void {
-		this.scrollLines(-this.bufferService.buffer.ydisp);
+		this.scrollLines(-this.bufferService.buffers.active.ydisp);
 	}
 
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public scrollToBottom(disableSmoothScroll?: boolean): void {
-		this.scrollLines(this.bufferService.buffer.ybase - this.bufferService.buffer.ydisp);
+		this.scrollLines(
+			this.bufferService.buffers.active.ybase - this.bufferService.buffers.active.ydisp
+		);
 	}
 
 	public scrollToLine(line: number): void {
-		const scrollAmount = line - this.bufferService.buffer.ydisp;
+		const scrollAmount = line - this.bufferService.buffers.active.ydisp;
 		if (scrollAmount !== 0) {
 			this.scrollLines(scrollAmount);
 		}

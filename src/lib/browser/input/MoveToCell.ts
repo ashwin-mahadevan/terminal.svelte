@@ -24,11 +24,11 @@ export function moveToCellSequence(
 	bufferService: BufferService,
 	applicationCursor: boolean
 ): string {
-	const startX = bufferService.buffer.x;
-	const startY = bufferService.buffer.y;
+	const startX = bufferService.buffers.active.x;
+	const startY = bufferService.buffers.active.y;
 
 	// The alt buffer should try to navigate between rows
-	if (!bufferService.buffer.hasScrollback) {
+	if (!bufferService.buffers.active.hasScrollback) {
 		return (
 			resetStartingRow(startX, startY, targetX, targetY, bufferService, applicationCursor) +
 			moveToRequestedRow(startY, targetY, bufferService, applicationCursor) +
@@ -165,7 +165,7 @@ function wrappedRowsCount(startY: number, targetY: number, bufferService: Buffer
 
 	for (let i = 0; i < Math.abs(startRow - endRow); i++) {
 		const direction = verticalDirection(startY, targetY) === Direction.UP ? -1 : 1;
-		const line = bufferService.buffer.lines.get(startRow + direction * i);
+		const line = bufferService.buffers.active.lines.get(startRow + direction * i);
 		if (line?.isWrapped) {
 			wrappedRows++;
 		}
@@ -180,12 +180,12 @@ function wrappedRowsCount(startY: number, targetY: number, bufferService: Buffer
  */
 function wrappedRowsForRow(currentRow: number, bufferService: BufferService): number {
 	let rowCount = 0;
-	let line = bufferService.buffer.lines.get(currentRow);
+	let line = bufferService.buffers.active.lines.get(currentRow);
 	let lineWraps = line?.isWrapped;
 
 	while (lineWraps && currentRow >= 0 && currentRow < bufferService.rows) {
 		rowCount++;
-		line = bufferService.buffer.lines.get(--currentRow);
+		line = bufferService.buffers.active.lines.get(--currentRow);
 		lineWraps = line?.isWrapped;
 	}
 
@@ -255,12 +255,12 @@ function bufferLine(
 	while (
 		(currentCol !== endCol || currentRow !== endRow) &&
 		currentRow >= 0 &&
-		currentRow < bufferService.buffer.lines.length
+		currentRow < bufferService.buffers.active.lines.length
 	) {
 		currentCol += forward ? 1 : -1;
 
 		if (forward && currentCol > bufferService.cols - 1) {
-			bufferStr += bufferService.buffer.translateBufferLineToString(
+			bufferStr += bufferService.buffers.active.translateBufferLineToString(
 				currentRow,
 				false,
 				startCol,
@@ -270,7 +270,7 @@ function bufferLine(
 			startCol = 0;
 			currentRow++;
 		} else if (!forward && currentCol < 0) {
-			bufferStr += bufferService.buffer.translateBufferLineToString(
+			bufferStr += bufferService.buffers.active.translateBufferLineToString(
 				currentRow,
 				false,
 				0,
@@ -284,7 +284,12 @@ function bufferLine(
 
 	return (
 		bufferStr +
-		bufferService.buffer.translateBufferLineToString(currentRow, false, startCol, currentCol)
+		bufferService.buffers.active.translateBufferLineToString(
+			currentRow,
+			false,
+			startCol,
+			currentCol
+		)
 	);
 }
 

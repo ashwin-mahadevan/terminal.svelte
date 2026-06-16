@@ -110,7 +110,7 @@ describe('DecorationService', () => {
 			const bufferService = createMockBufferService(80, 24, createMockOptionsService());
 			const terminal = createMockTerminal({ bufferService });
 			const serviceWithBuffer = new DecorationService(terminal);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			(buffer as Buffer).fillViewportRows();
 
 			for (let i = 0; i < 100; i++) {
@@ -165,7 +165,7 @@ describe('DecorationService', () => {
 			);
 			const terminal = createMockTerminal({ bufferService });
 			const service = new DecorationService(terminal);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			(buffer as Buffer).fillViewportRows();
 
 			const marker = buffer.addMarker(buffer.lines.length - 1);
@@ -187,7 +187,7 @@ describe('DecorationService', () => {
 			);
 			const terminal = createMockTerminal({ bufferService });
 			const service = new DecorationService(terminal);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			(buffer as Buffer).fillViewportRows();
 
 			const marker = buffer.addMarker(0);
@@ -211,7 +211,7 @@ describe('DecorationService', () => {
 			);
 			const terminal = createMockTerminal({ bufferService });
 			const service = new DecorationService(terminal);
-			const buffer = bufferService.buffer;
+			const buffer = bufferService.buffers.active;
 			(buffer as Buffer).fillViewportRows();
 
 			const marker = buffer.addMarker(3);

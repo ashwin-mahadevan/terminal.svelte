@@ -7,7 +7,6 @@ import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IAttributeData } from '$lib/common/Types';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
-import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -30,10 +29,6 @@ export class BufferService {
 	public readonly onResize = this._onResize.event;
 	public readonly _onScroll = new LegacyEmitter<number>();
 	public readonly onScroll = this._onScroll.event;
-
-	public get buffer(): Buffer {
-		return this.buffers.active;
-	}
 
 	/** An IBufferline to clone/copy from for new blank lines */
 	private _cachedBlankLine: BufferLine | undefined;
@@ -75,7 +70,7 @@ export class BufferService {
 	 * @param isWrapped Whether the new line is wrapped from the previous line.
 	 */
 	public scroll(eraseAttr: IAttributeData, isWrapped: boolean = false): void {
-		const buffer = this.buffer;
+		const buffer = this.buffers.active;
 
 		let newLine: BufferLine | undefined;
 		newLine = this._cachedBlankLine;
@@ -147,7 +142,7 @@ export class BufferService {
 	 * viewport originally.
 	 */
 	public scrollLines(disp: number, suppressScrollEvent?: boolean): void {
-		const buffer = this.buffer;
+		const buffer = this.buffers.active;
 		if (disp < 0) {
 			if (buffer.ydisp === 0) {
 				return;

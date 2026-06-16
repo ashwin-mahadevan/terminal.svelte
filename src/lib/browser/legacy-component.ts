@@ -561,19 +561,21 @@ export class LegacyComponent {
 	}
 
 	public scrollToTop(): void {
-		this.scrollLines(-this.core.bufferService.buffer.ydisp);
+		this.scrollLines(-this.core.bufferService.buffers.active.ydisp);
 	}
 
 	public scrollToBottom(disableSmoothScroll?: boolean): void {
 		if (disableSmoothScroll && this._viewport) {
 			this._viewport.scrollToLine(this.core.bufferService.buffers.active.ybase, true);
 		} else {
-			this.scrollLines(this.core.bufferService.buffer.ybase - this.core.bufferService.buffer.ydisp);
+			this.scrollLines(
+				this.core.bufferService.buffers.active.ybase - this.core.bufferService.buffers.active.ydisp
+			);
 		}
 	}
 
 	public scrollToLine(line: number): void {
-		const scrollAmount = line - this.core.bufferService.buffer.ydisp;
+		const scrollAmount = line - this.core.bufferService.buffers.active.ydisp;
 		if (scrollAmount !== 0) {
 			this.scrollLines(scrollAmount);
 		}

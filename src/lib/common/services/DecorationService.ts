@@ -47,9 +47,9 @@ export class DecorationService {
 		this._decorations = new SortedList((e) => e?.marker.line);
 
 		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() => {
-			this._lineCache.attachToBufferLines(this._terminal.bufferService.buffer.lines);
+			this._lineCache.attachToBufferLines(this._terminal.bufferService.buffers.active.lines);
 		});
-		this._lineCache.attachToBufferLines(this._terminal.bufferService.buffer.lines);
+		this._lineCache.attachToBufferLines(this._terminal.bufferService.buffers.active.lines);
 	}
 
 	public dispose(): void {

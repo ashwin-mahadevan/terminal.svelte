@@ -65,8 +65,8 @@ describe('OscLinkProvider', () => {
 			optionsService,
 			oscLinkService: new TestOscLinkService() as unknown as OscLinkService
 		});
-		const line1 = bufferService.buffer.lines.get(0);
-		const line2 = bufferService.buffer.lines.get(1);
+		const line1 = bufferService.buffers.active.lines.get(0);
+		const line2 = bufferService.buffers.active.lines.get(1);
 		setText(line1, 0, 'aa');
 		setUrl(line1, 2, 'bbb', 1);
 		setUrl(line2, 0, 'cccc', 1);
@@ -89,8 +89,8 @@ describe('OscLinkProvider', () => {
 			optionsService,
 			oscLinkService: new TestOscLinkService() as unknown as OscLinkService
 		});
-		const line1 = bufferService.buffer.lines.get(0);
-		const line2 = bufferService.buffer.lines.get(1);
+		const line1 = bufferService.buffers.active.lines.get(0);
+		const line2 = bufferService.buffers.active.lines.get(1);
 		setUrl(line1, 0, 'aaaaa', 1);
 		setUrl(line2, 0, 'bb', 1);
 		setText(line2, 2, 'ccc');
@@ -112,8 +112,8 @@ describe('OscLinkProvider', () => {
 			optionsService,
 			oscLinkService: new TestOscLinkService() as unknown as OscLinkService
 		});
-		const line1 = bufferService.buffer.lines.get(0);
-		const line2 = bufferService.buffer.lines.get(1);
+		const line1 = bufferService.buffers.active.lines.get(0);
+		const line2 = bufferService.buffers.active.lines.get(1);
 		setUrl(line1, 0, 'aaaaa', 1);
 		setUrl(line2, 0, 'bbb', 2);
 		setText(line2, 3, 'cc');

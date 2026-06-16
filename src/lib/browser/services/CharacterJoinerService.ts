@@ -91,7 +91,7 @@ export class CharacterJoinerService {
 			return [];
 		}
 
-		const line = this._terminal.bufferService.buffer.lines.get(row);
+		const line = this._terminal.bufferService.buffers.active.lines.get(row);
 		if (!line || line.length === 0) {
 			return [];
 		}

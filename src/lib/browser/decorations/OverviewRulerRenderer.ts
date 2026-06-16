@@ -80,7 +80,8 @@ export class OverviewRulerRenderer {
 		this._bufferActivateListener = this._terminal.core.bufferService.buffers.onBufferActivate(
 			() => {
 				this._canvas!.style.display =
-					this._terminal.core.bufferService.buffer === this._terminal.core.bufferService.buffers.alt
+					this._terminal.core.bufferService.buffers.active ===
+					this._terminal.core.bufferService.buffers.alt
 						? 'none'
 						: 'block';
 			}
@@ -151,7 +152,7 @@ export class OverviewRulerRenderer {
 		drawHeight.full = Math.round(2 * devicePixelRatio);
 		// Calculate actual pixels per line
 		const pixelsPerLine =
-			this._canvas.height / this._terminal.core.bufferService.buffer.lines.length;
+			this._canvas.height / this._terminal.core.bufferService.buffers.active.lines.length;
 		// Clamp actual pixels within a range
 		const nonFullHeight = Math.round(Math.max(Math.min(pixelsPerLine, 12), 6) * devicePixelRatio);
 		drawHeight.left = nonFullHeight;

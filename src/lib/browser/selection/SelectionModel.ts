@@ -67,7 +67,7 @@ export class SelectionModel {
 		if (this.isSelectAllActive) {
 			return [
 				this._bufferService.cols,
-				this._bufferService.buffer.ybase + this._bufferService.rows - 1
+				this._bufferService.buffers.active.ybase + this._bufferService.rows - 1
 			];
 		}
 

@@ -307,7 +307,7 @@ export class MouseService {
 			return false;
 		}
 
-		if (!this._terminal.core.bufferService.buffer.hasScrollback) {
+		if (!this._terminal.core.bufferService.buffers.active.hasScrollback) {
 			// Convert wheel events into up/down events when the buffer does not have scrollback, this
 			// enables scrolling in apps hosted in the alt buffer such as vim or tmux even when mouse
 			// events are not enabled.
@@ -359,7 +359,7 @@ export class MouseService {
 		}
 
 		// When in alt buffer (no scrollback), send up/down key sequences.
-		if (!this._terminal.core.bufferService.buffer.hasScrollback) {
+		if (!this._terminal.core.bufferService.buffers.active.hasScrollback) {
 			this._handleTouchScrollAsKeys(e);
 			return;
 		}

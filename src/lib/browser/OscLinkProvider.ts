@@ -23,7 +23,7 @@ export class OscLinkProvider implements ILinkProvider {
 	constructor(private readonly _terminal: ITerminalServices) {}
 
 	public provideLinks(y: number, callback: (links: ILink[] | undefined) => void): void {
-		const line = this._terminal.bufferService.buffer.lines.get(y - 1);
+		const line = this._terminal.bufferService.buffers.active.lines.get(y - 1);
 		if (!line) {
 			callback(undefined);
 			return;
@@ -122,11 +122,11 @@ export class OscLinkProvider implements ILinkProvider {
 
 		// Expand upward only when this segment starts at column 0 and the current line is wrapped.
 		while (finalStartX === 0) {
-			const currentLine = this._terminal.bufferService.buffer.lines.get(startY - 1);
+			const currentLine = this._terminal.bufferService.buffers.active.lines.get(startY - 1);
 			if (!currentLine?.isWrapped) {
 				break;
 			}
-			const previousLine = this._terminal.bufferService.buffer.lines.get(startY - 2);
+			const previousLine = this._terminal.bufferService.buffers.active.lines.get(startY - 2);
 			if (!previousLine) {
 				break;
 			}
@@ -147,7 +147,7 @@ export class OscLinkProvider implements ILinkProvider {
 
 		// Expand downward only when this segment reaches trimmed EOL and the next line is wrapped.
 		while (true) {
-			const currentLine = this._terminal.bufferService.buffer.lines.get(endY - 1);
+			const currentLine = this._terminal.bufferService.buffers.active.lines.get(endY - 1);
 			if (!currentLine) {
 				break;
 			}
@@ -155,7 +155,7 @@ export class OscLinkProvider implements ILinkProvider {
 			if (finalEndX !== currentLineLength) {
 				break;
 			}
-			const nextLine = this._terminal.bufferService.buffer.lines.get(endY);
+			const nextLine = this._terminal.bufferService.buffers.active.lines.get(endY);
 			if (!nextLine?.isWrapped) {
 				break;
 			}

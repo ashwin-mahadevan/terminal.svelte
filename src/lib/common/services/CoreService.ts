@@ -71,7 +71,7 @@ export class CoreService {
 
 	public triggerDataEvent(data: string, wasUserInput: boolean = false): void {
 		// Input is being sent to the terminal, the terminal should focus the prompt.
-		const buffer = this._terminal.bufferService.buffer;
+		const buffer = this._terminal.bufferService.buffers.active;
 		if (
 			wasUserInput &&
 			this._terminal.optionsService.rawOptions.scrollOnUserInput &&

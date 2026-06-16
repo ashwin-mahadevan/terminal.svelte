@@ -17,13 +17,13 @@ export function updateWindowsModeWrappedState(bufferService: BufferService): voi
 	// space. This is certainly not without its problems, but generally on
 	// Windows when text reaches the end of the terminal it's likely going to be
 	// wrapped.
-	const line = bufferService.buffer.lines.get(
-		bufferService.buffer.ybase + bufferService.buffer.y - 1
+	const line = bufferService.buffers.active.lines.get(
+		bufferService.buffers.active.ybase + bufferService.buffers.active.y - 1
 	);
 	const lastCharCode = line?.getCodePoint(bufferService.cols - 1);
 
-	const nextLine = bufferService.buffer.lines.get(
-		bufferService.buffer.ybase + bufferService.buffer.y
+	const nextLine = bufferService.buffers.active.lines.get(
+		bufferService.buffers.active.ybase + bufferService.buffers.active.y
 	);
 	if (nextLine && lastCharCode !== undefined) {
 		nextLine.isWrapped = lastCharCode !== NULL_CELL_CODE && lastCharCode !== WHITESPACE_CELL_CODE;

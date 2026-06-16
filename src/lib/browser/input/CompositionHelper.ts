@@ -251,15 +251,15 @@ export class CompositionHelper {
 			return;
 		}
 
-		if (this._terminal.core.bufferService.buffer.isCursorInViewport) {
+		if (this._terminal.core.bufferService.buffers.active.isCursorInViewport) {
 			const cursorX = Math.min(
-				this._terminal.core.bufferService.buffer.x,
+				this._terminal.core.bufferService.buffers.active.x,
 				this._terminal.core.bufferService.cols - 1
 			);
 
 			const cellHeight = this._terminal.renderService!.dimensions.css.cell.height;
 			const cursorTop =
-				this._terminal.core.bufferService.buffer.y *
+				this._terminal.core.bufferService.buffers.active.y *
 				this._terminal.renderService!.dimensions.css.cell.height;
 			const cursorLeft = cursorX * this._terminal.renderService!.dimensions.css.cell.width;
 

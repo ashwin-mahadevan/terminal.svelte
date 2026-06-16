@@ -11,8 +11,8 @@ describe('MoveToCell', () => {
 	describe('normal buffer', () => {
 		it('should use the right directional escape sequences', () => {
 			const bufferService = createMockBufferService(5, 5);
-			bufferService.buffer.x = 3;
-			bufferService.buffer.y = 3;
+			bufferService.buffers.active.x = 3;
+			bufferService.buffers.active.y = 3;
 			expect(moveToCellSequence(1, 3, bufferService, false)).toBe('\x1b[D\x1b[D');
 			expect(moveToCellSequence(2, 3, bufferService, false)).toBe('\x1b[D');
 			expect(moveToCellSequence(4, 3, bufferService, false)).toBe('\x1b[C');
@@ -20,8 +20,8 @@ describe('MoveToCell', () => {
 		});
 		it('should wrap around entire row instead of doing up and down when the Y value differs', () => {
 			const bufferService = createMockBufferService(5, 5);
-			bufferService.buffer.x = 3;
-			bufferService.buffer.y = 3;
+			bufferService.buffers.active.x = 3;
+			bufferService.buffers.active.y = 3;
 			expect(moveToCellSequence(1, 1, bufferService, false)).toBe(
 				'\x1b[D\x1b[D\x1b[D\x1b[D\x1b[D\x1b[D\x1b[D\x1b[D\x1b[D\x1b[D\x1b[D\x1b[D'
 			);
@@ -73,8 +73,8 @@ describe('MoveToCell', () => {
 		});
 		it('should use the correct character for application cursor', () => {
 			const bufferService = createMockBufferService(5, 5);
-			bufferService.buffer.x = 3;
-			bufferService.buffer.y = 3;
+			bufferService.buffers.active.x = 3;
+			bufferService.buffers.active.y = 3;
 			expect(moveToCellSequence(3, 1, bufferService, true)).toBe(
 				'\x1bOD\x1bOD\x1bOD\x1bOD\x1bOD\x1bOD\x1bOD\x1bOD\x1bOD\x1bOD'
 			);
@@ -92,8 +92,8 @@ describe('MoveToCell', () => {
 		it('should move the cursor across rows', () => {
 			const bufferService = createMockBufferService(5, 5);
 			bufferService.buffers.activateAltBuffer();
-			bufferService.buffer.x = 3;
-			bufferService.buffer.y = 3;
+			bufferService.buffers.active.x = 3;
+			bufferService.buffers.active.y = 3;
 			expect(moveToCellSequence(4, 4, bufferService, false)).toBe('\x1b[B\x1b[C');
 		});
 	});

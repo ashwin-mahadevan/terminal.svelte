@@ -35,13 +35,13 @@ import type { UnicodeService } from '$lib/common/services/UnicodeService';
 import type { MouseStateService } from '$lib/common/services/MouseStateService';
 
 function getCursor(bufferService: BufferService): number[] {
-	return [bufferService.buffer.x, bufferService.buffer.y];
+	return [bufferService.buffers.active.x, bufferService.buffers.active.y];
 }
 
 function getLines(bufferService: BufferService, limit: number = bufferService.rows): string[] {
 	const res: string[] = [];
 	for (let i = 0; i < limit; ++i) {
-		const line = bufferService.buffer.lines.get(i);
+		const line = bufferService.buffers.active.lines.get(i);
 		if (line) {
 			res.push(line.translateToString(true));
 		}
@@ -290,23 +290,23 @@ describe('InputHandler', () => {
 	});
 
 	it('save and restore cursor', () => {
-		bufferService.buffer.x = 1;
-		bufferService.buffer.y = 2;
-		bufferService.buffer.ybase = 0;
+		bufferService.buffers.active.x = 1;
+		bufferService.buffers.active.y = 2;
+		bufferService.buffers.active.ybase = 0;
 		inputHandler.curAttrData.fg = 3;
 		// Save cursor position
 		inputHandler.saveCursor();
-		expect(bufferService.buffer.x).toBe(1);
-		expect(bufferService.buffer.y).toBe(2);
+		expect(bufferService.buffers.active.x).toBe(1);
+		expect(bufferService.buffers.active.y).toBe(2);
 		expect(inputHandler.curAttrData.fg).toBe(3);
 		// Change cursor position
-		bufferService.buffer.x = 10;
-		bufferService.buffer.y = 20;
+		bufferService.buffers.active.x = 10;
+		bufferService.buffers.active.y = 20;
 		inputHandler.curAttrData.fg = 30;
 		// Restore cursor position
 		inputHandler.restoreCursor();
-		expect(bufferService.buffer.x).toBe(1);
-		expect(bufferService.buffer.y).toBe(2);
+		expect(bufferService.buffers.active.x).toBe(1);
+		expect(bufferService.buffers.active.y).toBe(2);
 		expect(inputHandler.curAttrData.fg).toBe(3);
 	});
 	describe('DECSC/DECRC - save and restore cursor', () => {
@@ -434,7 +434,7 @@ describe('InputHandler', () => {
 		function termContent(bufferService: BufferService, trim: boolean): string[] {
 			const result = [];
 			for (let i = 0; i < bufferService.rows; ++i)
-				result.push(bufferService.buffer.lines.get(i)!.translateToString(trim));
+				result.push(bufferService.buffers.active.lines.get(i)!.translateToString(trim));
 			return result;
 		}
 
@@ -457,38 +457,38 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('1234567890');
 			await inputHandler.parseP('a'.repeat(bufferService.cols - 10));
 			await inputHandler.parseP('1234567890');
-			const line1: BufferLine = bufferService.buffer.lines.get(0)!;
+			const line1: BufferLine = bufferService.buffers.active.lines.get(0)!;
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '1234567890'
 			);
 
 			// insert one char from params = [0]
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 70;
 			inputHandler.insertChars(Params.fromArray([0]));
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + ' 123456789'
 			);
 
 			// insert one char from params = [1]
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 70;
 			inputHandler.insertChars(Params.fromArray([1]));
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '  12345678'
 			);
 
 			// insert two chars from params = [2]
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 70;
 			inputHandler.insertChars(Params.fromArray([2]));
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '    123456'
 			);
 
 			// insert 10 chars from params = [10]
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 70;
 			inputHandler.insertChars(Params.fromArray([10]));
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '          '
@@ -514,14 +514,14 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('1234567890');
 			await inputHandler.parseP('a'.repeat(bufferService.cols - 10));
 			await inputHandler.parseP('1234567890');
-			const line1: BufferLine = bufferService.buffer.lines.get(0)!;
+			const line1: BufferLine = bufferService.buffers.active.lines.get(0)!;
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '1234567890'
 			);
 
 			// delete one char from params = [0]
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 70;
 			inputHandler.deleteChars(Params.fromArray([0]));
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '234567890 '
@@ -529,8 +529,8 @@ describe('InputHandler', () => {
 			expect(line1.translateToString(true)).toBe('a'.repeat(bufferService.cols - 10) + '234567890');
 
 			// insert one char from params = [1]
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 70;
 			inputHandler.deleteChars(Params.fromArray([1]));
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '34567890  '
@@ -538,8 +538,8 @@ describe('InputHandler', () => {
 			expect(line1.translateToString(true)).toBe('a'.repeat(bufferService.cols - 10) + '34567890');
 
 			// insert two chars from params = [2]
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 70;
 			inputHandler.deleteChars(Params.fromArray([2]));
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '567890    '
@@ -547,8 +547,8 @@ describe('InputHandler', () => {
 			expect(line1.translateToString(true)).toBe('a'.repeat(bufferService.cols - 10) + '567890');
 
 			// insert 10 chars from params = [10]
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 70;
 			inputHandler.deleteChars(Params.fromArray([10]));
 			expect(line1.translateToString(false)).toBe(
 				'a'.repeat(bufferService.cols - 10) + '          '
@@ -575,26 +575,26 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('a'.repeat(bufferService.cols));
 
 			// params[0] - right erase
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 70;
 			inputHandler.eraseInLine(Params.fromArray([0]));
-			expect(bufferService.buffer.lines.get(0)!.translateToString(false)).toBe(
+			expect(bufferService.buffers.active.lines.get(0)!.translateToString(false)).toBe(
 				'a'.repeat(70) + '          '
 			);
 
 			// params[1] - left erase
-			bufferService.buffer.y = 1;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 1;
+			bufferService.buffers.active.x = 70;
 			inputHandler.eraseInLine(Params.fromArray([1]));
-			expect(bufferService.buffer.lines.get(1)!.translateToString(false)).toBe(
+			expect(bufferService.buffers.active.lines.get(1)!.translateToString(false)).toBe(
 				' '.repeat(70) + ' aaaaaaaaa'
 			);
 
 			// params[1] - left erase
-			bufferService.buffer.y = 2;
-			bufferService.buffer.x = 70;
+			bufferService.buffers.active.y = 2;
+			bufferService.buffers.active.x = 70;
 			inputHandler.eraseInLine(Params.fromArray([2]));
-			expect(bufferService.buffer.lines.get(2)!.translateToString(false)).toBe(
+			expect(bufferService.buffers.active.lines.get(2)!.translateToString(false)).toBe(
 				' '.repeat(bufferService.cols)
 			);
 		});
@@ -614,41 +614,41 @@ describe('InputHandler', () => {
 
 			const resetToBaseState = async (): Promise<void> => {
 				// reset and add a wrapped line
-				bufferService.buffer.y = 0;
-				bufferService.buffer.x = 0;
+				bufferService.buffers.active.y = 0;
+				bufferService.buffers.active.x = 0;
 				await inputHandler.parseP('a'.repeat(bufferService.cols)); // line 0
 				await inputHandler.parseP('a'.repeat(bufferService.cols + 9)); // line 1 and 2
 				for (let i = 3; i < bufferService.rows; ++i)
 					await inputHandler.parseP('a'.repeat(bufferService.cols));
 
 				// confirm precondition that line 2 is wrapped
-				expect(bufferService.buffer.lines.get(2)!.isWrapped).toBe(true);
+				expect(bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(true);
 			};
 
 			// params[0] - erase from the cursor through the end of the row.
 			await resetToBaseState();
-			bufferService.buffer.y = 2;
-			bufferService.buffer.x = 40;
+			bufferService.buffers.active.y = 2;
+			bufferService.buffers.active.x = 40;
 			inputHandler.eraseInLine(Params.fromArray([0]));
-			expect(bufferService.buffer.lines.get(2)!.isWrapped).toBe(true);
-			bufferService.buffer.y = 2;
-			bufferService.buffer.x = 0;
+			expect(bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(true);
+			bufferService.buffers.active.y = 2;
+			bufferService.buffers.active.x = 0;
 			inputHandler.eraseInLine(Params.fromArray([0]));
-			expect(bufferService.buffer.lines.get(2)!.isWrapped).toBe(false);
+			expect(bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
 
 			// params[1] - erase from the beginning of the line through the cursor
 			await resetToBaseState();
-			bufferService.buffer.y = 2;
-			bufferService.buffer.x = 40;
+			bufferService.buffers.active.y = 2;
+			bufferService.buffers.active.x = 40;
 			inputHandler.eraseInLine(Params.fromArray([1]));
-			expect(bufferService.buffer.lines.get(2)!.isWrapped).toBe(true);
+			expect(bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(true);
 
 			// params[2] - erase complete line
 			await resetToBaseState();
-			bufferService.buffer.y = 2;
-			bufferService.buffer.x = 40;
+			bufferService.buffers.active.y = 2;
+			bufferService.buffers.active.x = 40;
 			inputHandler.eraseInLine(Params.fromArray([2]));
-			expect(bufferService.buffer.lines.get(2)!.isWrapped).toBe(false);
+			expect(bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
 		});
 		it('ED2 with scrollOnEraseInDisplay turned on', async () => {
 			const inputHandler = new TestInputHandler(
@@ -669,18 +669,18 @@ describe('InputHandler', () => {
 
 			inputHandler.eraseInDisplay(Params.fromArray([2]));
 			// those 2 lines should have been pushed to scrollback.
-			expect(bufferService.rows + 2).toBe(bufferService.buffer.lines.length);
-			expect(bufferService.buffer.ybase).toBe(2);
-			expect(bufferService.buffer.lines.get(0)?.translateToString()).toBe(aLine);
-			expect(bufferService.buffer.lines.get(1)?.translateToString()).toBe(aLine);
+			expect(bufferService.rows + 2).toBe(bufferService.buffers.active.lines.length);
+			expect(bufferService.buffers.active.ybase).toBe(2);
+			expect(bufferService.buffers.active.lines.get(0)?.translateToString()).toBe(aLine);
+			expect(bufferService.buffers.active.lines.get(1)?.translateToString()).toBe(aLine);
 
 			// Move to last line and add more text.
-			bufferService.buffer.y = bufferService.rows - 1;
-			bufferService.buffer.x = 0;
+			bufferService.buffers.active.y = bufferService.rows - 1;
+			bufferService.buffers.active.x = 0;
 			await inputHandler.parseP(aLine);
 			inputHandler.eraseInDisplay(Params.fromArray([2]));
 			// Screen should have been scrolled by a full screen size.
-			expect(bufferService.rows * 2 + 2).toBe(bufferService.buffer.lines.length);
+			expect(bufferService.rows * 2 + 2).toBe(bufferService.buffers.active.lines.length);
 		});
 		it('eraseInDisplay', async () => {
 			const bufferService = createMockBufferService(80, 7);
@@ -701,8 +701,8 @@ describe('InputHandler', () => {
 				await inputHandler.parseP('a'.repeat(bufferService.cols));
 
 			// params [0] - right and below erase
-			bufferService.buffer.y = 5;
-			bufferService.buffer.x = 40;
+			bufferService.buffers.active.y = 5;
+			bufferService.buffers.active.x = 40;
 			inputHandler.eraseInDisplay(Params.fromArray([0]));
 			expect(termContent(bufferService, false)).toEqual([
 				'a'.repeat(bufferService.cols),
@@ -724,14 +724,14 @@ describe('InputHandler', () => {
 			]);
 
 			// reset
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 0;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 0;
 			for (let i = 0; i < bufferService.rows; ++i)
 				await inputHandler.parseP('a'.repeat(bufferService.cols));
 
 			// params [1] - left and above
-			bufferService.buffer.y = 5;
-			bufferService.buffer.x = 40;
+			bufferService.buffers.active.y = 5;
+			bufferService.buffers.active.x = 40;
 			inputHandler.eraseInDisplay(Params.fromArray([1]));
 			expect(termContent(bufferService, false)).toEqual([
 				' '.repeat(bufferService.cols),
@@ -753,14 +753,14 @@ describe('InputHandler', () => {
 			]);
 
 			// reset
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 0;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 0;
 			for (let i = 0; i < bufferService.rows; ++i)
 				await inputHandler.parseP('a'.repeat(bufferService.cols));
 
 			// params [2] - whole screen
-			bufferService.buffer.y = 5;
-			bufferService.buffer.x = 40;
+			bufferService.buffers.active.y = 5;
+			bufferService.buffers.active.x = 40;
 			inputHandler.eraseInDisplay(Params.fromArray([2]));
 			expect(termContent(bufferService, false)).toEqual([
 				' '.repeat(bufferService.cols),
@@ -774,8 +774,8 @@ describe('InputHandler', () => {
 			expect(termContent(bufferService, true)).toEqual(['', '', '', '', '', '', '']);
 
 			// reset and add a wrapped line
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 0;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 0;
 			await inputHandler.parseP('a'.repeat(bufferService.cols)); // line 0
 			await inputHandler.parseP('a'.repeat(bufferService.cols + 9)); // line 1 and 2
 			for (let i = 3; i < bufferService.rows; ++i)
@@ -783,15 +783,15 @@ describe('InputHandler', () => {
 
 			// params[1] left and above with wrap
 			// confirm precondition that line 2 is wrapped
-			expect(bufferService.buffer.lines.get(2)!.isWrapped).toBe(true);
-			bufferService.buffer.y = 2;
-			bufferService.buffer.x = 40;
+			expect(bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(true);
+			bufferService.buffers.active.y = 2;
+			bufferService.buffers.active.x = 40;
 			inputHandler.eraseInDisplay(Params.fromArray([1]));
-			expect(bufferService.buffer.lines.get(2)!.isWrapped).toBe(false);
+			expect(bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
 
 			// reset and add a wrapped line
-			bufferService.buffer.y = 0;
-			bufferService.buffer.x = 0;
+			bufferService.buffers.active.y = 0;
+			bufferService.buffers.active.x = 0;
 			await inputHandler.parseP('a'.repeat(bufferService.cols)); // line 0
 			await inputHandler.parseP('a'.repeat(bufferService.cols + 9)); // line 1 and 2
 			for (let i = 3; i < bufferService.rows; ++i)
@@ -799,11 +799,11 @@ describe('InputHandler', () => {
 
 			// params[1] left and above with wrap
 			// confirm precondition that line 2 is wrapped
-			expect(bufferService.buffer.lines.get(2)!.isWrapped).toBe(true);
-			bufferService.buffer.y = 1;
-			bufferService.buffer.x = 90; // Cursor is beyond last column
+			expect(bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(true);
+			bufferService.buffers.active.y = 1;
+			bufferService.buffers.active.x = 90; // Cursor is beyond last column
 			inputHandler.eraseInDisplay(Params.fromArray([1]));
-			expect(bufferService.buffer.lines.get(2)!.isWrapped).toBe(false);
+			expect(bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
 		});
 	});
 	describe('print', () => {
@@ -828,14 +828,14 @@ describe('InputHandler', () => {
 			bufferService.resize(5, 5);
 			optionsService.options.scrollback = 1;
 			await inputHandler.parseP('12345');
-			bufferService.buffer.x = 0;
+			bufferService.buffers.active.x = 0;
 			await inputHandler.parseP('￥￥￥');
 			expect(getLines(bufferService, 2)).toEqual(['￥￥', '￥']);
 		});
 		it('should strip soft hyphens (U+00AD)', async () => {
 			await inputHandler.parseP('Soft\xadhy\xadphen');
-			expect(bufferService.buffer.translateBufferLineToString(0, true)).toBe('Softhyphen');
-			expect(bufferService.buffer.x).toBe(10);
+			expect(bufferService.buffers.active.translateBufferLineToString(0, true)).toBe('Softhyphen');
+			expect(bufferService.buffers.active.x).toBe(10);
 		});
 	});
 
@@ -859,54 +859,64 @@ describe('InputHandler', () => {
 		});
 		it('should handle DECSET/DECRST 47 (alt screen buffer)', async () => {
 			await handler.parseP('\x1b[?47h\r\n\x1b[31mJUNK\x1b[?47lTEST');
-			expect(bufferService.buffer.translateBufferLineToString(0, true)).toBe('');
-			expect(bufferService.buffer.translateBufferLineToString(1, true)).toBe('    TEST');
+			expect(bufferService.buffers.active.translateBufferLineToString(0, true)).toBe('');
+			expect(bufferService.buffers.active.translateBufferLineToString(1, true)).toBe('    TEST');
 			// Text color of 'TEST' should be red
-			expect(bufferService.buffer.lines.get(1)!.loadCell(4, new CellData()).getFgColor()).toBe(1);
+			expect(
+				bufferService.buffers.active.lines.get(1)!.loadCell(4, new CellData()).getFgColor()
+			).toBe(1);
 		});
 		it('should handle DECSET/DECRST 1047 (alt screen buffer)', async () => {
 			await handler.parseP('\x1b[?1047h\r\n\x1b[31mJUNK\x1b[?1047lTEST');
-			expect(bufferService.buffer.translateBufferLineToString(0, true)).toBe('');
-			expect(bufferService.buffer.translateBufferLineToString(1, true)).toBe('    TEST');
+			expect(bufferService.buffers.active.translateBufferLineToString(0, true)).toBe('');
+			expect(bufferService.buffers.active.translateBufferLineToString(1, true)).toBe('    TEST');
 			// Text color of 'TEST' should be red
-			expect(bufferService.buffer.lines.get(1)!.loadCell(4, new CellData()).getFgColor()).toBe(1);
+			expect(
+				bufferService.buffers.active.lines.get(1)!.loadCell(4, new CellData()).getFgColor()
+			).toBe(1);
 		});
 		it('should handle DECSET/DECRST 1048 (alt screen cursor)', async () => {
 			await handler.parseP('\x1b[?1048h\r\n\x1b[31mJUNK\x1b[?1048lTEST');
-			expect(bufferService.buffer.translateBufferLineToString(0, true)).toBe('TEST');
-			expect(bufferService.buffer.translateBufferLineToString(1, true)).toBe('JUNK');
+			expect(bufferService.buffers.active.translateBufferLineToString(0, true)).toBe('TEST');
+			expect(bufferService.buffers.active.translateBufferLineToString(1, true)).toBe('JUNK');
 			// Text color of 'TEST' should be default
-			expect(bufferService.buffer.lines.get(0)!.loadCell(0, new CellData()).fg).toBe(
+			expect(bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).fg).toBe(
 				DEFAULT_ATTR_DATA.fg
 			);
 			// Text color of 'JUNK' should be red
-			expect(bufferService.buffer.lines.get(1)!.loadCell(0, new CellData()).getFgColor()).toBe(1);
+			expect(
+				bufferService.buffers.active.lines.get(1)!.loadCell(0, new CellData()).getFgColor()
+			).toBe(1);
 		});
 		it('should handle DECSET/DECRST 1049 (alt screen buffer+cursor)', async () => {
 			await handler.parseP('\x1b[?1049h\r\n\x1b[31mJUNK\x1b[?1049lTEST');
-			expect(bufferService.buffer.translateBufferLineToString(0, true)).toBe('TEST');
-			expect(bufferService.buffer.translateBufferLineToString(1, true)).toBe('');
+			expect(bufferService.buffers.active.translateBufferLineToString(0, true)).toBe('TEST');
+			expect(bufferService.buffers.active.translateBufferLineToString(1, true)).toBe('');
 			// Text color of 'TEST' should be default
-			expect(bufferService.buffer.lines.get(0)!.loadCell(0, new CellData()).fg).toBe(
+			expect(bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).fg).toBe(
 				DEFAULT_ATTR_DATA.fg
 			);
 		});
 		it('should handle DECSET/DECRST 1049 - maintains saved cursor for alt buffer', async () => {
 			await handler.parseP('\x1b[?1049h\r\n\x1b[31m\x1b[s\x1b[?1049lTEST');
-			expect(bufferService.buffer.translateBufferLineToString(0, true)).toBe('TEST');
+			expect(bufferService.buffers.active.translateBufferLineToString(0, true)).toBe('TEST');
 			// Text color of 'TEST' should be default
-			expect(bufferService.buffer.lines.get(0)!.loadCell(0, new CellData()).fg).toBe(
+			expect(bufferService.buffers.active.lines.get(0)!.loadCell(0, new CellData()).fg).toBe(
 				DEFAULT_ATTR_DATA.fg
 			);
 			await handler.parseP('\x1b[?1049h\x1b[uTEST');
-			expect(bufferService.buffer.translateBufferLineToString(1, true)).toBe('TEST');
+			expect(bufferService.buffers.active.translateBufferLineToString(1, true)).toBe('TEST');
 			// Text color of 'TEST' should be red
-			expect(bufferService.buffer.lines.get(1)!.loadCell(0, new CellData()).getFgColor()).toBe(1);
+			expect(
+				bufferService.buffers.active.lines.get(1)!.loadCell(0, new CellData()).getFgColor()
+			).toBe(1);
 		});
 		it('should handle DECSET/DECRST 1049 - clears alt buffer with erase attributes', async () => {
 			await handler.parseP('\x1b[42m\x1b[?1049h');
 			// Buffer should be filled with green background
-			expect(bufferService.buffer.lines.get(20)!.loadCell(10, new CellData()).getBgColor()).toBe(2);
+			expect(
+				bufferService.buffers.active.lines.get(20)!.loadCell(10, new CellData()).getBgColor()
+			).toBe(2);
 		});
 	});
 
@@ -1243,8 +1253,8 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('\x1b[100C');
 			expect(getCursor(bufferService)).toEqual([9, 0]);
 			// should not change y
-			bufferService.buffer.x = 8;
-			bufferService.buffer.y = 4;
+			bufferService.buffers.active.x = 8;
+			bufferService.buffers.active.y = 4;
 			await inputHandler.parseP('\x1b[C');
 			expect(getCursor(bufferService)).toEqual([9, 4]);
 		});
@@ -1264,8 +1274,8 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('\x1b[100D');
 			expect(getCursor(bufferService)).toEqual([0, 0]);
 			// should not change y
-			bufferService.buffer.x = 4;
-			bufferService.buffer.y = 4;
+			bufferService.buffers.active.x = 4;
+			bufferService.buffers.active.y = 4;
 			await inputHandler.parseP('\x1b[D');
 			expect(getCursor(bufferService)).toEqual([3, 4]);
 		});
@@ -1279,8 +1289,8 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('\x1b[100B');
 			expect(getCursor(bufferService)).toEqual([0, 9]);
 			// should not change x
-			bufferService.buffer.x = 8;
-			bufferService.buffer.y = 0;
+			bufferService.buffers.active.x = 8;
+			bufferService.buffers.active.y = 0;
 			await inputHandler.parseP('\x1b[B');
 			expect(getCursor(bufferService)).toEqual([8, 1]);
 		});
@@ -1300,8 +1310,8 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('\x1b[100A');
 			expect(getCursor(bufferService)).toEqual([0, 0]);
 			// should not change x
-			bufferService.buffer.x = 8;
-			bufferService.buffer.y = 9;
+			bufferService.buffers.active.x = 8;
+			bufferService.buffers.active.y = 9;
 			await inputHandler.parseP('\x1b[A');
 			expect(getCursor(bufferService)).toEqual([8, 8]);
 		});
@@ -1315,8 +1325,8 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('\x1b[100E');
 			expect(getCursor(bufferService)).toEqual([0, 9]);
 			// should reset x to zero
-			bufferService.buffer.x = 8;
-			bufferService.buffer.y = 0;
+			bufferService.buffers.active.x = 8;
+			bufferService.buffers.active.y = 0;
 			await inputHandler.parseP('\x1b[E');
 			expect(getCursor(bufferService)).toEqual([0, 1]);
 		});
@@ -1336,8 +1346,8 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('\x1b[100F');
 			expect(getCursor(bufferService)).toEqual([0, 0]);
 			// should reset x to zero
-			bufferService.buffer.x = 8;
-			bufferService.buffer.y = 9;
+			bufferService.buffers.active.x = 8;
+			bufferService.buffers.active.y = 9;
 			await inputHandler.parseP('\x1b[F');
 			expect(getCursor(bufferService)).toEqual([0, 8]);
 		});
@@ -1354,28 +1364,28 @@ describe('InputHandler', () => {
 			expect(getCursor(bufferService)).toEqual([9, 0]);
 		});
 		it('cursor position (CUP)', async () => {
-			bufferService.buffer.x = 5;
-			bufferService.buffer.y = 5;
+			bufferService.buffers.active.x = 5;
+			bufferService.buffers.active.y = 5;
 			await inputHandler.parseP('\x1b[H');
 			expect(getCursor(bufferService)).toEqual([0, 0]);
-			bufferService.buffer.x = 5;
-			bufferService.buffer.y = 5;
+			bufferService.buffers.active.x = 5;
+			bufferService.buffers.active.y = 5;
 			await inputHandler.parseP('\x1b[1H');
 			expect(getCursor(bufferService)).toEqual([0, 0]);
-			bufferService.buffer.x = 5;
-			bufferService.buffer.y = 5;
+			bufferService.buffers.active.x = 5;
+			bufferService.buffers.active.y = 5;
 			await inputHandler.parseP('\x1b[1;1H');
 			expect(getCursor(bufferService)).toEqual([0, 0]);
-			bufferService.buffer.x = 5;
-			bufferService.buffer.y = 5;
+			bufferService.buffers.active.x = 5;
+			bufferService.buffers.active.y = 5;
 			await inputHandler.parseP('\x1b[8H');
 			expect(getCursor(bufferService)).toEqual([0, 7]);
-			bufferService.buffer.x = 5;
-			bufferService.buffer.y = 5;
+			bufferService.buffers.active.x = 5;
+			bufferService.buffers.active.y = 5;
 			await inputHandler.parseP('\x1b[;8H');
 			expect(getCursor(bufferService)).toEqual([7, 0]);
-			bufferService.buffer.x = 5;
-			bufferService.buffer.y = 5;
+			bufferService.buffers.active.x = 5;
+			bufferService.buffers.active.y = 5;
 			await inputHandler.parseP('\x1b[100;100H');
 			expect(getCursor(bufferService)).toEqual([9, 9]);
 		});
@@ -1401,8 +1411,8 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('\x1b[100a');
 			expect(getCursor(bufferService)).toEqual([9, 0]);
 			// should not change y
-			bufferService.buffer.x = 8;
-			bufferService.buffer.y = 4;
+			bufferService.buffers.active.x = 8;
+			bufferService.buffers.active.y = 4;
 			await inputHandler.parseP('\x1b[a');
 			expect(getCursor(bufferService)).toEqual([9, 4]);
 		});
@@ -1418,8 +1428,8 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('\x1b[100d');
 			expect(getCursor(bufferService)).toEqual([0, 9]);
 			// should not change x
-			bufferService.buffer.x = 8;
-			bufferService.buffer.y = 4;
+			bufferService.buffers.active.x = 8;
+			bufferService.buffers.active.y = 4;
 			await inputHandler.parseP('\x1b[d');
 			expect(getCursor(bufferService)).toEqual([8, 0]);
 		});
@@ -1433,173 +1443,179 @@ describe('InputHandler', () => {
 			await inputHandler.parseP('\x1b[100e');
 			expect(getCursor(bufferService)).toEqual([0, 9]);
 			// should not change x
-			bufferService.buffer.x = 8;
-			bufferService.buffer.y = 4;
+			bufferService.buffers.active.x = 8;
+			bufferService.buffers.active.y = 4;
 			await inputHandler.parseP('\x1b[e');
 			expect(getCursor(bufferService)).toEqual([8, 5]);
 		});
 		describe('should clamp cursor into addressible range', () => {
 			it('CUF', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[C');
 				expect(getCursor(bufferService)).toEqual([9, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[C');
 				expect(getCursor(bufferService)).toEqual([1, 0]);
 			});
 			it('CUB', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[D');
 				expect(getCursor(bufferService)).toEqual([8, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[D');
 				expect(getCursor(bufferService)).toEqual([0, 0]);
 			});
 			it('CUD', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[B');
 				expect(getCursor(bufferService)).toEqual([9, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[B');
 				expect(getCursor(bufferService)).toEqual([0, 1]);
 			});
 			it('CUU', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[A');
 				expect(getCursor(bufferService)).toEqual([9, 8]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[A');
 				expect(getCursor(bufferService)).toEqual([0, 0]);
 			});
 			it('CNL', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[E');
 				expect(getCursor(bufferService)).toEqual([0, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[E');
 				expect(getCursor(bufferService)).toEqual([0, 1]);
 			});
 			it('CPL', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[F');
 				expect(getCursor(bufferService)).toEqual([0, 8]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[F');
 				expect(getCursor(bufferService)).toEqual([0, 0]);
 			});
 			it('CHA', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[5G');
 				expect(getCursor(bufferService)).toEqual([4, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[5G');
 				expect(getCursor(bufferService)).toEqual([4, 0]);
 			});
 			it('CUP', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[5;5H');
 				expect(getCursor(bufferService)).toEqual([4, 4]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[5;5H');
 				expect(getCursor(bufferService)).toEqual([4, 4]);
 			});
 			it('HPA', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[5`');
 				expect(getCursor(bufferService)).toEqual([4, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[5`');
 				expect(getCursor(bufferService)).toEqual([4, 0]);
 			});
 			it('HPR', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[a');
 				expect(getCursor(bufferService)).toEqual([9, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[a');
 				expect(getCursor(bufferService)).toEqual([1, 0]);
 			});
 			it('VPA', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[5d');
 				expect(getCursor(bufferService)).toEqual([9, 4]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[5d');
 				expect(getCursor(bufferService)).toEqual([0, 4]);
 			});
 			it('VPR', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[e');
 				expect(getCursor(bufferService)).toEqual([9, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[e');
 				expect(getCursor(bufferService)).toEqual([0, 1]);
 			});
 			it('DCH', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[P');
 				expect(getCursor(bufferService)).toEqual([9, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[P');
 				expect(getCursor(bufferService)).toEqual([0, 0]);
 			});
 			it('DCH - should delete last cell', async () => {
 				await inputHandler.parseP('0123456789\x1b[P');
-				expect(bufferService.buffer.lines.get(0)!.translateToString(false)).toBe('012345678 ');
+				expect(bufferService.buffers.active.lines.get(0)!.translateToString(false)).toBe(
+					'012345678 '
+				);
 			});
 			it('ECH', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[X');
 				expect(getCursor(bufferService)).toEqual([9, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[X');
 				expect(getCursor(bufferService)).toEqual([0, 0]);
 			});
 			it('ECH - should delete last cell', async () => {
 				await inputHandler.parseP('0123456789\x1b[X');
-				expect(bufferService.buffer.lines.get(0)!.translateToString(false)).toBe('012345678 ');
+				expect(bufferService.buffers.active.lines.get(0)!.translateToString(false)).toBe(
+					'012345678 '
+				);
 			});
 			it('ICH', async () => {
-				bufferService.buffer.x = 10000;
-				bufferService.buffer.y = 10000;
+				bufferService.buffers.active.x = 10000;
+				bufferService.buffers.active.y = 10000;
 				await inputHandler.parseP('\x1b[@');
 				expect(getCursor(bufferService)).toEqual([9, 9]);
-				bufferService.buffer.x = -10000;
-				bufferService.buffer.y = -10000;
+				bufferService.buffers.active.x = -10000;
+				bufferService.buffers.active.y = -10000;
 				await inputHandler.parseP('\x1b[@');
 				expect(getCursor(bufferService)).toEqual([0, 0]);
 			});
 			it('ICH - should delete last cell', async () => {
 				await inputHandler.parseP('0123456789\x1b[@');
-				expect(bufferService.buffer.lines.get(0)!.translateToString(false)).toBe('012345678 ');
+				expect(bufferService.buffers.active.lines.get(0)!.translateToString(false)).toBe(
+					'012345678 '
+				);
 			});
 		});
 	});
@@ -1609,28 +1625,28 @@ describe('InputHandler', () => {
 		});
 		it('should default to whole viewport', async () => {
 			await inputHandler.parseP('\x1b[r');
-			expect(bufferService.buffer.scrollTop).toBe(0);
-			expect(bufferService.buffer.scrollBottom).toBe(9);
+			expect(bufferService.buffers.active.scrollTop).toBe(0);
+			expect(bufferService.buffers.active.scrollBottom).toBe(9);
 			await inputHandler.parseP('\x1b[3;7r');
-			expect(bufferService.buffer.scrollTop).toBe(2);
-			expect(bufferService.buffer.scrollBottom).toBe(6);
+			expect(bufferService.buffers.active.scrollTop).toBe(2);
+			expect(bufferService.buffers.active.scrollBottom).toBe(6);
 			await inputHandler.parseP('\x1b[0;0r');
-			expect(bufferService.buffer.scrollTop).toBe(0);
-			expect(bufferService.buffer.scrollBottom).toBe(9);
+			expect(bufferService.buffers.active.scrollTop).toBe(0);
+			expect(bufferService.buffers.active.scrollBottom).toBe(9);
 		});
 		it('should clamp bottom', async () => {
 			await inputHandler.parseP('\x1b[3;1000r');
-			expect(bufferService.buffer.scrollTop).toBe(2);
-			expect(bufferService.buffer.scrollBottom).toBe(9);
+			expect(bufferService.buffers.active.scrollTop).toBe(2);
+			expect(bufferService.buffers.active.scrollBottom).toBe(9);
 		});
 		it('should only apply for top < bottom', async () => {
 			await inputHandler.parseP('\x1b[7;2r');
-			expect(bufferService.buffer.scrollTop).toBe(0);
-			expect(bufferService.buffer.scrollBottom).toBe(9);
+			expect(bufferService.buffers.active.scrollTop).toBe(0);
+			expect(bufferService.buffers.active.scrollBottom).toBe(9);
 		});
 		it('should home cursor', async () => {
-			bufferService.buffer.x = 10000;
-			bufferService.buffer.y = 10000;
+			bufferService.buffers.active.x = 10000;
+			bufferService.buffers.active.y = 10000;
 			await inputHandler.parseP('\x1b[2;7r');
 			expect(getCursor(bufferService)).toEqual([0, 0]);
 		});
@@ -1649,8 +1665,8 @@ describe('InputHandler', () => {
 		});
 		it('insertLines - out of margins', async () => {
 			await inputHandler.parseP('0\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\n9\x1b[3;6r');
-			expect(bufferService.buffer.scrollTop).toBe(2);
-			expect(bufferService.buffer.scrollBottom).toBe(5);
+			expect(bufferService.buffers.active.scrollTop).toBe(2);
+			expect(bufferService.buffers.active.scrollBottom).toBe(5);
 			await inputHandler.parseP('\x1b[2Lm');
 			expect(getLines(bufferService)).toEqual(['m', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 			await inputHandler.parseP('\x1b[2H\x1b[2Ln');
@@ -1665,8 +1681,8 @@ describe('InputHandler', () => {
 		});
 		it('insertLines - within margins', async () => {
 			await inputHandler.parseP('0\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\n9\x1b[3;6r');
-			expect(bufferService.buffer.scrollTop).toBe(2);
-			expect(bufferService.buffer.scrollBottom).toBe(5);
+			expect(bufferService.buffers.active.scrollTop).toBe(2);
+			expect(bufferService.buffers.active.scrollBottom).toBe(5);
 			await inputHandler.parseP('\x1b[3H\x1b[2Lm');
 			expect(getLines(bufferService)).toEqual(['0', '1', 'm', '', '2', '3', '6', '7', '8', '9']);
 			await inputHandler.parseP('\x1b[6H\x1b[2Ln');
@@ -1674,8 +1690,8 @@ describe('InputHandler', () => {
 		});
 		it('deleteLines - out of margins', async () => {
 			await inputHandler.parseP('0\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\n9\x1b[3;6r');
-			expect(bufferService.buffer.scrollTop).toBe(2);
-			expect(bufferService.buffer.scrollBottom).toBe(5);
+			expect(bufferService.buffers.active.scrollTop).toBe(2);
+			expect(bufferService.buffers.active.scrollBottom).toBe(5);
 			await inputHandler.parseP('\x1b[2Mm');
 			expect(getLines(bufferService)).toEqual(['m', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 			await inputHandler.parseP('\x1b[2H\x1b[2Mn');
@@ -1690,8 +1706,8 @@ describe('InputHandler', () => {
 		});
 		it('deleteLines - within margins', async () => {
 			await inputHandler.parseP('0\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\n9\x1b[3;6r');
-			expect(bufferService.buffer.scrollTop).toBe(2);
-			expect(bufferService.buffer.scrollBottom).toBe(5);
+			expect(bufferService.buffers.active.scrollTop).toBe(2);
+			expect(bufferService.buffers.active.scrollBottom).toBe(5);
 			await inputHandler.parseP('\x1b[6H\x1b[2Mm');
 			expect(getLines(bufferService)).toEqual(['0', '1', '2', '3', '4', 'm', '6', '7', '8', '9']);
 			await inputHandler.parseP('\x1b[3H\x1b[2Mn');
@@ -2103,9 +2119,9 @@ describe('InputHandler', () => {
 			it('should lift isWrapped', async () => {
 				await inputHandler.parseP('\x1b[?45h');
 				await inputHandler.parseP('12345'.repeat(2));
-				expect(bufferService.buffer.lines.get(1)?.isWrapped).toBe(true);
+				expect(bufferService.buffers.active.lines.get(1)?.isWrapped).toBe(true);
 				await inputHandler.parseP(ttyBS.repeat(7));
-				expect(bufferService.buffer.lines.get(1)?.isWrapped).toBe(false);
+				expect(bufferService.buffers.active.lines.get(1)?.isWrapped).toBe(false);
 			});
 			it('stops at hard NLs', async () => {
 				await inputHandler.parseP('\x1b[?45h');
@@ -2113,8 +2129,8 @@ describe('InputHandler', () => {
 				await inputHandler.parseP('12345'.repeat(2));
 				await inputHandler.parseP(ttyBS.repeat(50));
 				expect(getLines(bufferService, 3)).toEqual(['12345', '     ', '     ']);
-				expect(bufferService.buffer.x).toBe(0);
-				expect(bufferService.buffer.y).toBe(1);
+				expect(bufferService.buffers.active.x).toBe(0);
+				expect(bufferService.buffers.active.y).toBe(1);
 			});
 			it('handles wide chars correctly', async () => {
 				await inputHandler.parseP('\x1b[?45h');
@@ -2122,22 +2138,22 @@ describe('InputHandler', () => {
 				expect(getLines(bufferService, 2)).toEqual(['￥￥', '￥']);
 				await inputHandler.parseP(ttyBS);
 				expect(getLines(bufferService, 2)).toEqual(['￥￥', '  ']);
-				expect(bufferService.buffer.x).toBe(1);
+				expect(bufferService.buffers.active.x).toBe(1);
 				await inputHandler.parseP(ttyBS);
 				expect(getLines(bufferService, 2)).toEqual(['￥￥', '  ']);
-				expect(bufferService.buffer.x).toBe(0);
+				expect(bufferService.buffers.active.x).toBe(0);
 				await inputHandler.parseP(ttyBS);
 				expect(getLines(bufferService, 2)).toEqual(['￥  ', '  ']);
-				expect(bufferService.buffer.x).toBe(3); // x=4 skipped due to early wrap-around
+				expect(bufferService.buffers.active.x).toBe(3); // x=4 skipped due to early wrap-around
 				await inputHandler.parseP(ttyBS);
 				expect(getLines(bufferService, 2)).toEqual(['￥  ', '  ']);
-				expect(bufferService.buffer.x).toBe(2);
+				expect(bufferService.buffers.active.x).toBe(2);
 				await inputHandler.parseP(ttyBS);
 				expect(getLines(bufferService, 2)).toEqual(['    ', '  ']);
-				expect(bufferService.buffer.x).toBe(1);
+				expect(bufferService.buffers.active.x).toBe(1);
 				await inputHandler.parseP(ttyBS);
 				expect(getLines(bufferService, 2)).toEqual(['    ', '  ']);
-				expect(bufferService.buffer.x).toBe(0);
+				expect(bufferService.buffers.active.x).toBe(0);
 			});
 		});
 	});
@@ -2295,7 +2311,7 @@ describe('InputHandler', () => {
 			expect(inputHandler.curAttrData.isUnderlineColorPalette()).toBe(true);
 			expect(inputHandler.curAttrData.isUnderlineColorDefault()).toBe(false);
 			await inputHandler.parseP('ab');
-			bufferService.buffer!.lines.get(0)!.loadCell(1, cell);
+			bufferService.buffers.active!.lines.get(0)!.loadCell(1, cell);
 			expect(cell.getUnderlineColor()).toBe(123);
 			expect(cell.getUnderlineColorMode()).toBe(Attributes.CM_P256);
 			expect(cell.isUnderlineColorRGB()).toBe(false);
@@ -2319,13 +2335,13 @@ describe('InputHandler', () => {
 				inputHandler.curAttrData.isFgDefault()
 			);
 			await inputHandler.parseP('a');
-			bufferService.buffer!.lines.get(0)!.loadCell(1, cell);
+			bufferService.buffers.active!.lines.get(0)!.loadCell(1, cell);
 			expect(cell.getUnderlineColor()).toBe(123);
 			expect(cell.getUnderlineColorMode()).toBe(Attributes.CM_P256);
 			expect(cell.isUnderlineColorRGB()).toBe(false);
 			expect(cell.isUnderlineColorPalette()).toBe(true);
 			expect(cell.isUnderlineColorDefault()).toBe(false);
-			bufferService.buffer!.lines.get(0)!.loadCell(2, cell);
+			bufferService.buffers.active!.lines.get(0)!.loadCell(2, cell);
 			expect(cell.getUnderlineColor()).toBe(inputHandler.curAttrData.getFgColor());
 			expect(cell.getUnderlineColorMode()).toBe(inputHandler.curAttrData.getFgColorMode());
 			expect(cell.isUnderlineColorRGB()).toBe(inputHandler.curAttrData.isFgRGB());
@@ -2341,13 +2357,13 @@ describe('InputHandler', () => {
 			expect(inputHandler.curAttrData.isUnderlineColorDefault()).toBe(false);
 			await inputHandler.parseP('a');
 			await inputHandler.parseP('\x1b[24m');
-			bufferService.buffer!.lines.get(0)!.loadCell(1, cell);
+			bufferService.buffers.active!.lines.get(0)!.loadCell(1, cell);
 			expect(cell.getUnderlineColor()).toBe(123);
 			expect(cell.getUnderlineColorMode()).toBe(Attributes.CM_P256);
 			expect(cell.isUnderlineColorRGB()).toBe(false);
 			expect(cell.isUnderlineColorPalette()).toBe(true);
 			expect(cell.isUnderlineColorDefault()).toBe(false);
-			bufferService.buffer!.lines.get(0)!.loadCell(3, cell);
+			bufferService.buffers.active!.lines.get(0)!.loadCell(3, cell);
 			expect(cell.getUnderlineColor()).toBe((1 << 16) | (2 << 8) | 3);
 			expect(cell.getUnderlineColorMode()).toBe(Attributes.CM_RGB);
 			expect(cell.isUnderlineColorRGB()).toBe(true);
@@ -2355,14 +2371,14 @@ describe('InputHandler', () => {
 			expect(cell.isUnderlineColorDefault()).toBe(false);
 
 			// eAttrs in buffer pos 0 and 1 should be the same object
-			expect(extendedAttributes(bufferService.buffer!.lines.get(0)!, 0)).toBe(
-				extendedAttributes(bufferService.buffer!.lines.get(0)!, 1)
+			expect(extendedAttributes(bufferService.buffers.active!.lines.get(0)!, 0)).toBe(
+				extendedAttributes(bufferService.buffers.active!.lines.get(0)!, 1)
 			);
 			// should not have written eAttr for pos 2 in the buffer
-			expect(extendedAttributes(bufferService.buffer!.lines.get(0)!, 2)).toBe(undefined);
+			expect(extendedAttributes(bufferService.buffers.active!.lines.get(0)!, 2)).toBe(undefined);
 			// eAttrs in buffer pos 1 and pos 3 must be different objs
-			expect(extendedAttributes(bufferService.buffer!.lines.get(0)!, 1)).not.toBe(
-				extendedAttributes(bufferService.buffer!.lines.get(0)!, 3)
+			expect(extendedAttributes(bufferService.buffers.active!.lines.get(0)!, 1)).not.toBe(
+				extendedAttributes(bufferService.buffers.active!.lines.get(0)!, 3)
 			);
 		});
 	});
@@ -2386,11 +2402,11 @@ describe('InputHandler', () => {
 		});
 		it('should reset scroll margins', async () => {
 			await inputHandler.parseP('\x1b[2;4r');
-			expect(bufferService.buffer.scrollTop).toBe(1);
-			expect(bufferService.buffer.scrollBottom).toBe(3);
+			expect(bufferService.buffers.active.scrollTop).toBe(1);
+			expect(bufferService.buffers.active.scrollBottom).toBe(3);
 			await inputHandler.parseP('\x1b[!p');
-			expect(bufferService.buffer.scrollTop).toBe(0);
-			expect(bufferService.buffer.scrollBottom).toBe(bufferService.rows - 1);
+			expect(bufferService.buffers.active.scrollTop).toBe(0);
+			expect(bufferService.buffers.active.scrollBottom).toBe(bufferService.rows - 1);
 		});
 		it('should reset text attributes', async () => {
 			await inputHandler.parseP('\x1b[1;2;32;43m');
@@ -2402,11 +2418,11 @@ describe('InputHandler', () => {
 		});
 		it('should reset DECSC data', async () => {
 			await inputHandler.parseP('\x1b7');
-			expect(bufferService.buffer.savedX).toBe(4);
-			expect(bufferService.buffer.savedY).toBe(1);
+			expect(bufferService.buffers.active.savedX).toBe(4);
+			expect(bufferService.buffers.active.savedY).toBe(1);
 			await inputHandler.parseP('\x1b[!p');
-			expect(bufferService.buffer.savedX).toBe(0);
-			expect(bufferService.buffer.savedY).toBe(0);
+			expect(bufferService.buffers.active.savedX).toBe(0);
+			expect(bufferService.buffers.active.savedY).toBe(0);
 		});
 		it('should reset DECOM', async () => {
 			await inputHandler.parseP('\x1b[?6h');
@@ -2655,37 +2671,37 @@ describe('InputHandler', () => {
 		describe('cursor should stay at cols / does not overflow', () => {
 			it('EL0', async () => {
 				await inputHandler.parseP('##########\x1b[0K');
-				expect(bufferService.buffer.x).toBe(10);
+				expect(bufferService.buffers.active.x).toBe(10);
 				expect(getLines(bufferService)).toEqual(['#'.repeat(10), '', '', '', '']);
 			});
 			it('EL1', async () => {
 				await inputHandler.parseP('##########\x1b[1K');
-				expect(bufferService.buffer.x).toBe(10);
+				expect(bufferService.buffers.active.x).toBe(10);
 				expect(getLines(bufferService)).toEqual(['', '', '', '', '']);
 			});
 			it('EL2', async () => {
 				await inputHandler.parseP('##########\x1b[2K');
-				expect(bufferService.buffer.x).toBe(10);
+				expect(bufferService.buffers.active.x).toBe(10);
 				expect(getLines(bufferService)).toEqual(['', '', '', '', '']);
 			});
 			it('ED0', async () => {
 				await inputHandler.parseP('##########\x1b[0J');
-				expect(bufferService.buffer.x).toBe(10);
+				expect(bufferService.buffers.active.x).toBe(10);
 				expect(getLines(bufferService)).toEqual(['#'.repeat(10), '', '', '', '']);
 			});
 			it('ED1', async () => {
 				await inputHandler.parseP('##########\x1b[1J');
-				expect(bufferService.buffer.x).toBe(10);
+				expect(bufferService.buffers.active.x).toBe(10);
 				expect(getLines(bufferService)).toEqual(['', '', '', '', '']);
 			});
 			it('ED2', async () => {
 				await inputHandler.parseP('##########\x1b[2J');
-				expect(bufferService.buffer.x).toBe(10);
+				expect(bufferService.buffers.active.x).toBe(10);
 				expect(getLines(bufferService)).toEqual(['', '', '', '', '']);
 			});
 			it('ED3', async () => {
 				await inputHandler.parseP('##########\x1b[3J');
-				expect(bufferService.buffer.x).toBe(10);
+				expect(bufferService.buffers.active.x).toBe(10);
 				expect(getLines(bufferService)).toEqual(['#'.repeat(10), '', '', '', '']);
 			});
 		});
@@ -2725,7 +2741,7 @@ describe('InputHandler', () => {
 			it('cursor never advances beyond cols', async () => {
 				for (const seq of SEQ) {
 					await inputHandler.parseP('##########\x1b[2J' + seq);
-					expect(bufferService.buffer.x <= bufferService.cols).toBe(true);
+					expect(bufferService.buffers.active.x <= bufferService.cols).toBe(true);
 					inputHandler.reset();
 					bufferService.reset();
 				}

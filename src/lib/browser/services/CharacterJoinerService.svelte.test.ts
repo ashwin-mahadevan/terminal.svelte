@@ -15,7 +15,7 @@ const TEST_STRING_CACHE = new BufferLineStringCache();
 describe('CharacterJoinerService', () => {
 	function createService(): CharacterJoinerService {
 		const bufferService = createMockBufferService(16, 10);
-		const lines = bufferService.buffer.lines;
+		const lines = bufferService.buffers.active.lines;
 		lines.set(0, lineData([['a -> b -> c -> d']]));
 		lines.set(1, lineData([['a -> b => c -> d']]));
 		lines.set(
