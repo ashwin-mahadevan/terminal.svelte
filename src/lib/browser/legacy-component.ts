@@ -117,20 +117,11 @@ export class LegacyComponent {
 	private _unprocessedDeadKey: boolean = false;
 
 	public _compositionHelper: CompositionHelper | undefined;
-	private _accessibilityManager = new MutableDisposable<AccessibilityManager>();
+	public _accessibilityManager = new MutableDisposable<AccessibilityManager>();
 
 	private readonly _onKey = new LegacyEmitter<{ key: string; domEvent: KeyboardEvent }>();
 	public readonly onKey = this._onKey.event;
 
-	public _onFocus = new LegacyEmitter<void>();
-	public get onFocus(): IEvent<void> {
-		return this._onFocus.event;
-	}
-
-	_onBlur = new LegacyEmitter<void>();
-	public get onBlur(): IEvent<void> {
-		return this._onBlur.event;
-	}
 	private _onWillOpen = new LegacyEmitter<HTMLElement>();
 	public get onWillOpen(): IEvent<HTMLElement> {
 		return this._onWillOpen.event;
@@ -173,8 +164,6 @@ export class LegacyComponent {
 	private _themeColorsChangeListener: IDisposable | undefined;
 	private _cursorMoveListener: IDisposable | undefined;
 	private _bufferResizeListener: IDisposable | undefined;
-	private _blurRenderListener: IDisposable | undefined;
-	private _focusRenderListener: IDisposable | undefined;
 	private _viewportScrollLinesListener: IDisposable | undefined;
 	private _selectionScrollLinesListener: IDisposable | undefined;
 	private _selectionRedrawListener: IDisposable | undefined;
@@ -214,8 +203,6 @@ export class LegacyComponent {
 		this.selectionService?.dispose();
 		this._overviewRulerRenderer?.dispose();
 		this._onKey.dispose();
-		this._onFocus.dispose();
-		this._onBlur.dispose();
 		this._onWillOpen.dispose();
 
 		this.requestRefreshRowsListener.dispose();
@@ -226,8 +213,6 @@ export class LegacyComponent {
 		this._themeColorsChangeListener?.dispose();
 		this._cursorMoveListener?.dispose();
 		this._bufferResizeListener?.dispose();
-		this._blurRenderListener?.dispose();
-		this._focusRenderListener?.dispose();
 		this._viewportScrollLinesListener?.dispose();
 		this._selectionScrollLinesListener?.dispose();
 		this._selectionRedrawListener?.dispose();
@@ -442,8 +427,6 @@ export class LegacyComponent {
 			this.renderService!.handleResize(this.core.bufferService.cols, this.core.bufferService.rows);
 			this._syncTextArea();
 		});
-		this._blurRenderListener = this.onBlur(() => this.renderService!.handleBlur());
-		this._focusRenderListener = this.onFocus(() => this.renderService!.handleFocus());
 
 		this._viewport = new Viewport(this);
 		this._viewportScrollLinesListener = this._viewport.onRequestScrollLines((e) => {

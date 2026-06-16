@@ -42,7 +42,6 @@ export class AccessibilityManager {
 	private _lineFeedListener!: IDisposable;
 	private _a11yTabListener!: IDisposable;
 	private _keyListener!: IDisposable;
-	private _blurListener!: IDisposable;
 	private _dimensionsChangeListener!: IDisposable;
 	private _selectionChangeListener!: IDisposable;
 	private _dprChangeListener!: IDisposable;
@@ -132,7 +131,6 @@ export class AccessibilityManager {
 			this._handleTab(spaceCount)
 		);
 		this._keyListener = this._terminal.onKey((e) => this._handleKey(e.key));
-		this._blurListener = this._terminal.onBlur(() => this._clearLiveRegion());
 		this._dimensionsChangeListener = this._terminal.renderService!.onDimensionsChange(() =>
 			this._refreshRowsDimensions()
 		);
@@ -156,7 +154,6 @@ export class AccessibilityManager {
 		this._lineFeedListener.dispose();
 		this._a11yTabListener.dispose();
 		this._keyListener.dispose();
-		this._blurListener.dispose();
 		this._dimensionsChangeListener.dispose();
 		this._selectionChangeListener.dispose();
 		this._dprChangeListener.dispose();
@@ -196,13 +193,13 @@ export class AccessibilityManager {
 		}
 	}
 
-	private _clearLiveRegion(): void {
+	public clearLiveRegion(): void {
 		this._liveRegion.textContent = '';
 		this._liveRegionLineCount = 0;
 	}
 
 	private _handleKey(keyChar: string): void {
-		this._clearLiveRegion();
+		this.clearLiveRegion();
 		// Only add the char if there is no control character.
 		if (!/\p{Control}/u.test(keyChar)) {
 			this._charsToConsume.push(keyChar);
@@ -246,7 +243,7 @@ export class AccessibilityManager {
 			this._liveRegion.textContent ===
 			'Too much output to announce, navigate to rows manually to read'
 		) {
-			this._clearLiveRegion();
+			this.clearLiveRegion();
 		}
 		this._liveRegion.textContent += this._charsToAnnounce;
 		this._charsToAnnounce = '';

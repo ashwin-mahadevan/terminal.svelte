@@ -340,7 +340,7 @@
 						}
 						terminal._showCursor();
 						emulator.focused = true;
-						terminal._onFocus.fire();
+						terminal.renderService?.handleFocus();
 					}}
 					onblur={() => {
 						// Text can safely be removed on blur. Doing it earlier could interfere with
@@ -357,7 +357,8 @@
 						}
 
 						emulator.focused = false;
-						terminal._onBlur.fire();
+						terminal.renderService?.handleBlur();
+						terminal._accessibilityManager.value?.clearLiveRegion();
 					}}
 				></textarea>
 				<div class="composition-view" bind:this={compositionEl}></div>
