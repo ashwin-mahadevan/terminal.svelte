@@ -54,7 +54,6 @@ export class LegacyEmulator {
 	public _writeBuffer: WriteBuffer;
 	private _windowsWrappingHeuristics = new MutableDisposable();
 	private _windowsPtyOptionListener: IDisposable;
-	private _bufferScrollListener: IDisposable;
 
 	public _onScroll = new LegacyEmitter<number>();
 	public readonly onScroll = this._onScroll.event;
@@ -78,13 +77,6 @@ export class LegacyEmulator {
 		this._windowsPtyOptionListener = this.optionsService.onSpecificOptionChange('windowsPty', () =>
 			this._handleWindowsPtyOptionChange()
 		);
-		this._bufferScrollListener = this.bufferService.onScroll(() => {
-			this._onScroll.fire(this.bufferService.buffer.ydisp);
-			this.inputHandler.markRangeDirty(
-				this.bufferService.buffer.scrollTop,
-				this.bufferService.buffer.scrollBottom
-			);
-		});
 		// Setup WriteBuffer
 		this._writeBuffer = new WriteBuffer((data, promiseResult) =>
 			this.inputHandler.parse(data, promiseResult)
@@ -94,7 +86,6 @@ export class LegacyEmulator {
 	public dispose(): void {
 		this._store.dispose();
 		this._windowsPtyOptionListener.dispose();
-		this._bufferScrollListener.dispose();
 		this._writeBuffer.dispose();
 		this.inputHandler.dispose();
 		this._windowsWrappingHeuristics.dispose();

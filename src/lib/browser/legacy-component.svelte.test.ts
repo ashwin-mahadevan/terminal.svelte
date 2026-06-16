@@ -124,8 +124,8 @@ describe('CoreBrowserTerminal', () => {
 			// TODO: Fix this upstream type error.
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
-				term.core.onScroll((e) => {
-					expect(typeof e).toBe('number');
+				term.core.bufferService.onScroll(() => {
+					expect(typeof term.core.bufferService.buffer.ydisp).toBe('number');
 					r();
 				});
 				await term.writeP('\n'.repeat(INIT_ROWS));
@@ -189,8 +189,8 @@ describe('CoreBrowserTerminal', () => {
 			}));
 		it('should fire the onScroll event', () =>
 			new Promise<void>((done) => {
-				term.core.onScroll((e) => {
-					expect(typeof e).toBe('number');
+				term.core.bufferService.onScroll(() => {
+					expect(typeof term.core.bufferService.buffer.ydisp).toBe('number');
 					done();
 				});
 				term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());
