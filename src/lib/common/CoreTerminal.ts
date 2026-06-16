@@ -103,10 +103,6 @@ export class LegacyEmulator {
 		this._onScroll.dispose();
 	}
 
-	public write(data: string | Uint8Array, callback?: () => void): void {
-		this._writeBuffer.write(data, callback);
-	}
-
 	public resize(x: number, y: number): void {
 		// Flush pending writes before resize to avoid race conditions where async
 		// writes are processed with incorrect dimensions

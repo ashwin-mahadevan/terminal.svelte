@@ -197,7 +197,7 @@
 	});
 
 	export const write = (data: string) =>
-		new Promise<void>((resolve) => terminal.core.write(data, resolve));
+		new Promise<void>((resolve) => terminal.core._writeBuffer.write(data, resolve));
 
 	export const serialize = (options?: ISerializeOptions): string =>
 		internalSerialize(terminal, options);

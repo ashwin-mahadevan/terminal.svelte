@@ -27,7 +27,7 @@ class TestTerminal extends LegacyBrowserTerminal {
 		return this._keyPress(ev);
 	}
 	public writeP(data: string | Uint8Array): Promise<void> {
-		return new Promise((r) => this.core.write(data, r));
+		return new Promise((r) => this.core._writeBuffer.write(data, r));
 	}
 }
 
@@ -203,7 +203,7 @@ describe('CoreBrowserTerminal', () => {
 					expect(e).toBe('title');
 					done();
 				});
-				term.core.write('\x1b]2;title\x07');
+				term.core._writeBuffer.write('\x1b]2;title\x07');
 			}));
 		it('should fire the onBell event', () =>
 			new Promise<void>((done) => {
@@ -213,7 +213,7 @@ describe('CoreBrowserTerminal', () => {
 					expect(fired).toBe(true);
 					done();
 				});
-				term.core.write('\x07');
+				term.core._writeBuffer.write('\x07');
 			}));
 	});
 
@@ -1516,7 +1516,7 @@ describe('CoreBrowserTerminal', () => {
 			await term.writeP('0123456789'.repeat(8).slice(-80));
 			term.core.bufferService.buffers.active.x = 10;
 			term.core.bufferService.buffers.active.y = 0;
-			term.core.write('\x1b[4h');
+			term.core._writeBuffer.write('\x1b[4h');
 			await term.writeP('abcde');
 			expect(term.core.bufferService.buffers.active.lines.get(0)!.length).toBe(
 				term.core.bufferService.cols
@@ -1538,7 +1538,7 @@ describe('CoreBrowserTerminal', () => {
 			await term.writeP('0123456789'.repeat(8).slice(-80));
 			term.core.bufferService.buffers.active.x = 10;
 			term.core.bufferService.buffers.active.y = 0;
-			term.core.write('\x1b[4h');
+			term.core._writeBuffer.write('\x1b[4h');
 			await term.writeP('￥￥￥');
 			expect(term.core.bufferService.buffers.active.lines.get(0)!.length).toBe(
 				term.core.bufferService.cols
@@ -1563,7 +1563,7 @@ describe('CoreBrowserTerminal', () => {
 			await term.writeP('￥'.repeat(40));
 			term.core.bufferService.buffers.active.x = 10;
 			term.core.bufferService.buffers.active.y = 0;
-			term.core.write('\x1b[4h');
+			term.core._writeBuffer.write('\x1b[4h');
 			await term.writeP('a');
 			expect(term.core.bufferService.buffers.active.lines.get(0)!.length).toBe(
 				term.core.bufferService.cols

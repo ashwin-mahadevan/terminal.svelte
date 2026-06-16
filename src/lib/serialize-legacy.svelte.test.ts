@@ -21,7 +21,7 @@ function sgr(...seq: string[]): string {
 }
 
 function writeP(terminal: LegacyBrowserTerminal, data: string | Uint8Array): Promise<void> {
-	return new Promise((r) => terminal.core.write(data, r));
+	return new Promise((r) => terminal.core._writeBuffer.write(data, r));
 }
 
 function newArray<T>(initial: T | ((index: number) => T), count: number): T[] {

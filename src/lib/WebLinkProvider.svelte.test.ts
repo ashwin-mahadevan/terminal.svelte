@@ -59,7 +59,7 @@ describe('WebLinkProvider', () => {
 	});
 
 	function write(data: string): Promise<void> {
-		return new Promise((resolve) => term.core.write(data, resolve));
+		return new Promise((resolve) => term.core._writeBuffer.write(data, resolve));
 	}
 
 	/** Resolve all links the addon computes for the wrapped logical line at `row` (1-based). */
