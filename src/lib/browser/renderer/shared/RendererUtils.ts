@@ -3,31 +3,9 @@
  * @license MIT
  */
 
-import type { IDimensions, IRenderDimensions } from '$lib/browser/renderer/shared/Types';
+import type { IDimensions } from '$lib/browser/renderer/shared/Types';
 
-export function throwIfFalsy<T>(value: T | undefined | null): T {
-	if (!value) {
-		throw new Error('value must not be falsy');
-	}
-	return value;
-}
-
-function isPowerlineGlyph(codepoint: number): boolean {
-	// Only return true for Powerline symbols which require
-	// different padding and should be excluded from minimum contrast
-	// ratio standards
-	return 0xe0a4 <= codepoint && codepoint <= 0xe0d6;
-}
-
-function isBoxOrBlockGlyph(codepoint: number): boolean {
-	return 0x2500 <= codepoint && codepoint <= 0x259f;
-}
-
-export function treatGlyphAsBackgroundColor(codepoint: number): boolean {
-	return isPowerlineGlyph(codepoint) || isBoxOrBlockGlyph(codepoint);
-}
-
-export function createRenderDimensions(): IRenderDimensions {
+export function createRenderDimensions() {
 	return {
 		css: {
 			canvas: createDimension(),
