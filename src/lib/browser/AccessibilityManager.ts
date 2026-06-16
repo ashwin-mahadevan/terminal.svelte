@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import * as Strings from '$lib/browser/LocalizableStrings';
 import type { IRenderDebouncer } from '$lib/browser/Types';
 import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
@@ -190,7 +189,8 @@ export class AccessibilityManager {
 			if (char === '\n') {
 				this._liveRegionLineCount++;
 				if (this._liveRegionLineCount === Constants.MAX_ROWS_TO_READ + 1) {
-					this._liveRegion.textContent = Strings.tooMuchOutput.get();
+					this._liveRegion.textContent =
+						'Too much output to announce, navigate to rows manually to read';
 				}
 			}
 		}
@@ -242,7 +242,10 @@ export class AccessibilityManager {
 		if (this._charsToAnnounce.length === 0) {
 			return;
 		}
-		if (this._liveRegion.textContent === Strings.tooMuchOutput.get()) {
+		if (
+			this._liveRegion.textContent ===
+			'Too much output to announce, navigate to rows manually to read'
+		) {
 			this._clearLiveRegion();
 		}
 		this._liveRegion.textContent += this._charsToAnnounce;

@@ -22,7 +22,6 @@
  */
 
 import type { ITerminalOptions } from '$lib/common/services/Services';
-import * as Strings from '$lib/browser/LocalizableStrings';
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
 import type { CharacterJoinerHandler, CustomKeyEventHandler } from '$lib/browser/Types';
 import { Viewport } from '$lib/browser/Viewport';
@@ -403,7 +402,7 @@ export class LegacyBrowserTerminal {
 		this.scrollableContainer = scrollableContainer;
 		this.rowContainer = rowContainer;
 
-		textarea.setAttribute('aria-label', Strings.promptLabel.get());
+		textarea.setAttribute('aria-label', 'Terminal input');
 		if (!isChromeOS) {
 			// ChromeVox on ChromeOS does not like this. See
 			// https://issuetracker.google.com/issues/260170397
