@@ -70,11 +70,6 @@ export class CoreService {
 	}
 
 	public triggerDataEvent(data: string, wasUserInput: boolean = false): void {
-		// Prevents all events to pty process if stdin is disabled
-		if (this._terminal.optionsService.rawOptions.disableStdin) {
-			return;
-		}
-
 		// Input is being sent to the terminal, the terminal should focus the prompt.
 		const buffer = this._terminal.bufferService.buffer;
 		if (
@@ -103,9 +98,6 @@ export class CoreService {
 	}
 
 	public triggerBinaryEvent(data: string): void {
-		if (this._terminal.optionsService.rawOptions.disableStdin) {
-			return;
-		}
 		if (process.env.NODE_ENV === 'development') {
 			console.debug(`sending binary "${data}"`);
 			console.debug(
