@@ -2390,9 +2390,9 @@ describe('InputHandler', () => {
 		});
 		it('should reset IRM', async () => {
 			await inputHandler.parseP('\x1b[4h');
-			expect(coreService.modes.insertMode).toBe(true);
+			expect(coreService.insertMode).toBe(true);
 			await inputHandler.parseP('\x1b[!p');
-			expect(coreService.modes.insertMode).toBe(false);
+			expect(coreService.insertMode).toBe(false);
 		});
 		it('should reset cursor visibility', async () => {
 			await inputHandler.parseP('\x1b[?25l');

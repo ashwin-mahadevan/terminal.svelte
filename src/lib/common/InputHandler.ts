@@ -702,7 +702,7 @@ export class InputHandler {
 		const screenReaderMode = this._terminal.optionsService.rawOptions.screenReaderMode;
 		const cols = this._terminal.bufferService.cols;
 		const wraparoundMode = this._terminal.coreService.decPrivateModes.wraparound;
-		const insertMode = this._terminal.coreService.modes.insertMode;
+		const insertMode = this._terminal.coreService.insertMode;
 		const curAttr = this._curAttrData;
 		let bufferRow = this._activeBuffer.lines.get(this._activeBuffer.ybase + this._activeBuffer.y);
 
@@ -2119,7 +2119,7 @@ export class InputHandler {
 		for (let i = 0; i < params.length; i++) {
 			switch (params.params[i]) {
 				case 4:
-					this._terminal.coreService.modes.insertMode = true;
+					this._terminal.coreService.insertMode = true;
 					break;
 				case 20:
 					this._terminal.optionsService.options.convertEol = true;
@@ -2390,7 +2390,7 @@ export class InputHandler {
 		for (let i = 0; i < params.length; i++) {
 			switch (params.params[i]) {
 				case 4:
-					this._terminal.coreService.modes.insertMode = false;
+					this._terminal.coreService.insertMode = false;
 					break;
 				case 20:
 					this._terminal.optionsService.options.convertEol = false;
@@ -2679,7 +2679,7 @@ export class InputHandler {
 
 		if (ansi) {
 			if (p === 2) return f(p, V.PERMANENTLY_RESET);
-			if (p === 4) return f(p, b2v(cs.modes.insertMode));
+			if (p === 4) return f(p, b2v(cs.insertMode));
 			if (p === 12) return f(p, V.PERMANENTLY_SET);
 			if (p === 20) return f(p, b2v(opts.convertEol));
 			return f(p, V.NOT_RECOGNIZED);

@@ -3,13 +3,9 @@
  * @license MIT
  */
 
-import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
+import type { IDecPrivateModes, IKittyKeyboardState } from '$lib/common/Types';
 import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 import { LegacyEmitter } from '$lib/common/Event';
-
-const DEFAULT_MODES: IModes = Object.freeze({
-	insertMode: false
-});
 
 const DEFAULT_DEC_PRIVATE_MODES: IDecPrivateModes = Object.freeze({
 	applicationCursorKeys: false,
@@ -39,7 +35,7 @@ export class CoreService {
 
 	public isCursorInitialized: boolean;
 	public isCursorHidden: boolean = false;
-	public modes: IModes;
+	public insertMode: boolean = false;
 	public decPrivateModes: IDecPrivateModes;
 	public kittyKeyboard: IKittyKeyboardState;
 
@@ -54,7 +50,6 @@ export class CoreService {
 	constructor(_terminal: LegacyEmulator) {
 		this._terminal = _terminal;
 		this.isCursorInitialized = false;
-		this.modes = structuredClone(DEFAULT_MODES);
 		this.decPrivateModes = structuredClone(DEFAULT_DEC_PRIVATE_MODES);
 		this.kittyKeyboard = DEFAULT_KITTY_KEYBOARD_STATE();
 	}
@@ -66,7 +61,7 @@ export class CoreService {
 	}
 
 	public reset(): void {
-		this.modes = structuredClone(DEFAULT_MODES);
+		this.insertMode = false;
 		this.decPrivateModes = structuredClone(DEFAULT_DEC_PRIVATE_MODES);
 		this.kittyKeyboard = DEFAULT_KITTY_KEYBOARD_STATE();
 	}

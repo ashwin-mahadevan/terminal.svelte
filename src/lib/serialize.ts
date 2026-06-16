@@ -646,7 +646,7 @@ function _serializeModes(terminal: LegacyComponent): string {
 	if (m.applicationCursorKeys) content += '\x1b[?1h';
 	if (m.applicationKeypad) content += '\x1b[?66h';
 	if (m.bracketedPasteMode) content += '\x1b[?2004h';
-	if (terminal.core.coreService.modes.insertMode) content += '\x1b[4h';
+	if (terminal.core.coreService.insertMode) content += '\x1b[4h';
 	if (m.origin) content += '\x1b[?6h';
 	if (m.reverseWraparound) content += '\x1b[?45h';
 	if (m.sendFocus) content += '\x1b[?1004h';

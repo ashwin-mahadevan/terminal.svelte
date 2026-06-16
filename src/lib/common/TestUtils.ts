@@ -28,7 +28,6 @@ import type {
 	IDecPrivateModes,
 	ICoreMouseEvent,
 	ICharset,
-	IModes,
 	IAttributeData,
 	IOscLinkData
 } from '$lib/common/Types';
@@ -184,9 +183,7 @@ export class MockCoreService {
 	public isCursorInitialized: boolean = true;
 	public isCursorHidden: boolean = false;
 	public isFocused: boolean = false;
-	public modes: IModes = {
-		insertMode: false
-	};
+	public insertMode: boolean = false;
 	public decPrivateModes: IDecPrivateModes = {
 		applicationCursorKeys: false,
 		applicationKeypad: false,

@@ -156,9 +156,6 @@ export interface IMarker {
 	readonly line: number;
 	onDispose: IEvent<void>;
 }
-export interface IModes {
-	insertMode: boolean;
-}
 
 export interface IDecPrivateModes {
 	applicationCursorKeys: boolean;
