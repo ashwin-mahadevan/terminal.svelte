@@ -190,7 +190,6 @@
 
 	$effect(() => {
 		const disposable = terminal.core.bufferService.onScroll(() => {
-			terminal.core._onScroll.fire(terminal.core.bufferService.buffer.ydisp);
 			terminal.core.inputHandler.markRangeDirty(
 				terminal.core.bufferService.buffer.scrollTop,
 				terminal.core.bufferService.buffer.scrollBottom

@@ -28,7 +28,7 @@ export class BufferService {
 
 	private readonly _onResize = new LegacyEmitter<IBufferResizeEvent>();
 	public readonly onResize = this._onResize.event;
-	private readonly _onScroll = new LegacyEmitter<number>();
+	public readonly _onScroll = new LegacyEmitter<number>();
 	public readonly onScroll = this._onScroll.event;
 
 	public get buffer(): Buffer {

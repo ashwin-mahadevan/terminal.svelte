@@ -32,7 +32,6 @@ import { updateWindowsModeWrappedState } from '$lib/common/WindowsMode';
 import { InputHandler } from '$lib/common/InputHandler';
 import { WriteBuffer } from '$lib/common/input/WriteBuffer';
 import { OscLinkService } from '$lib/common/services/OscLinkService';
-import { LegacyEmitter } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { Emulator } from '$lib/emulator.svelte';
@@ -54,9 +53,6 @@ export class LegacyEmulator {
 	public _writeBuffer: WriteBuffer;
 	private _windowsWrappingHeuristics = new MutableDisposable();
 	private _windowsPtyOptionListener: IDisposable;
-
-	public _onScroll = new LegacyEmitter<number>();
-	public readonly onScroll = this._onScroll.event;
 
 	constructor(
 		public _emulator: Emulator,
@@ -94,7 +90,6 @@ export class LegacyEmulator {
 		this.coreService.dispose();
 		this.mouseStateService.dispose();
 		this.unicodeService.dispose();
-		this._onScroll.dispose();
 	}
 
 	public resize(x: number, y: number): void {

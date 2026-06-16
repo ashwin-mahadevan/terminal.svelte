@@ -119,7 +119,7 @@ export class AccessibilityManager {
 		this._renderListener = this._terminal.renderService!.onRenderedViewportChange((e) =>
 			this._refreshRows(e.start, e.end)
 		);
-		this._scrollListener = this._terminal.core.onScroll(() => this._refreshRows());
+		this._scrollListener = this._terminal.core.bufferService.onScroll(() => this._refreshRows());
 		// Line feed is an issue as the prompt won't be read out after a command is run
 		this._a11yCharListener = this._terminal.core.inputHandler.onA11yChar((char) =>
 			this._handleChar(char)

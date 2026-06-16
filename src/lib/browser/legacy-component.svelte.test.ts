@@ -136,8 +136,8 @@ describe('CoreBrowserTerminal', () => {
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise<void>(async (r) => {
 				await term.writeP('\n'.repeat(INIT_ROWS));
-				term.core.onScroll((e) => {
-					expect(typeof e).toBe('number');
+				term.core.bufferService.onScroll(() => {
+					expect(typeof term.core.bufferService.buffer.ydisp).toBe('number');
 					r();
 				});
 				term.clear();

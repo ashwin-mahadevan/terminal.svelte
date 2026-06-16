@@ -454,7 +454,7 @@ export class LegacyComponent {
 			this.selectionService!.refresh();
 			this._viewport?.queueSync();
 		};
-		this._scrollEventListener = this.core._onScroll.event(onScroll);
+		this._scrollEventListener = this.core.bufferService.onScroll(onScroll);
 		this._inputScrollListener = this.core.inputHandler.onScroll(onScroll);
 
 		this._bufferDecorationRenderer = new BufferDecorationRenderer(this);
@@ -855,7 +855,7 @@ export class LegacyComponent {
 		}
 		// IMPORTANT: Fire scroll event before viewport is reset. This ensures embedders get the clear
 		// scroll event and that the viewport's state will be valid for immediate writes.
-		this.core._onScroll.fire(this.core.bufferService.buffers.active.ydisp);
+		this.core.bufferService._onScroll.fire(this.core.bufferService.buffers.active.ydisp);
 		this.refresh(0, this.core.bufferService.rows - 1);
 	}
 
