@@ -39,6 +39,9 @@ const socketio: Plugin = {
 
 export default defineConfig({
 	plugins: [sveltekit(), socketio],
+	define: {
+		'import.meta.vitest': 'undefined'
+	},
 	build: {
 		rolldownOptions: {
 			output: {
@@ -78,7 +81,8 @@ export default defineConfig({
 					name: 'unit',
 					environment: 'node',
 					include: ['src/lib/**/*.test.ts'],
-					exclude: ['src/lib/**/*.svelte.test.ts']
+					exclude: ['src/lib/**/*.svelte.test.ts'],
+					includeSource: ['src/lib/**/*.ts']
 				}
 			}
 		]

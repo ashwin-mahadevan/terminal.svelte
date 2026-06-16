@@ -10,7 +10,9 @@
 		"strict": true,
 		// The vendored xterm.js sources use a TypeScript method decorator (@memoize),
 		// which requires this flag.
-		"experimentalDecorators": true
+		"experimentalDecorators": true,
+		// Required for import.meta.vitest in in-source tests.
+		"types": ["vitest/importMeta"]
 		// module / moduleResolution are inherited from .svelte-kit/tsconfig.json
 		// (module: "esnext", moduleResolution: "bundler"), which lets the copied
 		// xterm.js sources use extensionless $lib/... and relative imports.
