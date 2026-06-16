@@ -5,7 +5,7 @@
 
 import type { IColorZone } from '$lib/browser/decorations/ColorZoneStore';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
-import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyComponent } from '$lib/browser/component';
 import type { IDisposable } from '$lib/common/Lifecycle';
 
 const enum Constants {
@@ -54,7 +54,7 @@ export class OverviewRulerRenderer {
 	private _shouldUpdateAnchor: boolean | undefined = true;
 	private _lastKnownBufferLength: number = 0;
 
-	constructor(private readonly _terminal: LegacyBrowserTerminal) {
+	constructor(private readonly _terminal: LegacyComponent) {
 		this._canvas = document.createElement('canvas');
 		this._canvas.classList.add('xterm-decoration-overview-ruler');
 		this._refreshCanvasDimensions();

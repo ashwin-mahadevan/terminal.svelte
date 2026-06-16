@@ -57,7 +57,7 @@ import { isChromeOS, isMac, isWindows } from '$lib/common/Platform';
 
 // This class is the user-interface part of xterm.js. One of the goals of this project (terminal.svelte)
 // is to migrate this class's functionality into the Terminal component with svelte reactivity.
-export class LegacyBrowserTerminal {
+export class LegacyComponent {
 	public textarea: HTMLTextAreaElement | undefined;
 	public element: HTMLElement | undefined;
 	public screenElement: HTMLElement | undefined;

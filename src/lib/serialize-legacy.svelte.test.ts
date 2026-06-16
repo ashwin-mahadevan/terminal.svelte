@@ -12,7 +12,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import { LegacyComponent } from '$lib/browser/component';
 import { CellData } from '$lib/common/buffer/CellData';
 import { serialize } from '$lib/serialize';
 
@@ -20,7 +20,7 @@ function sgr(...seq: string[]): string {
 	return `\x1b[${seq.join(';')}m`;
 }
 
-function writeP(terminal: LegacyBrowserTerminal, data: string | Uint8Array): Promise<void> {
+function writeP(terminal: LegacyComponent, data: string | Uint8Array): Promise<void> {
 	return new Promise((r) => terminal.core._writeBuffer.write(data, r));
 }
 
@@ -46,10 +46,10 @@ function digitsString(length: number, from: number = 0, prefix: string = ''): st
 
 describe('SerializeAddon', () => {
 	let element: HTMLDivElement;
-	let terminal: LegacyBrowserTerminal;
+	let terminal: LegacyComponent;
 
 	function makeTerminal(opts: { cols: number; rows: number }): {
-		term: LegacyBrowserTerminal;
+		term: LegacyComponent;
 		el: HTMLDivElement;
 	} {
 		const el = document.createElement('div');
@@ -65,16 +65,16 @@ describe('SerializeAddon', () => {
 		scrollableEl.appendChild(screenEl);
 		el.appendChild(scrollableEl);
 		const { cols, rows } = opts;
-		const term = new LegacyBrowserTerminal();
+		const term = new LegacyComponent();
 		term.core.resize(cols, rows);
 		term.open(el, screenEl, helpersEl, textareaEl, compositionEl, scrollableEl, rowContainerEl);
 		return { term, el };
 	}
 
 	// Extra terminals/elements registered for cleanup (deserialize round-trips).
-	let extras: Array<{ term: LegacyBrowserTerminal; el: HTMLElement }> = [];
+	let extras: Array<{ term: LegacyComponent; el: HTMLElement }> = [];
 
-	function track(term: LegacyBrowserTerminal, el: HTMLElement): void {
+	function track(term: LegacyComponent, el: HTMLElement): void {
 		extras.push({ term, el });
 	}
 
@@ -157,7 +157,7 @@ describe('SerializeAddon', () => {
 		});
 
 		describe('scroll region', () => {
-			let scrollTerminal: LegacyBrowserTerminal;
+			let scrollTerminal: LegacyComponent;
 
 			beforeEach(() => {
 				const made = makeTerminal({ cols: 10, rows: 5 });
@@ -234,7 +234,7 @@ describe('SerializeAddon', () => {
 	// dedicated 10x10 terminal to match the upstream `openTerminal({ rows: 10,
 	// cols: 10 })` setup.
 	describe('round-trip (10x10)', () => {
-		let bigTerminal: LegacyBrowserTerminal;
+		let bigTerminal: LegacyComponent;
 
 		// TODO: Fix this upstream type error.
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

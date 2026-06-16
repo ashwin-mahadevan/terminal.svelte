@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyComponent } from '$lib/browser/component';
 import { C0 } from '$lib/common/data/EscapeSequences';
 
 interface IPosition {
@@ -53,7 +53,7 @@ export class CompositionHelper {
 	 */
 	private _textareaChangeTimer?: number;
 
-	constructor(private readonly _terminal: LegacyBrowserTerminal) {
+	constructor(private readonly _terminal: LegacyComponent) {
 		this._isComposing = false;
 		this._isSendingComposition = false;
 		this._compositionPosition = { start: 0, end: 0 };

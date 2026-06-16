@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { isMac, isWindows } from '$lib/common/Platform';
-import { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import { LegacyComponent } from '$lib/browser/component';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import { CellData } from '$lib/common/buffer/CellData';
 import { MockUnicodeService, createCellData } from '$lib/common/TestUtils';
@@ -19,7 +19,7 @@ import type { IMarker } from '$lib/common/Types';
 // renderer/viewport/composition-helper objects are only ever assigned onto the
 // terminal and (apart from the composition helper's `isComposing`) never have
 // their methods invoked by these tests, so trivial stubs suffice.
-class TestTerminal extends LegacyBrowserTerminal {
+class TestTerminal extends LegacyComponent {
 	public keyDown(ev: KeyboardEvent): void {
 		this._keyDown(ev);
 	}

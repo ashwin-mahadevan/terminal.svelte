@@ -7,7 +7,7 @@
 
 import type { IBufferCell } from '$lib/xterm';
 import type { IBufferRange } from '$lib/browser/Types';
-import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyComponent } from '$lib/browser/component';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { Marker } from '$lib/common/buffer/Marker';
 import type { IAttributeData } from '$lib/common/Types';
@@ -207,7 +207,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 
 	constructor(
 		buffer: Buffer,
-		private readonly _terminal: LegacyBrowserTerminal
+		private readonly _terminal: LegacyComponent
 	) {
 		super(buffer);
 	}
@@ -575,7 +575,7 @@ class StringSerializeHandler extends BaseSerializeHandler {
 }
 
 function _serializeBufferByScrollback(
-	terminal: LegacyBrowserTerminal,
+	terminal: LegacyComponent,
 	buffer: Buffer,
 	scrollback?: number
 ): string {
@@ -596,7 +596,7 @@ function _serializeBufferByScrollback(
 }
 
 function _serializeBufferByRange(
-	terminal: LegacyBrowserTerminal,
+	terminal: LegacyComponent,
 	buffer: Buffer,
 	range: ISerializeRange,
 	excludeFinalCursorPosition: boolean
@@ -618,7 +618,7 @@ function _serializeBufferByRange(
  * Serializes the scroll region (DECSTBM) if it's not set to the full terminal size.
  * Uses internal API access since scroll region is not exposed in the public API.
  */
-function _serializeScrollRegion(terminal: LegacyBrowserTerminal): string {
+function _serializeScrollRegion(terminal: LegacyComponent): string {
 	// HACK: Internal API access since scroll region is not exposed in the public API
 	// TODO: Fix this upstream type error.
 
@@ -635,7 +635,7 @@ function _serializeScrollRegion(terminal: LegacyBrowserTerminal): string {
 	return '';
 }
 
-function _serializeModes(terminal: LegacyBrowserTerminal): string {
+function _serializeModes(terminal: LegacyComponent): string {
 	let content = '';
 	const m = terminal.core.coreService.decPrivateModes;
 
@@ -677,7 +677,7 @@ function _serializeModes(terminal: LegacyBrowserTerminal): string {
 	return content;
 }
 
-export function serialize(terminal: LegacyBrowserTerminal, options?: ISerializeOptions): string {
+export function serialize(terminal: LegacyComponent, options?: ISerializeOptions): string {
 	// Normal buffer
 	let content = options?.range
 		? _serializeBufferByRange(

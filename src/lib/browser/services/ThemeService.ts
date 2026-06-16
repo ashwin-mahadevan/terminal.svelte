@@ -8,7 +8,7 @@ import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 import { color, css, NULL_COLOR } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { ITheme } from '$lib/common/services/Services';
-import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyComponent } from '$lib/browser/component';
 import type { AllColorIndex, IColor } from '$lib/common/Types';
 import { SpecialColorIndex } from '$lib/common/Types';
 import { LegacyEmitter } from '$lib/common/Event';
@@ -43,7 +43,7 @@ export class ThemeService {
 
 	private readonly _themeListener: IDisposable;
 
-	constructor(private readonly _terminal: LegacyBrowserTerminal) {
+	constructor(private readonly _terminal: LegacyComponent) {
 		this._colors = {
 			foreground: DEFAULT_FOREGROUND,
 			background: DEFAULT_BACKGROUND,

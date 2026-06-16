@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import { LegacyComponent } from '$lib/browser/component';
 import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
 import type { ILinkProvider } from './browser/services/Services';
 import type { ILink } from './browser/Types';
@@ -23,7 +23,7 @@ import type { ILink } from './browser/Types';
  */
 
 describe('WebLinkProvider', () => {
-	let term: LegacyBrowserTerminal;
+	let term: LegacyComponent;
 	let element: HTMLElement;
 	let provider: ILinkProvider;
 
@@ -40,7 +40,7 @@ describe('WebLinkProvider', () => {
 		screenEl.append(helpersEl, rowContainerEl);
 		scrollableEl.appendChild(screenEl);
 		element.appendChild(scrollableEl);
-		term = new LegacyBrowserTerminal();
+		term = new LegacyComponent();
 		term.core.resize(40, 10);
 		term.open(
 			element,

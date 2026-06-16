@@ -5,7 +5,7 @@
 
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
-import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyComponent } from '$lib/browser/component';
 
 export class BufferDecorationRenderer {
 	private readonly _container: HTMLElement;
@@ -22,7 +22,7 @@ export class BufferDecorationRenderer {
 	private _decorationRegisteredListener!: IDisposable;
 	private _decorationRemovedListener!: IDisposable;
 
-	constructor(private readonly _terminal: LegacyBrowserTerminal) {
+	constructor(private readonly _terminal: LegacyComponent) {
 		this._container = document.createElement('div');
 		this._container.classList.add('xterm-decoration-container');
 		this._terminal.screenElement!.appendChild(this._container);

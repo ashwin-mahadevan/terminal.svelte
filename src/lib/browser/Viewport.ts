@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyComponent } from '$lib/browser/component';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { CoreMouseEventType } from '$lib/common/Types';
@@ -41,7 +41,7 @@ export class Viewport {
 	private _isHandlingScroll: boolean = false;
 	private _suppressOnScrollHandler: boolean = false;
 	private _needsSyncOnRender: boolean = false;
-	constructor(private readonly _terminal: LegacyBrowserTerminal) {
+	constructor(private readonly _terminal: LegacyComponent) {
 		this._scrollable = new Scrollable({
 			forceIntegerValues: false,
 			smoothScrollDuration: this._terminal.core.optionsService.rawOptions.smoothScrollDuration,

@@ -6,7 +6,7 @@
 import { RenderDebouncer } from '$lib/browser/RenderDebouncer';
 import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions } from '$lib/browser/renderer/shared/Types';
-import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyComponent } from '$lib/browser/component';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';
@@ -53,7 +53,7 @@ export class RenderService {
 	private readonly _onRefreshRequest = new LegacyEmitter<{ start: number; end: number }>();
 	public readonly onRefreshRequest = this._onRefreshRequest.event;
 
-	private readonly _terminal: LegacyBrowserTerminal;
+	private readonly _terminal: LegacyComponent;
 
 	private _dprChangeListener!: IDisposable;
 	private _bufferResizeListener!: IDisposable;
@@ -70,7 +70,7 @@ export class RenderService {
 		return this._renderer.value!.dimensions;
 	}
 
-	constructor(terminal: LegacyBrowserTerminal) {
+	constructor(terminal: LegacyComponent) {
 		this._terminal = terminal;
 
 		this._pausedResizeTask = new DebouncedIdleTask();

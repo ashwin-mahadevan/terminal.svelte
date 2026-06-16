@@ -13,7 +13,7 @@ import type {
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { dispose } from '$lib/common/Lifecycle';
 
-import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyComponent } from '$lib/browser/component';
 import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 
@@ -44,7 +44,7 @@ export class Linkifier {
 	private readonly _mouseDownListener: IDisposable;
 	private readonly _mouseUpListener: IDisposable;
 
-	constructor(private readonly _terminal: LegacyBrowserTerminal) {
+	constructor(private readonly _terminal: LegacyComponent) {
 		// Listen to resize to catch the case where it's resized and the cursor is out of the viewport.
 		this._resizeListener = this._terminal.core.bufferService.onResize(() => {
 			this._clearCurrentLink();

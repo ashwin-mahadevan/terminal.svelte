@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { ThemeService } from '$lib/browser/services/ThemeService';
-import { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import { LegacyComponent } from '$lib/browser/component';
 import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 
 // NOTE: the upstream test set up a jsdom window and stubbed
@@ -15,7 +15,7 @@ import { DEFAULT_ANSI_COLORS } from '$lib/browser/Types';
 describe('ThemeService', () => {
 	describe('constructor', () => {
 		it('should fill all colors with values', () => {
-			const terminal = new LegacyBrowserTerminal({});
+			const terminal = new LegacyComponent({});
 			const themeService = new ThemeService(terminal);
 			for (const key of Object.keys(themeService.colors)) {
 				if (!['ansi', 'selectionForeground'].includes(key)) {
@@ -29,7 +29,7 @@ describe('ThemeService', () => {
 		});
 
 		it('should fill 240 colors with expected values', () => {
-			const terminal = new LegacyBrowserTerminal({});
+			const terminal = new LegacyComponent({});
 			const themeService = new ThemeService(terminal);
 			expect(themeService.colors.ansi[16].css).toBe('#000000');
 			expect(themeService.colors.ansi[17].css).toBe('#00005f');
@@ -276,14 +276,14 @@ describe('ThemeService', () => {
 
 	describe('setTheme', () => {
 		it('should not throw when not setting all colors', () => {
-			const terminal = new LegacyBrowserTerminal({});
+			const terminal = new LegacyComponent({});
 			expect(() => {
 				terminal.core.optionsService.options.theme = {};
 			}).not.toThrow();
 		});
 
 		it('should set a partial set of colors, using the default if not present', () => {
-			const terminal = new LegacyBrowserTerminal({});
+			const terminal = new LegacyComponent({});
 			const themeService = new ThemeService(terminal);
 			expect(themeService.colors.background.css).toBe('#000000');
 			expect(themeService.colors.foreground.css).toBe('#ffffff');
@@ -302,7 +302,7 @@ describe('ThemeService', () => {
 		});
 
 		it('should set all extended ansi colors in reverse order', () => {
-			const terminal = new LegacyBrowserTerminal({});
+			const terminal = new LegacyComponent({});
 			const themeService = new ThemeService(terminal);
 			terminal.core.optionsService.options.theme = {
 				extendedAnsi: DEFAULT_ANSI_COLORS.map((a) => a.css)
@@ -318,7 +318,7 @@ describe('ThemeService', () => {
 		});
 
 		it('should set one extended ansi color and keep the other default', () => {
-			const terminal = new LegacyBrowserTerminal({});
+			const terminal = new LegacyComponent({});
 			const themeService = new ThemeService(terminal);
 			terminal.core.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
@@ -329,7 +329,7 @@ describe('ThemeService', () => {
 		});
 
 		it('should set extended ansi colors to the default when they are unset', () => {
-			const terminal = new LegacyBrowserTerminal({});
+			const terminal = new LegacyComponent({});
 			const themeService = new ThemeService(terminal);
 			terminal.core.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff']
@@ -351,7 +351,7 @@ describe('ThemeService', () => {
 		});
 
 		it('should set extended ansi colors to the default when they are partially unset', () => {
-			const terminal = new LegacyBrowserTerminal({});
+			const terminal = new LegacyComponent({});
 			const themeService = new ThemeService(terminal);
 			terminal.core.optionsService.options.theme = {
 				extendedAnsi: ['#ffffff', '#000000']

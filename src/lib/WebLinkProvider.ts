@@ -5,7 +5,7 @@
 
 import type { IViewportRange } from '$lib/xterm';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
-import type { LegacyBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
+import type { LegacyComponent } from '$lib/browser/component';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { ILinkProvider } from './browser/services/Services';
 import type { ILink } from './browser/Types';
@@ -49,7 +49,7 @@ export function handleLink(event: MouseEvent, uri: string): void {
 
 export class WebLinkProvider implements ILinkProvider {
 	constructor(
-		private readonly _terminal: LegacyBrowserTerminal,
+		private readonly _terminal: LegacyComponent,
 		private readonly _regex: RegExp,
 		private readonly _handler: (event: MouseEvent, uri: string) => void,
 		private readonly _options: ILinkProviderOptions = {}
@@ -93,7 +93,7 @@ class LinkComputer {
 	public static computeLink(
 		y: number,
 		regex: RegExp,
-		terminal: LegacyBrowserTerminal,
+		terminal: LegacyComponent,
 		activate: (event: MouseEvent, uri: string) => void
 	): ILink[] {
 		const rex = new RegExp(regex.source, (regex.flags || '') + 'g');
@@ -150,7 +150,7 @@ class LinkComputer {
 	 */
 	private static _getWindowedLineStrings(
 		lineIndex: number,
-		terminal: LegacyBrowserTerminal
+		terminal: LegacyComponent
 	): [string[], number] {
 		let line: BufferLine | undefined;
 		let topIdx = lineIndex;
@@ -206,7 +206,7 @@ class LinkComputer {
 	 * or [-1, -1] in case the lookup ran into a non-existing line.
 	 */
 	private static _mapStrIdx(
-		terminal: LegacyBrowserTerminal,
+		terminal: LegacyComponent,
 		lineIndex: number,
 		rowIndex: number,
 		stringIndex: number
