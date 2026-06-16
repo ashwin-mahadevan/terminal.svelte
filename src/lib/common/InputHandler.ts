@@ -199,7 +199,9 @@ export class InputHandler {
 		position: 0
 	};
 
-	constructor(private readonly _terminal: LegacyEmulator) {
+	private readonly _terminal: LegacyEmulator;
+	constructor(_terminal: LegacyEmulator) {
+		this._terminal = _terminal;
 		this._dirtyRowTracker = new DirtyRowTracker(this._terminal.bufferService);
 
 		// Track properties used in performance critical code manually to avoid using slow getters
@@ -4044,7 +4046,9 @@ class DirtyRowTracker {
 	public start!: number;
 	public end!: number;
 
-	constructor(private readonly _bufferService: BufferService) {
+	private readonly _bufferService: BufferService;
+	constructor(_bufferService: BufferService) {
+		this._bufferService = _bufferService;
 		this.clearRange();
 	}
 

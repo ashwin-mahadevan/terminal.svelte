@@ -15,7 +15,10 @@ export class FastDomNode<T extends HTMLElement> {
 	private _layerHint: boolean = false;
 	private _contain: 'none' | 'strict' | 'content' | 'size' | 'layout' | 'style' | 'paint' = 'none';
 
-	constructor(public readonly domNode: T) {}
+	public readonly domNode: T;
+	constructor(domNode: T) {
+		this.domNode = domNode;
+	}
 
 	public setWidth(_width: number | string): void {
 		const width = numberAsPixels(_width);

@@ -56,7 +56,10 @@ function constrain(value: number, low: number, high: number): number {
 
 // TODO: Refine this template class later
 abstract class BaseSerializeHandler {
-	constructor(protected readonly _buffer: Buffer) {}
+	protected readonly _buffer: Buffer;
+	constructor(_buffer: Buffer) {
+		this._buffer = _buffer;
+	}
 
 	public serialize(range: IBufferRange, excludeFinalCursorPosition?: boolean): string {
 		// we need two of them to flip between old and new cell

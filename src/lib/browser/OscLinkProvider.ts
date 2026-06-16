@@ -18,9 +18,12 @@ interface ITerminalServices {
 }
 
 export class OscLinkProvider implements ILinkProvider {
+	private readonly _terminal: ITerminalServices;
 	private readonly _workCell = new CellData();
 
-	constructor(private readonly _terminal: ITerminalServices) {}
+	constructor(_terminal: ITerminalServices) {
+		this._terminal = _terminal;
+	}
 
 	public provideLinks(y: number, callback: (links: ILink[] | undefined) => void): void {
 		const line = this._terminal.bufferService.buffers.active.lines.get(y - 1);

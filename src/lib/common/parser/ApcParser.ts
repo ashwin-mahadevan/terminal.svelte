@@ -169,8 +169,11 @@ export class ApcHandler implements IApcHandler {
 
 	private _data = new LimitedStringBuilder(ApcHandler._payloadLimit);
 	private _hitLimit: boolean = false;
+	private _handler: (data: string) => boolean | Promise<boolean>;
 
-	constructor(private _handler: (data: string) => boolean | Promise<boolean>) {}
+	constructor(_handler: (data: string) => boolean | Promise<boolean>) {
+		this._handler = _handler;
+	}
 
 	public start(): void {
 		this._data.reset();

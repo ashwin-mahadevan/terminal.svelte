@@ -171,7 +171,9 @@ export class LegacyComponent {
 	private _screenReaderModeListener: IDisposable | undefined;
 	private _renderedViewportChangeListener: IDisposable | undefined;
 
-	constructor(public core: LegacyEmulator) {
+	public core: LegacyEmulator;
+	constructor(core: LegacyEmulator) {
+		this.core = core;
 		this.requestRefreshRowsListener = this.core.inputHandler.onRequestRefreshRows((e) =>
 			this.refresh(e?.start ?? 0, e?.end ?? this.core.bufferService.rows - 1)
 		);

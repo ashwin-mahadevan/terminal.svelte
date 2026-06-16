@@ -20,7 +20,9 @@ export class CoreBrowserService {
 	private readonly _focusListener: IDisposable;
 	private readonly _blurListener: IDisposable;
 
-	constructor(private _textarea: HTMLTextAreaElement) {
+	private _textarea: HTMLTextAreaElement;
+	constructor(_textarea: HTMLTextAreaElement) {
+		this._textarea = _textarea;
 		this._screenDprMonitor = new ScreenDprMonitor();
 
 		this._dprForwardListener = this._screenDprMonitor.onDprChange((e) => this._onDprChange.fire(e));

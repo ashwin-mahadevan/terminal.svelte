@@ -42,8 +42,10 @@ export class ThemeService {
 	public readonly onChangeColors = this._onChangeColors.event;
 
 	private readonly _themeListener: IDisposable;
+	private readonly _terminal: LegacyComponent;
 
-	constructor(private readonly _terminal: LegacyComponent) {
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
 		this._colors = {
 			foreground: DEFAULT_FOREGROUND,
 			background: DEFAULT_BACKGROUND,

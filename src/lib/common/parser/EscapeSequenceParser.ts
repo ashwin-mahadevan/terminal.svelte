@@ -560,8 +560,10 @@ export class EscapeSequenceParser {
 		transition: 0,
 		chunkPos: 0
 	};
+	protected readonly _transitions: TransitionTable;
 
-	constructor(protected readonly _transitions: TransitionTable = VT500_TRANSITION_TABLE) {
+	constructor(_transitions: TransitionTable = VT500_TRANSITION_TABLE) {
+		this._transitions = _transitions;
 		this.initialState = ParserState.GROUND;
 		this.currentState = this.initialState;
 		this._params = new Params(); // defaults to 32 storable params/subparams

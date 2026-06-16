@@ -53,7 +53,10 @@ export class CompositionHelper {
 	 */
 	private _textareaChangeTimer?: number;
 
-	constructor(private readonly _terminal: LegacyComponent) {
+	private readonly _terminal: LegacyComponent;
+
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
 		this._isComposing = false;
 		this._isSendingComposition = false;
 		this._compositionPosition = { start: 0, end: 0 };

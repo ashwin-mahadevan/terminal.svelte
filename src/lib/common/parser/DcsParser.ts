@@ -156,8 +156,11 @@ export class DcsHandler implements IDcsHandler {
 	private _data = new LimitedStringBuilder(DcsHandler._payloadLimit);
 	private _params: Params = EMPTY_PARAMS;
 	private _hitLimit: boolean = false;
+	private _handler: (data: string, params: Params) => boolean | Promise<boolean>;
 
-	constructor(private _handler: (data: string, params: Params) => boolean | Promise<boolean>) {}
+	constructor(_handler: (data: string, params: Params) => boolean | Promise<boolean>) {
+		this._handler = _handler;
+	}
 
 	public hook(params: Params): void {
 		// since we need to preserve params until `unhook`, we have to clone it

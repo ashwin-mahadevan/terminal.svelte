@@ -32,7 +32,10 @@ export class SelectionModel {
 	 */
 	public selectionEnd: [number, number] | undefined;
 
-	constructor(private _bufferService: BufferService) {}
+	private _bufferService: BufferService;
+	constructor(_bufferService: BufferService) {
+		this._bufferService = _bufferService;
+	}
 
 	/**
 	 * Clears the current selection.

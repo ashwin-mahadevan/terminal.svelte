@@ -41,7 +41,9 @@ export class Viewport {
 	private _isHandlingScroll: boolean = false;
 	private _suppressOnScrollHandler: boolean = false;
 	private _needsSyncOnRender: boolean = false;
-	constructor(private readonly _terminal: LegacyComponent) {
+	private readonly _terminal: LegacyComponent;
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
 		this._scrollable = new Scrollable({
 			forceIntegerValues: false,
 			smoothScrollDuration: this._terminal.core.optionsService.rawOptions.smoothScrollDuration,

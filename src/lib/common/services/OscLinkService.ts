@@ -22,7 +22,10 @@ export class OscLinkService {
 	 */
 	private _dataByLinkId: Map<number, IOscLinkEntryNoId | IOscLinkEntryWithId> = new Map();
 
-	constructor(private readonly _terminal: LegacyEmulator) {}
+	private readonly _terminal: LegacyEmulator;
+	constructor(_terminal: LegacyEmulator) {
+		this._terminal = _terminal;
+	}
 
 	public registerLink(data: IOscLinkData): number {
 		const buffer = this._terminal.bufferService.buffers.active;

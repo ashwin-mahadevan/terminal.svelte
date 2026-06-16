@@ -17,8 +17,11 @@ import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 export class KeyboardService {
 	private _win32InputMode: Win32InputMode | undefined;
 	private _kittyKeyboard: KittyKeyboard | undefined;
+	private readonly _terminal: LegacyEmulator;
 
-	constructor(private readonly _terminal: LegacyEmulator) {}
+	constructor(_terminal: LegacyEmulator) {
+		this._terminal = _terminal;
+	}
 
 	private _getWin32InputMode(): Win32InputMode {
 		this._win32InputMode ??= new Win32InputMode();

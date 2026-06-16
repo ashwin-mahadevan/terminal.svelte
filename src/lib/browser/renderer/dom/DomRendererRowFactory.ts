@@ -35,7 +35,10 @@ export class DomRendererRowFactory {
 	private _selectionEnd: [number, number] | undefined;
 	private _columnSelectMode: boolean = false;
 
-	constructor(private readonly _terminal: LegacyComponent) {}
+	private readonly _terminal: LegacyComponent;
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
+	}
 
 	public handleSelectionChanged(
 		start: [number, number] | undefined,

@@ -6,7 +6,10 @@
 import { getCoords, getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
 import type { LegacyComponent } from '$lib/browser/legacy-component';
 export class MouseCoordsService {
-	constructor(private readonly _terminal: LegacyComponent) {}
+	private readonly _terminal: LegacyComponent;
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
+	}
 
 	public getCoords(
 		event: { clientX: number; clientY: number },

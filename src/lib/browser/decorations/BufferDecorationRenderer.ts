@@ -22,7 +22,9 @@ export class BufferDecorationRenderer {
 	private _decorationRegisteredListener!: IDisposable;
 	private _decorationRemovedListener!: IDisposable;
 
-	constructor(private readonly _terminal: LegacyComponent) {
+	private readonly _terminal: LegacyComponent;
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
 		this._container = document.createElement('div');
 		this._container.classList.add('xterm-decoration-container');
 		this._terminal.screenElement!.appendChild(this._container);

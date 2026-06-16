@@ -43,7 +43,9 @@ export class DecorationService {
 		return this._decorations.values();
 	}
 
-	constructor(private readonly _terminal: LegacyEmulator) {
+	private readonly _terminal: LegacyEmulator;
+	constructor(_terminal: LegacyEmulator) {
+		this._terminal = _terminal;
 		this._decorations = new SortedList((e) => e?.marker.line);
 
 		this._bufferActivateListener = this._terminal.bufferService.buffers.onBufferActivate(() => {
@@ -395,7 +397,9 @@ class Decoration implements IInternalDecoration {
 		return this._cachedFg;
 	}
 
-	constructor(public readonly options: IDecorationOptions) {
+	public readonly options: IDecorationOptions;
+	constructor(options: IDecorationOptions) {
+		this.options = options;
 		this.marker = options.marker;
 		this._indexedStartLine = options.marker.line;
 		if (this.options.overviewRulerOptions && !this.options.overviewRulerOptions.position) {

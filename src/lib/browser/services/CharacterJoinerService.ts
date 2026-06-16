@@ -63,7 +63,10 @@ export class CharacterJoinerService {
 	private _nextCharacterJoinerId: number = 0;
 	private _workCell: CellData = new CellData();
 
-	constructor(private readonly _terminal: LegacyEmulator) {}
+	private readonly _terminal: LegacyEmulator;
+	constructor(_terminal: LegacyEmulator) {
+		this._terminal = _terminal;
+	}
 
 	public register(handler: (text: string) => [number, number][]): number {
 		const joiner: ICharacterJoiner = {

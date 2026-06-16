@@ -32,8 +32,10 @@ export class CircularList<T> extends Disposable {
 	public readonly onTrimEmitter = this._register(new LegacyEmitter<number>());
 	public readonly onTrim = this.onTrimEmitter.event;
 
-	constructor(private _maxLength: number) {
+	private _maxLength: number;
+	constructor(_maxLength: number) {
 		super();
+		this._maxLength = _maxLength;
 		this._array = new Array<T>(this._maxLength);
 		this._startIndex = 0;
 		this._length = 0;

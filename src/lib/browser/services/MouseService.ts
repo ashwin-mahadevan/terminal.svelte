@@ -34,8 +34,11 @@ export class MouseService {
 	private _wheelPartialScroll: number = 0;
 	private _touchScrollAccumulator: number = 0;
 	private _altMouseCursor: AltMouseCursorController | undefined;
+	private readonly _terminal: LegacyComponent;
 
-	constructor(private readonly _terminal: LegacyComponent) {}
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
+	}
 
 	public bindMouse(
 		target: IMouseServiceTarget,
@@ -650,11 +653,13 @@ export class MouseService {
  */
 export class AltMouseCursorController {
 	private readonly _listeners = new MutableDisposable<IDisposable>();
+	private readonly _element: HTMLElement;
+	private readonly _isActive: () => boolean;
 
-	constructor(
-		private readonly _element: HTMLElement,
-		private readonly _isActive: () => boolean
-	) {}
+	constructor(_element: HTMLElement, _isActive: () => boolean) {
+		this._element = _element;
+		this._isActive = _isActive;
+	}
 
 	public dispose(): void {
 		this._listeners.dispose();

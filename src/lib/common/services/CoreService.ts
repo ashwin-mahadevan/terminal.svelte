@@ -50,7 +50,9 @@ export class CoreService {
 	private readonly _onBinary = new LegacyEmitter<string>();
 	public readonly onBinary = this._onBinary.event;
 
-	constructor(private readonly _terminal: LegacyEmulator) {
+	private readonly _terminal: LegacyEmulator;
+	constructor(_terminal: LegacyEmulator) {
+		this._terminal = _terminal;
 		this.isCursorInitialized = _terminal.optionsService.rawOptions.showCursorImmediately ?? false;
 		this.modes = structuredClone(DEFAULT_MODES);
 		this.decPrivateModes = structuredClone(DEFAULT_DEC_PRIVATE_MODES);

@@ -61,7 +61,9 @@ export class AccessibilityManager {
 
 	private _charsToAnnounce: string = '';
 
-	constructor(private readonly _terminal: LegacyComponent) {
+	private readonly _terminal: LegacyComponent;
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
 		this._accessibilityContainer = document.createElement('div');
 		this._accessibilityContainer.classList.add('xterm-accessibility');
 

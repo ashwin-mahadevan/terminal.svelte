@@ -54,7 +54,9 @@ export class OverviewRulerRenderer {
 	private _shouldUpdateAnchor: boolean | undefined = true;
 	private _lastKnownBufferLength: number = 0;
 
-	constructor(private readonly _terminal: LegacyComponent) {
+	private readonly _terminal: LegacyComponent;
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
 		this._canvas = document.createElement('canvas');
 		this._canvas.classList.add('xterm-decoration-overview-ruler');
 		this._refreshCanvasDimensions();

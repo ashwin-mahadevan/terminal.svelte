@@ -44,7 +44,9 @@ export class Linkifier {
 	private readonly _mouseDownListener: IDisposable;
 	private readonly _mouseUpListener: IDisposable;
 
-	constructor(private readonly _terminal: LegacyComponent) {
+	private readonly _terminal: LegacyComponent;
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
 		// Listen to resize to catch the case where it's resized and the cursor is out of the viewport.
 		this._resizeListener = this._terminal.core.bufferService.onResize(() => {
 			this._clearCurrentLink();

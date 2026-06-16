@@ -65,7 +65,9 @@ export class DomRenderer {
 	// The row container is created and lifecycle-managed by the Svelte host; the
 	// renderer only populates and styles it via this._terminal.rowContainer. See
 	// terminal.svelte.
-	constructor(private readonly _terminal: LegacyComponent) {
+	private readonly _terminal: LegacyComponent;
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
 		this._refreshRowElements(
 			this._terminal.core.bufferService.cols,
 			this._terminal.core.bufferService.rows
@@ -667,10 +669,11 @@ class CursorBlinkStateManager {
 	private _idleTimeout?: ReturnType<typeof setTimeout>;
 	private _isIdlePaused: boolean = false;
 
-	constructor(
-		private readonly _rowContainer: HTMLElement,
-		private readonly _coreBrowserService: CoreBrowserService
-	) {
+	private readonly _rowContainer: HTMLElement;
+	private readonly _coreBrowserService: CoreBrowserService;
+	constructor(_rowContainer: HTMLElement, _coreBrowserService: CoreBrowserService) {
+		this._rowContainer = _rowContainer;
+		this._coreBrowserService = _coreBrowserService;
 		if (this._coreBrowserService.isFocused) {
 			this._resetIdleTimer();
 		}

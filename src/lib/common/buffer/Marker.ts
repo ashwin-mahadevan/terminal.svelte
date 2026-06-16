@@ -22,7 +22,10 @@ export class Marker implements IMarker {
 	private readonly _onDispose = this.register(new LegacyEmitter<void>());
 	public readonly onDispose = this._onDispose.event;
 
-	constructor(public line: number) {}
+	public line: number;
+	constructor(line: number) {
+		this.line = line;
+	}
 
 	public dispose(): void {
 		if (this.isDisposed) {

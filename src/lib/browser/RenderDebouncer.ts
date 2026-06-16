@@ -13,7 +13,10 @@ export class RenderDebouncer {
 	private _animationFrame: number | undefined;
 	private _refreshCallbacks: FrameRequestCallback[] = [];
 
-	constructor(private _renderCallback: (start: number, end: number) => void) {}
+	private _renderCallback: (start: number, end: number) => void;
+	constructor(_renderCallback: (start: number, end: number) => void) {
+		this._renderCallback = _renderCallback;
+	}
 
 	public dispose(): void {
 		if (this._animationFrame) {

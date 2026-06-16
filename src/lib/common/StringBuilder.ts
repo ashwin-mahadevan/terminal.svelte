@@ -34,8 +34,11 @@ export class StringBuilder {
  */
 export class LimitedStringBuilder {
 	private readonly _builder = new StringBuilder();
+	private readonly _limit: number;
 
-	constructor(private readonly _limit: number) {}
+	constructor(_limit: number) {
+		this._limit = _limit;
+	}
 
 	public get length(): number {
 		return this._builder.length;

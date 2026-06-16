@@ -127,7 +127,9 @@ export class SelectionService {
 	private _bufferResizeListener!: IDisposable;
 	private _userInputListener!: IDisposable;
 
-	constructor(private readonly _terminal: LegacyComponent) {
+	private readonly _terminal: LegacyComponent;
+	constructor(_terminal: LegacyComponent) {
+		this._terminal = _terminal;
 		// Init listeners
 		this._mouseMoveListener = (event) => this._handleMouseMove(event as MouseEvent);
 		this._mouseUpListener = (event) => this._handleMouseUp(event as MouseEvent);

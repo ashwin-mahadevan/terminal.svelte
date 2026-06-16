@@ -25,7 +25,9 @@ export class SortedList<T> {
 	private readonly _flushDeletedTask: InstanceType<typeof IdleTaskQueue>;
 	private _isFlushingDeleted = false;
 
-	constructor(private readonly _getKey: (value: T) => number) {
+	private readonly _getKey: (value: T) => number;
+	constructor(_getKey: (value: T) => number) {
+		this._getKey = _getKey;
 		this._flushInsertedTask = new IdleTaskQueue();
 		this._flushDeletedTask = new IdleTaskQueue();
 	}
