@@ -182,6 +182,11 @@
 	});
 
 	$effect(() => {
+		const disposable = terminal.core.inputHandler.onRequestSendFocus(() => terminal.reportFocus());
+		return () => disposable.dispose();
+	});
+
+	$effect(() => {
 		const focusDisposable = terminal.onFocus(() => {
 			emulator.focused = true;
 		});

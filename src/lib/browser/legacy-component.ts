@@ -163,7 +163,6 @@ export class LegacyComponent {
 		this.renderService?.handleCharSizeChanged();
 	}
 
-	requestFocusListener: IDisposable;
 	requestRefreshRowsListener: IDisposable;
 	requestResetListener: IDisposable;
 	requestWindowsOptionsReportListener: IDisposable;
@@ -187,9 +186,6 @@ export class LegacyComponent {
 	private _renderedViewportChangeListener: IDisposable | undefined;
 
 	constructor(public core: LegacyEmulator) {
-		this.requestFocusListener = this.core.inputHandler.onRequestSendFocus(() =>
-			this._reportFocus()
-		);
 		this.requestRefreshRowsListener = this.core.inputHandler.onRequestRefreshRows((e) =>
 			this.refresh(e?.start ?? 0, e?.end ?? this.core.bufferService.rows - 1)
 		);
@@ -222,7 +218,6 @@ export class LegacyComponent {
 		this._onBlur.dispose();
 		this._onWillOpen.dispose();
 
-		this.requestFocusListener.dispose();
 		this.requestRefreshRowsListener.dispose();
 		this.requestResetListener.dispose();
 		this.requestWindowsOptionsReportListener.dispose();
@@ -905,7 +900,7 @@ export class LegacyComponent {
 		this.refresh(0, this.core.bufferService.rows - 1, true);
 	}
 
-	private _reportFocus(): void {
+	reportFocus() {
 		if (this.element?.classList.contains('focus')) {
 			this.core.coreService.triggerDataEvent(C0.ESC + '[I');
 		} else {
