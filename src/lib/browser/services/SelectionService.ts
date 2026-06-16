@@ -527,7 +527,9 @@ export class SelectionService {
 		this._dragScrollAmount = 0;
 
 		if (this._enabled && event.shiftKey) {
-			this._handleIncrementalClick(event);
+			if (this._model.selectionStart) {
+				this._model.selectionEnd = this._getMouseBufferCoords(event);
+			}
 		} else {
 			if (event.detail === 1) {
 				this._handleSingleClick(event);
@@ -538,14 +540,6 @@ export class SelectionService {
 			}
 		}
 
-		this._addMouseDownListeners();
-		this.refresh(true);
-	}
-
-	/**
-	 * Adds listeners when mousedown is triggered.
-	 */
-	private _addMouseDownListeners(): void {
 		// Listen on the document so that dragging outside of viewport works
 		if (this._terminal.screenElement!.ownerDocument) {
 			this._terminal.screenElement!.ownerDocument.addEventListener(
@@ -561,6 +555,7 @@ export class SelectionService {
 			() => this._dragScroll(),
 			Constants.DRAG_SCROLL_INTERVAL
 		);
+		this.refresh(true);
 	}
 
 	/**
@@ -579,17 +574,6 @@ export class SelectionService {
 		}
 		clearInterval(this._dragScrollIntervalTimer);
 		this._dragScrollIntervalTimer = undefined;
-	}
-
-	/**
-	 * Performs an incremental click, setting the selection end position to the mouse
-	 * position.
-	 * @param event The mouse event.
-	 */
-	private _handleIncrementalClick(event: MouseEvent): void {
-		if (this._model.selectionStart) {
-			this._model.selectionEnd = this._getMouseBufferCoords(event);
-		}
 	}
 
 	/**
