@@ -5,7 +5,9 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { isMac, isWindows } from '$lib/common/Platform';
-import { LegacyComponent } from '$lib/browser/component';
+import { LegacyComponent } from '$lib/browser/legacy-component';
+import { LegacyEmulator } from '$lib/common/legacy-emulator';
+import { Emulator } from '$lib/emulator.svelte';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
 import { CellData } from '$lib/common/buffer/CellData';
 import { MockUnicodeService, createCellData } from '$lib/common/TestUtils';
@@ -41,7 +43,8 @@ const wcwidth = new MockUnicodeService().wcwidth;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createTestTerminal(options?: any): TestTerminal {
 	const { cols = INIT_COLS, rows = INIT_ROWS, ...rest } = options || {};
-	const term = new TestTerminal(rest);
+	const core = new LegacyEmulator(new Emulator(), rest);
+	const term = new TestTerminal(core);
 	term.core.resize(cols, rows);
 	term.refresh = () => {};
 	// TODO: Fix this upstream type error.
@@ -1596,16 +1599,20 @@ describe('CoreBrowserTerminal', () => {
 				'aaaaaaaaa' // not wrapped
 			];
 
-			const normalTerminal = new TestTerminal({ windowsPty: {} });
+			const normalTerminal = new TestTerminal(
+				new LegacyEmulator(new Emulator(), { windowsPty: {} })
+			);
 			normalTerminal.core.resize(10, 5);
 			await normalTerminal.writeP(data.join(''));
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(false);
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(false);
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
 
-			const windowsModeTerminal = new TestTerminal({
-				windowsPty: { backend: 'conpty', buildNumber: 19000 }
-			});
+			const windowsModeTerminal = new TestTerminal(
+				new LegacyEmulator(new Emulator(), {
+					windowsPty: { backend: 'conpty', buildNumber: 19000 }
+				})
+			);
 			windowsModeTerminal.core.resize(10, 5);
 			await windowsModeTerminal.writeP(data.join(''));
 			expect(windowsModeTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(
@@ -1627,16 +1634,20 @@ describe('CoreBrowserTerminal', () => {
 				'aaaaaaaaa' // not wrapped
 			];
 
-			const normalTerminal = new TestTerminal({ windowsPty: {} });
+			const normalTerminal = new TestTerminal(
+				new LegacyEmulator(new Emulator(), { windowsPty: {} })
+			);
 			normalTerminal.core.resize(10, 5);
 			await normalTerminal.writeP(data.join(''));
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(false);
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(false);
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
 
-			const windowsModeTerminal = new TestTerminal({
-				windowsPty: { backend: 'conpty', buildNumber: 19000 }
-			});
+			const windowsModeTerminal = new TestTerminal(
+				new LegacyEmulator(new Emulator(), {
+					windowsPty: { backend: 'conpty', buildNumber: 19000 }
+				})
+			);
 			windowsModeTerminal.core.resize(10, 5);
 			await windowsModeTerminal.writeP(data.join(''));
 			expect(windowsModeTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(

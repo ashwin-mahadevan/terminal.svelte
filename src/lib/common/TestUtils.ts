@@ -11,7 +11,7 @@ import type {
 	IInternalDecoration,
 	IBufferResizeEvent
 } from '$lib/common/services/Services';
-import type { LegacyEmulator } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 import type { CoreService } from '$lib/common/services/CoreService';
 import type { OptionsService } from '$lib/common/services/OptionsService';
 import type { BufferService } from '$lib/common/services/BufferService';

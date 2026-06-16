@@ -12,7 +12,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { LegacyComponent } from '$lib/browser/component';
+import { LegacyComponent } from '$lib/browser/legacy-component';
+import { LegacyEmulator } from '$lib/common/legacy-emulator';
+import { Emulator } from '$lib/emulator.svelte';
 import { CellData } from '$lib/common/buffer/CellData';
 import { serialize } from '$lib/serialize';
 
@@ -65,7 +67,7 @@ describe('SerializeAddon', () => {
 		scrollableEl.appendChild(screenEl);
 		el.appendChild(scrollableEl);
 		const { cols, rows } = opts;
-		const term = new LegacyComponent();
+		const term = new LegacyComponent(new LegacyEmulator(new Emulator()));
 		term.core.resize(cols, rows);
 		term.open(el, screenEl, helpersEl, textareaEl, compositionEl, scrollableEl, rowContainerEl);
 		return { term, el };

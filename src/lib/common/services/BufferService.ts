@@ -8,7 +8,7 @@ import type { IAttributeData } from '$lib/common/Types';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
 import { BufferSet } from '$lib/common/buffer/BufferSet';
 import type { Buffer } from '$lib/common/buffer/Buffer';
-import type { LegacyEmulator } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 import type { IBufferResizeEvent } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 

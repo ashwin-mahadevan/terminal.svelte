@@ -4,7 +4,7 @@
  */
 
 import { getCoords, getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 export class MouseCoordsService {
 	constructor(private readonly _terminal: LegacyComponent) {}
 

@@ -4,7 +4,7 @@
  */
 
 import type { IDecPrivateModes, IKittyKeyboardState, IModes } from '$lib/common/Types';
-import type { LegacyEmulator } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 import { LegacyEmitter } from '$lib/common/Event';
 
 const DEFAULT_MODES: IModes = Object.freeze({

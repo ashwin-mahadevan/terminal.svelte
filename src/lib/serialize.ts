@@ -7,7 +7,7 @@
 
 import type { IBufferCell } from '$lib/xterm';
 import type { IBufferRange } from '$lib/browser/Types';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import type { Marker } from '$lib/common/buffer/Marker';
 import type { IAttributeData } from '$lib/common/Types';

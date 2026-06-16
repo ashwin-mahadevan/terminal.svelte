@@ -5,7 +5,7 @@
 
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { IInternalDecoration } from '$lib/common/services/Services';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 
 export class BufferDecorationRenderer {
 	private readonly _container: HTMLElement;

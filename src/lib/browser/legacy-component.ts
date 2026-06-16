@@ -21,7 +21,6 @@
  *   http://linux.die.net/man/7/urxvt
  */
 
-import type { ITerminalOptions } from '$lib/common/services/Services';
 import { OscLinkProvider } from '$lib/browser/OscLinkProvider';
 import type { CharacterJoinerHandler, CustomKeyEventHandler } from '$lib/browser/Types';
 import { Viewport } from '$lib/browser/Viewport';
@@ -39,7 +38,7 @@ import { SelectionService } from '$lib/browser/services/SelectionService';
 import { ThemeService } from '$lib/browser/services/ThemeService';
 import { KeyboardService } from '$lib/browser/services/KeyboardService';
 import { channels, color, rgb } from '$lib/common/Color';
-import { LegacyEmulator } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 import type { IColorEvent } from '$lib/common/Types';
 import { ColorRequestType, KeyboardResultType, SpecialColorIndex } from '$lib/common/Types';
 import { DEFAULT_ATTR_DATA } from '$lib/common/buffer/BufferLine';
@@ -187,11 +186,7 @@ export class LegacyComponent {
 	private _screenReaderModeListener: IDisposable | undefined;
 	private _renderedViewportChangeListener: IDisposable | undefined;
 
-	core: LegacyEmulator;
-
-	constructor(options: Partial<ITerminalOptions> = {}) {
-		this.core = new LegacyEmulator(options);
-
+	constructor(public core: LegacyEmulator) {
 		this.requestFocusListener = this.core.inputHandler.onRequestSendFocus(() =>
 			this._reportFocus()
 		);

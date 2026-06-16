@@ -21,9 +21,9 @@
  *   http://linux.die.net/man/7/urxvt
  */
 
-import type { ITerminalOptions } from '$lib/common/services/Services';
 import { BufferService } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
+import type { ITerminalOptions } from '$lib/common/services/Services';
 import { CoreService } from '$lib/common/services/CoreService';
 import { MouseStateService } from '$lib/common/services/MouseStateService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
@@ -35,6 +35,7 @@ import { OscLinkService } from '$lib/common/services/OscLinkService';
 import { LegacyEmitter } from '$lib/common/Event';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DisposableStore, MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
+import type { Emulator } from '$lib/emulator.svelte';
 
 // This class is the headless part of xterm.js. One of the goals of this project (terminal.svelte)
 // is to migrate this class's functionality into the Emulator class with svelte reactivity.
@@ -58,7 +59,10 @@ export class LegacyEmulator {
 	public _onScroll = new LegacyEmitter<number>();
 	public readonly onScroll = this._onScroll.event;
 
-	constructor(options: Partial<ITerminalOptions>) {
+	constructor(
+		public _emulator: Emulator,
+		options: Partial<ITerminalOptions> = {}
+	) {
 		// Setup and initialize services
 		this.optionsService = new OptionsService(options);
 		this.bufferService = new BufferService(this);

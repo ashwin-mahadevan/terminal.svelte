@@ -12,7 +12,7 @@ import {
 import { Win32InputMode } from '$lib/common/input/Win32InputMode';
 import { isMac } from '$lib/common/Platform';
 import type { IKeyboardResult } from '$lib/common/Types';
-import type { LegacyEmulator } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 
 export class KeyboardService {
 	private _win32InputMode: Win32InputMode | undefined;

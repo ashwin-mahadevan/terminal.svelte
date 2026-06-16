@@ -5,7 +5,7 @@
 
 import type { IColorZone } from '$lib/browser/decorations/ColorZoneStore';
 import { ColorZoneStore } from '$lib/browser/decorations/ColorZoneStore';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import type { IDisposable } from '$lib/common/Lifecycle';
 
 const enum Constants {

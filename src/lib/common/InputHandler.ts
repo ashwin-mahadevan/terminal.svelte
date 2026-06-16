@@ -32,7 +32,7 @@ import {
 import { CellData } from '$lib/common/buffer/CellData';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import type { BufferService } from '$lib/common/services/BufferService';
-import type { LegacyEmulator } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
 import { OscHandler } from '$lib/common/parser/OscParser';
 import { DcsHandler } from '$lib/common/parser/DcsParser';

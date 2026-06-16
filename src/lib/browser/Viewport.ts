@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import { ViewportConstants } from '$lib/browser/shared/Constants';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { CoreMouseEventType } from '$lib/common/Types';

@@ -11,7 +11,7 @@ import type {
 	ISelectionRedrawRequestEvent,
 	ISelectionRequestScrollLinesEvent
 } from '$lib/browser/selection/Types';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { MutableDisposable } from '$lib/common/Lifecycle';
 import * as Browser from '$lib/common/Platform';

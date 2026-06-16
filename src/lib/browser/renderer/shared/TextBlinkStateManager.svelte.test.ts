@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkStateManager';
 import { createMockOptionsService } from '$lib/common/TestUtils';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 
 const createMockTerminal = (
 	optionsService = createMockOptionsService({ blinkIntervalDuration: 100 })

@@ -9,7 +9,7 @@ import type { ICharacterJoiner } from '$lib/browser/Types';
 import { AttributeData } from '$lib/common/buffer/AttributeData';
 import { WHITESPACE_CELL_CHAR, Content } from '$lib/common/buffer/Constants';
 import { CellData } from '$lib/common/buffer/CellData';
-import type { LegacyEmulator } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 
 export class JoinedCellData extends AttributeData implements ICellData {
 	private _width: number;

@@ -12,7 +12,7 @@ import { TextBlinkStateManager } from '$lib/browser/renderer/shared/TextBlinkSta
 import type { IRenderDimensions, IRequestRedrawEvent } from '$lib/browser/renderer/shared/Types';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
 import type { ILinkifierEvent, ReadonlyColorSet } from '$lib/browser/Types';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import { color } from '$lib/common/Color';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { LegacyEmitter } from '$lib/common/Event';

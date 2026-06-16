@@ -4,7 +4,7 @@
  */
 
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 
 export class TextBlinkStateManager {
 	private _intervalDuration: number = 0;

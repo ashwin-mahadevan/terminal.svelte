@@ -8,7 +8,7 @@ import { MicrotaskTimer } from '$lib/common/Async';
 import { css } from '$lib/common/Color';
 import { DisposableStore, MutableDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
-import type { LegacyEmulator } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 import type { IInternalDecoration } from '$lib/common/services/Services';
 import { SortedList } from '$lib/common/SortedList';
 import type { IColor } from '$lib/common/Types';

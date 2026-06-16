@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import { C0 } from '$lib/common/data/EscapeSequences';
 
 interface IPosition {

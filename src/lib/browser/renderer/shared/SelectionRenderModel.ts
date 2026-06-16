@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 
 export class SelectionRenderModel {
 	public hasSelection!: boolean;

@@ -4,7 +4,7 @@
  */
 
 import type { IRenderDebouncer } from '$lib/browser/Types';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import { TimeBasedDebouncer } from '$lib/browser/TimeBasedDebouncer';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import type { Buffer } from '$lib/common/buffer/Buffer';

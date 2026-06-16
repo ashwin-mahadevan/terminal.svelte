@@ -6,7 +6,7 @@
 import { RenderDebouncer } from '$lib/browser/RenderDebouncer';
 import type { IRenderDebouncerWithCallback } from '$lib/browser/Types';
 import type { IRenderDimensions } from '$lib/browser/renderer/shared/Types';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import { MutableDisposable, toDisposable } from '$lib/common/Lifecycle';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DebouncedIdleTask } from '$lib/common/TaskQueue';

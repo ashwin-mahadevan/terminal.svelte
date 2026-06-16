@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { LegacyComponent } from '$lib/browser/component';
+	import { LegacyComponent } from '$lib/browser/legacy-component';
 	import { ViewportConstants } from '$lib/browser/shared/Constants';
 	import { WebLinkProvider, strictUrlRegex, handleLink } from '$lib/WebLinkProvider';
 	import { serialize as internalSerialize } from '$lib/serialize';
@@ -10,6 +10,7 @@
 	import { browser } from '$app/environment';
 	import { Emulator } from './emulator.svelte';
 	import { C0 } from './common/data/EscapeSequences';
+	import { LegacyEmulator } from './common/legacy-emulator';
 
 	type Props = {
 		ondata?: (data: string) => void;
@@ -35,9 +36,10 @@
 		ignoreBracketedPasteMode = false
 	}: Props = $props();
 
-	const terminal = (browser && new LegacyComponent()) as LegacyComponent;
-
 	export const emulator = new Emulator();
+
+	const terminal = (browser &&
+		new LegacyComponent(new LegacyEmulator(emulator))) as LegacyComponent;
 
 	let element: HTMLDivElement;
 	let scrollableEl: HTMLDivElement;

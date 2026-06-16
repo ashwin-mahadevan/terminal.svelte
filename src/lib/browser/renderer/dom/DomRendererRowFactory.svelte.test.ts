@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { DomRendererRowFactory } from '$lib/browser/renderer/dom/DomRendererRowFactory';
 import type { CoreBrowserService } from '$lib/browser/services/CoreBrowserService';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import {
 	DEFAULT_ATTR,
 	FgFlags,

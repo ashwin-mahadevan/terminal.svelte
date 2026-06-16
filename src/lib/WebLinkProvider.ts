@@ -5,7 +5,7 @@
 
 import type { IViewportRange } from '$lib/xterm';
 import type { BufferLine } from '$lib/common/buffer/BufferLine';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import { CellData } from '$lib/common/buffer/CellData';
 import type { ILinkProvider } from './browser/services/Services';
 import type { ILink } from './browser/Types';

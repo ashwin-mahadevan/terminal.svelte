@@ -4,7 +4,7 @@
  */
 
 import { addDisposableListener } from '$lib/browser/Dom';
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import type { ICoreMouseEvent } from '$lib/common/Types';
 import { CoreMouseAction, CoreMouseButton, CoreMouseEventType } from '$lib/common/Types';
 import { C0 } from '$lib/common/data/EscapeSequences';

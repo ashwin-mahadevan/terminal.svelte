@@ -13,7 +13,7 @@ import type {
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { dispose } from '$lib/common/Lifecycle';
 
-import type { LegacyComponent } from '$lib/browser/component';
+import type { LegacyComponent } from '$lib/browser/legacy-component';
 import { LegacyEmitter } from '$lib/common/Event';
 import { addDisposableListener } from '$lib/browser/Dom';
 

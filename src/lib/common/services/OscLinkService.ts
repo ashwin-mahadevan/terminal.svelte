@@ -2,7 +2,7 @@
  * Copyright (c) 2022 The xterm.js authors. All rights reserved.
  * @license MIT
  */
-import type { LegacyEmulator } from '$lib/common/CoreTerminal';
+import type { LegacyEmulator } from '$lib/common/legacy-emulator';
 import type { IMarker, IOscLinkData } from '$lib/common/Types';
 
 export class OscLinkService {
