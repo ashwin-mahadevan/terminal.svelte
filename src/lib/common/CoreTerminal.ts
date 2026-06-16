@@ -24,7 +24,6 @@
 import type { ITerminalOptions } from '$lib/common/services/Services';
 import { BufferService } from '$lib/common/services/BufferService';
 import { OptionsService } from '$lib/common/services/OptionsService';
-import type { IAttributeData } from '$lib/common/Types';
 import { CoreService } from '$lib/common/services/CoreService';
 import { MouseStateService } from '$lib/common/services/MouseStateService';
 import { UnicodeService } from '$lib/common/services/UnicodeService';
@@ -109,15 +108,6 @@ export class LegacyEmulator {
 		this._writeBuffer.flushSync();
 
 		this.bufferService.resize(x, y);
-	}
-
-	/**
-	 * Scroll the terminal down 1 row, creating a blank line.
-	 * @param eraseAttr The attribute data to use the for blank line.
-	 * @param isWrapped Whether the new line is wrapped from the previous line.
-	 */
-	public scroll(eraseAttr: IAttributeData, isWrapped: boolean = false): void {
-		this.bufferService.scroll(eraseAttr, isWrapped);
 	}
 
 	/**

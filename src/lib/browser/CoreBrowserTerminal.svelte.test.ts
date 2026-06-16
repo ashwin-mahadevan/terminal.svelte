@@ -195,7 +195,7 @@ describe('CoreBrowserTerminal', () => {
 					expect(typeof e).toBe('number');
 					done();
 				});
-				term.core.scroll(DEFAULT_ATTR_DATA.clone());
+				term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());
 			}));
 		it('should fire the onTitleChange event', () =>
 			new Promise<void>((done) => {
@@ -558,7 +558,7 @@ describe('CoreBrowserTerminal', () => {
 						.get(INIT_ROWS - 1)!
 						.setCell(0, createCellData(0, 'b', 0));
 					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
-					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());
 					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS + 1);
 					expect(
 						term.core.bufferService.buffers.active.lines
@@ -592,7 +592,7 @@ describe('CoreBrowserTerminal', () => {
 						.setCell(0, createCellData(0, 'c', 0));
 					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
 					term.core.bufferService.buffers.active.scrollTop = 1;
-					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());
 					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					expect(
 						term.core.bufferService.buffers.active.lines
@@ -626,7 +626,7 @@ describe('CoreBrowserTerminal', () => {
 						.setCell(0, createCellData(0, 'e', 0));
 					term.core.bufferService.buffers.active.y = 3;
 					term.core.bufferService.buffers.active.scrollBottom = 3;
-					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());
 					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS + 1);
 					// 'a' should be pushed to the scrollback
 					expect(
@@ -687,7 +687,7 @@ describe('CoreBrowserTerminal', () => {
 					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
 					term.core.bufferService.buffers.active.scrollTop = 1;
 					term.core.bufferService.buffers.active.scrollBottom = 3;
-					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());
 					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					expect(
 						term.core.bufferService.buffers.active.lines
@@ -742,7 +742,7 @@ describe('CoreBrowserTerminal', () => {
 						.setCell(0, createCellData(0, 'c', 0));
 					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
 					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
-					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());
 					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					// 'a' gets pushed out of buffer
 					expect(
@@ -783,7 +783,7 @@ describe('CoreBrowserTerminal', () => {
 						.setCell(0, createCellData(0, 'c', 0));
 					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
 					term.core.bufferService.buffers.active.scrollTop = 1;
-					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());
 					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					expect(
 						term.core.bufferService.buffers.active.lines
@@ -817,7 +817,7 @@ describe('CoreBrowserTerminal', () => {
 						.setCell(0, createCellData(0, 'e', 0));
 					term.core.bufferService.buffers.active.y = 3;
 					term.core.bufferService.buffers.active.scrollBottom = 3;
-					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());
 					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					expect(
 						term.core.bufferService.buffers.active.lines
@@ -871,7 +871,7 @@ describe('CoreBrowserTerminal', () => {
 					term.core.bufferService.buffers.active.y = INIT_ROWS - 1; // Move cursor to last line
 					term.core.bufferService.buffers.active.scrollTop = 1;
 					term.core.bufferService.buffers.active.scrollBottom = 3;
-					term.core.scroll(DEFAULT_ATTR_DATA.clone());
+					term.core.bufferService.scroll(DEFAULT_ATTR_DATA.clone());
 					expect(term.core.bufferService.buffers.active.lines.length).toBe(INIT_ROWS);
 					expect(
 						term.core.bufferService.buffers.active.lines
