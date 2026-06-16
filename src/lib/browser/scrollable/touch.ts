@@ -7,8 +7,6 @@ import * as DomUtils from '../Dom';
 import type { IDisposable } from '$lib/common/Lifecycle';
 import { DISPOSABLE_NONE, toDisposable } from '$lib/common/Lifecycle';
 
-const mainWindow = (typeof window === 'object' ? window : globalThis) as Window & typeof globalThis;
-
 function tail<T>(array: ArrayLike<T>, n: number = 0): T | undefined {
 	return array[array.length - (1 + n)];
 }
@@ -221,20 +219,19 @@ export class Gesture {
 		this._handle = null;
 		this._lastSetTapCountTime = 0;
 
-		const targetWindow = mainWindow;
 		this._touchStartListener = DomUtils.addDisposableListener(
-			targetWindow.document,
+			document,
 			'touchstart',
 			(e: ITouchEvent) => this._handleTouchStart(e),
 			{ passive: false }
 		);
 		this._touchEndListener = DomUtils.addDisposableListener(
-			targetWindow.document,
+			document,
 			'touchend',
-			(e: ITouchEvent) => this._handleTouchEnd(targetWindow, e)
+			(e: ITouchEvent) => this._handleTouchEnd(e)
 		);
 		this._touchMoveListener = DomUtils.addDisposableListener(
-			targetWindow.document,
+			document,
 			'touchmove',
 			(e: ITouchEvent) => this._handleTouchMove(e),
 			{ passive: false }
@@ -267,7 +264,7 @@ export class Gesture {
 
 	@memoize
 	public static isTouchDevice(): boolean {
-		return 'ontouchstart' in mainWindow || navigator.maxTouchPoints > 0;
+		return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 	}
 
 	public dispose(): void {
@@ -315,7 +312,7 @@ export class Gesture {
 		}
 	}
 
-	private _handleTouchEnd(targetWindow: Window, e: ITouchEvent): void {
+	private _handleTouchEnd(e: ITouchEvent): void {
 		const timestamp = Date.now();
 
 		const activeTouchCount = Object.keys(this._activeTouches).length;
@@ -363,7 +360,6 @@ export class Gesture {
 					(t) => data.initialTarget instanceof Node && t.contains(data.initialTarget)
 				);
 				this._inertia(
-					targetWindow,
 					dispatchTo,
 					timestamp,
 					Math.abs(deltaX) / deltaT,
@@ -442,7 +438,6 @@ export class Gesture {
 	}
 
 	private _inertia(
-		targetWindow: Window,
 		dispatchTo: ReadonlyArray<EventTarget>,
 		t1: number,
 		vX: number,
@@ -452,7 +447,7 @@ export class Gesture {
 		dirY: number,
 		y: number
 	): void {
-		this._handle = DomUtils.scheduleAtNextAnimationFrame(targetWindow, () => {
+		this._handle = DomUtils.scheduleAtNextAnimationFrame(window, () => {
 			const now = Date.now();
 
 			const deltaT = now - t1;
@@ -479,17 +474,7 @@ export class Gesture {
 			dispatchTo.forEach((d) => d.dispatchEvent(evt));
 
 			if (!stopped) {
-				this._inertia(
-					targetWindow,
-					dispatchTo,
-					now,
-					vX,
-					dirX,
-					x + deltaPosX,
-					vY,
-					dirY,
-					y + deltaPosY
-				);
+				this._inertia(dispatchTo, now, vX, dirX, x + deltaPosX, vY, dirY, y + deltaPosY);
 			}
 		});
 	}
