@@ -40,7 +40,9 @@ const wcwidth = new MockUnicodeService().wcwidth;
 // TODO: Fix this upstream type error.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createTestTerminal(options?: any): TestTerminal {
-	const term = new TestTerminal(options || { cols: INIT_COLS, rows: INIT_ROWS });
+	const { cols = INIT_COLS, rows = INIT_ROWS, ...rest } = options || {};
+	const term = new TestTerminal(rest);
+	term.core.resize(cols, rows);
 	term.refresh = () => {};
 	// TODO: Fix this upstream type error.
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,19 +70,12 @@ function createTestTerminal(options?: any): TestTerminal {
 }
 
 describe('CoreBrowserTerminal', () => {
-	const termOptions = {
-		cols: INIT_COLS,
-		rows: INIT_ROWS
-	};
-
 	it('should not mutate the options parameter', () => {
+		const termOptions = { scrollback: 500 };
 		const term = createTestTerminal(termOptions);
-		term.core.optionsService.options.cols = 1000;
+		term.core.optionsService.options.scrollback = 1000;
 
-		expect(termOptions).toEqual({
-			cols: INIT_COLS,
-			rows: INIT_ROWS
-		});
+		expect(termOptions).toEqual({ scrollback: 500 });
 	});
 
 	describe('events', () => {
@@ -1601,17 +1596,17 @@ describe('CoreBrowserTerminal', () => {
 				'aaaaaaaaa' // not wrapped
 			];
 
-			const normalTerminal = new TestTerminal({ rows: 5, cols: 10, windowsPty: {} });
+			const normalTerminal = new TestTerminal({ windowsPty: {} });
+			normalTerminal.core.resize(10, 5);
 			await normalTerminal.writeP(data.join(''));
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(false);
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(false);
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
 
 			const windowsModeTerminal = new TestTerminal({
-				rows: 5,
-				cols: 10,
 				windowsPty: { backend: 'conpty', buildNumber: 19000 }
 			});
+			windowsModeTerminal.core.resize(10, 5);
 			await windowsModeTerminal.writeP(data.join(''));
 			expect(windowsModeTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(
 				false
@@ -1632,17 +1627,17 @@ describe('CoreBrowserTerminal', () => {
 				'aaaaaaaaa' // not wrapped
 			];
 
-			const normalTerminal = new TestTerminal({ rows: 5, cols: 10, windowsPty: {} });
+			const normalTerminal = new TestTerminal({ windowsPty: {} });
+			normalTerminal.core.resize(10, 5);
 			await normalTerminal.writeP(data.join(''));
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(false);
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(1)!.isWrapped).toBe(false);
 			expect(normalTerminal.core.bufferService.buffers.active.lines.get(2)!.isWrapped).toBe(false);
 
 			const windowsModeTerminal = new TestTerminal({
-				rows: 5,
-				cols: 10,
 				windowsPty: { backend: 'conpty', buildNumber: 19000 }
 			});
+			windowsModeTerminal.core.resize(10, 5);
 			await windowsModeTerminal.writeP(data.join(''));
 			expect(windowsModeTerminal.core.bufferService.buffers.active.lines.get(0)!.isWrapped).toBe(
 				false
@@ -1873,23 +1868,6 @@ describe('CoreBrowserTerminal', () => {
 			term.core.resize(10, 2);
 			expect(disposeStack).toEqual([markers[0], markers[1]]);
 			expect(markers.map((el) => el.line)).toEqual([-1, -1, 0, 1, 2]);
-		});
-	});
-
-	describe('options', () => {
-		let term: TestTerminal;
-		beforeEach(() => {
-			term = createTestTerminal();
-		});
-		it('get options', () => {
-			expect(term.core.optionsService.options.cols).toBe(80);
-			expect(term.core.optionsService.options.rows).toBe(24);
-		});
-		it('set options', async () => {
-			term.core.optionsService.options.cols = 40;
-			expect(term.core.optionsService.options.cols).toBe(40);
-			term.core.optionsService.options.rows = 20;
-			expect(term.core.optionsService.options.rows).toBe(20);
 		});
 	});
 });

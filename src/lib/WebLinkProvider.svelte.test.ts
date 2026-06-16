@@ -40,7 +40,8 @@ describe('WebLinkProvider', () => {
 		screenEl.append(helpersEl, rowContainerEl);
 		scrollableEl.appendChild(screenEl);
 		element.appendChild(scrollableEl);
-		term = new LegacyBrowserTerminal({ cols: 40, rows: 10 });
+		term = new LegacyBrowserTerminal();
+		term.core.resize(40, 10);
 		term.open(
 			element,
 			screenEl,

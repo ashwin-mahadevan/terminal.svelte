@@ -895,12 +895,6 @@ export class LegacyBrowserTerminal {
 	 * using DECSTR (soft reset, CSI ! p) or RIS instead (hard reset, ESC c).
 	 */
 	public reset(): void {
-		/**
-		 * Since _setup handles a full terminal creation, we have to carry forward
-		 * a few things that should not reset.
-		 */
-		this.core.optionsService.options.rows = this.core.bufferService.rows;
-		this.core.optionsService.options.cols = this.core.bufferService.cols;
 		const customKeyEventHandler = this._customKeyEventHandler;
 
 		this._setup();

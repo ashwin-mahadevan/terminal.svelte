@@ -40,14 +40,8 @@ export class BufferService {
 	private readonly _bufferActivateListener: IDisposable;
 
 	constructor(terminal: LegacyEmulator) {
-		this.cols = Math.max(
-			terminal.optionsService.rawOptions.cols || 0,
-			BufferServiceConstants.MINIMUM_COLS
-		);
-		this.rows = Math.max(
-			terminal.optionsService.rawOptions.rows || 0,
-			BufferServiceConstants.MINIMUM_ROWS
-		);
+		this.cols = BufferServiceConstants.MINIMUM_COLS;
+		this.rows = BufferServiceConstants.MINIMUM_ROWS;
 		this.buffers = new BufferSet(terminal.optionsService, this);
 		this._bufferActivateListener = this.buffers.onBufferActivate((e) => {
 			this._onScroll.fire(e.activeBuffer.ydisp);

@@ -22,7 +22,6 @@ export interface IBufferResizeEvent {
 
 export interface ITerminalOptions {
 	altClickMovesCursor?: boolean;
-	cols?: number;
 	convertEol?: boolean;
 	cursorBlink?: boolean;
 	blinkIntervalDuration?: number;
@@ -36,7 +35,6 @@ export interface ITerminalOptions {
 	macOptionClickForcesSelection?: boolean;
 	mouseEventsRequireAlt?: boolean;
 	reflowCursorLine?: boolean;
-	rows?: number;
 	showCursorImmediately?: boolean;
 	screenReaderMode?: boolean;
 	scrollback?: number;

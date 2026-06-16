@@ -64,7 +64,9 @@ describe('SerializeAddon', () => {
 		screenEl.append(helpersEl, rowContainerEl);
 		scrollableEl.appendChild(screenEl);
 		el.appendChild(scrollableEl);
-		const term = new LegacyBrowserTerminal(opts);
+		const { cols, rows } = opts;
+		const term = new LegacyBrowserTerminal();
+		term.core.resize(cols, rows);
 		term.open(el, screenEl, helpersEl, textareaEl, compositionEl, scrollableEl, rowContainerEl);
 		return { term, el };
 	}

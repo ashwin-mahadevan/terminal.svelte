@@ -9,8 +9,6 @@ import type { ITerminalOptions } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
 
 export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
-	cols: 80,
-	rows: 24,
 	showCursorImmediately: false,
 	cursorBlink: false,
 	blinkIntervalDuration: 0,
@@ -163,12 +161,6 @@ export class OptionsService {
 			case 'scrollSensitivity':
 				if (value <= 0) {
 					throw new Error(`${key} cannot be less than or equal to 0, value: ${value}`);
-				}
-				break;
-			case 'rows':
-			case 'cols':
-				if (!value && value !== 0) {
-					throw new Error(`${key} must be numeric, value: ${value}`);
 				}
 				break;
 			case 'windowsPty':

@@ -16,24 +16,13 @@ describe('OptionsService', () => {
 		afterEach(() => {
 			console.error = originalError;
 		});
-		it('uses default value if invalid constructor option values passed for cols/rows', () => {
-			const optionsService = new OptionsService({ cols: undefined, rows: undefined });
-			expect(optionsService.options.rows).toBe(DEFAULT_OPTIONS.rows);
-			expect(optionsService.options.cols).toBe(DEFAULT_OPTIONS.cols);
-		});
-		it('uses values from constructor option values if correctly passed', () => {
-			const optionsService = new OptionsService({ cols: 80, rows: 25 });
-			expect(optionsService.options.rows).toBe(25);
-			expect(optionsService.options.cols).toBe(80);
-		});
 		it('uses default value if invalid constructor option value passed', () => {
 			expect(new OptionsService({ tabStopWidth: 0 }).options.tabStopWidth).toBe(
 				DEFAULT_OPTIONS.tabStopWidth
 			);
 		});
 		it('object.keys return the correct number of options', () => {
-			const optionsService = new OptionsService({ cols: 80, rows: 25 });
-			expect(Object.keys(optionsService.options).length).not.toBe(0);
+			expect(Object.keys(new OptionsService({}).options).length).not.toBe(0);
 		});
 	});
 	describe('onOptionChange', () => {
