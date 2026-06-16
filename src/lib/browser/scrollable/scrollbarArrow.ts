@@ -94,11 +94,7 @@ export class ScrollbarArrow extends Widget {
 			return;
 		}
 		const scheduleRepeater = (): void => {
-			this._pointerdownRepeatTimer.cancelAndSet(
-				() => this._handleActivate(),
-				1000 / 24,
-				dom.getWindow(e)
-			);
+			this._pointerdownRepeatTimer.cancelAndSet(() => this._handleActivate(), 1000 / 24);
 		};
 
 		this._handleActivate();

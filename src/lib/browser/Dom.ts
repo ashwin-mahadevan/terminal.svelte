@@ -218,14 +218,7 @@ export function scheduleAtNextAnimationFrame(
 }
 
 export class WindowIntervalTimer extends IntervalTimer {
-	private readonly _defaultTarget?: Window;
-
-	constructor(node?: Node) {
-		super();
-		this._defaultTarget = node ? getWindow(node) : undefined;
-	}
-
-	public cancelAndSet(runner: () => void, interval: number, targetWindow?: Window): void {
-		super.cancelAndSet(runner, interval, targetWindow ?? this._defaultTarget ?? window);
+	public override cancelAndSet(runner: () => void, interval: number): void {
+		super.cancelAndSet(runner, interval, window);
 	}
 }
