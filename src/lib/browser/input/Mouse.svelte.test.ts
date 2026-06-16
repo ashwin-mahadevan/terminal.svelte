@@ -11,18 +11,8 @@ const CHAR_HEIGHT = 20;
 
 describe('Mouse getCoords', () => {
 	it('should return the cell that was clicked', () => {
-		const windowOverride: Pick<Window, 'getComputedStyle'> = {
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			getComputedStyle(): any {
-				return {
-					getPropertyValue: () => '0px'
-				} as Pick<CSSStyleDeclaration, 'getPropertyValue'>;
-			}
-		} as Pick<Window, 'getComputedStyle'>;
 		let coords: [number, number] | undefined;
 		coords = getCoords(
-			windowOverride,
 			{ clientX: CHAR_WIDTH / 2, clientY: CHAR_HEIGHT / 2 },
 			document.createElement('div'),
 			10,
@@ -32,7 +22,6 @@ describe('Mouse getCoords', () => {
 		);
 		expect(coords).toEqual([1, 1]);
 		coords = getCoords(
-			windowOverride,
 			{ clientX: CHAR_WIDTH, clientY: CHAR_HEIGHT },
 			document.createElement('div'),
 			10,
@@ -42,7 +31,6 @@ describe('Mouse getCoords', () => {
 		);
 		expect(coords).toEqual([1, 1]);
 		coords = getCoords(
-			windowOverride,
 			{ clientX: CHAR_WIDTH, clientY: CHAR_HEIGHT + 1 },
 			document.createElement('div'),
 			10,
@@ -52,7 +40,6 @@ describe('Mouse getCoords', () => {
 		);
 		expect(coords).toEqual([1, 2]);
 		coords = getCoords(
-			windowOverride,
 			{ clientX: CHAR_WIDTH + 1, clientY: CHAR_HEIGHT },
 			document.createElement('div'),
 			10,
@@ -64,18 +51,8 @@ describe('Mouse getCoords', () => {
 	});
 
 	it('should ensure the coordinates are returned within the terminal bounds', () => {
-		const windowOverride: Pick<Window, 'getComputedStyle'> = {
-			// TODO: Fix this upstream type error.
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			getComputedStyle(): any {
-				return {
-					getPropertyValue: () => '0px'
-				} as Pick<CSSStyleDeclaration, 'getPropertyValue'>;
-			}
-		} as Pick<Window, 'getComputedStyle'>;
 		let coords: [number, number] | undefined;
 		coords = getCoords(
-			windowOverride,
 			{ clientX: -1, clientY: -1 },
 			document.createElement('div'),
 			10,
@@ -86,7 +63,6 @@ describe('Mouse getCoords', () => {
 		expect(coords).toEqual([1, 1]);
 		// Event are double the cols/rows
 		coords = getCoords(
-			windowOverride,
 			{ clientX: CHAR_WIDTH * 20, clientY: CHAR_HEIGHT * 20 },
 			document.createElement('div'),
 			10,

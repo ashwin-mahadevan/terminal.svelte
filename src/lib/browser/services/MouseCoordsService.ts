@@ -3,7 +3,6 @@
  * @license MIT
  */
 
-import { getWindow } from '$lib/browser/Dom';
 import { getCoords, getCoordsRelativeToElement } from '$lib/browser/input/Mouse';
 import type { CoreBrowserTerminal } from '$lib/browser/CoreBrowserTerminal';
 export class MouseCoordsService {
@@ -17,7 +16,6 @@ export class MouseCoordsService {
 		isSelection?: boolean
 	): [number, number] | undefined {
 		return getCoords(
-			getWindow(element),
 			event,
 			element,
 			colCount,
@@ -32,7 +30,7 @@ export class MouseCoordsService {
 		event: MouseEvent,
 		element: HTMLElement
 	): { col: number; row: number; x: number; y: number } {
-		const coords = getCoordsRelativeToElement(getWindow(element), event, element);
+		const coords = getCoordsRelativeToElement(event, element);
 		coords[0] = Math.min(
 			Math.max(coords[0], 0),
 			this._terminal.renderService!.dimensions.css.canvas.width - 1

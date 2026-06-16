@@ -446,7 +446,7 @@ export class SelectionService {
 	 * @param event The mouse event.
 	 */
 	private _getMouseEventScrollAmount(event: MouseEvent): number {
-		let offset = getCoordsRelativeToElement(window, event, this._terminal.screenElement!)[1];
+		let offset = getCoordsRelativeToElement(event, this._terminal.screenElement!)[1];
 		const terminalHeight = this._terminal.renderService!.dimensions.css.canvas.height;
 		if (offset >= 0 && offset <= terminalHeight) {
 			return 0;
