@@ -40,7 +40,6 @@ import { ApcHandler } from '$lib/common/parser/ApcParser';
 import type { Buffer } from '$lib/common/buffer/Buffer';
 import { parseColor } from '$lib/common/input/XParseColor';
 import { LegacyEmitter } from '$lib/common/Event';
-import { XTERM_VERSION } from '$lib/common/Version';
 
 /**
  * Map collect to glevel. Used in `selectCharset`.
@@ -293,12 +292,6 @@ export class InputHandler {
 		this._parser.registerCsiHandler({ final: 'b' }, (params) =>
 			this.repeatPrecedingCharacter(params)
 		);
-		this._parser.registerCsiHandler({ final: 'c' }, (params) =>
-			this.sendDeviceAttributesPrimary(params)
-		);
-		this._parser.registerCsiHandler({ prefix: '>', final: 'c' }, (params) =>
-			this.sendDeviceAttributesSecondary(params)
-		);
 		this._parser.registerCsiHandler({ final: 'd' }, (params) => this.linePosAbsolute(params));
 		this._parser.registerCsiHandler({ final: 'e' }, (params) => this.vPositionRelative(params));
 		this._parser.registerCsiHandler({ final: 'f' }, (params) => this.hVPosition(params));
@@ -318,9 +311,6 @@ export class InputHandler {
 		);
 		this._parser.registerCsiHandler({ intermediates: '!', final: 'p' }, (params) =>
 			this.softReset(params)
-		);
-		this._parser.registerCsiHandler({ prefix: '>', final: 'q' }, (params) =>
-			this.sendXtVersion(params)
 		);
 		this._parser.registerCsiHandler({ intermediates: ' ', final: 'q' }, (params) =>
 			this.setCursorStyle(params)
@@ -1987,93 +1977,6 @@ export class InputHandler {
 			tlength += idata;
 		}
 		this.print(data, 0, tlength);
-		return true;
-	}
-
-	/**
-	 * CSI Ps c  Send Device Attributes (Primary DA).
-	 *     Ps = 0  or omitted -> request attributes from terminal.  The
-	 *     response depends on the decTerminalID resource setting.
-	 *     -> CSI ? 1 ; 2 c  (``VT100 with Advanced Video Option'')
-	 *     -> CSI ? 1 ; 0 c  (``VT101 with No Options'')
-	 *     -> CSI ? 6 c  (``VT102'')
-	 *     -> CSI ? 6 0 ; 1 ; 2 ; 6 ; 8 ; 9 ; 1 5 ; c  (``VT220'')
-	 *   The VT100-style response parameters do not mean anything by
-	 *   themselves.  VT220 parameters do, telling the host what fea-
-	 *   tures the terminal supports:
-	 *     Ps = 1  -> 132-columns.
-	 *     Ps = 2  -> Printer.
-	 *     Ps = 6  -> Selective erase.
-	 *     Ps = 8  -> User-defined keys.
-	 *     Ps = 9  -> National replacement character sets.
-	 *     Ps = 1 5  -> Technical characters.
-	 *     Ps = 2 2  -> ANSI color, e.g., VT525.
-	 *     Ps = 2 9  -> ANSI text locator (i.e., DEC Locator mode).
-	 *
-	 * @vt: #Y CSI DA1   "Primary Device Attributes"     "CSI c"  "Send primary device attributes."
-	 *
-	 *
-	 * TODO: fix and cleanup response
-	 */
-	public sendDeviceAttributesPrimary(params: Params): boolean {
-		if (params.params[0] > 0) {
-			return true;
-		}
-		this._terminal.coreService.triggerDataEvent(
-			this._terminal.optionsService.rawOptions.da1Response
-		);
-		return true;
-	}
-
-	/**
-	 * CSI > Ps c
-	 *   Send Device Attributes (Secondary DA).
-	 *     Ps = 0  or omitted -> request the terminal's identification
-	 *     code.  The response depends on the decTerminalID resource set-
-	 *     ting.  It should apply only to VT220 and up, but xterm extends
-	 *     this to VT100.
-	 *     -> CSI  > Pp ; Pv ; Pc c
-	 *   where Pp denotes the terminal type
-	 *     Pp = 0  -> ``VT100''.
-	 *     Pp = 1  -> ``VT220''.
-	 *   and Pv is the firmware version (for xterm, this was originally
-	 *   the XFree86 patch number, starting with 95).  In a DEC termi-
-	 *   nal, Pc indicates the ROM cartridge registration number and is
-	 *   always zero.
-	 * More information:
-	 *   xterm/charproc.c - line 2012, for more information.
-	 *   vim responds with ^[[?0c or ^[[?1c after the terminal's response (?)
-	 *
-	 * @vt: #Y CSI DA2   "Secondary Device Attributes"   "CSI > c" "Send primary device attributes."
-	 *
-	 *
-	 * TODO: fix and cleanup response
-	 */
-	public sendDeviceAttributesSecondary(params: Params): boolean {
-		if (params.params[0] > 0) {
-			return true;
-		}
-		this._terminal.coreService.triggerDataEvent(
-			this._terminal.optionsService.rawOptions.da2Response
-		);
-		return true;
-	}
-
-	/**
-	 * CSI > Ps q
-	 *   Ps = 0  => Report xterm name and version (XTVERSION).
-	 *
-	 * The response is a DCS sequence identifying the version: DCS > | text ST
-	 *
-	 * @vt: #Y CSI XTVERSION "Report Xterm Version" "CSI > q" "Report the terminal name and version."
-	 */
-	public sendXtVersion(params: Params): boolean {
-		if (params.params[0] > 0) {
-			return true;
-		}
-		this._terminal.coreService.triggerDataEvent(
-			`${C0.ESC}P>|xterm.js(${XTERM_VERSION})${C0.ESC}\\`
-		);
 		return true;
 	}
 
@@ -5988,32 +5891,6 @@ if (import.meta.vitest) {
 				expect(bufferService.cols).toBe(80);
 				await inputHandler.parseP('\x1b[?3h');
 				expect(bufferService.cols).toBe(132);
-			});
-		});
-		describe('XTVERSION (CSI > q, CSI > 0 q)', () => {
-			it('should report xterm.js version', async () => {
-				const stack: string[] = [];
-				coreService.onData((data) => stack.push(data));
-				await inputHandler.parseP('\x1b[>q');
-				expect(stack.length).toBe(1);
-				expect(
-					stack[0].match(/^\x1bP>\|xterm\.js\(\d+\.\d+\.\d+(-beta\.\d+)?\)\x1b\\/) // eslint-disable-line no-control-regex
-				).toBeTruthy();
-			});
-			it('should report xterm.js version for CSI > 0 q', async () => {
-				const stack: string[] = [];
-				coreService.onData((data) => stack.push(data));
-				await inputHandler.parseP('\x1b[>0q');
-				expect(stack.length).toBe(1);
-				expect(
-					stack[0].match(/^\x1bP>\|xterm\.js\(\d+\.\d+\.\d+(-beta\.\d+)?\)\x1b\\/) // eslint-disable-line no-control-regex
-				).toBeTruthy();
-			});
-			it('should not report for CSI > 1 q', async () => {
-				const stack: string[] = [];
-				coreService.onData((data) => stack.push(data));
-				await inputHandler.parseP('\x1b[>1q');
-				expect(stack.length).toBe(0);
 			});
 		});
 		describe('should correctly reset cells taken by wide chars', () => {

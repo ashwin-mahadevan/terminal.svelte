@@ -7,7 +7,6 @@ import type { IDisposable } from '$lib/common/Lifecycle';
 import type { CursorStyle } from '$lib/common/Types';
 import type { ITerminalOptions } from '$lib/common/services/Services';
 import { LegacyEmitter } from '$lib/common/Event';
-import { DA1_RESPONSE_XTERM, DA2_RESPONSE_XTERM } from '$lib/common/data/EscapeSequences';
 
 export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	cursorBlink: false,
@@ -36,8 +35,6 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
 	wordSeparator: ' ()[]{}\',"`',
 	altClickMovesCursor: true,
 	convertEol: false,
-	da1Response: DA1_RESPONSE_XTERM,
-	da2Response: DA2_RESPONSE_XTERM,
 	quirks: {},
 	vtExtensions: {}
 };
