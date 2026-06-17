@@ -105,3 +105,40 @@ export class CoreService {
 		this._onBinary.fire(data);
 	}
 }
+
+if (import.meta.vitest) {
+	const { describe, it, expect } = import.meta.vitest;
+	const { createMockBufferService, createMockOptionsService, createMockTerminal } =
+		await import('$lib/common/TestUtils');
+
+	describe('CoreService', () => {
+		describe('isCursorInitialized', () => {
+			it('should be false by default', () => {
+				const coreService = new CoreService(
+					createMockTerminal({
+						bufferService: createMockBufferService(80, 30),
+						optionsService: createMockOptionsService()
+					})
+				);
+				expect(coreService.isCursorInitialized).toBe(false);
+			});
+		});
+
+		describe('reset', () => {
+			it('should not affect isCursorInitialized', () => {
+				const coreService = new CoreService(
+					createMockTerminal({
+						bufferService: createMockBufferService(80, 30),
+						optionsService: createMockOptionsService()
+					})
+				);
+				coreService.isCursorInitialized = true;
+				coreService.reset();
+				expect(coreService.isCursorInitialized).toBe(true);
+				coreService.isCursorInitialized = false;
+				coreService.reset();
+				expect(coreService.isCursorInitialized).toBe(false);
+			});
+		});
+	});
+}
