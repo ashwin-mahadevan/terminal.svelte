@@ -80,8 +80,7 @@ export default defineConfig({
 				test: {
 					name: 'unit',
 					environment: 'node',
-					include: ['src/lib/**/*.test.ts'],
-					exclude: ['src/lib/**/*.svelte.test.ts'],
+					include: [],
 					includeSource: ['src/lib/**/*.ts']
 				}
 			}
