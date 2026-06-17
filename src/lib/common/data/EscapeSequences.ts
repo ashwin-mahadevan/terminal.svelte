@@ -152,3 +152,10 @@ export const enum C1 {
 export const enum C1ESCAPED {
 	ST = '\x1b\\'
 }
+
+export const DA1_RESPONSE_XTERM = '\x1b[?1;2c';
+export const DA1_RESPONSE_LINUX = '\x1b[?6c';
+export const DA2_RESPONSE_XTERM = '\x1b[>0;276;0c';
+export const DA2_RESPONSE_RXVT_UNICODE = '\x1b[>85;95;0c';
+export const DA2_RESPONSE_SCREEN = '\x1b[>83;40003;0c';
+export const DA2_RESPONSE_LINUX = '0c';

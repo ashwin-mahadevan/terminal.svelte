@@ -2019,11 +2019,9 @@ export class InputHandler {
 		if (params.params[0] > 0) {
 			return true;
 		}
-		if (this._is('xterm') || this._is('rxvt-unicode') || this._is('screen')) {
-			this._terminal.coreService.triggerDataEvent(C0.ESC + '[?1;2c');
-		} else if (this._is('linux')) {
-			this._terminal.coreService.triggerDataEvent(C0.ESC + '[?6c');
-		}
+		this._terminal.coreService.triggerDataEvent(
+			this._terminal.optionsService.rawOptions.da1Response
+		);
 		return true;
 	}
 
@@ -2055,20 +2053,9 @@ export class InputHandler {
 		if (params.params[0] > 0) {
 			return true;
 		}
-		// xterm and urxvt
-		// seem to spit this
-		// out around ~370 times (?).
-		if (this._is('xterm')) {
-			this._terminal.coreService.triggerDataEvent(C0.ESC + '[>0;276;0c');
-		} else if (this._is('rxvt-unicode')) {
-			this._terminal.coreService.triggerDataEvent(C0.ESC + '[>85;95;0c');
-		} else if (this._is('linux')) {
-			// not supported by linux console.
-			// linux console echoes parameters.
-			this._terminal.coreService.triggerDataEvent(params.params[0] + 'c');
-		} else if (this._is('screen')) {
-			this._terminal.coreService.triggerDataEvent(C0.ESC + '[>83;40003;0c');
-		}
+		this._terminal.coreService.triggerDataEvent(
+			this._terminal.optionsService.rawOptions.da2Response
+		);
 		return true;
 	}
 
@@ -2088,14 +2075,6 @@ export class InputHandler {
 			`${C0.ESC}P>|xterm.js(${XTERM_VERSION})${C0.ESC}\\`
 		);
 		return true;
-	}
-
-	/**
-	 * Evaluate if the current terminal is the given argument.
-	 * @param term The terminal name to evaluate
-	 */
-	private _is(term: string): boolean {
-		return (this._terminal.optionsService.rawOptions.termName + '').startsWith(term);
 	}
 
 	/**
@@ -6017,10 +5996,8 @@ if (import.meta.vitest) {
 				coreService.onData((data) => stack.push(data));
 				await inputHandler.parseP('\x1b[>q');
 				expect(stack.length).toBe(1);
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line no-control-regex
 				expect(
-					stack[0].match(/^\x1bP>\|xterm\.js\(\d+\.\d+\.\d+(-beta\.\d+)?\)\x1b\\/)
+					stack[0].match(/^\x1bP>\|xterm\.js\(\d+\.\d+\.\d+(-beta\.\d+)?\)\x1b\\/) // eslint-disable-line no-control-regex
 				).toBeTruthy();
 			});
 			it('should report xterm.js version for CSI > 0 q', async () => {
@@ -6028,10 +6005,8 @@ if (import.meta.vitest) {
 				coreService.onData((data) => stack.push(data));
 				await inputHandler.parseP('\x1b[>0q');
 				expect(stack.length).toBe(1);
-				// TODO: Fix this upstream type error.
-				// eslint-disable-next-line no-control-regex
 				expect(
-					stack[0].match(/^\x1bP>\|xterm\.js\(\d+\.\d+\.\d+(-beta\.\d+)?\)\x1b\\/)
+					stack[0].match(/^\x1bP>\|xterm\.js\(\d+\.\d+\.\d+(-beta\.\d+)?\)\x1b\\/) // eslint-disable-line no-control-regex
 				).toBeTruthy();
 			});
 			it('should not report for CSI > 1 q', async () => {
