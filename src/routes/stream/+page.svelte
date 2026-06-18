@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { EmulatorStream } from './stream-emulator.svelte.js';
+	import StreamEmulator from './stream-emulator.svelte';
 
 	let bells = $state(0);
-	let emulator = new EmulatorStream(() => bells++);
+	let emulator = $state<StreamEmulator>();
 
 	onMount(async () => {
-		const writer = emulator.writable.getWriter();
+		const writer = emulator!.writable.getWriter();
 		await writer.ready;
 
 		const enc = new TextEncoder();
@@ -17,20 +17,6 @@
 	});
 </script>
 
-<div
-	style="font-family: monospace; white-space: pre; background: black; color: lime; padding: 1rem;"
->
-	{#each emulator.buffer as row, r (r)}
-		<div>
-			{#each row as cell, c (c)}
-				<span
-					style={r === emulator.cursorRow && c === emulator.cursorCol
-						? 'background: lime; color: black;'
-						: ''}>{cell.char}</span
-				>
-			{/each}
-		</div>
-	{/each}
-</div>
+<StreamEmulator bind:this={emulator} onbell={() => bells++} />
 
 <p>Bells: {bells}</p>
