@@ -1,0 +1,73 @@
+[tools]
+node = "26"
+pnpm = "11"
+
+[settings]
+lockfile = true
+
+[tasks.install]
+run = """
+set -e
+pnpm install
+mkdir -p node_modules/.mise
+touch node_modules/.mise/install.stamp
+"""
+sources = ["package.json", "pnpm-lock.yaml", "mise.toml"]
+outputs = ["node_modules/.mise/install.stamp"]
+
+[tasks."install:playwright"]
+depends = ["install"]
+run = """
+set -e
+if [ -n "$CI" ]; then
+	pnpm exec playwright install --with-deps chromium
+else
+	pnpm exec playwright install chromium
+fi
+mkdir -p node_modules/.mise
+touch node_modules/.mise/playwright.stamp
+"""
+sources = ["package.json", "pnpm-lock.yaml", "playwright.config.ts", "mise.toml"]
+outputs = ["node_modules/.mise/playwright.stamp"]
+
+[tasks.dev]
+depends = ["install"]
+run = "pnpm exec vite dev"
+
+[tasks.build]
+depends = ["install"]
+run = "pnpm exec vite build"
+
+[tasks.preview]
+depends = ["install"]
+run = "pnpm exec vite preview"
+
+[tasks.checks]
+depends = ["check:*"]
+
+[tasks."check:format"]
+depends = ["install"]
+run = "pnpm exec prettier --check ."
+
+[tasks."check:lint"]
+depends = ["install"]
+run = "pnpm exec eslint ."
+
+[tasks."check:types"]
+depends = ["install"]
+run = "pnpm exec svelte-kit sync && pnpm exec svelte-check --tsconfig ./tsconfig.json"
+
+[tasks.tests]
+depends = ["test:*"]
+
+[tasks."test:browser"]
+depends = ["install:playwright", "build"]
+run = "pnpm exec playwright test"
+
+[tasks."test:component"]
+depends = ["install:playwright"]
+run = "pnpm exec vitest run --project component"
+
+[tasks."test:unit"]
+depends = ["install"]
+run = "pnpm exec vitest run --project unit"
