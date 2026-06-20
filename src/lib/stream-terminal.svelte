@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { Color, Emulator } from '$lib/stream-parser.svelte';
+	import type { Emulator } from '$lib/stream-parser.svelte';
+	import StreamTerminalCell from '$lib/terminal-stream-cell.svelte';
 
 	type Props = {
 		emulator: Emulator;
@@ -17,13 +18,6 @@
 			buf.lines.length - scrollOffset
 		)
 	);
-
-	function cssColor(c: Color): string | undefined {
-		if (!c) return undefined;
-		if (c.type === 'named') return c.name;
-		if (c.type === 'palette') return `var(--xterm-color-${c.index})`;
-		return `rgb(${c.r},${c.g},${c.b})`;
-	}
 </script>
 
 <div
@@ -38,26 +32,12 @@
 	{#each visibleLines as line, row (row)}
 		<div>
 			{#each line.cells as cell, col (col)}
-				{@const isCursor =
-					emulator.state.cursor.visible &&
-					emulator.state.cursor.x === col &&
-					emulator.state.cursor.y + scrollOffset === row}
-				{@const inv = cell?.attrs.inverse ?? false}
-				{@const fg = cssColor(
-					inv ? (cell?.attrs.background ?? null) : (cell?.attrs.foreground ?? null)
-				)}
-				{@const bg = cssColor(
-					inv ? (cell?.attrs.foreground ?? null) : (cell?.attrs.background ?? null)
-				)}
-				<span
-					style:color={isCursor ? '#000' : fg}
-					style:background-color={isCursor ? '#fff' : bg}
-					style:font-weight={cell?.attrs.bold ? 'bold' : undefined}
-					style:font-style={cell?.attrs.italic ? 'italic' : undefined}
-					style:text-decoration={cell?.attrs.underline ? 'underline' : undefined}
-					style:opacity={cell?.attrs.dim ? '0.5' : undefined}
-					style:visibility={cell?.attrs.invisible ? 'hidden' : undefined}>{cell?.text ?? ' '}</span
-				>
+				<StreamTerminalCell
+					{cell}
+					isCursor={emulator.state.cursor.visible &&
+						emulator.state.cursor.x === col &&
+						emulator.state.cursor.y + scrollOffset === row}
+				/>
 			{/each}
 		</div>
 	{/each}
