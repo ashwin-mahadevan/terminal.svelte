@@ -1,8 +1,8 @@
 type Color =
 	| null // default
-	| { type: "named"; name: string }
-	| { type: "palette"; index: number }
-	| { type: "rgb"; r: number; b: number; g: number }
+	| { type: 'named'; name: string }
+	| { type: 'palette'; index: number }
+	| { type: 'rgb'; r: number; b: number; g: number };
 
 type Attributes = {
 	foreground: Color;
@@ -15,7 +15,7 @@ type Attributes = {
 	inverse: boolean;
 	invisible: boolean;
 	strikethrough: boolean;
-}
+};
 
 type Cell = {
 	text: string;
@@ -23,28 +23,28 @@ type Cell = {
 	// or just as a null cell? I'm leaning towards null cell, since the
 	// attrs and text fields don't make sense for trailing halves.
 	width: 1 | 2;
-	attrs: Attributes
-}
+	attrs: Attributes;
+};
 
 type Line = {
 	cells: Cell[];
 	// this line continues the one above, so rejoin them before resizing.
 	wrapped: boolean;
-}
+};
 
 type Cursor = {
-	x: number
-	y: number
+	x: number;
+	y: number;
 
 	wrap: boolean;
 	visible: boolean;
-	style: "block" | "underline" | "bar"
+	style: 'block' | 'underline' | 'bar';
 
 	attrs: Attributes;
-}
+};
 
 type Buffer = {
-	lines: Array<Line>
+	lines: Array<Line>;
 	scrollback: Array<Line>;
 	scrollTop: number;
 	scrollBottom: number;
@@ -52,7 +52,7 @@ type Buffer = {
 
 	// Is the saved cursor data exactly the same as the regular cursor data?
 	saved?: Cursor;
-}
+};
 
 type Modes = {
 	autowrap: boolean;
@@ -62,61 +62,79 @@ type Modes = {
 	bracketedPaste: boolean;
 	appCursorKeys: boolean;
 	appKeypad: boolean;
-}
+};
 
 type State = {
 	title: string;
+	cols: number;
+	rows: number;
 
 	buffers: {
-		active: "main" | "alt";
-		main: Buffer
-		alt: Buffer
-	}
+		active: 'main' | 'alt';
+		main: Buffer;
+		alt: Buffer;
+	};
 
 	modes: Modes;
-	cursor: Cursor // Does this belong on buffer?
-}
+	cursor: Cursor; // Does this belong on buffer?
+};
 
 type Events = {
 	bell(): void;
-	
-}
+};
 
 const decoder = new TextDecoder();
-const segmenter = new Intl.Segmenter()
+const segmenter = new Intl.Segmenter();
 
-export function parser(
-	state: State,
-	events: Readonly<Events>
-) {
+export function parser(state: State, events: Readonly<Events>) {
 	function write(chunk: Uint8Array) {
 		let index = 0;
 		let start;
 
 		while ((start = index) < chunk.length) {
+			// Scan forward over the printable run so that start..index is the full
+			// run when we fall through to the flush below.
 			// Does this check work for non-ascii? We should accept any utf-8 eventually.
-			if ((chunk[index] >= 32) && (chunk[index] < 127)) {
-				// printable, so just advance the index.
+			while (index < chunk.length && chunk[index] >= 32 && chunk[index] < 127) {
 				index += 1;
-				continue;
 			}
-			// we have a control sequence, so flush the printables.
+			// flush the printables.
 
 			const str = decoder.decode(chunk.subarray(start, index));
 
+			// we do this even though we're expecting ascii in preparation for the future.
 			for (const { segment } of segmenter.segment(str)) {
+				const buf = state.buffers[state.buffers.active];
 
-				const cell = {
+				// autowrap: if x is past the last column, wrap or clamp before writing.
+				if (state.cursor.x >= state.cols) {
+					if (state.modes.autowrap) {
+						buf.lines[state.cursor.y].wrapped = true;
+						state.cursor.x = 0;
+						state.cursor.y += 1;
+						if (state.cursor.y > buf.scrollBottom) {
+							state.cursor.y = buf.scrollBottom;
+							buf.scrollback.push(buf.lines.splice(buf.scrollTop, 1)[0]);
+							buf.lines.splice(buf.scrollBottom, 0, { cells: [], wrapped: false });
+						}
+					} else {
+						state.cursor.x = state.cols - 1;
+					}
+				}
+
+				buf.lines[state.cursor.y].cells[state.cursor.x] = {
 					text: segment,
 					width: 1,
-				} satisfies Cell
+					attrs: { ...state.cursor.attrs }
+				} satisfies Cell;
 
-				// we'd do the actual state update here.
-				console.log(cell.width, cell.text);
+				state.cursor.x += 1;
 			}
 
+			if (index >= chunk.length) break;
+
 			// now check which control sequence we're handling
-			if (chunk[index] === 0x7b) {
+			if (chunk[index] === 0x07) {
 				// advance by the length of control sequence; csi, etc would be larger, and potentially dynamic (ie depends on number of params).
 				// this means we don't need any parser-specific state: we don't need to preserve params,
 				// we'll just build them inline before we dispatch the event.
@@ -130,9 +148,9 @@ export function parser(
 
 			// when we reach here we should have handled all control sequence cases,
 			// and we'd already handled the printables.
-			throw new Error()
+			throw new Error();
 		}
 	}
 
-	return new WritableStream<Uint8Array>({ write })
+	return new WritableStream<Uint8Array>({ write });
 }
