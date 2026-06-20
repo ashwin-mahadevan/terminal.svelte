@@ -19,9 +19,17 @@ type Attributes = {
 
 type Cell = {
 	text: string;
-	// Should we store trailing halves as 0, or just a null cell?
+	// Should we store trailing halves of wide characters as zero-width,
+	// or just as a null cell? I'm leaning towards null cell, since the
+	// attrs and text fields don't make sense for trailing halves.
 	width: 1 | 2;
 	attrs: Attributes
+}
+
+type Line = {
+	cells: Cell[];
+	// this line continues the one above, so rejoin them before resizing.
+	wrapped: boolean;
 }
 
 type Cursor = {
@@ -36,8 +44,8 @@ type Cursor = {
 }
 
 type Buffer = {
-	lines: Array<Array<Cell>>
-	scrollback: Array<Array<Cell>>;
+	lines: Array<Line>
+	scrollback: Array<Line>;
 	scrollTop: number;
 	scrollBottom: number;
 	tabStops: Set<number>;
@@ -110,7 +118,7 @@ export function parser(
 			// now check which control sequence we're handling
 			if (chunk[index] === 0x7b) {
 				// advance by the length of control sequence; csi, etc would be larger, and potentially dynamic (ie depends on number of params).
-				// this lets us need less parser state: we don't need to preserve params,
+				// this means we don't need any parser-specific state: we don't need to preserve params,
 				// we'll just build them inline before we dispatch the event.
 				index += 1;
 
