@@ -3,7 +3,7 @@ export type Color =
 	| { type: 'palette'; index: number }
 	| { type: 'rgb'; r: number; g: number; b: number };
 
-export type Attributes = {
+export type Attributes = Readonly<{
 	foreground: Color;
 	background: Color;
 	bold: boolean;
@@ -14,7 +14,7 @@ export type Attributes = {
 	inverse: boolean;
 	invisible: boolean;
 	strikethrough: boolean;
-};
+}>;
 
 export type Cell = {
 	text: string;
@@ -180,7 +180,7 @@ export class Emulator implements UnderlyingSink<Uint8Array> {
 				buf.lines[this.state.cursor.y].cells[this.state.cursor.x] = {
 					text: segment,
 					width: 1,
-					attrs: { ...this.state.cursor.attrs }
+					attrs: this.state.cursor.attrs
 				} satisfies Cell;
 
 				this.state.cursor.x += 1;
