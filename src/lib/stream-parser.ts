@@ -1,8 +1,8 @@
 type Color =
 	| null // default
-	| { type: 'named'; name: string }
-	| { type: 'palette'; index: number }
-	| { type: 'rgb'; r: number; b: number; g: number };
+	| { type: "named"; name: string }
+	| { type: "palette"; index: number }
+	| { type: "rgb"; r: number; b: number; g: number }
 
 type Attributes = {
 	foreground: Color;
@@ -15,7 +15,7 @@ type Attributes = {
 	inverse: boolean;
 	invisible: boolean;
 	strikethrough: boolean;
-};
+}
 
 type Cell = {
 	text: string;
@@ -23,36 +23,36 @@ type Cell = {
 	// or just as a null cell? I'm leaning towards null cell, since the
 	// attrs and text fields don't make sense for trailing halves.
 	width: 1 | 2;
-	attrs: Attributes;
-};
+	attrs: Attributes
+}
 
 type Line = {
 	cells: Cell[];
 	// this line continues the one above, so rejoin them before resizing.
 	wrapped: boolean;
-};
+}
 
 type Cursor = {
-	x: number;
-	y: number;
+	x: number
+	y: number
 
-	// pending wrap: cursor is visually at cols-1 but next write will wrap first.
 	wrap: boolean;
 	visible: boolean;
-	style: 'block' | 'underline' | 'bar';
+	style: "block" | "underline" | "bar"
 
 	attrs: Attributes;
-};
+}
 
 type Buffer = {
-	lines: Array<Line>;
+	lines: Array<Line>
 	scrollback: Array<Line>;
 	scrollTop: number;
 	scrollBottom: number;
 	tabStops: Set<number>;
 
+	// Is the saved cursor data exactly the same as the regular cursor data?
 	saved?: Cursor;
-};
+}
 
 type Modes = {
 	autowrap: boolean;
@@ -62,113 +62,77 @@ type Modes = {
 	bracketedPaste: boolean;
 	appCursorKeys: boolean;
 	appKeypad: boolean;
-};
+}
 
 type State = {
 	title: string;
-	cols: number;
-	rows: number;
 
 	buffers: {
-		active: 'main' | 'alt';
-		main: Buffer;
-		alt: Buffer;
-	};
+		active: "main" | "alt";
+		main: Buffer
+		alt: Buffer
+	}
 
 	modes: Modes;
-	cursor: Cursor; // Does this belong on buffer?
-};
+	cursor: Cursor // Does this belong on buffer?
+}
 
 type Events = {
 	bell(): void;
-};
-
-function defaultAttrs(): Attributes {
-	return {
-		foreground: null,
-		background: null,
-		bold: false,
-		dim: false,
-		italic: false,
-		underline: false,
-		blink: false,
-		inverse: false,
-		invisible: false,
-		strikethrough: false
-	};
+	
 }
 
-function emptyCell(): Cell {
-	return { text: ' ', width: 1, attrs: defaultAttrs() };
-}
+const decoder = new TextDecoder();
+const segmenter = new Intl.Segmenter()
 
-export function parser(state: State, events: Readonly<Events>) {
-	function activeBuffer(): Buffer {
-		return state.buffers[state.buffers.active];
-	}
-
-	// Scroll the active scroll region up by one line, pushing the top line into scrollback.
-	function scrollUp() {
-		const buf = activeBuffer();
-		buf.scrollback.push(buf.lines.splice(buf.scrollTop, 1)[0]);
-		buf.lines.splice(buf.scrollBottom, 0, {
-			cells: Array.from({ length: state.cols }, emptyCell),
-			wrapped: false
-		});
-	}
-
-	function print(chunk: Uint8Array, start: number, end: number) {
-		const buf = activeBuffer();
-		for (let i = start; i < end; i++) {
-			// If x is past the last column, we need to wrap or clamp before writing.
-			if (state.cursor.x >= state.cols) {
-				if (state.modes.autowrap) {
-					buf.lines[state.cursor.y].wrapped = true;
-					state.cursor.x = 0;
-					state.cursor.y++;
-					if (state.cursor.y > buf.scrollBottom) {
-						state.cursor.y = buf.scrollBottom;
-						scrollUp();
-					}
-				} else {
-					state.cursor.x = state.cols - 1;
-				}
-			}
-
-			buf.lines[state.cursor.y].cells[state.cursor.x] = {
-				text: String.fromCharCode(chunk[i]),
-				width: 1,
-				attrs: { ...state.cursor.attrs }
-			};
-			state.cursor.x++;
-		}
-	}
-
+export function parser(
+	state: State,
+	events: Readonly<Events>
+) {
 	function write(chunk: Uint8Array) {
 		let index = 0;
+		let start;
 
-		while (index < chunk.length) {
-			// Scan forward over printable ASCII (0x20–0x7e).
-			const printStart = index;
-			while (index < chunk.length && chunk[index] >= 0x20 && chunk[index] < 0x7f) {
-				index++;
+		while ((start = index) < chunk.length) {
+			// Does this check work for non-ascii? We should accept any utf-8 eventually.
+			if ((chunk[index] >= 32) && (chunk[index] < 127)) {
+				// printable, so just advance the index.
+				index += 1;
+				continue;
 			}
-			if (index > printStart) {
-				print(chunk, printStart, index);
+			// we have a control sequence, so flush the printables.
+
+			const str = decoder.decode(chunk.subarray(start, index));
+
+			for (const { segment } of segmenter.segment(str)) {
+
+				const cell = {
+					text: segment,
+					width: 1,
+				} satisfies Cell
+
+				// we'd do the actual state update here.
+				console.log(cell.width, cell.text);
 			}
 
-			if (index >= chunk.length) break;
+			// now check which control sequence we're handling
+			if (chunk[index] === 0x7b) {
+				// advance by the length of control sequence; csi, etc would be larger, and potentially dynamic (ie depends on number of params).
+				// this means we don't need any parser-specific state: we don't need to preserve params,
+				// we'll just build them inline before we dispatch the event.
+				index += 1;
 
-			// Dispatch the control byte.
-			// Control sequences are assumed not to be split across chunks.
-			const byte = chunk[index++];
-			if (byte === 0x07) {
+				// dispatch the event.
 				events.bell();
-			} else {
-				throw new Error(`Unhandled control byte: 0x${byte.toString(16)}`);
+
+				continue;
 			}
+
+			// when we reach here we should have handled all control sequence cases,
+			// and we'd already handled the printables.
+			throw new Error()
 		}
 	}
 
-	return new WritableStream<Uint8Array>({ write });
+	return new WritableStream<Uint8Array>({ write })
 }
