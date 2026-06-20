@@ -127,6 +127,29 @@ export class Emulator implements UnderlyingSink<Uint8Array> {
 		this.writable = new WritableStream(this);
 	}
 
+	lineFeed = () => {
+		const buf = this.state.buffers[this.state.buffers.active];
+		this.state.cursor.y += 1;
+		if (this.state.cursor.y > buf.scrollBottom) {
+			this.state.cursor.y = buf.scrollBottom;
+			const isMain = this.state.buffers.active === 'main';
+			const isFullScroll = buf.scrollTop === 0 && buf.scrollBottom === this.state.rows - 1;
+			if (isMain && isFullScroll) {
+				buf.lines.push({
+					cells: new Array(this.state.cols) as (Cell | undefined)[],
+					wrapped: false
+				});
+			} else {
+				const visibleStart = isMain ? buf.lines.length - this.state.rows : 0;
+				buf.lines.splice(visibleStart + buf.scrollTop, 1);
+				buf.lines.splice(visibleStart + buf.scrollBottom, 0, {
+					cells: new Array(this.state.cols) as (Cell | undefined)[],
+					wrapped: false
+				});
+			}
+		}
+	};
+
 	write = (chunk: Uint8Array) => {
 		let index = 0;
 		let start;
@@ -151,25 +174,7 @@ export class Emulator implements UnderlyingSink<Uint8Array> {
 					if (this.state.modes.autowrap) {
 						buf.lines[this.state.cursor.y].wrapped = true;
 						this.state.cursor.x = 0;
-						this.state.cursor.y += 1;
-						if (this.state.cursor.y > buf.scrollBottom) {
-							this.state.cursor.y = buf.scrollBottom;
-							const isMain = this.state.buffers.active === 'main';
-							const isFullScroll = buf.scrollTop === 0 && buf.scrollBottom === this.state.rows - 1;
-							if (isMain && isFullScroll) {
-								buf.lines.push({
-									cells: new Array(this.state.cols) as (Cell | undefined)[],
-									wrapped: false
-								});
-							} else {
-								const visibleStart = isMain ? buf.lines.length - this.state.rows : 0;
-								buf.lines.splice(visibleStart + buf.scrollTop, 1);
-								buf.lines.splice(visibleStart + buf.scrollBottom, 0, {
-									cells: new Array(this.state.cols) as (Cell | undefined)[],
-									wrapped: false
-								});
-							}
-						}
+						this.lineFeed();
 					} else {
 						this.state.cursor.x = this.state.cols - 1;
 					}
@@ -201,26 +206,7 @@ export class Emulator implements UnderlyingSink<Uint8Array> {
 
 			if (chunk[index] === 0x0a) {
 				index += 1;
-				const buf = this.state.buffers[this.state.buffers.active];
-				this.state.cursor.y += 1;
-				if (this.state.cursor.y > buf.scrollBottom) {
-					this.state.cursor.y = buf.scrollBottom;
-					const isMain = this.state.buffers.active === 'main';
-					const isFullScroll = buf.scrollTop === 0 && buf.scrollBottom === this.state.rows - 1;
-					if (isMain && isFullScroll) {
-						buf.lines.push({
-							cells: new Array(this.state.cols) as (Cell | undefined)[],
-							wrapped: false
-						});
-					} else {
-						const visibleStart = isMain ? buf.lines.length - this.state.rows : 0;
-						buf.lines.splice(visibleStart + buf.scrollTop, 1);
-						buf.lines.splice(visibleStart + buf.scrollBottom, 0, {
-							cells: new Array(this.state.cols) as (Cell | undefined)[],
-							wrapped: false
-						});
-					}
-				}
+				this.lineFeed();
 				continue;
 			}
 
