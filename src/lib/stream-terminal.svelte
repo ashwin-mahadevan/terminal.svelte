@@ -1,18 +1,13 @@
 <script lang="ts">
-	import { Emulator } from '$lib/stream-parser.svelte';
-	import type { Color, State, Events } from '$lib/stream-parser.svelte';
+	import type { Color, Emulator } from '$lib/stream-parser.svelte';
 
 	type Props = {
-		state: State;
-		events?: Events;
+		emulator: Emulator;
 	};
 
-	const { state, events }: Props = $props();
+	const { emulator }: Props = $props();
 
-	const emulator = new Emulator(state, events);
-	export const writable = emulator.writable;
-
-	const buf = $derived(state.buffers[state.buffers.active]);
+	const buf = $derived(emulator.state.buffers[emulator.state.buffers.active]);
 
 	function cssColor(c: Color): string | undefined {
 		if (!c) return undefined;
@@ -34,7 +29,10 @@
 	{#each buf.lines as line, row (row)}
 		<div>
 			{#each line.cells as cell, col (col)}
-				{@const isCursor = state.cursor.visible && state.cursor.x === col && state.cursor.y === row}
+				{@const isCursor =
+					emulator.state.cursor.visible &&
+					emulator.state.cursor.x === col &&
+					emulator.state.cursor.y === row}
 				{@const inv = cell?.attrs.inverse ?? false}
 				{@const fg = cssColor(
 					inv ? (cell?.attrs.background ?? null) : (cell?.attrs.foreground ?? null)

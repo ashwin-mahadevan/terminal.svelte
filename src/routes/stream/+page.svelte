@@ -1,19 +1,18 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { State } from '$lib/stream-parser.svelte';
+	import { Emulator, State } from '$lib/stream-parser.svelte';
 	import StreamTerminal from '$lib/stream-terminal.svelte';
 
-	const st = new State();
-	let terminal = $state<StreamTerminal>();
+	const emulator = new Emulator(new State(), { bell: () => console.log('BEL') });
 
 	onMount(async () => {
-		const writer = terminal!.writable.getWriter();
+		const writer = emulator.writable.getWriter();
 		await writer.write(new TextEncoder().encode('Hello, stream parser!'));
 		writer.releaseLock();
 	});
 </script>
 
-<StreamTerminal state={st} events={{ bell: () => console.log('BEL') }} bind:this={terminal} />
+<StreamTerminal {emulator} />
 
 <style>
 	:global(html, body) {
