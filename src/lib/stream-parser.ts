@@ -1,29 +1,77 @@
-interface Cell {
+type Color =
+	| null // default
+	| { type: "named"; name: string }
+	| { type: "palette"; index: number }
+	| { type: "rgb"; r: number; b: number; g: number }
+
+type Attributes = {
+	foreground: Color;
+	background: Color;
+	bold: boolean;
+	dim: boolean;
+	italic: boolean;
+	underline: boolean;
+	blink: boolean;
+	inverse: boolean;
+	invisible: boolean;
+	strikethrough: boolean;
+}
+
+type Cell = {
 	text: string;
-	width: number;
+	// Should we store trailing halves as 0, or just a null cell?
+	width: 1 | 2;
+	attrs: Attributes
 }
 
-interface Buffer {
-	lines: Array<Cell>
-}
-
-interface Cursor {
+type Cursor = {
 	x: number
 	y: number
+
+	wrap: boolean;
+	visible: boolean;
+	style: "block" | "underline" | "bar"
+
+	attrs: Attributes;
 }
 
-interface State {
+type Buffer = {
+	lines: Array<Array<Cell>>
+	scrollback: Array<Array<Cell>>;
+	scrollTop: number;
+	scrollBottom: number;
+	tabStops: Set<number>;
+
+	// Is the saved cursor data exactly the same as the regular cursor data?
+	saved?: Cursor;
+}
+
+type Modes = {
+	autowrap: boolean;
+	origin: boolean;
+	insert: boolean;
+	invertVideo: boolean;
+	bracketedPaste: boolean;
+	appCursorKeys: boolean;
+	appKeypad: boolean;
+}
+
+type State = {
+	title: string;
+
 	buffers: {
 		active: "main" | "alt";
 		main: Buffer
 		alt: Buffer
 	}
 
-	cursor: Cursor
+	modes: Modes;
+	cursor: Cursor // Does this belong on buffer?
 }
 
-interface Events {
+type Events = {
 	bell(): void;
+	
 }
 
 const decoder = new TextDecoder();
@@ -59,14 +107,16 @@ export function parser(
 				console.log(cell.width, cell.text);
 			}
 
-			// now handle the specific control sequence
-
+			// now check which control sequence we're handling
 			if (chunk[index] === 0x7b) {
-				// handle the actual control sequence.
+				// advance by the length of control sequence; csi, etc would be larger, and potentially dynamic (ie depends on number of params).
+				// this lets us need less parser state: we don't need to preserve params,
+				// we'll just build them inline before we dispatch the event.
+				index += 1;
+
+				// dispatch the event.
 				events.bell();
 
-				// advance by the length of control sequence; csi, etc would be larger.
-				index += 1;
 				continue;
 			}
 
