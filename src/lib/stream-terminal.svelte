@@ -8,6 +8,15 @@
 	const { emulator }: Props = $props();
 
 	const buf = $derived(emulator.state.buffers[emulator.state.buffers.active]);
+	const scrollOffset = $derived(
+		emulator.state.buffers.active === 'main' ? emulator.state.scrollOffset : 0
+	);
+	const visibleLines = $derived(
+		buf.lines.slice(
+			Math.max(0, buf.lines.length - emulator.state.rows - scrollOffset),
+			buf.lines.length - scrollOffset
+		)
+	);
 
 	function cssColor(c: Color): string | undefined {
 		if (!c) return undefined;
@@ -26,13 +35,13 @@
 	style:white-space="pre"
 	style:padding="4px 8px"
 >
-	{#each buf.lines as line, row (row)}
+	{#each visibleLines as line, row (row)}
 		<div>
 			{#each line.cells as cell, col (col)}
 				{@const isCursor =
 					emulator.state.cursor.visible &&
 					emulator.state.cursor.x === col &&
-					emulator.state.cursor.y === row}
+					emulator.state.cursor.y + scrollOffset === row}
 				{@const inv = cell?.attrs.inverse ?? false}
 				{@const fg = cssColor(
 					inv ? (cell?.attrs.background ?? null) : (cell?.attrs.foreground ?? null)

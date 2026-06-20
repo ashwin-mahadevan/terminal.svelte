@@ -66,7 +66,6 @@ class Modes {
 
 class BufferLines {
 	lines = $state<Line[]>([]);
-	scrollback = $state<Line[]>([]);
 	scrollTop = $state(0);
 	scrollBottom = $state(0);
 	tabStops = new Set<number>();
@@ -83,6 +82,7 @@ export class State {
 	title = $state('');
 	cols = $state(80);
 	rows = $state(24);
+	scrollOffset = $state(0);
 
 	buffers = new Buffers();
 
@@ -154,11 +154,24 @@ export class Emulator implements UnderlyingSink<Uint8Array> {
 						this.state.cursor.y += 1;
 						if (this.state.cursor.y > buf.scrollBottom) {
 							this.state.cursor.y = buf.scrollBottom;
-							buf.scrollback.push(buf.lines.splice(buf.scrollTop, 1)[0]);
-							buf.lines.splice(buf.scrollBottom, 0, {
-								cells: new Array(this.state.cols) as (Cell | undefined)[],
-								wrapped: false
-							});
+							const isMain = this.state.buffers.active === 'main';
+							const isFullScroll = buf.scrollTop === 0 && buf.scrollBottom === this.state.rows - 1;
+							if (isMain && isFullScroll) {
+								// Append a blank line; old top line naturally becomes scrollback history.
+								buf.lines.push({
+									cells: new Array(this.state.cols) as (Cell | undefined)[],
+									wrapped: false
+								});
+							} else {
+								// Partial scroll region or alt buffer: splice within the visible portion.
+								// Lines scrolled off the top of the region are discarded.
+								const visibleStart = isMain ? buf.lines.length - this.state.rows : 0;
+								buf.lines.splice(visibleStart + buf.scrollTop, 1);
+								buf.lines.splice(visibleStart + buf.scrollBottom, 0, {
+									cells: new Array(this.state.cols) as (Cell | undefined)[],
+									wrapped: false
+								});
+							}
 						}
 					} else {
 						this.state.cursor.x = this.state.cols - 1;
