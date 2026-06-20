@@ -115,13 +115,13 @@ const decoder = new TextDecoder();
 const segmenter = new Intl.Segmenter();
 
 export class Emulator implements UnderlyingSink<Uint8Array> {
-	state = $state<State>()!;
-	events: Events;
+	state;
+	events;
 
-	writable: WritableStream<Uint8Array>;
+	writable;
 
 	constructor(state: State, events?: Events) {
-		this.state = state;
+		this.state = $state(state);
 		this.events = events ?? {};
 
 		this.writable = new WritableStream(this);
