@@ -7,7 +7,8 @@
 
 	onMount(async () => {
 		const writer = emulator.writable.getWriter();
-		await writer.write(new TextEncoder().encode('Hello, stream parser!'));
+		const lines = Array.from({ length: 30 }, (_, i) => `Line ${i + 1}`).join('\r\n');
+		await writer.write(new TextEncoder().encode(lines));
 		writer.releaseLock();
 	});
 </script>
