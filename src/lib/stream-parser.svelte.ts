@@ -108,14 +108,26 @@ export class State {
 }
 
 export type Events = {
-	bell(): void;
+	bell?: () => void;
 };
 
 const decoder = new TextDecoder();
 const segmenter = new Intl.Segmenter();
 
-export function parser(state: State, events: Readonly<Events>) {
-	function write(chunk: Uint8Array) {
+export class Emulator implements UnderlyingSink<Uint8Array> {
+	state = $state<State>()!;
+	events: Events;
+
+	writable: WritableStream<Uint8Array>;
+
+	constructor(state: State, events?: Events) {
+		this.state = state;
+		this.events = events ?? {};
+
+		this.writable = new WritableStream(this);
+	}
+
+	write = (chunk: Uint8Array) => {
 		let index = 0;
 		let start;
 
@@ -132,34 +144,34 @@ export function parser(state: State, events: Readonly<Events>) {
 
 			// we do this even though we're expecting ascii in preparation for the future.
 			for (const { segment } of segmenter.segment(str)) {
-				const buf = state.buffers[state.buffers.active];
+				const buf = this.state.buffers[this.state.buffers.active];
 
 				// autowrap: if x is past the last column, wrap or clamp before writing.
-				if (state.cursor.x >= state.cols) {
-					if (state.modes.autowrap) {
-						buf.lines[state.cursor.y].wrapped = true;
-						state.cursor.x = 0;
-						state.cursor.y += 1;
-						if (state.cursor.y > buf.scrollBottom) {
-							state.cursor.y = buf.scrollBottom;
+				if (this.state.cursor.x >= this.state.cols) {
+					if (this.state.modes.autowrap) {
+						buf.lines[this.state.cursor.y].wrapped = true;
+						this.state.cursor.x = 0;
+						this.state.cursor.y += 1;
+						if (this.state.cursor.y > buf.scrollBottom) {
+							this.state.cursor.y = buf.scrollBottom;
 							buf.scrollback.push(buf.lines.splice(buf.scrollTop, 1)[0]);
 							buf.lines.splice(buf.scrollBottom, 0, {
-								cells: new Array(state.cols) as (Cell | undefined)[],
+								cells: new Array(this.state.cols) as (Cell | undefined)[],
 								wrapped: false
 							});
 						}
 					} else {
-						state.cursor.x = state.cols - 1;
+						this.state.cursor.x = this.state.cols - 1;
 					}
 				}
 
-				buf.lines[state.cursor.y].cells[state.cursor.x] = {
+				buf.lines[this.state.cursor.y].cells[this.state.cursor.x] = {
 					text: segment,
 					width: 1,
-					attrs: { ...state.cursor.attrs }
+					attrs: { ...this.state.cursor.attrs }
 				} satisfies Cell;
 
-				state.cursor.x += 1;
+				this.state.cursor.x += 1;
 			}
 
 			if (index >= chunk.length) break;
@@ -172,7 +184,7 @@ export function parser(state: State, events: Readonly<Events>) {
 				index += 1;
 
 				// dispatch the event.
-				events.bell();
+				this.events.bell?.();
 
 				continue;
 			}
@@ -181,7 +193,5 @@ export function parser(state: State, events: Readonly<Events>) {
 			// and we'd already handled the printables.
 			throw new Error();
 		}
-	}
-
-	return new WritableStream<Uint8Array>({ write });
+	};
 }

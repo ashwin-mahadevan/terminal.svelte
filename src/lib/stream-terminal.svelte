@@ -1,15 +1,16 @@
 <script lang="ts">
-	import { parser } from '$lib/stream-parser.svelte';
+	import { Emulator } from '$lib/stream-parser.svelte';
 	import type { Color, State, Events } from '$lib/stream-parser.svelte';
 
 	type Props = {
 		state: State;
-		events: Events;
+		events?: Events;
 	};
 
 	const { state, events }: Props = $props();
 
-	export const stream = parser(state, events);
+	const emulator = new Emulator(state, events);
+	export const writable = emulator.writable;
 
 	const buf = $derived(state.buffers[state.buffers.active]);
 

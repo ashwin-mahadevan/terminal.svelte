@@ -7,7 +7,7 @@
 	let terminal = $state<StreamTerminal>();
 
 	onMount(async () => {
-		const writer = terminal!.stream.getWriter();
+		const writer = terminal!.writable.getWriter();
 		await writer.write(new TextEncoder().encode('Hello, stream parser!'));
 		writer.releaseLock();
 	});
