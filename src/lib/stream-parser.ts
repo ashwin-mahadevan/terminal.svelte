@@ -1,10 +1,10 @@
-type Color =
+export type Color =
 	| null // default
 	| { type: 'named'; name: string }
 	| { type: 'palette'; index: number }
 	| { type: 'rgb'; r: number; b: number; g: number };
 
-type Attributes = {
+export type Attributes = {
 	foreground: Color;
 	background: Color;
 	bold: boolean;
@@ -17,7 +17,7 @@ type Attributes = {
 	strikethrough: boolean;
 };
 
-type Cell = {
+export type Cell = {
 	text: string;
 	// Should we store trailing halves of wide characters as zero-width,
 	// or just as a null cell? I'm leaning towards null cell, since the
@@ -26,13 +26,13 @@ type Cell = {
 	attrs: Attributes;
 };
 
-type Line = {
+export type Line = {
 	cells: Cell[];
 	// this line continues the one above, so rejoin them before resizing.
 	wrapped: boolean;
 };
 
-type Cursor = {
+export type Cursor = {
 	x: number;
 	y: number;
 
@@ -43,7 +43,7 @@ type Cursor = {
 	attrs: Attributes;
 };
 
-type Buffer = {
+export type Buffer = {
 	lines: Array<Line>;
 	scrollback: Array<Line>;
 	scrollTop: number;
@@ -54,7 +54,7 @@ type Buffer = {
 	saved?: Cursor;
 };
 
-type Modes = {
+export type Modes = {
 	autowrap: boolean;
 	origin: boolean;
 	insert: boolean;
@@ -64,7 +64,7 @@ type Modes = {
 	appKeypad: boolean;
 };
 
-type State = {
+export type State = {
 	title: string;
 	cols: number;
 	rows: number;
@@ -79,7 +79,7 @@ type State = {
 	cursor: Cursor; // Does this belong on buffer?
 };
 
-type Events = {
+export type Events = {
 	bell(): void;
 };
 
