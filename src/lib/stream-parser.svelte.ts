@@ -95,11 +95,11 @@ export class State {
 		this.rows = rows;
 		for (let i = 0; i < rows; i++) {
 			this.buffers.main.lines.push({
-				cells: new Array(cols) as (Cell | undefined)[],
+				cells: new Array<Cell | undefined>(cols),
 				wrapped: false
 			});
 			this.buffers.alt.lines.push({
-				cells: new Array(cols) as (Cell | undefined)[],
+				cells: new Array<Cell | undefined>(cols),
 				wrapped: false
 			});
 		}
@@ -118,15 +118,14 @@ const segmenter = new Intl.Segmenter();
 export class Emulator {
 	state = new State();
 
-
-	constructor(public events: Events = {}) { }
+	constructor(public events: Events = {}) {}
 
 	lineFeed = () => {
 		const buf = this.state.buffers[this.state.buffers.active];
 		this.state.cursor.y += 1;
 		if (this.state.cursor.y > buf.scrollBottom) {
 			this.state.cursor.y = buf.scrollBottom;
-			const blank: Line = { cells: new Array(this.state.cols) as (Cell | undefined)[], wrapped: false };
+			const blank: Line = { cells: new Array<Cell | undefined>(this.state.cols), wrapped: false };
 			const isMain = this.state.buffers.active === 'main';
 			const isFullScroll = buf.scrollTop === 0 && buf.scrollBottom === this.state.rows - 1;
 			if (isMain && isFullScroll) {
