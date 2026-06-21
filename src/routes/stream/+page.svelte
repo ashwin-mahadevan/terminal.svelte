@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Emulator, State } from '$lib/stream-parser.svelte';
+	import { Emulator } from '$lib/stream-parser.svelte';
 	import StreamTerminal from '$lib/stream-terminal.svelte';
 
-	const emulator = new Emulator(new State(), { bell: () => console.log('BEL') });
+	const emulator = new Emulator({ bell: () => console.log('BEL') });
 
 	onMount(async () => {
 		const writer = emulator.writable.getWriter();

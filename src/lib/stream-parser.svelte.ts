@@ -65,6 +65,7 @@ class Modes {
 }
 
 class BufferLines {
+	scrollback = $state<Line[]>([]);
 	lines = $state<Line[]>([]);
 	scrollTop = $state(0);
 	scrollBottom = $state(0);
@@ -114,43 +115,31 @@ export type Events = {
 const decoder = new TextDecoder();
 const segmenter = new Intl.Segmenter();
 
-export class Emulator implements UnderlyingSink<Uint8Array> {
-	state;
-	events;
+export class Emulator {
+	state = new State();
 
-	writable;
 
-	constructor(state: State, events?: Events) {
-		this.state = $state(state);
-		this.events = events ?? {};
-
-		this.writable = new WritableStream(this);
-	}
+	constructor(public events: Events = {}) { }
 
 	lineFeed = () => {
 		const buf = this.state.buffers[this.state.buffers.active];
 		this.state.cursor.y += 1;
 		if (this.state.cursor.y > buf.scrollBottom) {
 			this.state.cursor.y = buf.scrollBottom;
+			const blank: Line = { cells: new Array(this.state.cols) as (Cell | undefined)[], wrapped: false };
 			const isMain = this.state.buffers.active === 'main';
 			const isFullScroll = buf.scrollTop === 0 && buf.scrollBottom === this.state.rows - 1;
 			if (isMain && isFullScroll) {
-				buf.lines.push({
-					cells: new Array(this.state.cols) as (Cell | undefined)[],
-					wrapped: false
-				});
+				buf.scrollback.push(buf.lines.shift()!);
+				buf.lines.push(blank);
 			} else {
-				const visibleStart = isMain ? buf.lines.length - this.state.rows : 0;
-				buf.lines.splice(visibleStart + buf.scrollTop, 1);
-				buf.lines.splice(visibleStart + buf.scrollBottom, 0, {
-					cells: new Array(this.state.cols) as (Cell | undefined)[],
-					wrapped: false
-				});
+				buf.lines.splice(buf.scrollTop, 1);
+				buf.lines.splice(buf.scrollBottom, 0, blank);
 			}
 		}
 	};
 
-	write = (chunk: Uint8Array) => {
+	private write = (chunk: Uint8Array) => {
 		let index = 0;
 		let start;
 
@@ -215,4 +204,8 @@ export class Emulator implements UnderlyingSink<Uint8Array> {
 			throw new Error();
 		}
 	};
+
+	writable = new WritableStream({
+		write: this.write
+	});
 }

@@ -13,10 +13,12 @@
 		emulator.state.buffers.active === 'main' ? emulator.state.scrollOffset : 0
 	);
 	const visibleLines = $derived(
-		buf.lines.slice(
-			Math.max(0, buf.lines.length - emulator.state.rows - scrollOffset),
-			buf.lines.length - scrollOffset
-		)
+		scrollOffset === 0
+			? buf.lines
+			: [
+					...buf.scrollback.slice(Math.max(0, buf.scrollback.length - scrollOffset)),
+					...buf.lines.slice(0, emulator.state.rows - Math.min(scrollOffset, buf.scrollback.length))
+				]
 	);
 </script>
 
