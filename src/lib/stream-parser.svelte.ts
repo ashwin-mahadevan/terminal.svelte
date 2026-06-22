@@ -176,64 +176,19 @@ export class Emulator {
 		return index;
 	};
 
-	// Move the cursor up (negative) or down (positive) by whole visual rows.
-	// Since we no longer wrap lines into the grid ourselves, a logical line spans
-	// several visual rows; we flatten the viewport into the sequence of visual
-	// rows it renders as, step `rows` of them, and map back to a (line, column).
-	// This spills across logical-line boundaries exactly as grid wrapping would.
-	private cursorVertical = (rows: number): void => {
-		const cols = this.state.cols;
-		const lines = this.state.buffers[this.state.buffers.active].lines;
-		const heightOf = (line: Line) => Math.max(1, Math.ceil(line.cells.length / cols));
-
-		// Keep the column; find the cursor's current absolute visual row.
-		const col = this.state.cursor.x % cols;
-		let current = Math.floor(this.state.cursor.x / cols);
-		for (let i = 0; i < this.state.cursor.y; i++) current += heightOf(lines[i]);
-
-		// Clamp the target to the rendered rows (allowing the cursor's own row).
-		let total = 0;
-		for (const line of lines) total += heightOf(line);
-		total = Math.max(total, current + 1);
-		const target = Math.min(Math.max(0, current + rows), total - 1);
-
-		// Walk the target back to a logical line and the visual row within it.
-		let y = 0;
-		let within = target;
-		while (y < lines.length - 1 && within >= heightOf(lines[y])) {
-			within -= heightOf(lines[y]);
-			y += 1;
-		}
-
-		this.state.cursor.y = y;
-		this.state.cursor.x = within * cols + col;
-	};
-
-	// We model a few CSI commands: CUU/CUD (cursor up/down) and EL (erase in
-	// line), which line editors lean on to redraw the prompt. Everything else is
-	// intentionally ignored.
+	// We model exactly one CSI command: EL (erase in line), which line editors
+	// lean on to redraw the prompt. Everything else is intentionally ignored.
 	private csi = (final: number, params: string): void => {
-		// CUU ('A') / CUD ('B'): move the cursor up or down by whole visual rows.
-		if (final === 0x41 || final === 0x42) {
-			const n = parseInt(params, 10);
-			const rows = Number.isNaN(n) ? 1 : Math.max(1, n);
-			this.cursorVertical(final === 0x41 ? -rows : rows);
-			return;
-		}
-
 		if (final !== 0x4b) return; // 'K' = EL
 		const line = this.state.buffers[this.state.buffers.active].lines[this.state.cursor.y];
 		const mode = params === '' ? 0 : parseInt(params, 10);
 		const x = this.state.cursor.x;
-		// Lines can now be longer than `cols` (the browser wraps them), so clear to
-		// the end of the stored cells rather than stopping at the column count.
-		const end = line.cells.length;
 		if (mode === 1) {
-			for (let i = 0; i <= x && i < end; i++) line.cells[i] = undefined;
+			for (let i = 0; i <= x && i < this.state.cols; i++) line.cells[i] = undefined;
 		} else if (mode === 2) {
-			for (let i = 0; i < end; i++) line.cells[i] = undefined;
+			for (let i = 0; i < this.state.cols; i++) line.cells[i] = undefined;
 		} else {
-			for (let i = x; i < end; i++) line.cells[i] = undefined;
+			for (let i = x; i < this.state.cols; i++) line.cells[i] = undefined;
 		}
 	};
 
@@ -256,11 +211,17 @@ export class Emulator {
 			for (const { segment } of segmenter.segment(str)) {
 				const buf = this.state.buffers[this.state.buffers.active];
 
-				// No buffer-level wrapping: we let a line grow past `cols` and let the
-				// browser wrap it at the terminal's character width. Advancing the
-				// cursor simply extends the line — once `cols` divides x, the next cell
-				// lands at the start of the following visual row, which is the same as
-				// moving down a line.
+				// autowrap: if x is past the last column, wrap or clamp before writing.
+				if (this.state.cursor.x >= this.state.cols) {
+					if (this.state.modes.autowrap) {
+						buf.lines[this.state.cursor.y].wrapped = true;
+						this.state.cursor.x = 0;
+						this.lineFeed();
+					} else {
+						this.state.cursor.x = this.state.cols - 1;
+					}
+				}
+
 				buf.lines[this.state.cursor.y].cells[this.state.cursor.x] = {
 					text: segment,
 					width: 1,

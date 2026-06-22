@@ -56,11 +56,9 @@
 
 	const buf = $derived(emulator.state.buffers[emulator.state.buffers.active]);
 	// Render every row — scrollback plus the live viewport — and let the browser
-	// wrap long lines and scroll the overflow. A line's cells can exceed `cols`;
-	// the browser breaks them at the terminal's character width.
+	// scroll the overflow. The cursor's absolute row is its viewport row offset
+	// by however many lines have already scrolled off into scrollback.
 	const lines = $derived([...buf.scrollback, ...buf.lines]);
-	// The cursor's absolute row is its viewport row offset by the scrollback height.
-	const cursorRow = $derived(buf.scrollback.length + emulator.state.cursor.y);
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -76,26 +74,18 @@
 	style:font-family="monospace"
 	style:display="inline-block"
 	style:line-height="normal"
-	style:white-space="pre-wrap"
-	style:word-break="break-all"
-	style:width={`${emulator.state.cols}ch`}
+	style:white-space="pre"
 	style:padding="4px 8px"
 	style:outline="none"
 >
 	{#each lines as line, row (row)}
-		<!-- Render past the stored cells when the cursor sits beyond them — it can
-		     land there after a wrap or a cursor up/down jump — so it stays visible. -->
-		{@const count =
-			emulator.state.cursor.visible && cursorRow === row
-				? Math.max(line.cells.length, emulator.state.cursor.x + 1)
-				: line.cells.length}
 		<div>
-			{#each Array.from({ length: count }, (_, col) => col) as col (col)}
+			{#each line.cells as cell, col (col)}
 				<StreamTerminalCell
-					cell={line.cells[col]}
+					{cell}
 					isCursor={emulator.state.cursor.visible &&
 						emulator.state.cursor.x === col &&
-						cursorRow === row}
+						buf.scrollback.length + emulator.state.cursor.y === row}
 				/>
 			{/each}
 		</div>
