@@ -83,7 +83,6 @@ export class State {
 	title = $state('');
 	cols = $state(80);
 	rows = $state(24);
-	scrollOffset = $state(0);
 
 	buffers = new Buffers();
 
