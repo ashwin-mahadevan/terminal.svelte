@@ -138,6 +138,61 @@ export class Emulator {
 		}
 	};
 
+	// Minimal escape-sequence handling. We recognise the *structure* of CSI,
+	// OSC, and charset-designation sequences so the scanner can consume them,
+	// but only act on the few that matter for a basic prompt. `index` points at
+	// the byte just after ESC; the return value is the index past the sequence.
+	// Sequences split across chunk boundaries are dropped (see write()).
+	private escape = (chunk: Uint8Array, index: number): number => {
+		if (index >= chunk.length) return index;
+		const kind = chunk[index];
+		index += 1;
+
+		// CSI: ESC [ params... final(0x40-0x7e)
+		if (kind === 0x5b) {
+			let params = '';
+			while (index < chunk.length && !(chunk[index] >= 0x40 && chunk[index] <= 0x7e)) {
+				params += String.fromCharCode(chunk[index]);
+				index += 1;
+			}
+			if (index >= chunk.length) return index;
+			this.csi(chunk[index], params);
+			return index + 1;
+		}
+
+		// OSC: ESC ] ... terminated by BEL or ST (ESC \). We only need to skip it.
+		if (kind === 0x5d) {
+			while (index < chunk.length) {
+				if (chunk[index] === 0x07) return index + 1;
+				if (chunk[index] === 0x1b && chunk[index + 1] === 0x5c) return index + 2;
+				index += 1;
+			}
+			return index;
+		}
+
+		// Charset designation: ESC ( ) * + <id>. Consume the id so it isn't printed.
+		if (kind >= 0x28 && kind <= 0x2b) return index + 1;
+
+		// Any other single-byte ESC sequence (keypad mode, etc.) is already consumed.
+		return index;
+	};
+
+	// We model exactly one CSI command: EL (erase in line), which line editors
+	// lean on to redraw the prompt. Everything else is intentionally ignored.
+	private csi = (final: number, params: string): void => {
+		if (final !== 0x4b) return; // 'K' = EL
+		const line = this.state.buffers[this.state.buffers.active].lines[this.state.cursor.y];
+		const mode = params === '' ? 0 : parseInt(params, 10);
+		const x = this.state.cursor.x;
+		if (mode === 1) {
+			for (let i = 0; i <= x && i < this.state.cols; i++) line.cells[i] = undefined;
+		} else if (mode === 2) {
+			for (let i = 0; i < this.state.cols; i++) line.cells[i] = undefined;
+		} else {
+			for (let i = x; i < this.state.cols; i++) line.cells[i] = undefined;
+		}
+	};
+
 	private write = (chunk: Uint8Array) => {
 		let index = 0;
 		let start;
@@ -186,6 +241,12 @@ export class Emulator {
 				continue;
 			}
 
+			if (chunk[index] === 0x08) {
+				index += 1;
+				this.state.cursor.x = Math.max(0, this.state.cursor.x - 1);
+				continue;
+			}
+
 			if (chunk[index] === 0x0d) {
 				index += 1;
 				this.state.cursor.x = 0;
@@ -198,9 +259,14 @@ export class Emulator {
 				continue;
 			}
 
-			// when we reach here we should have handled all control sequence cases,
-			// and we'd already handled the printables.
-			throw new Error();
+			if (chunk[index] === 0x1b) {
+				index = this.escape(chunk, index + 1);
+				continue;
+			}
+
+			// Unknown control byte: consume and ignore so we never crash on a
+			// sequence we don't model. The MWE only needs the cases above.
+			index += 1;
 		}
 	};
 

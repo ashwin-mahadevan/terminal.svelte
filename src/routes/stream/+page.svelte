@@ -1,19 +1,25 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { io } from 'socket.io-client';
 	import { Emulator } from '$lib/stream-parser.svelte';
 	import StreamTerminal from '$lib/stream-terminal.svelte';
+	import { browser } from '$app/environment';
 
 	const emulator = new Emulator({ bell: () => console.log('BEL') });
+	const socket = (browser as true) && io();
+	const encoder = new TextEncoder();
 
-	onMount(async () => {
+	$effect(() => {
 		const writer = emulator.writable.getWriter();
-		const lines = Array.from({ length: 30 }, (_, i) => `Line ${i + 1}`).join('\r\n');
-		await writer.write(new TextEncoder().encode(lines));
-		writer.releaseLock();
+		const onOutput = (chunk: string) => writer.write(encoder.encode(chunk));
+		socket.on('output', onOutput);
+		return () => {
+			socket.off('output', onOutput);
+			writer.releaseLock();
+		};
 	});
 </script>
 
-<StreamTerminal {emulator} />
+<StreamTerminal {emulator} ondata={(data) => socket.emit('input', data)} />
 
 <style>
 	:global(html, body) {
