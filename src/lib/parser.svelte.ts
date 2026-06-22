@@ -35,7 +35,6 @@ class Cursor {
 	x = $state(0);
 	y = $state(0);
 
-	wrap = $state(false);
 	visible = $state(true);
 	style = $state<'block' | 'underline' | 'bar'>('block');
 
