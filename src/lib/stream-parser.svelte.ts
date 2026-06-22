@@ -183,12 +183,15 @@ export class Emulator {
 		const line = this.state.buffers[this.state.buffers.active].lines[this.state.cursor.y];
 		const mode = params === '' ? 0 : parseInt(params, 10);
 		const x = this.state.cursor.x;
+		// Lines can now be longer than `cols` (the browser wraps them), so clear to
+		// the end of the stored cells rather than stopping at the column count.
+		const end = line.cells.length;
 		if (mode === 1) {
-			for (let i = 0; i <= x && i < this.state.cols; i++) line.cells[i] = undefined;
+			for (let i = 0; i <= x && i < end; i++) line.cells[i] = undefined;
 		} else if (mode === 2) {
-			for (let i = 0; i < this.state.cols; i++) line.cells[i] = undefined;
+			for (let i = 0; i < end; i++) line.cells[i] = undefined;
 		} else {
-			for (let i = x; i < this.state.cols; i++) line.cells[i] = undefined;
+			for (let i = x; i < end; i++) line.cells[i] = undefined;
 		}
 	};
 
@@ -211,17 +214,11 @@ export class Emulator {
 			for (const { segment } of segmenter.segment(str)) {
 				const buf = this.state.buffers[this.state.buffers.active];
 
-				// autowrap: if x is past the last column, wrap or clamp before writing.
-				if (this.state.cursor.x >= this.state.cols) {
-					if (this.state.modes.autowrap) {
-						buf.lines[this.state.cursor.y].wrapped = true;
-						this.state.cursor.x = 0;
-						this.lineFeed();
-					} else {
-						this.state.cursor.x = this.state.cols - 1;
-					}
-				}
-
+				// No buffer-level wrapping: we let a line grow past `cols` and let the
+				// browser wrap it at the terminal's character width. Advancing the
+				// cursor simply extends the line — once `cols` divides x, the next cell
+				// lands at the start of the following visual row, which is the same as
+				// moving down a line.
 				buf.lines[this.state.cursor.y].cells[this.state.cursor.x] = {
 					text: segment,
 					width: 1,
