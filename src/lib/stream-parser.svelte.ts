@@ -176,9 +176,22 @@ export class Emulator {
 		return index;
 	};
 
-	// We model exactly one CSI command: EL (erase in line), which line editors
-	// lean on to redraw the prompt. Everything else is intentionally ignored.
+	// We model a few CSI commands: CUU/CUD (cursor up/down) and EL (erase in
+	// line), which line editors lean on to redraw the prompt. Everything else is
+	// intentionally ignored.
 	private csi = (final: number, params: string): void => {
+		// CUU ('A') / CUD ('B'): move up or down one visual row. Because a line can
+		// wrap across several visual rows, moving vertically is a ±cols jump within
+		// the same line — the column jump that simulates moving down (or up) a line.
+		if (final === 0x41 || final === 0x42) {
+			const n = parseInt(params, 10);
+			const rows = Number.isNaN(n) ? 1 : Math.max(1, n);
+			const delta = this.state.cols * rows;
+			this.state.cursor.x =
+				final === 0x41 ? Math.max(0, this.state.cursor.x - delta) : this.state.cursor.x + delta;
+			return;
+		}
+
 		if (final !== 0x4b) return; // 'K' = EL
 		const line = this.state.buffers[this.state.buffers.active].lines[this.state.cursor.y];
 		const mode = params === '' ? 0 : parseInt(params, 10);
