@@ -83,20 +83,21 @@
 	style:outline="none"
 >
 	{#each lines as line, row (row)}
+		<!-- Render past the stored cells when the cursor sits beyond them — it can
+		     land there after a wrap or a cursor up/down jump — so it stays visible. -->
+		{@const count =
+			emulator.state.cursor.visible && cursorRow === row
+				? Math.max(line.cells.length, emulator.state.cursor.x + 1)
+				: line.cells.length}
 		<div>
-			{#each line.cells as cell, col (col)}
+			{#each Array.from({ length: count }, (_, col) => col) as col (col)}
 				<StreamTerminalCell
-					{cell}
+					cell={line.cells[col]}
 					isCursor={emulator.state.cursor.visible &&
 						emulator.state.cursor.x === col &&
 						cursorRow === row}
 				/>
 			{/each}
-			<!-- The cursor can sit one past the last stored cell (e.g. at the wrap
-			     boundary); render an extra cell there so it stays visible. -->
-			{#if emulator.state.cursor.visible && cursorRow === row && emulator.state.cursor.x >= line.cells.length}
-				<StreamTerminalCell cell={undefined} isCursor={true} />
-			{/if}
 		</div>
 	{/each}
 </div>

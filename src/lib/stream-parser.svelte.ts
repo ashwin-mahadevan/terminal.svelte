@@ -176,19 +176,48 @@ export class Emulator {
 		return index;
 	};
 
+	// Move the cursor up (negative) or down (positive) by whole visual rows.
+	// Since we no longer wrap lines into the grid ourselves, a logical line spans
+	// several visual rows; we flatten the viewport into the sequence of visual
+	// rows it renders as, step `rows` of them, and map back to a (line, column).
+	// This spills across logical-line boundaries exactly as grid wrapping would.
+	private cursorVertical = (rows: number): void => {
+		const cols = this.state.cols;
+		const lines = this.state.buffers[this.state.buffers.active].lines;
+		const heightOf = (line: Line) => Math.max(1, Math.ceil(line.cells.length / cols));
+
+		// Keep the column; find the cursor's current absolute visual row.
+		const col = this.state.cursor.x % cols;
+		let current = Math.floor(this.state.cursor.x / cols);
+		for (let i = 0; i < this.state.cursor.y; i++) current += heightOf(lines[i]);
+
+		// Clamp the target to the rendered rows (allowing the cursor's own row).
+		let total = 0;
+		for (const line of lines) total += heightOf(line);
+		total = Math.max(total, current + 1);
+		const target = Math.min(Math.max(0, current + rows), total - 1);
+
+		// Walk the target back to a logical line and the visual row within it.
+		let y = 0;
+		let within = target;
+		while (y < lines.length - 1 && within >= heightOf(lines[y])) {
+			within -= heightOf(lines[y]);
+			y += 1;
+		}
+
+		this.state.cursor.y = y;
+		this.state.cursor.x = within * cols + col;
+	};
+
 	// We model a few CSI commands: CUU/CUD (cursor up/down) and EL (erase in
 	// line), which line editors lean on to redraw the prompt. Everything else is
 	// intentionally ignored.
 	private csi = (final: number, params: string): void => {
-		// CUU ('A') / CUD ('B'): move up or down one visual row. Because a line can
-		// wrap across several visual rows, moving vertically is a ±cols jump within
-		// the same line — the column jump that simulates moving down (or up) a line.
+		// CUU ('A') / CUD ('B'): move the cursor up or down by whole visual rows.
 		if (final === 0x41 || final === 0x42) {
 			const n = parseInt(params, 10);
 			const rows = Number.isNaN(n) ? 1 : Math.max(1, n);
-			const delta = this.state.cols * rows;
-			this.state.cursor.x =
-				final === 0x41 ? Math.max(0, this.state.cursor.x - delta) : this.state.cursor.x + delta;
+			this.cursorVertical(final === 0x41 ? -rows : rows);
 			return;
 		}
 
