@@ -17,77 +17,52 @@ export type Attributes = Readonly<{
 	strikethrough: boolean;
 }>;
 
+const DEFAULT_ATTRIBUTES = {
+	foreground: null,
+	background: null,
+	bold: false,
+	dim: false,
+	italic: false,
+	underline: false,
+	blink: false,
+	inverse: false,
+	invisible: false,
+	strikethrough: false
+} as const satisfies Attributes
+
 export type Cell = {
 	text: string;
-	// Should we store trailing halves of wide characters as zero-width,
-	// or just as a null cell? I'm leaning towards null cell, since the
-	// attrs and text fields don't make sense for trailing halves.
-	width: 1 | 2;
 	attrs: Attributes;
 };
 
 export type Line = {
-	cells: (Cell | undefined)[];
-	// this line continues the one above, so rejoin them before resizing.
-	wrapped: boolean;
-};
+	cells: Array<Cell>;
 
-class Cursor {
-	x = $state(0);
-	y = $state(0);
-
-	visible = $state(true);
-	style = $state<'block' | 'underline' | 'bar'>('block');
-
-	attrs = $state<Attributes>({
-		foreground: null,
-		background: null,
-		bold: false,
-		dim: false,
-		italic: false,
-		underline: false,
-		blink: false,
-		inverse: false,
-		invisible: false,
-		strikethrough: false
-	});
-}
-
-class Modes {
-	autowrap = $state(true);
-	origin = $state(false);
-	insert = $state(false);
-	invertVideo = $state(false);
-	bracketedPaste = $state(false);
-	appCursorKeys = $state(false);
-	appKeypad = $state(false);
-}
-
-class BufferLines {
-	scrollback = $state<Line[]>([]);
-	lines = $state<Line[]>([]);
-	tabStops = new Set<number>();
-	saved = $state<Cursor | undefined>(undefined);
+	// true if the next line is a continutation of this one.
+	overflow: boolean;
 }
 
 export class State {
-	title = $state('');
-	cols = $state(80);
-	rows = $state(24);
+	columns: number
+	rows: number
 
-	buffer = new BufferLines();
+	buffer: Array<Line>
 
-	modes = new Modes();
-	cursor = new Cursor();
+	// Cursor
+	x: number;
+	y: number;
+	style: 'block' | 'underline' | 'bar';
+	attributes: Attributes;
 
-	constructor(cols = 80, rows = 24) {
-		this.cols = cols;
-		this.rows = rows;
-		for (let i = 0; i < rows; i++) {
-			this.buffer.lines.push({
-				cells: new Array<Cell | undefined>(cols),
-				wrapped: false
-			});
-		}
+	constructor(columns = 80, rows = 24) {
+		this.columns = $state(columns);
+		this.rows = $state(rows);
+
+		this.buffer = $state(new Array(rows));
+
+		this.x = $state(0);
+		this.y = $state(0);
+		this.style = $state('block');
+		this.attributes = $state(DEFAULT_ATTRIBUTES)
 	}
 }
