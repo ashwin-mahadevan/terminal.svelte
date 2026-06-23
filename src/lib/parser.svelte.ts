@@ -41,7 +41,23 @@ export class Emulator {
 				index += 1;
 			}
 			if (index >= chunk.length) return index;
-			this.csi(chunk[index], params);
+
+			// We model exactly one CSI command: EL (erase in line), which line
+			// editors lean on to redraw the prompt. Everything else is ignored.
+			const final = chunk[index];
+			if (final === 0x4b) {
+				// 'K' = EL
+				const line = this.state.buffer[this.state.y];
+				const mode = params === '' ? 0 : parseInt(params, 10);
+				const x = this.state.x;
+				if (mode === 1) {
+					for (let i = 0; i <= x && i < this.state.columns; i++) line.cells[i] = undefined;
+				} else if (mode === 2) {
+					for (let i = 0; i < this.state.columns; i++) line.cells[i] = undefined;
+				} else {
+					for (let i = x; i < this.state.columns; i++) line.cells[i] = undefined;
+				}
+			}
 			return index + 1;
 		}
 
@@ -60,22 +76,6 @@ export class Emulator {
 
 		// Any other single-byte ESC sequence (keypad mode, etc.) is already consumed.
 		return index;
-	};
-
-	// We model exactly one CSI command: EL (erase in line), which line editors
-	// lean on to redraw the prompt. Everything else is intentionally ignored.
-	private csi = (final: number, params: string): void => {
-		if (final !== 0x4b) return; // 'K' = EL
-		const line = this.state.buffer[this.state.y];
-		const mode = params === '' ? 0 : parseInt(params, 10);
-		const x = this.state.x;
-		if (mode === 1) {
-			for (let i = 0; i <= x && i < this.state.columns; i++) line.cells[i] = undefined;
-		} else if (mode === 2) {
-			for (let i = 0; i < this.state.columns; i++) line.cells[i] = undefined;
-		} else {
-			for (let i = x; i < this.state.columns; i++) line.cells[i] = undefined;
-		}
 	};
 
 	write = (chunk: Uint8Array) => {
