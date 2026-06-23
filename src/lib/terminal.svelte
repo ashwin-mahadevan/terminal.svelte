@@ -54,11 +54,10 @@
 		ondata?.(data);
 	}
 
-	const buf = $derived(emulator.state.buffers[emulator.state.buffers.active]);
 	// Render every row — scrollback plus the live viewport — and let the browser
 	// scroll the overflow. The cursor's absolute row is its viewport row offset
 	// by however many lines have already scrolled off into scrollback.
-	const lines = $derived([...buf.scrollback, ...buf.lines]);
+	const lines = $derived([...emulator.state.buffer.scrollback, ...emulator.state.buffer.lines]);
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -85,7 +84,7 @@
 					{cell}
 					isCursor={emulator.state.cursor.visible &&
 						emulator.state.cursor.x === col &&
-						buf.scrollback.length + emulator.state.cursor.y === row}
+						emulator.state.buffer.scrollback.length + emulator.state.cursor.y === row}
 				/>
 			{/each}
 		</div>

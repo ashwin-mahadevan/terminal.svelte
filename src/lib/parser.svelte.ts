@@ -14,14 +14,13 @@ export class Emulator {
 	constructor(public events: Events = {}) {}
 
 	lineFeed = () => {
-		const buf = this.state.buffers[this.state.buffers.active];
+		const buf = this.state.buffer;
 		this.state.cursor.y += 1;
 		if (this.state.cursor.y > buf.scrollBottom) {
 			this.state.cursor.y = buf.scrollBottom;
 			const blank: Line = { cells: new Array<Cell | undefined>(this.state.cols), wrapped: false };
-			const isMain = this.state.buffers.active === 'main';
 			const isFullScroll = buf.scrollTop === 0 && buf.scrollBottom === this.state.rows - 1;
-			if (isMain && isFullScroll) {
+			if (isFullScroll) {
 				buf.scrollback.push(buf.lines.shift()!);
 				buf.lines.push(blank);
 			} else {
@@ -74,7 +73,7 @@ export class Emulator {
 	// lean on to redraw the prompt. Everything else is intentionally ignored.
 	private csi = (final: number, params: string): void => {
 		if (final !== 0x4b) return; // 'K' = EL
-		const line = this.state.buffers[this.state.buffers.active].lines[this.state.cursor.y];
+		const line = this.state.buffer.lines[this.state.cursor.y];
 		const mode = params === '' ? 0 : parseInt(params, 10);
 		const x = this.state.cursor.x;
 		if (mode === 1) {
@@ -103,7 +102,7 @@ export class Emulator {
 
 			// we do this even though we're expecting ascii in preparation for the future.
 			for (const { segment } of segmenter.segment(str)) {
-				const buf = this.state.buffers[this.state.buffers.active];
+				const buf = this.state.buffer;
 
 				// autowrap: if x is past the last column, wrap or clamp before writing.
 				if (this.state.cursor.x >= this.state.cols) {

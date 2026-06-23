@@ -72,18 +72,12 @@ class BufferLines {
 	saved = $state<Cursor | undefined>(undefined);
 }
 
-class Buffers {
-	active = $state<'main' | 'alt'>('main');
-	main = new BufferLines();
-	alt = new BufferLines();
-}
-
 export class State {
 	title = $state('');
 	cols = $state(80);
 	rows = $state(24);
 
-	buffers = new Buffers();
+	buffer = new BufferLines();
 
 	modes = new Modes();
 	cursor = new Cursor();
@@ -92,16 +86,11 @@ export class State {
 		this.cols = cols;
 		this.rows = rows;
 		for (let i = 0; i < rows; i++) {
-			this.buffers.main.lines.push({
-				cells: new Array<Cell | undefined>(cols),
-				wrapped: false
-			});
-			this.buffers.alt.lines.push({
+			this.buffer.lines.push({
 				cells: new Array<Cell | undefined>(cols),
 				wrapped: false
 			});
 		}
-		this.buffers.main.scrollBottom = rows - 1;
-		this.buffers.alt.scrollBottom = rows - 1;
+		this.buffer.scrollBottom = rows - 1;
 	}
 }
