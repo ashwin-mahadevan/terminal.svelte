@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Cell, Color } from '$lib/parser.svelte';
+	import type { Cell, Color } from '$lib/state.svelte';
 
 	type Props = {
 		cell: Cell | undefined;
