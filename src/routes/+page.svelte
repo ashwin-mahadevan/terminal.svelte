@@ -9,12 +9,10 @@
 	const encoder = new TextEncoder();
 
 	$effect(() => {
-		const writer = emulator.writable.getWriter();
-		const onOutput = (chunk: string) => writer.write(encoder.encode(chunk));
+		const onOutput = (chunk: string) => emulator.write(encoder.encode(chunk));
 		socket.on('output', onOutput);
 		return () => {
 			socket.off('output', onOutput);
-			writer.releaseLock();
 		};
 	});
 </script>

@@ -79,7 +79,7 @@ export class Emulator {
 		}
 	};
 
-	private write = (chunk: Uint8Array) => {
+	write = (chunk: Uint8Array) => {
 		let index = 0;
 		let start;
 
@@ -155,8 +155,4 @@ export class Emulator {
 			index += 1;
 		}
 	};
-
-	writable = new WritableStream({
-		write: this.write
-	});
 }
