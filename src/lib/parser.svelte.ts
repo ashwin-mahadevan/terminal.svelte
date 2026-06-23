@@ -16,17 +16,11 @@ export class Emulator {
 	lineFeed = () => {
 		const buf = this.state.buffer;
 		this.state.cursor.y += 1;
-		if (this.state.cursor.y > buf.scrollBottom) {
-			this.state.cursor.y = buf.scrollBottom;
+		if (this.state.cursor.y > this.state.rows - 1) {
+			this.state.cursor.y = this.state.rows - 1;
 			const blank: Line = { cells: new Array<Cell | undefined>(this.state.cols), wrapped: false };
-			const isFullScroll = buf.scrollTop === 0 && buf.scrollBottom === this.state.rows - 1;
-			if (isFullScroll) {
-				buf.scrollback.push(buf.lines.shift()!);
-				buf.lines.push(blank);
-			} else {
-				buf.lines.splice(buf.scrollTop, 1);
-				buf.lines.splice(buf.scrollBottom, 0, blank);
-			}
+			buf.scrollback.push(buf.lines.shift()!);
+			buf.lines.push(blank);
 		}
 	};
 

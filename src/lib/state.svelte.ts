@@ -65,8 +65,6 @@ class Modes {
 class BufferLines {
 	scrollback = $state<Line[]>([]);
 	lines = $state<Line[]>([]);
-	scrollTop = $state(0);
-	scrollBottom = $state(0);
 	tabStops = new Set<number>();
 	saved = $state<Cursor | undefined>(undefined);
 }
@@ -90,6 +88,5 @@ export class State {
 				wrapped: false
 			});
 		}
-		this.buffer.scrollBottom = rows - 1;
 	}
 }
