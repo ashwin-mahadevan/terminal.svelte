@@ -28,7 +28,7 @@ const DEFAULT_ATTRIBUTES = {
 	inverse: false,
 	invisible: false,
 	strikethrough: false
-} as const satisfies Attributes
+} as const satisfies Attributes;
 
 export type Cell = {
 	text: string;
@@ -36,17 +36,17 @@ export type Cell = {
 };
 
 export type Line = {
-	cells: Array<Cell>;
+	cells: Array<Cell | undefined>;
 
 	// true if the next line is a continutation of this one.
 	overflow: boolean;
-}
+};
 
 export class State {
-	columns: number
-	rows: number
+	columns: number;
+	rows: number;
 
-	buffer: Array<Line>
+	buffer: Array<Line>;
 
 	// Cursor
 	x: number;
@@ -58,11 +58,13 @@ export class State {
 		this.columns = $state(columns);
 		this.rows = $state(rows);
 
-		this.buffer = $state(new Array(rows));
+		this.buffer = $state(
+			Array.from({ length: rows }, () => ({ cells: new Array(columns), overflow: false }))
+		);
 
 		this.x = $state(0);
 		this.y = $state(0);
 		this.style = $state('block');
-		this.attributes = $state(DEFAULT_ATTRIBUTES)
+		this.attributes = $state(DEFAULT_ATTRIBUTES);
 	}
 }

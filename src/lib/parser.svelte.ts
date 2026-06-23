@@ -14,13 +14,12 @@ export class Emulator {
 	constructor(public events: Events = {}) {}
 
 	lineFeed = () => {
-		const buf = this.state.buffer;
-		this.state.cursor.y += 1;
-		if (this.state.cursor.y > this.state.rows - 1) {
-			this.state.cursor.y = this.state.rows - 1;
-			const blank: Line = { cells: new Array<Cell | undefined>(this.state.cols), wrapped: false };
-			buf.scrollback.push(buf.lines.shift()!);
-			buf.lines.push(blank);
+		this.state.y += 1;
+		if (this.state.y > this.state.rows - 1) {
+			this.state.y = this.state.rows - 1;
+			const blank: Line = { cells: new Array(this.state.columns), overflow: false };
+			this.state.buffer.shift();
+			this.state.buffer.push(blank);
 		}
 	};
 
@@ -67,15 +66,15 @@ export class Emulator {
 	// lean on to redraw the prompt. Everything else is intentionally ignored.
 	private csi = (final: number, params: string): void => {
 		if (final !== 0x4b) return; // 'K' = EL
-		const line = this.state.buffer.lines[this.state.cursor.y];
+		const line = this.state.buffer[this.state.y];
 		const mode = params === '' ? 0 : parseInt(params, 10);
-		const x = this.state.cursor.x;
+		const x = this.state.x;
 		if (mode === 1) {
-			for (let i = 0; i <= x && i < this.state.cols; i++) line.cells[i] = undefined;
+			for (let i = 0; i <= x && i < this.state.columns; i++) line.cells[i] = undefined;
 		} else if (mode === 2) {
-			for (let i = 0; i < this.state.cols; i++) line.cells[i] = undefined;
+			for (let i = 0; i < this.state.columns; i++) line.cells[i] = undefined;
 		} else {
-			for (let i = x; i < this.state.cols; i++) line.cells[i] = undefined;
+			for (let i = x; i < this.state.columns; i++) line.cells[i] = undefined;
 		}
 	};
 
@@ -96,26 +95,19 @@ export class Emulator {
 
 			// we do this even though we're expecting ascii in preparation for the future.
 			for (const { segment } of segmenter.segment(str)) {
-				const buf = this.state.buffer;
-
-				// autowrap: if x is past the last column, wrap or clamp before writing.
-				if (this.state.cursor.x >= this.state.cols) {
-					if (this.state.modes.autowrap) {
-						buf.lines[this.state.cursor.y].wrapped = true;
-						this.state.cursor.x = 0;
-						this.lineFeed();
-					} else {
-						this.state.cursor.x = this.state.cols - 1;
-					}
+				// autowrap: if x is past the last column, wrap before writing.
+				if (this.state.x >= this.state.columns) {
+					this.state.buffer[this.state.y].overflow = true;
+					this.state.x = 0;
+					this.lineFeed();
 				}
 
-				buf.lines[this.state.cursor.y].cells[this.state.cursor.x] = {
+				this.state.buffer[this.state.y].cells[this.state.x] = {
 					text: segment,
-					width: 1,
-					attrs: this.state.cursor.attrs
+					attrs: this.state.attributes
 				} satisfies Cell;
 
-				this.state.cursor.x += 1;
+				this.state.x += 1;
 			}
 
 			if (index >= chunk.length) break;
@@ -129,13 +121,13 @@ export class Emulator {
 
 			if (chunk[index] === 0x08) {
 				index += 1;
-				this.state.cursor.x = Math.max(0, this.state.cursor.x - 1);
+				this.state.x = Math.max(0, this.state.x - 1);
 				continue;
 			}
 
 			if (chunk[index] === 0x0d) {
 				index += 1;
-				this.state.cursor.x = 0;
+				this.state.x = 0;
 				continue;
 			}
 
