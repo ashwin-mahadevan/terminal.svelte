@@ -4,9 +4,14 @@ import type { State } from './grapheme';
 
 const encoder = new TextEncoder();
 
-// The official UAX #29 GraphemeBreakTest cases (Unicode 17.0). `name` is the
-// human-readable description from the test file (character names + rule numbers);
-// `bytes` is the UTF-8 encoding; `want` is the expected cluster-end byte offsets.
+/**
+ * The official UAX #29 GraphemeBreakTest cases (Unicode 17.0).
+ * https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt.
+ * 
+ * `name` is the human-readable description from the test file (character names + rule numbers);
+ * `bytes` is the UTF-8 encoding;
+ * `want` is the expected cluster-end byte offsets.
+ */
 const CASES: Array<{ name: string; bytes: Uint8Array; want: number[] }> = [
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
