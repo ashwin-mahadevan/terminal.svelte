@@ -6,14 +6,14 @@
 
 	const emulator = new Emulator({ bell: () => console.log('BEL') });
 	const socket = (browser as true) && io();
-	const encoder = new TextEncoder();
 
 	$effect(() => {
-		const onOutput = (chunk: string) => emulator.write(encoder.encode(chunk));
-		socket.on('output', onOutput);
-		return () => {
-			socket.off('output', onOutput);
+		const write = (chunk: ArrayBuffer) => {
+			emulator.write(new Uint8Array(chunk));
 		};
+
+		socket.on('output', write);
+		return () => socket.off('output', write);
 	});
 </script>
 
