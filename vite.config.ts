@@ -11,7 +11,8 @@ const ARGUMENTS: Array<string> = [];
 const OPTIONS = {
 	name: 'xterm-256color',
 	cols: 80,
-	rows: 24
+	rows: 24,
+	encoding: null
 };
 
 function configure(server: HttpServer) {
