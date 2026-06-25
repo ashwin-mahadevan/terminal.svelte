@@ -64,9 +64,9 @@ depends = ["test:*"]
 depends = ["install:playwright", "build"]
 run = "pnpm exec playwright test"
 
-[tasks."test:component"]
+[tasks."test:dom"]
 depends = ["install:playwright"]
-run = "pnpm exec vitest run --project component"
+run = "pnpm exec vitest run --project dom"
 
 [tasks."test:unit"]
 depends = ["install"]

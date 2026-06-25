@@ -59,7 +59,7 @@ export default defineConfig({
 			{
 				extends: './vite.config.ts',
 				test: {
-					name: 'component',
+					name: 'dom',
 					browser: {
 						enabled: true,
 						provider: playwright({
