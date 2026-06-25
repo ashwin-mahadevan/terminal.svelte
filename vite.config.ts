@@ -72,7 +72,7 @@ export default defineConfig({
 						}
 					},
 					setupFiles: ['src/test/setup.ts'],
-					include: ['src/lib/**/*.svelte.test.ts']
+					include: ['src/lib/**/*.dom.test.ts']
 				}
 			},
 
@@ -82,7 +82,7 @@ export default defineConfig({
 					name: 'unit',
 					environment: 'node',
 					include: ['src/lib/**/*.test.ts'],
-					exclude: ['src/lib/**/*.svelte.test.ts'],
+					exclude: ['src/lib/**/*.dom.test.ts'],
 					includeSource: ['src/lib/**/*.ts']
 				}
 			}
