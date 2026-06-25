@@ -7,7 +7,7 @@ const encoder = new TextEncoder();
 /**
  * The official UAX #29 GraphemeBreakTest cases (Unicode 17.0).
  * https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt.
- * 
+ *
  * `name` is the human-readable description from the test file (character names + rule numbers);
  * `bytes` is the UTF-8 encoding;
  * `want` is the expected cluster-end byte offsets.
