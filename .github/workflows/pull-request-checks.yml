@@ -40,12 +40,12 @@ jobs:
       - uses: jdx/mise-action@v2
       - run: mise run test:browser
 
-  component-test:
+  dom-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: jdx/mise-action@v2
-      - run: mise run test:component
+      - run: mise run test:dom
 
   unit-test:
     runs-on: ubuntu-latest
