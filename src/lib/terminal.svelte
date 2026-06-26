@@ -80,7 +80,7 @@
 			{#each line.cells as cell, col (col)}
 				<StreamTerminalCell
 					{cell}
-					isCursor={emulator.state.x === col && emulator.state.y === row}
+					isCursor={emulator.state.column === col && emulator.state.row === row}
 				/>
 			{/each}
 		</div>

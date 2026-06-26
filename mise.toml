@@ -20,9 +20,9 @@ depends = ["install"]
 run = """
 set -e
 if [ -n "$CI" ]; then
-	pnpm exec playwright install --with-deps chromium
+	pnpm exec playwright install --with-deps chromium firefox webkit
 else
-	pnpm exec playwright install chromium
+	pnpm exec playwright install chromium firefox webkit
 fi
 mkdir -p node_modules/.mise
 touch node_modules/.mise/playwright.stamp
