@@ -22,8 +22,10 @@
 	},
 	"files": [
 		"dist",
-		"!dist/**/*.test.js",
-		"!dist/**/*.test.d.ts"
+		"!dist/**/*.unit.js",
+		"!dist/**/*.unit.d.ts",
+		"!dist/**/*.dom.js",
+		"!dist/**/*.dom.d.ts"
 	],
 	"sideEffects": [
 		"**/*.css"

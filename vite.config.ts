@@ -74,14 +74,14 @@ export default defineConfig({
 						}
 					},
 					setupFiles: ['src/test/setup.ts'],
-					// In-source mode: tests live in `if (import.meta.vitest)` blocks. Only
-					// files matched by `includeSource` get `import.meta.vitest` defined, so a
-					// `.dom.test.ts` can import CASES from grapheme.test.ts (a `.test.ts`,
-					// unmatched here) without registering that unit suite in the browser.
-					// `include` is emptied so each file is collected once, via includeSource
-					// only — otherwise a file matching both runs twice per browser.
+					// In-source mode: tests live in `if (import.meta.vitest)` blocks, and only
+					// files matched by `includeSource` get `import.meta.vitest` defined. That
+					// lets a `.dom.ts` import CASES from grapheme.unit.ts (unmatched here)
+					// without registering that unit suite in the browser. `include: []` turns
+					// off glob discovery entirely so the default test glob can't pull anything
+					// else into the browser run; every spec comes from includeSource.
 					include: [],
-					includeSource: ['src/lib/**/*.dom.test.ts']
+					includeSource: ['src/lib/**/*.dom.ts']
 				}
 			},
 
@@ -90,12 +90,14 @@ export default defineConfig({
 				test: {
 					name: 'unit',
 					environment: 'node',
-					// In-source only: collect every `src/lib` module whose `import.meta.vitest`
-					// guard holds tests, once each. `include` is emptied so a `.test.ts` that
-					// is also an in-source file is not collected twice; `exclude` keeps the
-					// browser-only `.dom.test.ts` suites out of the node run.
+					// In-source only: every `src/lib` module whose `import.meta.vitest` guard
+					// holds tests is collected once, via includeSource. `include: []` disables
+					// glob discovery so the default test glob doesn't pull the Playwright e2e
+					// tests reserved at `src/routes/**/*.test.ts` (or generated `.svelte-kit`
+					// output) into this node run; `exclude` keeps the browser-only `.dom.ts`
+					// suite out.
 					include: [],
-					exclude: ['src/lib/**/*.dom.test.ts'],
+					exclude: ['src/lib/**/*.dom.ts'],
 					includeSource: ['src/lib/**/*.ts']
 				}
 			}
