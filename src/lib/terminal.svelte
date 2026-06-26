@@ -16,42 +16,55 @@
 
 	// Translate a keydown into the bytes a PTY expects. Minimal on purpose:
 	// printable keys, the common control keys, Ctrl-<letter>, and arrows.
-	function encodeKey(event: KeyboardEvent): string | undefined {
-		const { key, ctrlKey, metaKey, altKey } = event;
-
-		if (ctrlKey && !altKey && !metaKey && key.length === 1) {
-			const code = key.toLowerCase().charCodeAt(0);
-			if (code >= 97 && code <= 122) return String.fromCharCode(code - 96); // Ctrl-A..Z
-		}
-
-		switch (key) {
-			case 'Enter':
-				return '\r';
-			case 'Backspace':
-				return '\x7f';
-			case 'Tab':
-				return '\t';
-			case 'Escape':
-				return '\x1b';
-			case 'ArrowUp':
-				return '\x1b[A';
-			case 'ArrowDown':
-				return '\x1b[B';
-			case 'ArrowRight':
-				return '\x1b[C';
-			case 'ArrowLeft':
-				return '\x1b[D';
-		}
-
-		if (key.length === 1 && !ctrlKey && !metaKey && !altKey) return key;
-		return undefined;
-	}
-
 	function handleKeydown(event: KeyboardEvent) {
-		const data = encodeKey(event);
-		if (data === undefined) return;
-		event.preventDefault();
-		ondata?.(data);
+		switch (event.key) {
+			case 'Enter':
+				event.preventDefault();
+				ondata?.('\r');
+				return;
+			case 'Backspace':
+				event.preventDefault();
+				ondata?.('\x7f');
+				return;
+			case 'Tab':
+				event.preventDefault();
+				ondata?.('\t');
+				return;
+			case 'Escape':
+				event.preventDefault();
+				ondata?.('\x1b');
+				return;
+			case 'ArrowUp':
+				event.preventDefault();
+				ondata?.('\x1b[A');
+				return;
+			case 'ArrowDown':
+				event.preventDefault();
+				ondata?.('\x1b[B');
+				return;
+			case 'ArrowRight':
+				event.preventDefault();
+				ondata?.('\x1b[C');
+				return;
+			case 'ArrowLeft':
+				event.preventDefault();
+				ondata?.('\x1b[D');
+				return;
+			default: {
+				if (event.key.length !== 1) return;
+				if (event.metaKey || event.altKey) return;
+				if (event.ctrlKey) {
+					const code = event.key.toLowerCase().charCodeAt(0);
+					if (code >= 97 && code <= 122) {
+						event.preventDefault();
+						ondata?.(String.fromCharCode(code - 96)); // Ctrl-A..Z
+					}
+					return;
+				}
+				event.preventDefault();
+				ondata?.(event.key);
+			}
+		}
 	}
 
 	// Render every row in the buffer and let the browser scroll the overflow.
