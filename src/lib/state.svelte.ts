@@ -39,7 +39,7 @@ export type Line = {
 	cells: Array<Cell | undefined>;
 
 	// true if the next line is a continutation of this one.
-	overflow: boolean;
+	break: boolean;
 };
 
 export class State {
@@ -49,8 +49,8 @@ export class State {
 	buffer: Array<Line>;
 
 	// Cursor
-	x: number;
-	y: number;
+	column: number;
+	row: number;
 	style: 'block' | 'underline' | 'bar';
 	attributes: Attributes;
 
@@ -58,12 +58,17 @@ export class State {
 		this.columns = $state(columns);
 		this.rows = $state(rows);
 
-		this.buffer = $state(
-			Array.from({ length: rows }, () => ({ cells: new Array(columns), overflow: false }))
-		);
+		this.buffer = $state(new Array(rows));
 
-		this.x = $state(0);
-		this.y = $state(0);
+		for (let index = 0; index < rows; index += 1) {
+			this.buffer[index] = {
+				cells: new Array(columns),
+				break: false
+			} satisfies Line;
+		}
+
+		this.column = $state(0);
+		this.row = $state(0);
 		this.style = $state('block');
 		this.attributes = $state(DEFAULT_ATTRIBUTES);
 	}
