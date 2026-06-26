@@ -62,39 +62,44 @@ export class Emulator {
 			if (index === chunk.length) break;
 
 			// now check which control sequence we're handling
-			if (chunk[index] === 0x07) {
-				index += 1;
-				this.events.bell?.();
-				continue;
-			}
+			switch (chunk[index]) {
+				// BEL (bell)
+				case 0x07:
+					index += 1;
+					this.events.bell?.();
+					break;
 
-			if (chunk[index] === 0x08) {
-				index += 1;
-				this.state.column = Math.max(0, this.state.column - 1);
-				continue;
-			}
+				// BS (backspace)
+				case 0x08:
+					if (this.state.column > 0) {
+						this.state.column -= 1
+					}
+					index += 1;
+					break;
 
-			if (chunk[index] === 0x0d) {
-				index += 1;
-				this.state.column = 0;
-				continue;
-			}
+				// CR (carriage return)
+				case 0x0d:
+					index += 1;
+					this.state.column = 0;
+					break;
 
-			if (chunk[index] === 0x0a) {
-				index += 1;
-				this.lineFeed();
-				continue;
-			}
+				// LF (line feed)
+				case 0x0a:
+					index += 1;
+					this.lineFeed();
+					break;
 
-			if (chunk[index] === 0x1b) {
-				console.log('ESC');
-				index += 1;
-				continue;
-			}
+				// ESC (escape)
+				case 0x1b:
+					console.log('ESC');
+					index += 1;
+					break;
 
-			// Unknown control byte: consume and ignore so we never crash on a
-			// sequence we don't model. The MWE only needs the cases above.
-			index += 1;
+				default:
+					// Unknown control byte: consume and ignore so we never crash on a
+					// sequence we don't model. The MWE only needs the cases above.
+					index += 1;
+			}
 		}
 	};
 }
