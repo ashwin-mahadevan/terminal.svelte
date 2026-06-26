@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Emulator } from '$lib/parser.svelte';
-	import StreamTerminalCell from '$lib/cell.svelte';
+	import Cell from '$lib/cell.svelte';
 
 	type Props = {
 		emulator: Emulator;
@@ -78,10 +78,7 @@
 	{#each lines as line, row (row)}
 		<div>
 			{#each line.cells as cell, col (col)}
-				<StreamTerminalCell
-					{cell}
-					isCursor={emulator.state.column === col && emulator.state.row === row}
-				/>
+				<Cell {cell} isCursor={emulator.state.column === col && emulator.state.row === row} />
 			{/each}
 		</div>
 	{/each}

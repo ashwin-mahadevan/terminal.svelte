@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { INITIAL, split } from './grapheme';
 import type { State } from './grapheme';
 
@@ -4166,8 +4167,6 @@ export const CASES: Array<{ name: string; bytes: Uint8Array; want: number[] }> =
 	}
 ];
 
-if (import.meta.vitest) {
-	const { describe, expect, it } = import.meta.vitest;
 
 	describe('grapheme.split', () => {
 		describe('matches the official UAX #29 GraphemeBreakTest cases', () => {
@@ -4241,4 +4240,3 @@ if (import.meta.vitest) {
 			expect(split(Uint8Array.of(0xe2, 0x82)).map((e) => e.index)).toEqual([2]); // truncated
 		});
 	});
-}
