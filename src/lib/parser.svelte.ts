@@ -17,7 +17,7 @@ function* decode_segments(chunk: Uint8Array) {
 export class Emulator {
 	state = new State();
 
-	constructor(public events: Events = {}) { }
+	constructor(public events: Events = {}) {}
 
 	lineFeed = () => {
 		this.state.row += 1;
@@ -37,7 +37,7 @@ export class Emulator {
 			// Collect printable characters.
 			while (index < chunk.length) {
 				if (chunk[index] < 0x20) break;
-				if (chunk[index] === 0x7F) break;
+				if (chunk[index] === 0x7f) break;
 
 				index += 1;
 			}
