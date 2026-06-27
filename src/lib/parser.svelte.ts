@@ -197,6 +197,8 @@ export class Emulator {
 
 				// Printable Character
 				default: {
+					if (byte & 0x80) throw new Error("NOT IMPLEMENTED")
+
 					// autowrap: if x is past the last column, wrap before writing.
 					if (this.state.column >= this.state.columns) {
 						this.state.buffer[this.state.row].break = true;
