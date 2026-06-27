@@ -28,40 +28,29 @@ export class Emulator {
 			index += 1;
 
 			switch (byte) {
-				// NUL (null)
-				case 0x00:
-					console.log('NUL');
-					break;
-
-				// SOH (start of heading)
-				case 0x01:
-					console.log('SOH');
-					break;
-
-				// STX (start of text)
-				case 0x02:
-					console.log('STX');
-					break;
-
-				// ETX (end of text)
-				case 0x03:
-					console.log('ETX');
-					break;
-
-				// EOT (end of transmission)
-				case 0x04:
-					console.log('EOT');
+				// Intentionally ignored.
+				case 0x00: // NUL (null)
+				case 0x01: // SOH (start of heading)
+				case 0x02: // STX (start of text)
+				case 0x03: // ETX (end of text)
+				case 0x04: // EOT (end of transmission)
+				case 0x06: // ACK (acknowledge)
+				case 0x10: // DLE (data link escape)
+				case 0x12: // DC2 (device control 2)
+				case 0x14: // DC4 (device control 4)
+				case 0x15: // NAK (negative acknowledge)
+				case 0x16: // SYN (synchronous idle)
+				case 0x17: // ETB (end of transmission block)
+				case 0x19: // EM (end of medium)
+				case 0x1c: // FS (file separator)
+				case 0x1d: // GS (group separator)
+				case 0x1e: // RS (record separator)
+				case 0x1f: // US (unit separator)
 					break;
 
 				// ENQ (enquiry)
 				case 0x05:
-					console.log('ENQ');
-					break;
-
-				// ACK (acknowledge)
-				case 0x06:
-					console.log('ACK');
-					break;
+					throw new Error('NOT IMPLEMENTED');
 
 				// BEL (bell)
 				case 0x07:
@@ -70,29 +59,18 @@ export class Emulator {
 
 				// BS (backspace)
 				case 0x08:
-					if (this.state.column > 0) {
-						this.state.column -= 1;
-					}
+					if (this.state.column > 0) this.state.column -= 1;
+
 					break;
 
 				// HT (horizontal tab)
 				case 0x09:
-					console.log('HT');
-					break;
+					throw new Error('NOT IMPLEMENTED');
 
-				// LF (line feed)
-				case 0x0a:
+				case 0x0a: // LF (line feed)
+				case 0x0b: // VT (vertical tab)
+				case 0x0c: // FF (form feed)
 					this.lineFeed();
-					break;
-
-				// VT (vertical tab)
-				case 0x0b:
-					console.log('VT');
-					break;
-
-				// FF (form feed)
-				case 0x0c:
-					console.log('FF');
 					break;
 
 				// CR (carriage return)
@@ -100,104 +78,19 @@ export class Emulator {
 					this.state.column = 0;
 					break;
 
-				// SO (shift out)
-				case 0x0e:
-					console.log('SO');
-					break;
-
-				// SI (shift in)
-				case 0x0f:
-					console.log('SI');
-					break;
-
-				// DLE (data link escape)
-				case 0x10:
-					console.log('DLE');
-					break;
-
-				// DC1 (device control 1, XON)
-				case 0x11:
-					console.log('DC1');
-					break;
-
-				// DC2 (device control 2)
-				case 0x12:
-					console.log('DC2');
-					break;
-
-				// DC3 (device control 3, XOFF)
-				case 0x13:
-					console.log('DC3');
-					break;
-
-				// DC4 (device control 4)
-				case 0x14:
-					console.log('DC4');
-					break;
-
-				// NAK (negative acknowledge)
-				case 0x15:
-					console.log('NAK');
-					break;
-
-				// SYN (synchronous idle)
-				case 0x16:
-					console.log('SYN');
-					break;
-
-				// ETB (end of transmission block)
-				case 0x17:
-					console.log('ETB');
-					break;
-
-				// CAN (cancel)
-				case 0x18:
-					console.log('CAN');
-					break;
-
-				// EM (end of medium)
-				case 0x19:
-					console.log('EM');
-					break;
-
-				// SUB (substitute)
-				case 0x1a:
-					console.log('SUB');
-					break;
-
-				// ESC (escape)
-				case 0x1b:
-					console.log('ESC');
-					break;
-
-				// FS (file separator)
-				case 0x1c:
-					console.log('FS');
-					break;
-
-				// GS (group separator)
-				case 0x1d:
-					console.log('GS');
-					break;
-
-				// RS (record separator)
-				case 0x1e:
-					console.log('RS');
-					break;
-
-				// US (unit separator)
-				case 0x1f:
-					console.log('US');
-					break;
-
-				// DEL (delete)
-				case 0x7f:
-					console.log('DEL');
-					break;
+				case 0x0e: // SO (shift out)
+				case 0x0f: // SI (shift in)
+				case 0x11: // DC1 (device control 1, XON)
+				case 0x13: // DC3 (device control 3, XOFF)
+				case 0x18: // CAN (cancel)
+				case 0x1a: // SUB (substitute)
+				case 0x1b: // ESC (escape)
+				case 0x7f: // DEL (delete)
+					throw new Error('NOT IMPLEMENTED');
 
 				// Printable Character
 				default: {
-					if (byte & 0x80) throw new Error("NOT IMPLEMENTED")
+					if (byte & 0x80) throw new Error('NOT IMPLEMENTED');
 
 					// autowrap: if x is past the last column, wrap before writing.
 					if (this.state.column >= this.state.columns) {
