@@ -20,7 +20,7 @@ export class Emulator {
 		}
 	};
 
-	ascii = (chunk: Uint8Array, index: number): number => {
+	private readonly ground = (chunk: Uint8Array, index: number) => {
 		do {
 			const byte = chunk[index];
 
@@ -132,7 +132,7 @@ export class Emulator {
 		while (index < chunk.length) {
 			switch (this.mode) {
 				case 0:
-					index = this.ascii(chunk, index);
+					index = this.ground(chunk, index);
 			}
 		}
 	};
