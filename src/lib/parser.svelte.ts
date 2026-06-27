@@ -72,7 +72,7 @@ export class Emulator {
 				// BS (backspace)
 				case 0x08:
 					if (this.state.column > 0) {
-						this.state.column -= 1
+						this.state.column -= 1;
 					}
 					index += 1;
 					break;
