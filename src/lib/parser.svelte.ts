@@ -20,12 +20,9 @@ export class Emulator {
 		}
 	};
 
-	write = (chunk: Uint8Array) => {
-		let index = 0;
-
-		while (index < chunk.length) {
+	ascii = (chunk: Uint8Array, index: number): number => {
+		do {
 			const byte = chunk[index];
-			index += 1;
 
 			switch (byte) {
 				// Intentionally Ignored
@@ -115,6 +112,27 @@ export class Emulator {
 
 					this.state.column += 1;
 				}
+			}
+
+			index += 1;
+		} while (index < chunk.length);
+
+		return index;
+	};
+
+	mode = 0;
+
+	// pattern: each mode corresponds to a parser function.
+	// each parser function parses as many bytes as it can,
+	// sets `mode` to the parser needed to continue, and
+	// returns the index to resume from.
+	parse = (chunk: Uint8Array) => {
+		let index = 0;
+
+		while (index < chunk.length) {
+			switch (this.mode) {
+				case 0:
+					index = this.ascii(chunk, index);
 			}
 		}
 	};

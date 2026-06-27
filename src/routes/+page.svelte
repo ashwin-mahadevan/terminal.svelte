@@ -9,7 +9,7 @@
 
 	$effect(() => {
 		const write = (chunk: ArrayBuffer) => {
-			emulator.write(new Uint8Array(chunk));
+			emulator.parse(new Uint8Array(chunk));
 		};
 
 		socket.on('output', write);
