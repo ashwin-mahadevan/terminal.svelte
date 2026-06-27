@@ -38,7 +38,8 @@ export class Emulator {
 
 				// ENQ (enquiry)
 				case 0x05:
-					throw new Error('NOT IMPLEMENTED');
+					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+					break;
 
 				// ACK (acknowledge)
 				case 0x06:
@@ -57,7 +58,8 @@ export class Emulator {
 
 				// HT (horizontal tab)
 				case 0x09:
-					throw new Error('NOT IMPLEMENTED');
+					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+					break;
 
 				case 0x0a: // LF (line feed)
 				case 0x0b: // VT (vertical tab)
@@ -72,7 +74,8 @@ export class Emulator {
 
 				case 0x0e: // SO (shift out)
 				case 0x0f: // SI (shift in)
-					throw new Error('NOT IMPLEMENTED');
+					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+					break;
 
 				// DLE (data link escape)
 				case 0x10:
@@ -80,7 +83,8 @@ export class Emulator {
 
 				// DC1 (device control 1, XON)
 				case 0x11:
-					throw new Error('NOT IMPLEMENTED');
+					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+					break;
 
 				// DC2 (device control 2)
 				case 0x12:
@@ -88,7 +92,8 @@ export class Emulator {
 
 				// DC3 (device control 3, XOFF)
 				case 0x13:
-					throw new Error('NOT IMPLEMENTED');
+					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+					break;
 
 				case 0x14: // DC4 (device control 4)
 				case 0x15: // NAK (negative acknowledge)
@@ -98,7 +103,8 @@ export class Emulator {
 
 				// CAN (cancel)
 				case 0x18:
-					throw new Error('NOT IMPLEMENTED');
+					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+					break;
 
 				// EM (end of medium)
 				case 0x19:
@@ -106,7 +112,8 @@ export class Emulator {
 
 				case 0x1a: // SUB (substitute)
 				case 0x1b: // ESC (escape)
-					throw new Error('NOT IMPLEMENTED');
+					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+					break;
 
 				case 0x1c: // FS (file separator)
 				case 0x1d: // GS (group separator)
@@ -116,7 +123,8 @@ export class Emulator {
 
 				// DEL (delete)
 				case 0x7f:
-					throw new Error('NOT IMPLEMENTED');
+					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+					break;
 
 				// Printable Character
 				default: {
