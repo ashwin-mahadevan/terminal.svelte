@@ -83,7 +83,6 @@ export class Emulator {
 
 				// DC1 (device control 1, XON)
 				case 0x11:
-					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
 					break;
 
 				// DC2 (device control 2)
@@ -92,7 +91,6 @@ export class Emulator {
 
 				// DC3 (device control 3, XOFF)
 				case 0x13:
-					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
 					break;
 
 				case 0x14: // DC4 (device control 4)
@@ -123,7 +121,6 @@ export class Emulator {
 
 				// DEL (delete)
 				case 0x7f:
-					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
 					break;
 
 				// Printable Character
