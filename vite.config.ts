@@ -74,7 +74,7 @@ export default defineConfig({
 						}
 					},
 					setupFiles: ['src/test/setup-dom.ts'],
-					include: ['src/lib/**/*.dom.ts'],
+					include: ['src/lib/**/*.dom.ts']
 				}
 			},
 
@@ -83,7 +83,7 @@ export default defineConfig({
 				test: {
 					name: 'unit',
 					environment: 'node',
-					include: ['src/lib/**/*.unit.ts'],
+					include: ['src/lib/**/*.unit.ts']
 				}
 			}
 		]
