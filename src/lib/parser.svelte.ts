@@ -5,6 +5,13 @@ export type Events = {
 	bell?: () => void;
 };
 
+const MODE_GROUND = 0x00;
+const MODE_UNICODE = 0x01;
+const MODE_ESCAPE = 0x02;
+const MODE_CSI = 0x03;
+
+type Mode = typeof MODE_GROUND | typeof MODE_UNICODE | typeof MODE_ESCAPE | typeof MODE_CSI;
+
 export class Emulator {
 	state = new State();
 
@@ -89,14 +96,22 @@ export class Emulator {
 					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
 					break;
 
-				case 0x1a: // SUB (substitute)
-				case 0x1b: // ESC (escape)
+				// SUB (substitute)
+				case 0x1a:
 					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
 					break;
 
+				// ESC (escape)
+				case 0x1b:
+					this.mode = MODE_ESCAPE;
+					return index + 1;
+
 				// Printable Character
 				default: {
-					if (byte & 0x80) throw new Error('NOT IMPLEMENTED');
+					if (byte & 0x80) {
+						this.mode = MODE_UNICODE;
+						return index;
+					}
 
 					// autowrap: if x is past the last column, wrap before writing.
 					if (this.state.column >= this.state.columns) {
@@ -120,19 +135,41 @@ export class Emulator {
 		return index;
 	};
 
-	mode = 0;
+	private readonly unicode = (chunk: Uint8Array, index: number): number => {
+		throw new Error('NOT IMPLEMENTED');
+	};
+
+	private readonly escape = (chunk: Uint8Array, index: number): number => {
+		throw new Error('NOT IMPLEMENTED');
+	};
+
+	private readonly csi = (chunk: Uint8Array, index: number): number => {
+		throw new Error('NOT IMPLEMENTED');
+	};
+
+	mode: Mode = MODE_GROUND;
 
 	// pattern: each mode corresponds to a parser function.
 	// each parser function parses as many bytes as it can,
 	// sets `mode` to the parser needed to continue, and
-	// returns the index to resume from.
-	parse = (chunk: Uint8Array) => {
+	// returns the index at which that parser should start.
+	readonly parse = (chunk: Uint8Array) => {
 		let index = 0;
 
 		while (index < chunk.length) {
 			switch (this.mode) {
-				case 0:
+				case MODE_GROUND:
 					index = this.ground(chunk, index);
+					break;
+				case MODE_UNICODE:
+					index = this.unicode(chunk, index);
+					break;
+				case MODE_ESCAPE:
+					index = this.escape(chunk, index);
+					break;
+				case MODE_CSI:
+					index = this.csi(chunk, index);
+					break;
 			}
 		}
 	};
