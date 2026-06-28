@@ -135,8 +135,9 @@ export class Emulator {
 		return index;
 	};
 
-	private readonly unicode: (chunk: Uint8Array, index: number) => number = () => {
-		throw new Error('NOT IMPLEMENTED');
+	private readonly unicode = (chunk: Uint8Array, index: number): number => {
+		console.log(`NOT IMPLEMENTED: unicode 0x${chunk[index].toString(16).padStart(2, '0')}`);
+		return chunk.length;
 	};
 
 	private readonly escape = (chunk: Uint8Array, index: number): number => {
@@ -234,8 +235,9 @@ export class Emulator {
 		return index + 1;
 	};
 
-	private readonly csi: (chunk: Uint8Array, index: number) => number = () => {
-		throw new Error('NOT IMPLEMENTED');
+	private readonly csi = (chunk: Uint8Array, index: number): number => {
+		console.log(`NOT IMPLEMENTED: CSI 0x${chunk[index].toString(16).padStart(2, '0')}`);
+		return chunk.length;
 	};
 
 	mode: Mode = MODE_GROUND;
