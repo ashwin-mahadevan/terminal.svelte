@@ -47,7 +47,9 @@ export class Emulator {
 				case 0x15: // NAK (negative acknowledge)
 				case 0x16: // SYN (synchronous idle)
 				case 0x17: // ETB (end of transmission block)
+				case 0x18: // CAN (cancel)
 				case 0x19: // EM (end of medium)
+				case 0x1a: // SUB (substitute)
 				case 0x1c: // FS (file separator)
 				case 0x1d: // GS (group separator)
 				case 0x1e: // RS (record separator)
@@ -88,16 +90,6 @@ export class Emulator {
 
 				case 0x0e: // SO (shift out)
 				case 0x0f: // SI (shift in)
-					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
-					break;
-
-				// CAN (cancel)
-				case 0x18:
-					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
-					break;
-
-				// SUB (substitute)
-				case 0x1a:
 					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
 					break;
 
