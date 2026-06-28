@@ -1,5 +1,4 @@
 import { State } from '$lib/state.svelte';
-import type { Cell, Line } from '$lib/state.svelte';
 
 export type Events = {
 	bell?: () => void;
@@ -16,16 +15,6 @@ export class Emulator {
 	state = new State();
 
 	constructor(public events: Events = {}) {}
-
-	lineFeed = () => {
-		this.state.row += 1;
-		if (this.state.row > this.state.rows - 1) {
-			this.state.row = this.state.rows - 1;
-			const blank: Line = { cells: new Array(this.state.columns), break: false };
-			this.state.buffer.shift();
-			this.state.buffer.push(blank);
-		}
-	};
 
 	private readonly ground = (chunk: Uint8Array, index: number) => {
 		do {
@@ -80,7 +69,7 @@ export class Emulator {
 				case 0x0a: // LF (line feed)
 				case 0x0b: // VT (vertical tab)
 				case 0x0c: // FF (form feed)
-					this.lineFeed();
+					this.state.linefeed();
 					break;
 
 				// CR (carriage return)
@@ -105,19 +94,7 @@ export class Emulator {
 						return index;
 					}
 
-					// autowrap: if x is past the last column, wrap before writing.
-					if (this.state.column >= this.state.columns) {
-						this.state.buffer[this.state.row].break = true;
-						this.state.column = 0;
-						this.lineFeed();
-					}
-
-					this.state.buffer[this.state.row].cells[this.state.column] = {
-						text: String.fromCharCode(byte), // this only works for ascii.
-						attrs: this.state.attributes
-					} satisfies Cell;
-
-					this.state.column += 1;
+					this.state.print(String.fromCharCode(byte)); // this only works for ascii.
 				}
 			}
 
@@ -163,13 +140,13 @@ export class Emulator {
 
 			// ESC D → IND (Index)
 			case 0x44:
-				this.lineFeed();
+				this.state.linefeed();
 				break;
 
 			// ESC E → NEL (Next Line)
 			case 0x45:
 				this.state.column = 0;
-				this.lineFeed();
+				this.state.linefeed();
 				break;
 
 			// ESC H → HTS (Horizontal Tab Set)
