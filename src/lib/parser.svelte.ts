@@ -241,6 +241,10 @@ export class Emulator {
 	// each parser function parses as many bytes as it can,
 	// sets `mode` to the parser needed to continue, and
 	// returns the index at which that parser should start.
+	// parser functions are structured as do-while loops,
+	// since the common case is to remain in the same mode.
+	// mode changes therefore must be early returns, and loop
+	// exits within parser functions correspond to chunk boudaries.
 	readonly parse = (chunk: Uint8Array) => {
 		let index = 0;
 
