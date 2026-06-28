@@ -139,22 +139,6 @@ export class Emulator {
 		throw new Error('NOT IMPLEMENTED');
 	};
 
-	private readonly saveCursor = (): void => {
-		throw new Error('NOT IMPLEMENTED');
-	};
-
-	private readonly restoreCursor = (): void => {
-		throw new Error('NOT IMPLEMENTED');
-	};
-
-	private readonly reverseIndex = (): void => {
-		throw new Error('NOT IMPLEMENTED');
-	};
-
-	private readonly ris = (): void => {
-		throw new Error('NOT IMPLEMENTED');
-	};
-
 	private readonly escape = (chunk: Uint8Array, index: number): number => {
 		const byte = chunk[index];
 
@@ -165,12 +149,12 @@ export class Emulator {
 
 			// ESC 7 → DECSC (Save Cursor)
 			case 0x37:
-				this.saveCursor();
+				console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
 				break;
 
 			// ESC 8 → DECRC (Restore Cursor)
 			case 0x38:
-				this.restoreCursor();
+				console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
 				break;
 
 			// ESC = → DECKPAM (Application Keypad Mode)
@@ -201,7 +185,7 @@ export class Emulator {
 
 			// ESC M → RI (Reverse Index)
 			case 0x4d:
-				this.reverseIndex();
+				console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
 				break;
 
 			case 0x4e: // ESC N → SS2 (Single Shift 2)
@@ -227,7 +211,7 @@ export class Emulator {
 
 			// ESC c → RIS (Reset to Initial State)
 			case 0x63:
-				this.ris();
+				console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
 				break;
 
 			// ESC SP, ESC #, ESC (, ESC ), ESC *, ESC + → two-byte sequences
