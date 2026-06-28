@@ -71,3 +71,7 @@ run = "pnpm exec vitest run --project dom"
 [tasks."test:unit"]
 depends = ["install"]
 run = "pnpm exec vitest run --project unit"
+
+[tasks.bench]
+depends = ["install"]
+run = "pnpm exec vitest bench --run --project unit"
