@@ -11,6 +11,8 @@ const MODE_CSI = 0x03;
 
 type Mode = typeof MODE_GROUND | typeof MODE_UNICODE | typeof MODE_ESCAPE | typeof MODE_CSI;
 
+const decoder = new TextDecoder('utf-8');
+
 export class Emulator {
 	state = new State();
 
@@ -105,8 +107,30 @@ export class Emulator {
 	};
 
 	private readonly unicode = (chunk: Uint8Array, index: number): number => {
-		console.log(`NOT IMPLEMENTED: unicode 0x${chunk[index].toString(16).padStart(2, '0')}`);
+		// In the future this will set the grapheme join state, and only return
+		// to MODE_GROUND after a grapheme break (ie null join state).
+
 		this.mode = MODE_GROUND;
+
+		// Two-byte codepoint.
+		if ((chunk[index] & 0xe0) === 0xc0) {
+			this.state.print(decoder.decode(chunk.subarray(index, index + 2)));
+			return index + 2;
+		}
+
+		// Three-byte codepoint.
+		if ((chunk[index] & 0xf0) === 0xe0) {
+			this.state.print(decoder.decode(chunk.subarray(index, index + 3)));
+			return index + 3;
+		}
+
+		// Four-byte codepoint.
+		if ((chunk[index] & 0xf8) === 0xf0) {
+			this.state.print(decoder.decode(chunk.subarray(index, index + 4)));
+			return index + 4;
+		}
+
+		// Lone continuation or invalid lead byte: skip it.
 		return index + 1;
 	};
 
