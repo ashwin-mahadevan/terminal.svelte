@@ -1,43 +1,73 @@
+import { Terminal as Xterm } from '@xterm/headless';
 import { bench, describe } from 'vitest';
 import { Emulator as ByteEmulator } from '$lib/optimized/parser.svelte';
 import { Emulator as StringEmulator } from '$lib/reference/parser.svelte';
 
-// A representative chunk of printable ASCII with regular line breaks — the shape
-// of ordinary terminal output (a directory listing, source code, a log scrolling
-// by). This is the workload both parsers are tuned for, so it isolates the cost
-// of their two strategies: the optimized parser walks UTF-8 bytes directly, while
-// the reference parser runs the whole chunk through Intl.Segmenter and switches on
-// grapheme strings.
-function makeAscii(lines: number, width: number): string {
+// Printable ASCII with a line break every 80 columns — the shape of ordinary
+// terminal output (a directory listing, source code, a log scrolling by). This is
+// the workload all three parsers are tuned for, so it isolates the cost of their
+// strategies rather than any escape-sequence handling.
+function makeAscii(length: number): string {
 	const alphabet = 'abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 ';
 	let out = '';
-	for (let row = 0; row < lines; row += 1) {
-		for (let col = 0; col < width; col += 1) {
-			out += alphabet[(row * width + col) % alphabet.length];
-		}
-		out += '\n';
+	for (let i = 0; i < length; i += 1) {
+		out += (i + 1) % 80 === 0 ? '\n' : alphabet[i % alphabet.length];
 	}
 	return out;
 }
 
-// ~10k characters: small enough that a single parse runs in well under the
-// benchmark window (so each implementation gets many samples), large enough to
-// dwarf the fixed per-call overhead.
-const TEXT = makeAscii(128, 80);
-const BYTES = new TextEncoder().encode(TEXT);
+const encoder = new TextEncoder();
 
-// One emulator per implementation, reused across iterations to measure steady-state
-// streaming throughput rather than construction. The 80x24 buffer scrolls in place,
-// so memory stays bounded and each parse begins in ground mode.
-const byte = new ByteEmulator();
-const string = new StringEmulator();
+// Every iteration streams the same fixed payload, so work is constant and hz is
+// comparable across groups. What varies is the chunk size: the number of bytes
+// handed to a single `parse` / `write` call. Small chunks expose per-call overhead
+// (the reference parser spins up Intl.Segmenter every call); large chunks expose
+// steady-state throughput. The largest chunk equals the whole payload (one call).
+const TOTAL = 64 * 1024;
+const CHUNK_SIZES = [16, 256, 4096, TOTAL];
 
-describe('ascii printing', () => {
-	bench('optimized (bytes)', () => {
-		byte.parse(BYTES);
+const TEXT = makeAscii(TOTAL);
+const BYTES = encoder.encode(TEXT);
+
+// Split (ASCII, so byte offsets and string offsets coincide) into equal chunks.
+const stringChunks = (size: number) => {
+	const out: string[] = [];
+	for (let i = 0; i < TEXT.length; i += size) out.push(TEXT.slice(i, i + size));
+	return out;
+};
+const byteChunks = (size: number) => {
+	const out: Uint8Array[] = [];
+	for (let i = 0; i < BYTES.length; i += size) out.push(BYTES.subarray(i, i + size));
+	return out;
+};
+
+for (const size of CHUNK_SIZES) {
+	const texts = stringChunks(size);
+	const bytes = byteChunks(size);
+
+	// One instance per implementation, reused across iterations to measure
+	// steady-state streaming rather than construction. Each buffer scrolls in place,
+	// so memory stays bounded and each parse begins in ground mode.
+	const byte = new ByteEmulator();
+	const string = new StringEmulator();
+	const xterm = new Xterm({ cols: 80, rows: 24 });
+
+	describe(`ascii printing — ${size}-byte chunks`, () => {
+		bench('optimized (bytes)', () => {
+			for (const chunk of bytes) byte.parse(chunk);
+		});
+
+		bench('reference (strings)', () => {
+			for (const chunk of texts) string.parse(chunk);
+		});
+
+		// xterm parses asynchronously through its write buffer. Enqueue every chunk,
+		// then await the callback on the last one — it fires once the whole payload has
+		// been parsed, so the async write-buffer cost (one event-loop hop) is amortised
+		// across the payload rather than charged per chunk.
+		bench('xterm.js (headless)', async () => {
+			for (let i = 0; i < bytes.length - 1; i += 1) xterm.write(bytes[i]);
+			await new Promise<void>((resolve) => xterm.write(bytes[bytes.length - 1], resolve));
+		});
 	});
-
-	bench('reference (strings)', () => {
-		string.parse(TEXT);
-	});
-});
+}
