@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Emulator } from '$lib/parser.svelte';
+	import type { Emulator } from '$lib/optimized/parser.svelte';
 	import Cell from '$lib/cell.svelte';
 
 	type Props = {
