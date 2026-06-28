@@ -72,4 +72,30 @@ export class State {
 		this.style = $state('block');
 		this.attributes = $state(DEFAULT_ATTRIBUTES);
 	}
+
+	linefeed() {
+		this.row += 1;
+		if (this.row > this.rows - 1) {
+			this.row = this.rows - 1;
+			const blank: Line = { cells: new Array(this.columns), break: false };
+			this.buffer.shift();
+			this.buffer.push(blank);
+		}
+	}
+
+	print(text: string) {
+		// autowrap: if x is past the last column, wrap before writing.
+		if (this.column >= this.columns) {
+			this.buffer[this.row].break = true;
+			this.column = 0;
+			this.linefeed();
+		}
+
+		this.buffer[this.row].cells[this.column] = {
+			text,
+			attrs: this.attributes
+		} satisfies Cell;
+
+		this.column += 1;
+	}
 }
