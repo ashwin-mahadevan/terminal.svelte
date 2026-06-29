@@ -1,6 +1,7 @@
 import { Terminal as Xterm } from '@xterm/headless';
 import { bench, describe } from 'vitest';
 import { Emulator as ByteEmulator } from '$lib/optimized/parser.svelte';
+import { Emulator as StringEmulator } from '$lib/reference/parser.svelte';
 
 // Printable ASCII with a line break every 80 columns — the shape of ordinary
 // terminal output (a directory listing, source code, a log scrolling by). This is
@@ -25,6 +26,11 @@ const CHUNK_SIZES = [16, 256, 4096, TOTAL];
 
 const BYTES = makeAscii(TOTAL);
 
+// The reference parser consumes strings, not bytes. The payload is pure ASCII, so
+// decoding it gives a string of the same length and the same chunk sizes split it
+// at the same boundaries — the comparison stays apples-to-apples.
+const TEXT = new TextDecoder().decode(BYTES);
+
 // Split into equal chunks.
 const byteChunks = (size: number) => {
 	const out: Uint8Array[] = [];
@@ -32,18 +38,30 @@ const byteChunks = (size: number) => {
 	return out;
 };
 
+const stringChunks = (size: number) => {
+	const out: string[] = [];
+	for (let i = 0; i < TEXT.length; i += size) out.push(TEXT.slice(i, i + size));
+	return out;
+};
+
 for (const size of CHUNK_SIZES) {
 	const bytes = byteChunks(size);
+	const strings = stringChunks(size);
 
 	// One instance per implementation, reused across iterations to measure
 	// steady-state streaming rather than construction. Each buffer scrolls in place,
 	// so memory stays bounded and each parse begins in ground mode.
 	const byte = new ByteEmulator();
+	const string = new StringEmulator();
 	const xterm = new Xterm({ cols: 80, rows: 24 });
 
 	describe(`ascii printing — ${size}-byte chunks`, () => {
 		bench('optimized (bytes)', () => {
 			for (const chunk of bytes) byte.parse(chunk);
+		});
+
+		bench('reference (strings)', () => {
+			for (const chunk of strings) string.parse(chunk);
 		});
 
 		// xterm parses asynchronously through its write buffer. Enqueue every chunk,
