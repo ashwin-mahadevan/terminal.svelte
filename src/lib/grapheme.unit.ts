@@ -1,8 +1,53 @@
 import { describe, expect, it } from 'vitest';
-import { INITIAL, split } from './grapheme';
+import { INITIAL, next } from './grapheme';
 import type { State } from './grapheme';
 
 const encoder = new TextEncoder();
+
+/**
+ * Feed `bytes` to `next` one at a time, carrying state, and return the index of
+ * every byte whose completion begins a new grapheme cluster (`boundary` true).
+ */
+function boundaryBytes(bytes: Uint8Array, state: State = INITIAL): number[] {
+	const hits: number[] = [];
+	let s = state;
+	for (let i = 0; i < bytes.length; i++) {
+		const r = next(s, bytes[i]);
+		s = r.state;
+		if (r.boundary) hits.push(i);
+	}
+	return hits;
+}
+
+/**
+ * Reconstruct the exclusive cluster-end offsets (the shape the official
+ * GraphemeBreakTest `want` arrays use) from the streaming API. A boundary is
+ * reported on the byte that *completes* a code point; the matching cluster end
+ * is that code point's *start* offset (it closes the previous cluster), and the
+ * total length closes the final cluster.
+ */
+function clusterEnds(input: string): number[] {
+	let state = INITIAL;
+	let offset = 0;
+	const newClusterStarts: number[] = [];
+	for (const ch of input) {
+		const bytes = encoder.encode(ch);
+		let boundary = false;
+		for (const b of bytes) {
+			const r = next(state, b);
+			state = r.state;
+			boundary = r.boundary;
+		}
+		if (boundary) newClusterStarts.push(offset);
+		offset += bytes.length;
+	}
+	// The first code point always breaks (GB1), so newClusterStarts begins with
+	// 0; drop it. Each remaining start closes the cluster before it, and the
+	// total length closes the last cluster.
+	const ends = newClusterStarts.slice(1);
+	if (offset > 0) ends.push(offset);
+	return ends;
+}
 
 /**
  * The official UAX #29 GraphemeBreakTest cases (Unicode 17.0).
@@ -3845,76 +3890,83 @@ export const CASES: Array<{ name: string; input: string; want: number[] }> = [
 	}
 ];
 
-describe('grapheme.split', () => {
+describe('grapheme.next', () => {
 	describe('matches the official UAX #29 GraphemeBreakTest cases', () => {
 		it.each(CASES)('$name', ({ input, want }) => {
-			expect(split(encoder.encode(input)).map((e) => e.index)).toEqual(want);
+			expect(clusterEnds(input)).toEqual(want);
 		});
 	});
 
-	describe('resumes from any returned boundary with its stored state', () => {
+	describe('resumes identically when suspended at any byte boundary', () => {
 		it.each(CASES)('$name', ({ input }) => {
 			const bytes = encoder.encode(input);
-			const full = split(bytes);
-			// Every non-empty case yields at least one cluster, so this also
-			// satisfies requireAssertions when there is no inner boundary to resume.
-			expect(full.length).toBeGreaterThan(0);
-			for (let e = 0; e < full.length - 1; e++) {
-				const at = full[e];
-				const resumed = split(bytes.subarray(at.index), at.state).map((r) => ({
-					index: r.index + at.index,
-					state: r.state
-				}));
-				expect(resumed).toEqual(full.slice(e + 1));
+			const whole = boundaryBytes(bytes);
+			// Every non-empty case yields at least one boundary (GB1), so this also
+			// satisfies requireAssertions when there is no inner split to make.
+			expect(whole.length).toBeGreaterThan(0);
+			// Carrying only `state` across an arbitrary split — even mid-code-point —
+			// must reproduce the same boundaries as feeding the bytes in one pass.
+			for (let k = 0; k <= bytes.length; k++) {
+				let s = INITIAL;
+				const hits: number[] = [];
+				for (let i = 0; i < k; i++) {
+					const r = next(s, bytes[i]);
+					s = r.state;
+					if (r.boundary) hits.push(i);
+				}
+				for (let i = k; i < bytes.length; i++) {
+					const r = next(s, bytes[i]);
+					s = r.state;
+					if (r.boundary) hits.push(i);
+				}
+				expect(hits).toEqual(whole);
 			}
 		});
 	});
 
-	it('marks cluster ends as exclusive byte offsets', () => {
+	it('reports cluster ends as exclusive byte offsets', () => {
 		// "e" + combining acute (é) is one cluster; the following "x" is another.
-		const bytes = Uint8Array.of(0x65, 0xcc, 0x81, 0x78);
-		expect(split(bytes).map((e) => e.index)).toEqual([3, 4]);
+		expect(clusterEnds('éx')).toEqual([3, 4]);
 	});
 
 	it('keeps emoji ZWJ sequences and regional-indicator pairs intact', () => {
 		// Family emoji man-ZWJ-woman-ZWJ-girl: a single 18-byte cluster.
-		expect(split(encoder.encode('\u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f467}'))).toHaveLength(1);
+		expect(clusterEnds('\u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f467}')).toEqual([18]);
 		// Three regional indicators: a flag pair (8 bytes) then a lone one.
-		expect(split(encoder.encode('\u{1f1e6}\u{1f1e7}\u{1f1e8}')).map((e) => e.index)).toEqual([
-			8, 12
-		]);
+		expect(clusterEnds('\u{1f1e6}\u{1f1e7}\u{1f1e8}')).toEqual([8, 12]);
 	});
 
 	it('resumes across an edit that dissolves the boundary at the edit point', () => {
-		const original = Uint8Array.of(0x61, 0x62, 0x63); // "abc"
-		const entries = split(original);
-
-		// The edit begins at byte 2 (rewriting "c"); resume from the last
-		// boundary strictly before it.
-		const firstEdited = 2;
-		let resume: { index: number; state: State } = { index: 0, state: INITIAL };
-		for (const e of entries) if (e.index < firstEdited) resume = e;
-
-		// "c" becomes a combining mark (U+0301), so it joins "b": the boundary
-		// that used to sit at byte 2 disappears.
-		const edited = Uint8Array.of(0x61, 0x62, 0xcc, 0x81); // "ab" + combining acute
-		const tail = split(edited.subarray(resume.index), resume.state).map(
-			(r) => r.index + resume.index
-		);
-		const rebuilt = [
-			...entries.filter((e) => e.index <= resume.index).map((e) => e.index),
-			...tail
-		];
-
-		expect(rebuilt).toEqual(split(edited).map((e) => e.index));
-		expect(rebuilt).toEqual([1, 4]);
+		// Feed only the unchanged prefix "ab", carry its state, then feed the
+		// edited tail. Originally byte 2 was "c" (a boundary); the edit rewrites it
+		// to a combining mark, so the tail joins "b" and that boundary disappears.
+		let s = INITIAL;
+		const hits: number[] = [];
+		const prefix = Uint8Array.of(0x61, 0x62); // "ab"
+		for (let i = 0; i < prefix.length; i++) {
+			const r = next(s, prefix[i]);
+			s = r.state;
+			if (r.boundary) hits.push(i);
+		}
+		const tail = Uint8Array.of(0xcc, 0x81); // U+0301 combining acute
+		for (let i = 0; i < tail.length; i++) {
+			const r = next(s, tail[i]);
+			s = r.state;
+			if (r.boundary) hits.push(prefix.length + i);
+		}
+		// Boundaries before "a" and "b" only; the combining mark joins "b".
+		expect(hits).toEqual([0, 1]);
+		// Identical to feeding the whole edited buffer in one pass.
+		expect(boundaryBytes(Uint8Array.of(0x61, 0x62, 0xcc, 0x81))).toEqual([0, 1]);
 	});
 
 	it('decodes invalid UTF-8 as standalone U+FFFD clusters', () => {
-		expect(split(new Uint8Array([]))).toEqual([]);
-		expect(split(Uint8Array.of(0xff)).map((e) => e.index)).toEqual([1]);
-		expect(split(Uint8Array.of(0x80)).map((e) => e.index)).toEqual([1]); // stray continuation
-		expect(split(Uint8Array.of(0x61, 0xff, 0x62)).map((e) => e.index)).toEqual([1, 2, 3]);
-		expect(split(Uint8Array.of(0xe2, 0x82)).map((e) => e.index)).toEqual([2]); // truncated
+		expect(boundaryBytes(new Uint8Array([]))).toEqual([]);
+		expect(boundaryBytes(Uint8Array.of(0xff))).toEqual([0]); // invalid lead
+		expect(boundaryBytes(Uint8Array.of(0x80))).toEqual([0]); // stray continuation
+		expect(boundaryBytes(Uint8Array.of(0x61, 0xff, 0x62))).toEqual([0, 1, 2]);
+		// A multi-byte sequence truncated at end of input stays pending in the
+		// state: no boundary is reported until the bytes that finish it arrive.
+		expect(boundaryBytes(Uint8Array.of(0xe2, 0x82))).toEqual([]);
 	});
 });
