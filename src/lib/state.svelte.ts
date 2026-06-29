@@ -93,6 +93,18 @@ export class State {
 		}
 	}
 
+	reset() {
+		this.buffer = new Array(this.rows);
+		for (let index = 0; index < this.rows; index += 1) {
+			this.buffer[index] = { cells: new Array(this.columns), break: false } satisfies Line;
+		}
+
+		this.column = 0;
+		this.row = 0;
+		this.style = 'block';
+		this.attributes = DEFAULT_ATTRIBUTES;
+	}
+
 	print(text: string) {
 		// autowrap: if x is past the last column, wrap before writing.
 		if (this.column >= this.columns) {
