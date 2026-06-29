@@ -413,10 +413,10 @@ export class Emulator {
 	// pattern: each mode corresponds to a parser function.
 	// each parser function processes a single grapheme, sets
 	// `mode` to the parser needed to continue, and returns the
-	// index at which that parser should start (always the next
-	// grapheme). the dispatch loop below drives one grapheme per
-	// call. the optimized parser instead batches whole runs in
-	// each mode; here we favor clarity over throughput.
+	// index of the next grapheme. the dispatch loop below drives
+	// one grapheme per call. wrapping each mode in a do-while loop
+	// would be equivalent and skip the dispatch call while staying
+	// in the same mode; we keep the single-grapheme form for simplicity.
 	readonly parse = (chunk: string) => {
 		const graphemes: string[] = [];
 		for (const { segment } of segmenter.segment(chunk)) graphemes.push(segment);
