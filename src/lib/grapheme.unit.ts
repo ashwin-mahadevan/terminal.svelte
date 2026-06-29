@@ -9,4173 +9,3852 @@ const encoder = new TextEncoder();
  * https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt.
  *
  * `name` is the human-readable description from the test file (character names + rule numbers);
- * `bytes` is the UTF-8 encoding;
+ * `input` is the Unicode string (encoded to UTF-8 in the test loop);
  * `want` is the expected cluster-end byte offsets.
  */
-export const CASES: Array<{ name: string; bytes: Uint8Array; want: number[] }> = [
+export const CASES: Array<{ name: string; input: string; want: number[] }> = [
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0x0d),
+		input: '\r\r',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0x0d),
+		input: '\r\u0308\r',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) × [3.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0x0a),
+		input: '\r\n',
 		want: [2]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0x0a),
+		input: '\r\u0308\n',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0x00),
+		input: '\r\0',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0x00),
+		input: '\r\u0308\0',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xe0, 0xa5, 0x8d),
+		input: '\r\u094d',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\r\u0308\u094d',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x80),
+		input: '\r\u0300',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\r\u0308\u0300',
 		want: [1, 5]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xe2, 0x80, 0x8c),
+		input: '\r\u200c',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\r\u0308\u200c',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xe2, 0x80, 0x8d),
+		input: '\r\u200d',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\r\u0308\u200d',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\r\u{1f1e6}',
 		want: [1, 5]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\r\u0308\u{1f1e6}',
 		want: [1, 3, 7]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xdb, 0x9d),
+		input: '\r\u06dd',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\r\u0308\u06dd',
 		want: [1, 3, 5]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xe0, 0xa4, 0x83),
+		input: '\r\u0903',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\r\u0308\u0903',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xe1, 0x84, 0x80),
+		input: '\r\u1100',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\r\u0308\u1100',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xe1, 0x85, 0xa0),
+		input: '\r\u1160',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\r\u0308\u1160',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xe1, 0x86, 0xa8),
+		input: '\r\u11a8',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\r\u0308\u11a8',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xea, 0xb0, 0x80),
+		input: '\r\uac00',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\r\u0308\uac00',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xea, 0xb0, 0x81),
+		input: '\r\uac01',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\r\u0308\uac01',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xe0, 0xa4, 0x95),
+		input: '\r\u0915',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\r\u0308\u0915',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xc2, 0xa9),
+		input: '\r\u00a9',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\r\u0308\u00a9',
 		want: [1, 3, 5]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0x20),
+		input: '\r ',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0x20),
+		input: '\r\u0308 ',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcd, 0xb8),
+		input: '\r\u0378',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\r\u0308\u0378',
 		want: [1, 3, 5]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0x0d),
+		input: '\n\r',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0x0d),
+		input: '\n\u0308\r',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0x0a),
+		input: '\n\n',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0x0a),
+		input: '\n\u0308\n',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0x00),
+		input: '\n\0',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0x00),
+		input: '\n\u0308\0',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xe0, 0xa5, 0x8d),
+		input: '\n\u094d',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\n\u0308\u094d',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x80),
+		input: '\n\u0300',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\n\u0308\u0300',
 		want: [1, 5]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xe2, 0x80, 0x8c),
+		input: '\n\u200c',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\n\u0308\u200c',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xe2, 0x80, 0x8d),
+		input: '\n\u200d',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\n\u0308\u200d',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\n\u{1f1e6}',
 		want: [1, 5]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\n\u0308\u{1f1e6}',
 		want: [1, 3, 7]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xdb, 0x9d),
+		input: '\n\u06dd',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\n\u0308\u06dd',
 		want: [1, 3, 5]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xe0, 0xa4, 0x83),
+		input: '\n\u0903',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\n\u0308\u0903',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xe1, 0x84, 0x80),
+		input: '\n\u1100',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\n\u0308\u1100',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xe1, 0x85, 0xa0),
+		input: '\n\u1160',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\n\u0308\u1160',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xe1, 0x86, 0xa8),
+		input: '\n\u11a8',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\n\u0308\u11a8',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xea, 0xb0, 0x80),
+		input: '\n\uac00',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\n\u0308\uac00',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xea, 0xb0, 0x81),
+		input: '\n\uac01',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\n\u0308\uac01',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xe0, 0xa4, 0x95),
+		input: '\n\u0915',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\n\u0308\u0915',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xc2, 0xa9),
+		input: '\n\u00a9',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\n\u0308\u00a9',
 		want: [1, 3, 5]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0x20),
+		input: '\n ',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0x20),
+		input: '\n\u0308 ',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcd, 0xb8),
+		input: '\n\u0378',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0a, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\n\u0308\u0378',
 		want: [1, 3, 5]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0x0d),
+		input: '\0\r',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0x0d),
+		input: '\0\u0308\r',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0x0a),
+		input: '\0\n',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0x0a),
+		input: '\0\u0308\n',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0x00),
+		input: '\0\0',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0x00),
+		input: '\0\u0308\0',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xe0, 0xa5, 0x8d),
+		input: '\0\u094d',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\0\u0308\u094d',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x80),
+		input: '\0\u0300',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\0\u0308\u0300',
 		want: [1, 5]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xe2, 0x80, 0x8c),
+		input: '\0\u200c',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\0\u0308\u200c',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xe2, 0x80, 0x8d),
+		input: '\0\u200d',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\0\u0308\u200d',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\0\u{1f1e6}',
 		want: [1, 5]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\0\u0308\u{1f1e6}',
 		want: [1, 3, 7]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xdb, 0x9d),
+		input: '\0\u06dd',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\0\u0308\u06dd',
 		want: [1, 3, 5]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xe0, 0xa4, 0x83),
+		input: '\0\u0903',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\0\u0308\u0903',
 		want: [1, 6]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xe1, 0x84, 0x80),
+		input: '\0\u1100',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\0\u0308\u1100',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xe1, 0x85, 0xa0),
+		input: '\0\u1160',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\0\u0308\u1160',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xe1, 0x86, 0xa8),
+		input: '\0\u11a8',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\0\u0308\u11a8',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xea, 0xb0, 0x80),
+		input: '\0\uac00',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\0\u0308\uac00',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xea, 0xb0, 0x81),
+		input: '\0\uac01',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\0\u0308\uac01',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xe0, 0xa4, 0x95),
+		input: '\0\u0915',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\0\u0308\u0915',
 		want: [1, 3, 6]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xc2, 0xa9),
+		input: '\0\u00a9',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\0\u0308\u00a9',
 		want: [1, 3, 5]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0x20),
+		input: '\0 ',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0x20),
+		input: '\0\u0308 ',
 		want: [1, 3, 4]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcd, 0xb8),
+		input: '\0\u0378',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] <NULL> (Control) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x00, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\0\u0308\u0378',
 		want: [1, 3, 5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0x0d),
+		input: '\u094d\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0x0d),
+		input: '\u094d\u0308\r',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0x0a),
+		input: '\u094d\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0x0a),
+		input: '\u094d\u0308\n',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0x00),
+		input: '\u094d\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0x00),
+		input: '\u094d\u0308\0',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xe0, 0xa5, 0x8d),
+		input: '\u094d\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u094d\u0308\u094d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x80),
+		input: '\u094d\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u094d\u0308\u0300',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xe2, 0x80, 0x8c),
+		input: '\u094d\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u094d\u0308\u200c',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xe2, 0x80, 0x8d),
+		input: '\u094d\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u094d\u0308\u200d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u094d\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u094d\u0308\u{1f1e6}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xdb, 0x9d),
+		input: '\u094d\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u094d\u0308\u06dd',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xe0, 0xa4, 0x83),
+		input: '\u094d\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u094d\u0308\u0903',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xe1, 0x84, 0x80),
+		input: '\u094d\u1100',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u094d\u0308\u1100',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xe1, 0x85, 0xa0),
+		input: '\u094d\u1160',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u094d\u0308\u1160',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xe1, 0x86, 0xa8),
+		input: '\u094d\u11a8',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u094d\u0308\u11a8',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xea, 0xb0, 0x80),
+		input: '\u094d\uac00',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u094d\u0308\uac00',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xea, 0xb0, 0x81),
+		input: '\u094d\uac01',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u094d\u0308\uac01',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xe0, 0xa4, 0x95),
+		input: '\u094d\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u094d\u0308\u0915',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xc2, 0xa9),
+		input: '\u094d\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u094d\u0308\u00a9',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0x20),
+		input: '\u094d ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0x20),
+		input: '\u094d\u0308 ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcd, 0xb8),
+		input: '\u094d\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa5, 0x8d, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u094d\u0308\u0378',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0x0d),
+		input: '\u0300\r',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0x0d),
+		input: '\u0300\u0308\r',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0x0a),
+		input: '\u0300\n',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0x0a),
+		input: '\u0300\u0308\n',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0x00),
+		input: '\u0300\0',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0x00),
+		input: '\u0300\u0308\0',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xe0, 0xa5, 0x8d),
+		input: '\u0300\u094d',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u0300\u0308\u094d',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x80),
+		input: '\u0300\u0300',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u0300\u0308\u0300',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xe2, 0x80, 0x8c),
+		input: '\u0300\u200c',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u0300\u0308\u200c',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xe2, 0x80, 0x8d),
+		input: '\u0300\u200d',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u0300\u0308\u200d',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u0300\u{1f1e6}',
 		want: [2, 6]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u0300\u0308\u{1f1e6}',
 		want: [4, 8]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xdb, 0x9d),
+		input: '\u0300\u06dd',
 		want: [2, 4]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u0300\u0308\u06dd',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xe0, 0xa4, 0x83),
+		input: '\u0300\u0903',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u0300\u0308\u0903',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xe1, 0x84, 0x80),
+		input: '\u0300\u1100',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u0300\u0308\u1100',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xe1, 0x85, 0xa0),
+		input: '\u0300\u1160',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u0300\u0308\u1160',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xe1, 0x86, 0xa8),
+		input: '\u0300\u11a8',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u0300\u0308\u11a8',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xea, 0xb0, 0x80),
+		input: '\u0300\uac00',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u0300\u0308\uac00',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xea, 0xb0, 0x81),
+		input: '\u0300\uac01',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u0300\u0308\uac01',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xe0, 0xa4, 0x95),
+		input: '\u0300\u0915',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u0300\u0308\u0915',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xc2, 0xa9),
+		input: '\u0300\u00a9',
 		want: [2, 4]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u0300\u0308\u00a9',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0x20),
+		input: '\u0300 ',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0x20),
+		input: '\u0300\u0308 ',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcd, 0xb8),
+		input: '\u0300\u0378',
 		want: [2, 4]
 	},
 	{
 		name: '÷ [0.2] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcc, 0x80, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u0300\u0308\u0378',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0x0d),
+		input: '\u200c\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0x0d),
+		input: '\u200c\u0308\r',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0x0a),
+		input: '\u200c\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0x0a),
+		input: '\u200c\u0308\n',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0x00),
+		input: '\u200c\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0x00),
+		input: '\u200c\u0308\0',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xe0, 0xa5, 0x8d),
+		input: '\u200c\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u200c\u0308\u094d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x80),
+		input: '\u200c\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u200c\u0308\u0300',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xe2, 0x80, 0x8c),
+		input: '\u200c\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u200c\u0308\u200c',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xe2, 0x80, 0x8d),
+		input: '\u200c\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u200c\u0308\u200d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u200c\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u200c\u0308\u{1f1e6}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xdb, 0x9d),
+		input: '\u200c\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u200c\u0308\u06dd',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xe0, 0xa4, 0x83),
+		input: '\u200c\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u200c\u0308\u0903',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xe1, 0x84, 0x80),
+		input: '\u200c\u1100',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u200c\u0308\u1100',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xe1, 0x85, 0xa0),
+		input: '\u200c\u1160',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u200c\u0308\u1160',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xe1, 0x86, 0xa8),
+		input: '\u200c\u11a8',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u200c\u0308\u11a8',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xea, 0xb0, 0x80),
+		input: '\u200c\uac00',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u200c\u0308\uac00',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xea, 0xb0, 0x81),
+		input: '\u200c\uac01',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u200c\u0308\uac01',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xe0, 0xa4, 0x95),
+		input: '\u200c\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u200c\u0308\u0915',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xc2, 0xa9),
+		input: '\u200c\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u200c\u0308\u00a9',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0x20),
+		input: '\u200c ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0x20),
+		input: '\u200c\u0308 ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcd, 0xb8),
+		input: '\u200c\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8c, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u200c\u0308\u0378',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0x0d),
+		input: '\u200d\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0x0d),
+		input: '\u200d\u0308\r',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0x0a),
+		input: '\u200d\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0x0a),
+		input: '\u200d\u0308\n',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0x00),
+		input: '\u200d\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0x00),
+		input: '\u200d\u0308\0',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xe0, 0xa5, 0x8d),
+		input: '\u200d\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u200d\u0308\u094d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x80),
+		input: '\u200d\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u200d\u0308\u0300',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xe2, 0x80, 0x8c),
+		input: '\u200d\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u200d\u0308\u200c',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xe2, 0x80, 0x8d),
+		input: '\u200d\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u200d\u0308\u200d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u200d\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u200d\u0308\u{1f1e6}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xdb, 0x9d),
+		input: '\u200d\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u200d\u0308\u06dd',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xe0, 0xa4, 0x83),
+		input: '\u200d\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u200d\u0308\u0903',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xe1, 0x84, 0x80),
+		input: '\u200d\u1100',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u200d\u0308\u1100',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xe1, 0x85, 0xa0),
+		input: '\u200d\u1160',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u200d\u0308\u1160',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xe1, 0x86, 0xa8),
+		input: '\u200d\u11a8',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u200d\u0308\u11a8',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xea, 0xb0, 0x80),
+		input: '\u200d\uac00',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u200d\u0308\uac00',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xea, 0xb0, 0x81),
+		input: '\u200d\uac01',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u200d\u0308\uac01',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xe0, 0xa4, 0x95),
+		input: '\u200d\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u200d\u0308\u0915',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xc2, 0xa9),
+		input: '\u200d\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u200d\u0308\u00a9',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0x20),
+		input: '\u200d ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0x20),
+		input: '\u200d\u0308 ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcd, 0xb8),
+		input: '\u200d\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] ZERO WIDTH JOINER (ZWJ) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x80, 0x8d, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u200d\u0308\u0378',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0x0d),
+		input: '\u{1f1e6}\r',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0x0d),
+		input: '\u{1f1e6}\u0308\r',
 		want: [6, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0x0a),
+		input: '\u{1f1e6}\n',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0x0a),
+		input: '\u{1f1e6}\u0308\n',
 		want: [6, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0x00),
+		input: '\u{1f1e6}\0',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0x00),
+		input: '\u{1f1e6}\u0308\0',
 		want: [6, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xe0, 0xa5, 0x8d),
+		input: '\u{1f1e6}\u094d',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u{1f1e6}\u0308\u094d',
 		want: [9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x80),
+		input: '\u{1f1e6}\u0300',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u{1f1e6}\u0308\u0300',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xe2, 0x80, 0x8c),
+		input: '\u{1f1e6}\u200c',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u{1f1e6}\u0308\u200c',
 		want: [9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xe2, 0x80, 0x8d),
+		input: '\u{1f1e6}\u200d',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u{1f1e6}\u0308\u200d',
 		want: [9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [12.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u{1f1e6}\u{1f1e6}',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u{1f1e6}\u0308\u{1f1e6}',
 		want: [6, 10]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xdb, 0x9d),
+		input: '\u{1f1e6}\u06dd',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u{1f1e6}\u0308\u06dd',
 		want: [6, 8]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xe0, 0xa4, 0x83),
+		input: '\u{1f1e6}\u0903',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u{1f1e6}\u0308\u0903',
 		want: [9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xe1, 0x84, 0x80),
+		input: '\u{1f1e6}\u1100',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u{1f1e6}\u0308\u1100',
 		want: [6, 9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xe1, 0x85, 0xa0),
+		input: '\u{1f1e6}\u1160',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u{1f1e6}\u0308\u1160',
 		want: [6, 9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xe1, 0x86, 0xa8),
+		input: '\u{1f1e6}\u11a8',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u{1f1e6}\u0308\u11a8',
 		want: [6, 9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xea, 0xb0, 0x80),
+		input: '\u{1f1e6}\uac00',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u{1f1e6}\u0308\uac00',
 		want: [6, 9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xea, 0xb0, 0x81),
+		input: '\u{1f1e6}\uac01',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u{1f1e6}\u0308\uac01',
 		want: [6, 9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xe0, 0xa4, 0x95),
+		input: '\u{1f1e6}\u0915',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u{1f1e6}\u0308\u0915',
 		want: [6, 9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xc2, 0xa9),
+		input: '\u{1f1e6}\u00a9',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u{1f1e6}\u0308\u00a9',
 		want: [6, 8]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0x20),
+		input: '\u{1f1e6} ',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0x20),
+		input: '\u{1f1e6}\u0308 ',
 		want: [6, 7]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcd, 0xb8),
+		input: '\u{1f1e6}\u0378',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x87, 0xa6, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u{1f1e6}\u0308\u0378',
 		want: [6, 8]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0x0d),
+		input: '\u06dd\r',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0x0d),
+		input: '\u06dd\u0308\r',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0x0a),
+		input: '\u06dd\n',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0x0a),
+		input: '\u06dd\u0308\n',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0x00),
+		input: '\u06dd\0',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0x00),
+		input: '\u06dd\u0308\0',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xe0, 0xa5, 0x8d),
+		input: '\u06dd\u094d',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u06dd\u0308\u094d',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x80),
+		input: '\u06dd\u0300',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u06dd\u0308\u0300',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xe2, 0x80, 0x8c),
+		input: '\u06dd\u200c',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u06dd\u0308\u200c',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xe2, 0x80, 0x8d),
+		input: '\u06dd\u200d',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u06dd\u0308\u200d',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u06dd\u{1f1e6}',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u06dd\u0308\u{1f1e6}',
 		want: [4, 8]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xdb, 0x9d),
+		input: '\u06dd\u06dd',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u06dd\u0308\u06dd',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xe0, 0xa4, 0x83),
+		input: '\u06dd\u0903',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u06dd\u0308\u0903',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xe1, 0x84, 0x80),
+		input: '\u06dd\u1100',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u06dd\u0308\u1100',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xe1, 0x85, 0xa0),
+		input: '\u06dd\u1160',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u06dd\u0308\u1160',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xe1, 0x86, 0xa8),
+		input: '\u06dd\u11a8',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u06dd\u0308\u11a8',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xea, 0xb0, 0x80),
+		input: '\u06dd\uac00',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u06dd\u0308\uac00',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xea, 0xb0, 0x81),
+		input: '\u06dd\uac01',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u06dd\u0308\uac01',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xe0, 0xa4, 0x95),
+		input: '\u06dd\u0915',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u06dd\u0308\u0915',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xc2, 0xa9),
+		input: '\u06dd\u00a9',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u06dd\u0308\u00a9',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0x20),
+		input: '\u06dd ',
 		want: [3]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0x20),
+		input: '\u06dd\u0308 ',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcd, 0xb8),
+		input: '\u06dd\u0378',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] ARABIC END OF AYAH (Prepend) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xdb, 0x9d, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u06dd\u0308\u0378',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0x0d),
+		input: '\u0903\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0x0d),
+		input: '\u0903\u0308\r',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0x0a),
+		input: '\u0903\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0x0a),
+		input: '\u0903\u0308\n',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0x00),
+		input: '\u0903\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0x00),
+		input: '\u0903\u0308\0',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xe0, 0xa5, 0x8d),
+		input: '\u0903\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u0903\u0308\u094d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x80),
+		input: '\u0903\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u0903\u0308\u0300',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xe2, 0x80, 0x8c),
+		input: '\u0903\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u0903\u0308\u200c',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xe2, 0x80, 0x8d),
+		input: '\u0903\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u0903\u0308\u200d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u0903\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u0903\u0308\u{1f1e6}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xdb, 0x9d),
+		input: '\u0903\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u0903\u0308\u06dd',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xe0, 0xa4, 0x83),
+		input: '\u0903\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u0903\u0308\u0903',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xe1, 0x84, 0x80),
+		input: '\u0903\u1100',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u0903\u0308\u1100',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xe1, 0x85, 0xa0),
+		input: '\u0903\u1160',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u0903\u0308\u1160',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xe1, 0x86, 0xa8),
+		input: '\u0903\u11a8',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u0903\u0308\u11a8',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xea, 0xb0, 0x80),
+		input: '\u0903\uac00',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u0903\u0308\uac00',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xea, 0xb0, 0x81),
+		input: '\u0903\uac01',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u0903\u0308\uac01',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xe0, 0xa4, 0x95),
+		input: '\u0903\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u0903\u0308\u0915',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xc2, 0xa9),
+		input: '\u0903\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u0903\u0308\u00a9',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0x20),
+		input: '\u0903 ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0x20),
+		input: '\u0903\u0308 ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcd, 0xb8),
+		input: '\u0903\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI SIGN VISARGA (SpacingMark) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x83, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u0903\u0308\u0378',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0x0d),
+		input: '\u1100\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0x0d),
+		input: '\u1100\u0308\r',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0x0a),
+		input: '\u1100\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0x0a),
+		input: '\u1100\u0308\n',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0x00),
+		input: '\u1100\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0x00),
+		input: '\u1100\u0308\0',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xe0, 0xa5, 0x8d),
+		input: '\u1100\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u1100\u0308\u094d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x80),
+		input: '\u1100\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u1100\u0308\u0300',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xe2, 0x80, 0x8c),
+		input: '\u1100\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u1100\u0308\u200c',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xe2, 0x80, 0x8d),
+		input: '\u1100\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u1100\u0308\u200d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u1100\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u1100\u0308\u{1f1e6}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xdb, 0x9d),
+		input: '\u1100\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u1100\u0308\u06dd',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xe0, 0xa4, 0x83),
+		input: '\u1100\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u1100\u0308\u0903',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [6.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xe1, 0x84, 0x80),
+		input: '\u1100\u1100',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u1100\u0308\u1100',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [6.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xe1, 0x85, 0xa0),
+		input: '\u1100\u1160',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u1100\u0308\u1160',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xe1, 0x86, 0xa8),
+		input: '\u1100\u11a8',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u1100\u0308\u11a8',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [6.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xea, 0xb0, 0x80),
+		input: '\u1100\uac00',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u1100\u0308\uac00',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [6.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xea, 0xb0, 0x81),
+		input: '\u1100\uac01',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u1100\u0308\uac01',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xe0, 0xa4, 0x95),
+		input: '\u1100\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u1100\u0308\u0915',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xc2, 0xa9),
+		input: '\u1100\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u1100\u0308\u00a9',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0x20),
+		input: '\u1100 ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0x20),
+		input: '\u1100\u0308 ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcd, 0xb8),
+		input: '\u1100\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u1100\u0308\u0378',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0x0d),
+		input: '\u1160\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0x0d),
+		input: '\u1160\u0308\r',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0x0a),
+		input: '\u1160\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0x0a),
+		input: '\u1160\u0308\n',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0x00),
+		input: '\u1160\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0x00),
+		input: '\u1160\u0308\0',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xe0, 0xa5, 0x8d),
+		input: '\u1160\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u1160\u0308\u094d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x80),
+		input: '\u1160\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u1160\u0308\u0300',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xe2, 0x80, 0x8c),
+		input: '\u1160\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u1160\u0308\u200c',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xe2, 0x80, 0x8d),
+		input: '\u1160\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u1160\u0308\u200d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u1160\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u1160\u0308\u{1f1e6}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xdb, 0x9d),
+		input: '\u1160\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u1160\u0308\u06dd',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xe0, 0xa4, 0x83),
+		input: '\u1160\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u1160\u0308\u0903',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xe1, 0x84, 0x80),
+		input: '\u1160\u1100',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u1160\u0308\u1100',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [7.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xe1, 0x85, 0xa0),
+		input: '\u1160\u1160',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u1160\u0308\u1160',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [7.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xe1, 0x86, 0xa8),
+		input: '\u1160\u11a8',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u1160\u0308\u11a8',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xea, 0xb0, 0x80),
+		input: '\u1160\uac00',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u1160\u0308\uac00',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xea, 0xb0, 0x81),
+		input: '\u1160\uac01',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u1160\u0308\uac01',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xe0, 0xa4, 0x95),
+		input: '\u1160\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u1160\u0308\u0915',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xc2, 0xa9),
+		input: '\u1160\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u1160\u0308\u00a9',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0x20),
+		input: '\u1160 ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0x20),
+		input: '\u1160\u0308 ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcd, 0xb8),
+		input: '\u1160\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL JUNGSEONG FILLER (V) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x85, 0xa0, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u1160\u0308\u0378',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0x0d),
+		input: '\u11a8\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0x0d),
+		input: '\u11a8\u0308\r',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0x0a),
+		input: '\u11a8\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0x0a),
+		input: '\u11a8\u0308\n',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0x00),
+		input: '\u11a8\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0x00),
+		input: '\u11a8\u0308\0',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xe0, 0xa5, 0x8d),
+		input: '\u11a8\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u11a8\u0308\u094d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x80),
+		input: '\u11a8\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u11a8\u0308\u0300',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xe2, 0x80, 0x8c),
+		input: '\u11a8\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u11a8\u0308\u200c',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xe2, 0x80, 0x8d),
+		input: '\u11a8\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u11a8\u0308\u200d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u11a8\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u11a8\u0308\u{1f1e6}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xdb, 0x9d),
+		input: '\u11a8\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u11a8\u0308\u06dd',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xe0, 0xa4, 0x83),
+		input: '\u11a8\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u11a8\u0308\u0903',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xe1, 0x84, 0x80),
+		input: '\u11a8\u1100',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u11a8\u0308\u1100',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xe1, 0x85, 0xa0),
+		input: '\u11a8\u1160',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u11a8\u0308\u1160',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [8.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xe1, 0x86, 0xa8),
+		input: '\u11a8\u11a8',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u11a8\u0308\u11a8',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xea, 0xb0, 0x80),
+		input: '\u11a8\uac00',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u11a8\u0308\uac00',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xea, 0xb0, 0x81),
+		input: '\u11a8\uac01',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u11a8\u0308\uac01',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xe0, 0xa4, 0x95),
+		input: '\u11a8\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u11a8\u0308\u0915',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xc2, 0xa9),
+		input: '\u11a8\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u11a8\u0308\u00a9',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0x20),
+		input: '\u11a8 ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0x20),
+		input: '\u11a8\u0308 ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcd, 0xb8),
+		input: '\u11a8\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL JONGSEONG KIYEOK (T) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x86, 0xa8, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u11a8\u0308\u0378',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0x0d),
+		input: '\uac00\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0x0d),
+		input: '\uac00\u0308\r',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0x0a),
+		input: '\uac00\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0x0a),
+		input: '\uac00\u0308\n',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0x00),
+		input: '\uac00\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0x00),
+		input: '\uac00\u0308\0',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xe0, 0xa5, 0x8d),
+		input: '\uac00\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\uac00\u0308\u094d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x80),
+		input: '\uac00\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\uac00\u0308\u0300',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xe2, 0x80, 0x8c),
+		input: '\uac00\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\uac00\u0308\u200c',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xe2, 0x80, 0x8d),
+		input: '\uac00\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\uac00\u0308\u200d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\uac00\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\uac00\u0308\u{1f1e6}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xdb, 0x9d),
+		input: '\uac00\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\uac00\u0308\u06dd',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xe0, 0xa4, 0x83),
+		input: '\uac00\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\uac00\u0308\u0903',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xe1, 0x84, 0x80),
+		input: '\uac00\u1100',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\uac00\u0308\u1100',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [7.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xe1, 0x85, 0xa0),
+		input: '\uac00\u1160',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\uac00\u0308\u1160',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [7.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xe1, 0x86, 0xa8),
+		input: '\uac00\u11a8',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\uac00\u0308\u11a8',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xea, 0xb0, 0x80),
+		input: '\uac00\uac00',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\uac00\u0308\uac00',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xea, 0xb0, 0x81),
+		input: '\uac00\uac01',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\uac00\u0308\uac01',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xe0, 0xa4, 0x95),
+		input: '\uac00\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\uac00\u0308\u0915',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xc2, 0xa9),
+		input: '\uac00\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\uac00\u0308\u00a9',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0x20),
+		input: '\uac00 ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0x20),
+		input: '\uac00\u0308 ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcd, 0xb8),
+		input: '\uac00\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\uac00\u0308\u0378',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0x0d),
+		input: '\uac01\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0x0d),
+		input: '\uac01\u0308\r',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0x0a),
+		input: '\uac01\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0x0a),
+		input: '\uac01\u0308\n',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0x00),
+		input: '\uac01\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0x00),
+		input: '\uac01\u0308\0',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xe0, 0xa5, 0x8d),
+		input: '\uac01\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\uac01\u0308\u094d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x80),
+		input: '\uac01\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\uac01\u0308\u0300',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xe2, 0x80, 0x8c),
+		input: '\uac01\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\uac01\u0308\u200c',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xe2, 0x80, 0x8d),
+		input: '\uac01\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\uac01\u0308\u200d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\uac01\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\uac01\u0308\u{1f1e6}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xdb, 0x9d),
+		input: '\uac01\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\uac01\u0308\u06dd',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xe0, 0xa4, 0x83),
+		input: '\uac01\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\uac01\u0308\u0903',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xe1, 0x84, 0x80),
+		input: '\uac01\u1100',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\uac01\u0308\u1100',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xe1, 0x85, 0xa0),
+		input: '\uac01\u1160',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\uac01\u0308\u1160',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [8.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xe1, 0x86, 0xa8),
+		input: '\uac01\u11a8',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\uac01\u0308\u11a8',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xea, 0xb0, 0x80),
+		input: '\uac01\uac00',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\uac01\u0308\uac00',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xea, 0xb0, 0x81),
+		input: '\uac01\uac01',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\uac01\u0308\uac01',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xe0, 0xa4, 0x95),
+		input: '\uac01\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\uac01\u0308\u0915',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xc2, 0xa9),
+		input: '\uac01\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\uac01\u0308\u00a9',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0x20),
+		input: '\uac01 ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0x20),
+		input: '\uac01\u0308 ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcd, 0xb8),
+		input: '\uac01\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\uac01\u0308\u0378',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0x0d),
+		input: '\u0915\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0x0d),
+		input: '\u0915\u0308\r',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0x0a),
+		input: '\u0915\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0x0a),
+		input: '\u0915\u0308\n',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0x00),
+		input: '\u0915\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0x00),
+		input: '\u0915\u0308\0',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe0, 0xa5, 0x8d),
+		input: '\u0915\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u0915\u0308\u094d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x80),
+		input: '\u0915\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u0915\u0308\u0300',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe2, 0x80, 0x8c),
+		input: '\u0915\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u0915\u0308\u200c',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe2, 0x80, 0x8d),
+		input: '\u0915\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u0915\u0308\u200d',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u0915\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u0915\u0308\u{1f1e6}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xdb, 0x9d),
+		input: '\u0915\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u0915\u0308\u06dd',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe0, 0xa4, 0x83),
+		input: '\u0915\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u0915\u0308\u0903',
 		want: [8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe1, 0x84, 0x80),
+		input: '\u0915\u1100',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u0915\u0308\u1100',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe1, 0x85, 0xa0),
+		input: '\u0915\u1160',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u0915\u0308\u1160',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe1, 0x86, 0xa8),
+		input: '\u0915\u11a8',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u0915\u0308\u11a8',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xea, 0xb0, 0x80),
+		input: '\u0915\uac00',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u0915\u0308\uac00',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xea, 0xb0, 0x81),
+		input: '\u0915\uac01',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u0915\u0308\uac01',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe0, 0xa4, 0x95),
+		input: '\u0915\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u0915\u0308\u0915',
 		want: [5, 8]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xc2, 0xa9),
+		input: '\u0915\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u0915\u0308\u00a9',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0x20),
+		input: '\u0915 ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0x20),
+		input: '\u0915\u0308 ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcd, 0xb8),
+		input: '\u0915\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u0915\u0308\u0378',
 		want: [5, 7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0x0d),
+		input: '\u00a9\r',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0x0d),
+		input: '\u00a9\u0308\r',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0x0a),
+		input: '\u00a9\n',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0x0a),
+		input: '\u00a9\u0308\n',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0x00),
+		input: '\u00a9\0',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0x00),
+		input: '\u00a9\u0308\0',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xe0, 0xa5, 0x8d),
+		input: '\u00a9\u094d',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u00a9\u0308\u094d',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x80),
+		input: '\u00a9\u0300',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u00a9\u0308\u0300',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xe2, 0x80, 0x8c),
+		input: '\u00a9\u200c',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u00a9\u0308\u200c',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xe2, 0x80, 0x8d),
+		input: '\u00a9\u200d',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u00a9\u0308\u200d',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u00a9\u{1f1e6}',
 		want: [2, 6]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u00a9\u0308\u{1f1e6}',
 		want: [4, 8]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xdb, 0x9d),
+		input: '\u00a9\u06dd',
 		want: [2, 4]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u00a9\u0308\u06dd',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xe0, 0xa4, 0x83),
+		input: '\u00a9\u0903',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u00a9\u0308\u0903',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xe1, 0x84, 0x80),
+		input: '\u00a9\u1100',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u00a9\u0308\u1100',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xe1, 0x85, 0xa0),
+		input: '\u00a9\u1160',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u00a9\u0308\u1160',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xe1, 0x86, 0xa8),
+		input: '\u00a9\u11a8',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u00a9\u0308\u11a8',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xea, 0xb0, 0x80),
+		input: '\u00a9\uac00',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u00a9\u0308\uac00',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xea, 0xb0, 0x81),
+		input: '\u00a9\uac01',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u00a9\u0308\uac01',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xe0, 0xa4, 0x95),
+		input: '\u00a9\u0915',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u00a9\u0308\u0915',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xc2, 0xa9),
+		input: '\u00a9\u00a9',
 		want: [2, 4]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u00a9\u0308\u00a9',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0x20),
+		input: '\u00a9 ',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0x20),
+		input: '\u00a9\u0308 ',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcd, 0xb8),
+		input: '\u00a9\u0378',
 		want: [2, 4]
 	},
 	{
 		name: '÷ [0.2] COPYRIGHT SIGN (ExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xc2, 0xa9, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u00a9\u0308\u0378',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0x0d),
+		input: ' \r',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0x0d),
+		input: ' \u0308\r',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0x0a),
+		input: ' \n',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0x0a),
+		input: ' \u0308\n',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0x00),
+		input: ' \0',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0x00),
+		input: ' \u0308\0',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xe0, 0xa5, 0x8d),
+		input: ' \u094d',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: ' \u0308\u094d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x80),
+		input: ' \u0300',
 		want: [3]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xcc, 0x80),
+		input: ' \u0308\u0300',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xe2, 0x80, 0x8c),
+		input: ' \u200c',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: ' \u0308\u200c',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xe2, 0x80, 0x8d),
+		input: ' \u200d',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: ' \u0308\u200d',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xf0, 0x9f, 0x87, 0xa6),
+		input: ' \u{1f1e6}',
 		want: [1, 5]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: ' \u0308\u{1f1e6}',
 		want: [3, 7]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xdb, 0x9d),
+		input: ' \u06dd',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xdb, 0x9d),
+		input: ' \u0308\u06dd',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xe0, 0xa4, 0x83),
+		input: ' \u0903',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: ' \u0308\u0903',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xe1, 0x84, 0x80),
+		input: ' \u1100',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: ' \u0308\u1100',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xe1, 0x85, 0xa0),
+		input: ' \u1160',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: ' \u0308\u1160',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xe1, 0x86, 0xa8),
+		input: ' \u11a8',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: ' \u0308\u11a8',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xea, 0xb0, 0x80),
+		input: ' \uac00',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: ' \u0308\uac00',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xea, 0xb0, 0x81),
+		input: ' \uac01',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: ' \u0308\uac01',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xe0, 0xa4, 0x95),
+		input: ' \u0915',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: ' \u0308\u0915',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xc2, 0xa9),
+		input: ' \u00a9',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xc2, 0xa9),
+		input: ' \u0308\u00a9',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0x20),
+		input: '  ',
 		want: [1, 2]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0x20),
+		input: ' \u0308 ',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcd, 0xb8),
+		input: ' \u0378',
 		want: [1, 3]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xcc, 0x88, 0xcd, 0xb8),
+		input: ' \u0308\u0378',
 		want: [3, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0x0d),
+		input: '\u0378\r',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <CARRIAGE RETURN (CR)> (CR) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0x0d),
+		input: '\u0378\u0308\r',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0x0a),
+		input: '\u0378\n',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0x0a),
+		input: '\u0378\u0308\n',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0x00),
+		input: '\u0378\0',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [5.0] <NULL> (Control) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0x00),
+		input: '\u0378\u0308\0',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xe0, 0xa5, 0x8d),
+		input: '\u0378\u094d',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xe0, 0xa5, 0x8d),
+		input: '\u0378\u0308\u094d',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x80),
+		input: '\u0378\u0300',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING GRAVE ACCENT (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xcc, 0x80),
+		input: '\u0378\u0308\u0300',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xe2, 0x80, 0x8c),
+		input: '\u0378\u200c',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH NON-JOINER (ExtendmConjunctLinkermConjunctExtender) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xe2, 0x80, 0x8c),
+		input: '\u0378\u0308\u200c',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xe2, 0x80, 0x8d),
+		input: '\u0378\u200d',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xe2, 0x80, 0x8d),
+		input: '\u0378\u0308\u200d',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u0378\u{1f1e6}',
 		want: [2, 6]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xf0, 0x9f, 0x87, 0xa6),
+		input: '\u0378\u0308\u{1f1e6}',
 		want: [4, 8]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xdb, 0x9d),
+		input: '\u0378\u06dd',
 		want: [2, 4]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] ARABIC END OF AYAH (Prepend) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xdb, 0x9d),
+		input: '\u0378\u0308\u06dd',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xe0, 0xa4, 0x83),
+		input: '\u0378\u0903',
 		want: [5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xe0, 0xa4, 0x83),
+		input: '\u0378\u0308\u0903',
 		want: [7]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xe1, 0x84, 0x80),
+		input: '\u0378\u1100',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xe1, 0x84, 0x80),
+		input: '\u0378\u0308\u1100',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xe1, 0x85, 0xa0),
+		input: '\u0378\u1160',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JUNGSEONG FILLER (V) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xe1, 0x85, 0xa0),
+		input: '\u0378\u0308\u1160',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xe1, 0x86, 0xa8),
+		input: '\u0378\u11a8',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL JONGSEONG KIYEOK (T) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xe1, 0x86, 0xa8),
+		input: '\u0378\u0308\u11a8',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xea, 0xb0, 0x80),
+		input: '\u0378\uac00',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GA (LV) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xea, 0xb0, 0x80),
+		input: '\u0378\u0308\uac00',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xea, 0xb0, 0x81),
+		input: '\u0378\uac01',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] HANGUL SYLLABLE GAG (LVT) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xea, 0xb0, 0x81),
+		input: '\u0378\u0308\uac01',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xe0, 0xa4, 0x95),
+		input: '\u0378\u0915',
 		want: [2, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xe0, 0xa4, 0x95),
+		input: '\u0378\u0308\u0915',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xc2, 0xa9),
+		input: '\u0378\u00a9',
 		want: [2, 4]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] COPYRIGHT SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xc2, 0xa9),
+		input: '\u0378\u0308\u00a9',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0x20),
+		input: '\u0378 ',
 		want: [2, 3]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0x20),
+		input: '\u0378\u0308 ',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcd, 0xb8),
+		input: '\u0378\u0378',
 		want: [2, 4]
 	},
 	{
 		name: '÷ [0.2] <reserved-0378> (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] <reserved-0378> (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xcd, 0xb8, 0xcc, 0x88, 0xcd, 0xb8),
+		input: '\u0378\u0308\u0378',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] <CARRIAGE RETURN (CR)> (CR) × [3.0] <LINE FEED (LF)> (LF) ÷ [4.0] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) ÷ [5.0] <LINE FEED (LF)> (LF) ÷ [4.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x0d, 0x0a, 0x61, 0x0a, 0xcc, 0x88),
+		input: '\r\na\n\u0308',
 		want: [2, 3, 4, 6]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(0x61, 0xcc, 0x88),
+		input: 'a\u0308',
 		want: [3]
 	},
 	{
 		name: '÷ [0.2] SPACE (XXmLinkingConsonantmExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] ARABIC LETTER NOON (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x20, 0xe2, 0x80, 0x8d, 0xd9, 0x86),
+		input: ' \u200d\u0646',
 		want: [4, 6]
 	},
 	{
 		name: '÷ [0.2] ARABIC LETTER NOON (XXmLinkingConsonantmExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] SPACE (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xd9, 0x86, 0xe2, 0x80, 0x8d, 0x20),
+		input: '\u0646\u200d ',
 		want: [5, 6]
 	},
 	{
 		name: '÷ [0.2] HANGUL CHOSEONG KIYEOK (L) × [6.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x84, 0x80, 0xe1, 0x84, 0x80),
+		input: '\u1100\u1100',
 		want: [6]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GA (LV) × [7.0] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x80, 0xe1, 0x86, 0xa8, 0xe1, 0x84, 0x80),
+		input: '\uac00\u11a8\u1100',
 		want: [6, 9]
 	},
 	{
 		name: '÷ [0.2] HANGUL SYLLABLE GAG (LVT) × [8.0] HANGUL JONGSEONG KIYEOK (T) ÷ [999.0] HANGUL CHOSEONG KIYEOK (L) ÷ [0.3]',
-		bytes: Uint8Array.of(0xea, 0xb0, 0x81, 0xe1, 0x86, 0xa8, 0xe1, 0x84, 0x80),
+		input: '\uac01\u11a8\u1100',
 		want: [6, 9]
 	},
 	{
 		name: '÷ [0.2] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [12.0] REGIONAL INDICATOR SYMBOL LETTER B (RI) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER C (RI) ÷ [999.0] LATIN SMALL LETTER B (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xf0,
-			0x9f,
-			0x87,
-			0xa6,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa7,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa8,
-			0x62
-		),
+		input: '\u{1f1e6}\u{1f1e7}\u{1f1e8}b',
 		want: [8, 12, 13]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [13.0] REGIONAL INDICATOR SYMBOL LETTER B (RI) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER C (RI) ÷ [999.0] LATIN SMALL LETTER B (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0x61,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa6,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa7,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa8,
-			0x62
-		),
+		input: 'a\u{1f1e6}\u{1f1e7}\u{1f1e8}b',
 		want: [1, 9, 13, 14]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [13.0] REGIONAL INDICATOR SYMBOL LETTER B (RI) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER C (RI) ÷ [999.0] LATIN SMALL LETTER B (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0x61,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa6,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa7,
-			0xe2,
-			0x80,
-			0x8d,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa8,
-			0x62
-		),
+		input: 'a\u{1f1e6}\u{1f1e7}\u200d\u{1f1e8}b',
 		want: [1, 12, 16, 17]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER B (RI) × [13.0] REGIONAL INDICATOR SYMBOL LETTER C (RI) ÷ [999.0] LATIN SMALL LETTER B (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0x61,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa6,
-			0xe2,
-			0x80,
-			0x8d,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa7,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa8,
-			0x62
-		),
+		input: 'a\u{1f1e6}\u200d\u{1f1e7}\u{1f1e8}b',
 		want: [1, 8, 16, 17]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER A (RI) × [13.0] REGIONAL INDICATOR SYMBOL LETTER B (RI) ÷ [999.0] REGIONAL INDICATOR SYMBOL LETTER C (RI) × [13.0] REGIONAL INDICATOR SYMBOL LETTER D (RI) ÷ [999.0] LATIN SMALL LETTER B (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0x61,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa6,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa7,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa8,
-			0xf0,
-			0x9f,
-			0x87,
-			0xa9,
-			0x62
-		),
+		input: 'a\u{1f1e6}\u{1f1e7}\u{1f1e8}\u{1f1e9}b',
 		want: [1, 9, 17, 18]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [0.3]',
-		bytes: Uint8Array.of(0x61, 0xe2, 0x80, 0x8d),
+		input: 'a\u200d',
 		want: [4]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] LATIN SMALL LETTER B (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x61, 0xcc, 0x88, 0x62),
+		input: 'a\u0308b',
 		want: [3, 4]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) × [9.1] DEVANAGARI SIGN VISARGA (SpacingMark) ÷ [999.0] LATIN SMALL LETTER B (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x61, 0xe0, 0xa4, 0x83, 0x62),
+		input: 'a\u0903b',
 		want: [4, 5]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) ÷ [999.0] ARABIC NUMBER SIGN (Prepend) × [9.2] LATIN SMALL LETTER B (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x61, 0xd8, 0x80, 0x62),
+		input: 'a\u0600b',
 		want: [1, 4]
 	},
 	{
 		name: '÷ [0.2] BABY (ExtPict) × [9.0] EMOJI MODIFIER FITZPATRICK TYPE-6 (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] BABY (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x91, 0xb6, 0xf0, 0x9f, 0x8f, 0xbf, 0xf0, 0x9f, 0x91, 0xb6),
+		input: '\u{1f476}\u{1f3ff}\u{1f476}',
 		want: [8, 12]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) × [9.0] EMOJI MODIFIER FITZPATRICK TYPE-6 (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] BABY (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x61, 0xf0, 0x9f, 0x8f, 0xbf, 0xf0, 0x9f, 0x91, 0xb6),
+		input: 'a\u{1f3ff}\u{1f476}',
 		want: [5, 9]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) × [9.0] EMOJI MODIFIER FITZPATRICK TYPE-6 (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] BABY (ExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) × [11.0] OCTAGONAL SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0x61,
-			0xf0,
-			0x9f,
-			0x8f,
-			0xbf,
-			0xf0,
-			0x9f,
-			0x91,
-			0xb6,
-			0xe2,
-			0x80,
-			0x8d,
-			0xf0,
-			0x9f,
-			0x9b,
-			0x91
-		),
+		input: 'a\u{1f3ff}\u{1f476}\u200d\u{1f6d1}',
 		want: [5, 16]
 	},
 	{
 		name: '÷ [0.2] BABY (ExtPict) × [9.0] EMOJI MODIFIER FITZPATRICK TYPE-6 (Extend_ConjunctExtendermConjunctLinker) × [9.0] COMBINING DIAERESIS (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) × [11.0] BABY (ExtPict) × [9.0] EMOJI MODIFIER FITZPATRICK TYPE-6 (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xf0,
-			0x9f,
-			0x91,
-			0xb6,
-			0xf0,
-			0x9f,
-			0x8f,
-			0xbf,
-			0xcc,
-			0x88,
-			0xe2,
-			0x80,
-			0x8d,
-			0xf0,
-			0x9f,
-			0x91,
-			0xb6,
-			0xf0,
-			0x9f,
-			0x8f,
-			0xbf
-		),
+		input: '\u{1f476}\u{1f3ff}\u0308\u200d\u{1f476}\u{1f3ff}',
 		want: [21]
 	},
 	{
 		name: '÷ [0.2] OCTAGONAL SIGN (ExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) × [11.0] OCTAGONAL SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xf0, 0x9f, 0x9b, 0x91, 0xe2, 0x80, 0x8d, 0xf0, 0x9f, 0x9b, 0x91),
+		input: '\u{1f6d1}\u200d\u{1f6d1}',
 		want: [11]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] OCTAGONAL SIGN (ExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x61, 0xe2, 0x80, 0x8d, 0xf0, 0x9f, 0x9b, 0x91),
+		input: 'a\u200d\u{1f6d1}',
 		want: [4, 8]
 	},
 	{
 		name: '÷ [0.2] UPPER BLADE SCISSORS (XXmLinkingConsonantmExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] UPPER BLADE SCISSORS (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe2, 0x9c, 0x81, 0xe2, 0x80, 0x8d, 0xe2, 0x9c, 0x81),
+		input: '\u2701\u200d\u2701',
 		want: [6, 9]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ) ÷ [999.0] UPPER BLADE SCISSORS (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0x61, 0xe2, 0x80, 0x8d, 0xe2, 0x9c, 0x81),
+		input: 'a\u200d\u2701',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) ÷ [999.0] DEVANAGARI LETTER TA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe0, 0xa4, 0xa4),
+		input: '\u0915\u0924',
 		want: [3, 6]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.3] DEVANAGARI LETTER TA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe0, 0xa5, 0x8d, 0xe0, 0xa4, 0xa4),
+		input: '\u0915\u094d\u0924',
 		want: [9]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.3] DEVANAGARI LETTER TA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe0, 0xa5, 0x8d, 0xe0, 0xa5, 0x8d, 0xe0, 0xa4, 0xa4),
+		input: '\u0915\u094d\u094d\u0924',
 		want: [12]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) × [9.3] DEVANAGARI LETTER TA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe0, 0xa5, 0x8d, 0xe2, 0x80, 0x8d, 0xe0, 0xa4, 0xa4),
+		input: '\u0915\u094d\u200d\u0924',
 		want: [12]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] DEVANAGARI SIGN NUKTA (Extend_ConjunctExtendermConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.3] DEVANAGARI LETTER TA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xe0,
-			0xa4,
-			0x95,
-			0xe0,
-			0xa4,
-			0xbc,
-			0xe2,
-			0x80,
-			0x8d,
-			0xe0,
-			0xa5,
-			0x8d,
-			0xe0,
-			0xa4,
-			0xa4
-		),
+		input: '\u0915\u093c\u200d\u094d\u0924',
 		want: [15]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] DEVANAGARI SIGN NUKTA (Extend_ConjunctExtendermConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] ZERO WIDTH JOINER (ZWJ) × [9.3] DEVANAGARI LETTER TA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xe0,
-			0xa4,
-			0x95,
-			0xe0,
-			0xa4,
-			0xbc,
-			0xe0,
-			0xa5,
-			0x8d,
-			0xe2,
-			0x80,
-			0x8d,
-			0xe0,
-			0xa4,
-			0xa4
-		),
+		input: '\u0915\u093c\u094d\u200d\u0924',
 		want: [15]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.3] DEVANAGARI LETTER TA (LinkingConsonant) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.3] DEVANAGARI LETTER YA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xe0,
-			0xa4,
-			0x95,
-			0xe0,
-			0xa5,
-			0x8d,
-			0xe0,
-			0xa4,
-			0xa4,
-			0xe0,
-			0xa5,
-			0x8d,
-			0xe0,
-			0xa4,
-			0xaf
-		),
+		input: '\u0915\u094d\u0924\u094d\u092f',
 		want: [15]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe0, 0xa5, 0x8d, 0x61),
+		input: '\u0915\u094da',
 		want: [6, 7]
 	},
 	{
 		name: '÷ [0.2] LATIN SMALL LETTER A (XXmLinkingConsonantmExtPict) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] DEVANAGARI LETTER TA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0x61, 0xe0, 0xa5, 0x8d, 0xe0, 0xa4, 0xa4),
+		input: 'a\u094d\u0924',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] QUESTION MARK (XXmLinkingConsonantmExtPict) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) ÷ [999.0] DEVANAGARI LETTER TA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0x3f, 0xe0, 0xa5, 0x8d, 0xe0, 0xa4, 0xa4),
+		input: '?\u094d\u0924',
 		want: [4, 7]
 	},
 	{
 		name: '÷ [0.2] DEVANAGARI LETTER KA (LinkingConsonant) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.0] DEVANAGARI SIGN VIRAMA (Extend_ConjunctLinker) × [9.3] DEVANAGARI LETTER TA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe0, 0xa4, 0x95, 0xe0, 0xa5, 0x8d, 0xe0, 0xa5, 0x8d, 0xe0, 0xa4, 0xa4),
+		input: '\u0915\u094d\u094d\u0924',
 		want: [12]
 	},
 	{
 		name: '÷ [0.2] GUJARATI LETTER SA (LinkingConsonant) × [9.0] GUJARATI SIGN SHADDA (Extend_ConjunctExtendermConjunctLinker) × [9.0] GUJARATI SIGN VIRAMA (Extend_ConjunctLinker) × [9.3] GUJARATI LETTER SA (LinkingConsonant) × [9.0] GUJARATI SIGN SHADDA (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xe0,
-			0xaa,
-			0xb8,
-			0xe0,
-			0xab,
-			0xbb,
-			0xe0,
-			0xab,
-			0x8d,
-			0xe0,
-			0xaa,
-			0xb8,
-			0xe0,
-			0xab,
-			0xbb
-		),
+		input: '\u0ab8\u0afb\u0acd\u0ab8\u0afb',
 		want: [15]
 	},
 	{
 		name: '÷ [0.2] MYANMAR LETTER MA (LinkingConsonant) × [9.0] MYANMAR SIGN VIRAMA (Extend_ConjunctLinker) × [9.3] MYANMAR LETTER BHA (LinkingConsonant) ÷ [999.0] MYANMAR VOWEL SIGN AA (XXmLinkingConsonantmExtPict) × [9.0] MYANMAR SIGN DOT BELOW (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xe1,
-			0x80,
-			0x99,
-			0xe1,
-			0x80,
-			0xb9,
-			0xe1,
-			0x80,
-			0x98,
-			0xe1,
-			0x80,
-			0xac,
-			0xe1,
-			0x80,
-			0xb7
-		),
+		input: '\u1019\u1039\u1018\u102c\u1037',
 		want: [9, 15]
 	},
 	{
 		name: '÷ [0.2] MYANMAR LETTER NGA (LinkingConsonant) × [9.0] MYANMAR SIGN ASAT (Extend_ConjunctExtendermConjunctLinker) × [9.0] MYANMAR SIGN VIRAMA (Extend_ConjunctLinker) × [9.3] MYANMAR LETTER THA (LinkingConsonant) × [9.0] MYANMAR SIGN VIRAMA (Extend_ConjunctLinker) × [9.3] MYANMAR LETTER THA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xe1,
-			0x80,
-			0x84,
-			0xe1,
-			0x80,
-			0xba,
-			0xe1,
-			0x80,
-			0xb9,
-			0xe1,
-			0x80,
-			0x91,
-			0xe1,
-			0x80,
-			0xb9,
-			0xe1,
-			0x80,
-			0x91
-		),
+		input: '\u1004\u103a\u1039\u1011\u1039\u1011',
 		want: [18]
 	},
 	{
 		name: '÷ [0.2] BALINESE LETTER OKARA TEDUNG (XXmLinkingConsonantmExtPict) × [9.0] BALINESE SIGN ULU CANDRA (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] BALINESE LETTER SA (LinkingConsonant) × [9.0] BALINESE ADEG ADEG (Extend_ConjunctLinker) × [9.3] BALINESE LETTER WA (LinkingConsonant) ÷ [999.0] BALINESE LETTER SA (LinkingConsonant) × [9.0] BALINESE ADEG ADEG (Extend_ConjunctLinker) × [9.3] BALINESE LETTER TA (LinkingConsonant) × [9.0] BALINESE ADEG ADEG (Extend_ConjunctLinker) × [9.3] BALINESE LETTER YA (LinkingConsonant) ÷ [999.0] BALINESE LETTER SA (LinkingConsonant) × [9.0] BALINESE ADEG ADEG (Extend_ConjunctLinker) × [9.3] BALINESE LETTER TA (LinkingConsonant) × [9.0] BALINESE VOWEL SIGN SUKU (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xe1,
-			0xac,
-			0x92,
-			0xe1,
-			0xac,
-			0x81,
-			0xe1,
-			0xac,
-			0xb2,
-			0xe1,
-			0xad,
-			0x84,
-			0xe1,
-			0xac,
-			0xaf,
-			0xe1,
-			0xac,
-			0xb2,
-			0xe1,
-			0xad,
-			0x84,
-			0xe1,
-			0xac,
-			0xa2,
-			0xe1,
-			0xad,
-			0x84,
-			0xe1,
-			0xac,
-			0xac,
-			0xe1,
-			0xac,
-			0xb2,
-			0xe1,
-			0xad,
-			0x84,
-			0xe1,
-			0xac,
-			0xa2,
-			0xe1,
-			0xac,
-			0xb8
-		),
+		input: '\u1b12\u1b01\u1b32\u1b44\u1b2f\u1b32\u1b44\u1b22\u1b44\u1b2c\u1b32\u1b44\u1b22\u1b38',
 		want: [6, 15, 30, 42]
 	},
 	{
 		name: '÷ [0.2] KHMER LETTER SA (LinkingConsonant) × [9.0] KHMER SIGN COENG (Extend_ConjunctLinker) × [9.3] KHMER LETTER TA (LinkingConsonant) × [9.0] KHMER SIGN COENG (Extend_ConjunctLinker) × [9.3] KHMER LETTER RO (LinkingConsonant) × [9.0] KHMER VOWEL SIGN II (Extend_ConjunctExtendermConjunctLinker) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xe1,
-			0x9e,
-			0x9f,
-			0xe1,
-			0x9f,
-			0x92,
-			0xe1,
-			0x9e,
-			0x8f,
-			0xe1,
-			0x9f,
-			0x92,
-			0xe1,
-			0x9e,
-			0x9a,
-			0xe1,
-			0x9e,
-			0xb8
-		),
+		input: '\u179f\u17d2\u178f\u17d2\u179a\u17b8',
 		want: [18]
 	},
 	{
 		name: '÷ [0.2] BALINESE LETTER NA (LinkingConsonant) ÷ [999.0] BALINESE LETTER NGA (LinkingConsonant) × [9.0] BALINESE ADEG ADEG (Extend_ConjunctLinker) × [9.3] BALINESE LETTER KA (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0xac, 0xa6, 0xe1, 0xac, 0x97, 0xe1, 0xad, 0x84, 0xe1, 0xac, 0x93),
+		input: '\u1b26\u1b17\u1b44\u1b13',
 		want: [3, 12]
 	},
 	{
 		name: '÷ [0.2] BALINESE LETTER PA (LinkingConsonant) ÷ [999.0] BALINESE LETTER KA (LinkingConsonant) × [9.0] BALINESE ADEG ADEG (Extend_ConjunctLinker) × [9.3] BALINESE LETTER RA REPA (LinkingConsonant) ÷ [999.0] BALINESE LETTER RA REPA (LinkingConsonant) × [9.1] BALINESE SIGN BISAH (SpacingMark) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xe1,
-			0xac,
-			0xa7,
-			0xe1,
-			0xac,
-			0x93,
-			0xe1,
-			0xad,
-			0x84,
-			0xe1,
-			0xac,
-			0x8b,
-			0xe1,
-			0xac,
-			0x8b,
-			0xe1,
-			0xac,
-			0x84
-		),
+		input: '\u1b27\u1b13\u1b44\u1b0b\u1b0b\u1b04',
 		want: [3, 12, 18]
 	},
 	{
 		name: '÷ [0.2] KHMER LETTER PHA (LinkingConsonant) × [9.0] KHMER SIGN COENG (Extend_ConjunctLinker) × [9.3] KHMER INDEPENDENT VOWEL QE (LinkingConsonant) ÷ [999.0] KHMER LETTER MO (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(0xe1, 0x9e, 0x95, 0xe1, 0x9f, 0x92, 0xe1, 0x9e, 0xaf, 0xe1, 0x9e, 0x98),
+		input: '\u1795\u17d2\u17af\u1798',
 		want: [9, 12]
 	},
 	{
 		name: '÷ [0.2] KHMER LETTER HA (LinkingConsonant) × [9.0] KHMER SIGN COENG (Extend_ConjunctLinker) × [9.3] KHMER INDEPENDENT VOWEL RY (LinkingConsonant) ÷ [999.0] KHMER LETTER TO (LinkingConsonant) × [9.0] KHMER SIGN SAMYOK SANNYA (Extend_ConjunctExtendermConjunctLinker) ÷ [999.0] KHMER LETTER YO (LinkingConsonant) ÷ [0.3]',
-		bytes: Uint8Array.of(
-			0xe1,
-			0x9e,
-			0xa0,
-			0xe1,
-			0x9f,
-			0x92,
-			0xe1,
-			0x9e,
-			0xab,
-			0xe1,
-			0x9e,
-			0x91,
-			0xe1,
-			0x9f,
-			0x90,
-			0xe1,
-			0x9e,
-			0x99
-		),
+		input: '\u17a0\u17d2\u17ab\u1791\u17d0\u1799',
 		want: [9, 15, 18]
 	}
 ];
 
 describe('grapheme.split', () => {
 	describe('matches the official UAX #29 GraphemeBreakTest cases', () => {
-		it.each(CASES)('$name', ({ bytes, want }) => {
-			expect(split(bytes).map((e) => e.index)).toEqual(want);
+		it.each(CASES)('$name', ({ input, want }) => {
+			expect(split(encoder.encode(input)).map((e) => e.index)).toEqual(want);
 		});
 	});
 
 	describe('resumes from any returned boundary with its stored state', () => {
-		it.each(CASES)('$name', ({ bytes }) => {
+		it.each(CASES)('$name', ({ input }) => {
+			const bytes = encoder.encode(input);
 			const full = split(bytes);
 			// Every non-empty case yields at least one cluster, so this also
 			// satisfies requireAssertions when there is no inner boundary to resume.
