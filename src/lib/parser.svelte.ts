@@ -206,7 +206,7 @@ export class Emulator {
 
 			// ESC c → RIS (Reset to Initial State)
 			case 0x63:
-				console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
+				this.state.reset();
 				break;
 
 			// ESC SP, ESC #, ESC (, ESC ), ESC *, ESC + → two-byte sequences
