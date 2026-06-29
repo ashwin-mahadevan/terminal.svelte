@@ -1,33 +1,36 @@
 /**
  * Grapheme cluster segmentation per UAX #29 (Unicode 17.0), operating directly
- * on UTF-8 bytes and built for incremental re-parsing.
+ * on UTF-8 bytes one at a time and built for incremental, streaming parsing.
  *
  * It stays fully UAX #29 compliant, but is tuned for terminal text — which is
  * predominantly printable ASCII with control characters already stripped — via
- * a byte-by-byte fast path in `split` that emits each printable-ASCII cluster
- * without decoding or table lookup (see the comment there).
+ * a fast path in `next` that handles each printable-ASCII byte without a table
+ * lookup or rule evaluation (see the comment there).
  *
- * `split(bytes)` returns one `{ index, state }` entry per grapheme cluster.
- * `index` is the exclusive byte offset of the cluster's end, so the first entry
- * describes the cluster `[0, index)`, the next describes `[index, nextIndex)`,
- * and the final entry's `index` is `bytes.length`.
+ * `next(state, byte)` consumes a single UTF-8 byte and returns the updated
+ * `state` and a `boundary` flag:
  *
- * `state` is a compact (single number) summary of everything *before* `index`
- * that the algorithm needs to keep segmenting: the previous code point's break
- * property plus the small amount of running context required by the
- * multi-character rules (Indic conjuncts, emoji ZWJ sequences, regional
- * indicator parity). It is enough to resume without revisiting the prefix:
+ *   const { state, boundary } = next(prev, byte);
  *
- *   const tail = split(bytes.subarray(at.index), at.state);
- *   // tail[k].index is relative to at.index; add at.index to absolutise.
+ * Because a grapheme boundary depends on the whole code point to its right, a
+ * boundary can only be decided once a byte *completes* a code point. `boundary`
+ * is therefore `true` exactly when `byte` finishes a code point that begins a
+ * new grapheme cluster — i.e. there is a break immediately *before* that code
+ * point. The first code point of the text reports `boundary === true` (GB1).
+ * Continuation bytes, and code points that join the cluster to their left,
+ * report `boundary === false`.
  *
- * When some bytes change, resume from the last entry whose `index` is strictly
- * *before* the first edited byte (or from `INITIAL` at offset 0 if there is
- * none). It must be strictly before: an edit can dissolve the boundary at its
- * own position — e.g. appending a combining mark merges the byte at that
- * boundary into the previous cluster — and likewise, when streaming, more bytes
- * can extend the final cluster, so the last entry is never a safe resume point
- * while input may still grow.
+ * `state` is a compact (single number) summary of everything seen so far that
+ * the algorithm needs to keep going: the previous code point's break property
+ * plus the running context for the multi-character rules (Indic conjuncts,
+ * emoji ZWJ sequences, regional indicator parity), *and* any partially decoded
+ * UTF-8 sequence (the bytes still owed, the value accumulated, and the valid
+ * range of the next continuation byte). Because it captures the partial decode
+ * too, a parse can be suspended and resumed at *any* byte boundary — even in
+ * the middle of a multi-byte code point — simply by carrying `state` across:
+ * feeding the remaining bytes from it yields the same result as feeding them
+ * all at once. A multi-byte sequence left incomplete at the end of input simply
+ * stays pending in `state`, waiting for the bytes that finish it.
  *
  * Property data is generated from the Unicode Character Database 17.0 files
  * GraphemeBreakProperty.txt (Grapheme_Cluster_Break), emoji-data.txt
@@ -49,6 +52,12 @@ const HANGUL_V = 10;
 const HANGUL_T = 11;
 const HANGUL_LV = 12;
 const HANGUL_LVT = 13;
+
+// Synthetic "start of text" marker for the previous-code-point field: it is
+// distinct from every real Grapheme_Cluster_Break value (which occupy 0-13) so
+// that the first code point always breaks (GB1), even though a plain-Other
+// context — where a following Extend instead *joins* — also packs to all-zero.
+const SOT = 15;
 
 // Indic_Conjunct_Break property values, as stored per code point (bits 4-5).
 const INCB_CONSONANT = 1;
@@ -73,23 +82,47 @@ const ES_PICTZWJ = 2;
 /**
  * Opaque resume token: a packed integer holding the previous code point's
  * Grapheme_Cluster_Break value and the running conjunct / emoji / regional
- * indicator context. Treat it as a value to store and hand back to `split`.
+ * indicator context (the "grapheme context", bits 0-8), plus any partially
+ * decoded UTF-8 sequence (bits 9-31). Treat it as a value to store and hand
+ * back to `next`.
+ *
+ *   bits 0-8   grapheme context — the previous *completed* code point's break
+ *              property and running multi-character context (see below).
+ *   bits 9-10  pending: UTF-8 continuation bytes still owed (0 = at a lead).
+ *   bits 11-13 range: which valid range the next continuation byte must fall in
+ *              (index into CONT_LO / CONT_HI; selects the lead-dependent guards
+ *              against overlong encodings and surrogates).
+ *   bits 14-31 acc: the code point value accumulated from the bytes seen so far.
  */
 export type State = number & { readonly __grapheme: unique symbol };
 
-/** The start-of-text state. */
-export const INITIAL = 0 as State;
+/** The start-of-text state, with no code point pending. */
+export const INITIAL = SOT as State;
 
 // Field accessors for a packed *property* entry (from the table).
 const propGcb = (p: number) => p & 0xf;
 const propIncb = (p: number) => (p >> 4) & 3;
 const propExt = (p: number) => (p >> 6) & 1;
 
-// Field accessors for a packed *state*.
+// Field accessors for the grapheme context (low 9 bits of a packed state).
 const stPrev = (s: number) => s & 0xf;
 const stIncb = (s: number) => (s >> 4) & 3;
 const stEmoji = (s: number) => (s >> 6) & 3;
 const stRi = (s: number) => (s >> 8) & 1;
+
+// Field accessors for the partial UTF-8 decode (high bits of a packed state).
+const stGctx = (s: number) => s & 0x1ff;
+const stPending = (s: number) => (s >> 9) & 3;
+const stRange = (s: number) => (s >> 11) & 7;
+const stAcc = (s: number) => (s >> 14) & 0x3ffff;
+
+// Valid [lo, hi] for the next continuation byte, indexed by the `range` field.
+// Index 0 is the ordinary range; the rest are the lead-dependent first-byte
+// guards that `decode`'s predecessor applied inline (exclude overlong forms,
+// surrogates, and code points beyond U+10FFFF).
+const CONT_LO = [0x80, 0xa0, 0x80, 0x90, 0x80]; // normal, E0, ED, F0, F4
+const CONT_HI = [0xbf, 0xbf, 0x9f, 0xbf, 0x8f];
+const RANGE_NORMAL = 0;
 
 /**
  * Is there a grapheme boundary between the code point summarised by `s` (the
@@ -100,6 +133,7 @@ function isBreak(s: number, p: number): boolean {
 	const l = stPrev(s);
 	const r = propGcb(p);
 
+	if (l === SOT) return true; // GB1 (break at start of text)
 	if (l === CR && r === LF) return false; // GB3
 	if (l === CR || l === LF || l === CONTROL) return true; // GB4
 	if (r === CR || r === LF || r === CONTROL) return true; // GB5
@@ -139,99 +173,76 @@ function advance(s: number, p: number): number {
 }
 
 /**
- * Decode the UTF-8 sequence at `i`, returning `(size << 21) | codePoint`. An
- * invalid sequence decodes to U+FFFD over its maximal valid subpart (at least
- * one byte), matching the WHATWG replacement behaviour.
+ * Fold the completed code point `cp` into the grapheme context `gctx` (the low
+ * 9 bits of a state, with no UTF-8 sequence pending), returning the next state
+ * and whether a grapheme boundary falls immediately before `cp`.
  */
-function decode(bytes: Uint8Array, i: number, len: number): number {
-	const b0 = bytes[i];
-	if (b0 < 0x80) return (1 << 21) | b0;
-	if (b0 < 0xc2) return (1 << 21) | 0xfffd; // stray continuation, or overlong lead
-	if (b0 < 0xe0) {
-		if (i + 1 >= len) return (1 << 21) | 0xfffd;
-		const b1 = bytes[i + 1];
-		if ((b1 & 0xc0) !== 0x80) return (1 << 21) | 0xfffd;
-		return (2 << 21) | (((b0 & 0x1f) << 6) | (b1 & 0x3f));
-	}
-	if (b0 < 0xf0) {
-		if (i + 1 >= len) return (1 << 21) | 0xfffd;
-		const b1 = bytes[i + 1];
-		const lo = b0 === 0xe0 ? 0xa0 : 0x80; // exclude overlong
-		const hi = b0 === 0xed ? 0x9f : 0xbf; // exclude surrogates
-		if (b1 < lo || b1 > hi) return (1 << 21) | 0xfffd;
-		if (i + 2 >= len) return (2 << 21) | 0xfffd;
-		const b2 = bytes[i + 2];
-		if ((b2 & 0xc0) !== 0x80) return (2 << 21) | 0xfffd;
-		return (3 << 21) | (((b0 & 0x0f) << 12) | ((b1 & 0x3f) << 6) | (b2 & 0x3f));
-	}
-	if (b0 < 0xf5) {
-		if (i + 1 >= len) return (1 << 21) | 0xfffd;
-		const b1 = bytes[i + 1];
-		const lo = b0 === 0xf0 ? 0x90 : 0x80; // exclude overlong
-		const hi = b0 === 0xf4 ? 0x8f : 0xbf; // exclude > U+10FFFF
-		if (b1 < lo || b1 > hi) return (1 << 21) | 0xfffd;
-		if (i + 2 >= len) return (2 << 21) | 0xfffd;
-		const b2 = bytes[i + 2];
-		if ((b2 & 0xc0) !== 0x80) return (2 << 21) | 0xfffd;
-		if (i + 3 >= len) return (3 << 21) | 0xfffd;
-		const b3 = bytes[i + 3];
-		if ((b3 & 0xc0) !== 0x80) return (3 << 21) | 0xfffd;
-		return (
-			(4 << 21) | (((b0 & 0x07) << 18) | ((b1 & 0x3f) << 12) | ((b2 & 0x3f) << 6) | (b3 & 0x3f))
-		);
-	}
-	return (1 << 21) | 0xfffd;
+function complete(gctx: number, cp: number): { state: State; boundary: boolean } {
+	const p = lookup(cp);
+	return { state: advance(gctx, p) as State, boundary: isBreak(gctx, p) };
 }
 
 /**
- * Split UTF-8 `bytes` into grapheme clusters, returning the end offset and
- * resume state of each. Pass a `state` from a previous entry (and a matching
- * byte slice) to continue a parse instead of starting from the beginning.
+ * Consume one UTF-8 `byte`, advancing the packed `state` and reporting whether
+ * the byte completes a code point that begins a new grapheme cluster. See the
+ * module comment for the precise meaning of `boundary`.
  */
-export function split(
-	bytes: Uint8Array,
-	state: State = INITIAL
-): Array<{ index: number; state: State }> {
-	const out: Array<{ index: number; state: State }> = [];
-	const len = bytes.length;
-	let s: number = state;
-	let i = 0;
-
-	while (i < len) {
-		// ASCII fast path. A plain-Other context (`s === 0`: previous code point
-		// was Grapheme_Cluster_Break = Other with no Prepend / conjunct / emoji /
-		// regional-indicator carry) is the common state, and every printable-ASCII
-		// byte is itself an Other code point. Two Others always break (GB999) and
-		// the context stays plain Other, so each such byte is a one-byte cluster we
-		// can emit without decoding, table lookup, or rule evaluation — the bulk of
-		// terminal text. Control bytes (< 0x20, and DEL 0x7f) are excluded so the
-		// slow path still applies GB3–GB5 if any reach the parser; the caller's
-		// "no control characters" guarantee is what makes this branch dominant
-		// rather than a rare shortcut.
-		if (s === 0) {
-			let b = bytes[i];
-			while (b >= 0x20 && b < 0x7f) {
-				if (i > 0) out.push({ index: i, state: 0 as State });
-				if (++i >= len) break;
-				b = bytes[i];
-			}
-			if (i >= len) break;
-		}
-
-		const dec = decode(bytes, i, len);
-		const cp = dec & 0x1fffff;
-		const size = dec >>> 21;
-		const p = lookup(cp);
-
-		// i === 0 is the resume point: its boundary is implied by `state`, never
-		// emitted here (the caller already holds it).
-		if (i > 0 && isBreak(s, p)) out.push({ index: i, state: s as State });
-		s = advance(s, p);
-		i += size;
+export function next(state: State, byte: number): { state: State; boundary: boolean } {
+	// ASCII fast path. A plain-Other state (`state === 0`: previous code point
+	// was Grapheme_Cluster_Break = Other with no Prepend / conjunct / emoji /
+	// regional-indicator carry, and nothing pending) is the common case, and
+	// every printable-ASCII byte is itself a single-byte Other code point. Two
+	// Others always break (GB999) and the context stays plain Other, so the byte
+	// is its own cluster — boundary, with no decode, table lookup, or rule
+	// evaluation. Control bytes (< 0x20, and DEL 0x7f) are excluded so the slow
+	// path still applies GB3–GB5 if any reach the parser; the caller's "no
+	// control characters" guarantee is what makes this branch dominant.
+	if (state === 0 && byte >= 0x20 && byte < 0x7f) {
+		return { state: 0 as State, boundary: true };
 	}
 
-	if (len > 0) out.push({ index: len, state: s as State }); // GB2
-	return out;
+	const pending = stPending(state);
+
+	if (pending > 0) {
+		const range = stRange(state);
+		if (byte >= CONT_LO[range] && byte <= CONT_HI[range]) {
+			const acc = (stAcc(state) << 6) | (byte & 0x3f);
+			if (pending === 1) return complete(stGctx(state), acc); // sequence finished
+			// More bytes still owed; later continuation bytes use the ordinary range.
+			return {
+				state: (stGctx(state) | ((pending - 1) << 9) | (RANGE_NORMAL << 11) | (acc << 14)) as State,
+				boundary: false
+			};
+		}
+		// The continuation byte is invalid: the bytes seen so far decode to a
+		// single U+FFFD (WHATWG replacement over the maximal valid subpart), and
+		// `byte` is reconsidered as the start of a fresh sequence.
+		const fffd = complete(stGctx(state), 0xfffd);
+		const re = next(fffd.state, byte);
+		return { state: re.state, boundary: fffd.boundary || re.boundary };
+	}
+
+	// Nothing pending: `byte` is a lead byte (or a stray / invalid one).
+	if (byte < 0x80) return complete(state, byte);
+	if (byte < 0xc2) return complete(state, 0xfffd); // stray continuation, or overlong lead
+	if (byte < 0xe0) {
+		return { state: (state | (1 << 9) | ((byte & 0x1f) << 14)) as State, boundary: false };
+	}
+	if (byte < 0xf0) {
+		const range = byte === 0xe0 ? 1 : byte === 0xed ? 2 : RANGE_NORMAL;
+		return {
+			state: (state | (2 << 9) | (range << 11) | ((byte & 0x0f) << 14)) as State,
+			boundary: false
+		};
+	}
+	if (byte < 0xf5) {
+		const range = byte === 0xf0 ? 3 : byte === 0xf4 ? 4 : RANGE_NORMAL;
+		return {
+			state: (state | (3 << 9) | (range << 11) | ((byte & 0x07) << 14)) as State,
+			boundary: false
+		};
+	}
+	return complete(state, 0xfffd); // invalid lead (>= 0xf5)
 }
 
 // Packed Unicode property table. `TABLE` is base64 of a byte stream of
