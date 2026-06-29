@@ -7,16 +7,14 @@ import { Emulator as StringEmulator } from '$lib/reference/parser.svelte';
 // terminal output (a directory listing, source code, a log scrolling by). This is
 // the workload all three parsers are tuned for, so it isolates the cost of their
 // strategies rather than any escape-sequence handling.
-function makeAscii(length: number): string {
+function makeAscii(length: number): Uint8Array {
 	const alphabet = 'abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 ';
-	let out = '';
+	const out = new Uint8Array(length);
 	for (let i = 0; i < length; i += 1) {
-		out += (i + 1) % 80 === 0 ? '\n' : alphabet[i % alphabet.length];
+		out[i] = (i + 1) % 80 === 0 ? 0x0a : alphabet.charCodeAt(i % alphabet.length);
 	}
 	return out;
 }
-
-const encoder = new TextEncoder();
 
 // Every iteration streams the same fixed payload, so work is constant and hz is
 // comparable across groups. What varies is the chunk size: the number of bytes
@@ -26,8 +24,9 @@ const encoder = new TextEncoder();
 const TOTAL = 64 * 1024;
 const CHUNK_SIZES = [16, 256, 4096, TOTAL];
 
-const TEXT = makeAscii(TOTAL);
-const BYTES = encoder.encode(TEXT);
+const BYTES = makeAscii(TOTAL);
+// The reference parser takes strings; decode the bytes once (pure ASCII, so 1:1).
+const TEXT = new TextDecoder().decode(BYTES);
 
 // Split (ASCII, so byte offsets and string offsets coincide) into equal chunks.
 const stringChunks = (size: number) => {
