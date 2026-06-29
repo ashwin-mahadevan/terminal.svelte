@@ -35,97 +35,93 @@ export class Emulator {
 
 	constructor(public events: Events = {}) {}
 
-	private readonly ground = (graphemes: string[], index: number) => {
-		do {
-			const grapheme = graphemes[index];
+	private readonly ground = (graphemes: string[], index: number): number => {
+		const grapheme = graphemes[index];
 
-			switch (grapheme) {
-				// Intentionally Ignored
-				case '\x00': // NUL (null)
-				case '\x01': // SOH (start of heading)
-				case '\x02': // STX (start of text)
-				case '\x03': // ETX (end of text)
-				case '\x04': // EOT (end of transmission)
-				case '\x06': // ACK (acknowledge)
-				case '\x10': // DLE (data link escape)
-				case '\x11': // DC1 (device control 1, XON)
-				case '\x12': // DC2 (device control 2)
-				case '\x13': // DC3 (device control 3, XOFF)
-				case '\x14': // DC4 (device control 4)
-				case '\x15': // NAK (negative acknowledge)
-				case '\x16': // SYN (synchronous idle)
-				case '\x17': // ETB (end of transmission block)
-				case '\x18': // CAN (cancel)
-				case '\x19': // EM (end of medium)
-				case '\x1a': // SUB (substitute)
-				case '\x1c': // FS (file separator)
-				case '\x1d': // GS (group separator)
-				case '\x1e': // RS (record separator)
-				case '\x1f': // US (unit separator)
-				case '\x7f': // DEL (delete)
-					break;
+		switch (grapheme) {
+			// Intentionally Ignored
+			case '\x00': // NUL (null)
+			case '\x01': // SOH (start of heading)
+			case '\x02': // STX (start of text)
+			case '\x03': // ETX (end of text)
+			case '\x04': // EOT (end of transmission)
+			case '\x06': // ACK (acknowledge)
+			case '\x10': // DLE (data link escape)
+			case '\x11': // DC1 (device control 1, XON)
+			case '\x12': // DC2 (device control 2)
+			case '\x13': // DC3 (device control 3, XOFF)
+			case '\x14': // DC4 (device control 4)
+			case '\x15': // NAK (negative acknowledge)
+			case '\x16': // SYN (synchronous idle)
+			case '\x17': // ETB (end of transmission block)
+			case '\x18': // CAN (cancel)
+			case '\x19': // EM (end of medium)
+			case '\x1a': // SUB (substitute)
+			case '\x1c': // FS (file separator)
+			case '\x1d': // GS (group separator)
+			case '\x1e': // RS (record separator)
+			case '\x1f': // US (unit separator)
+			case '\x7f': // DEL (delete)
+				break;
 
-				// ENQ (enquiry)
-				case '\x05':
-					console.log(`NOT IMPLEMENTED: ${JSON.stringify(grapheme)}`);
-					break;
+			// ENQ (enquiry)
+			case '\x05':
+				console.log(`NOT IMPLEMENTED: ${JSON.stringify(grapheme)}`);
+				break;
 
-				// BEL (bell)
-				case '\x07':
-					this.events.bell?.();
-					break;
+			// BEL (bell)
+			case '\x07':
+				this.events.bell?.();
+				break;
 
-				// BS (backspace)
-				case '\b':
-					if (this.state.column > 0) this.state.column -= 1;
-					break;
+			// BS (backspace)
+			case '\b':
+				if (this.state.column > 0) this.state.column -= 1;
+				break;
 
-				// HT (horizontal tab): advance to the next tab stop. With no custom
-				// stops set, both xterm.js and ghostty use a stop every 8 columns.
-				case '\t':
-					this.state.column = Math.min(
-						this.state.column + (8 - (this.state.column % 8)),
-						this.state.columns - 1
-					);
-					break;
+			// HT (horizontal tab): advance to the next tab stop. With no custom
+			// stops set, both xterm.js and ghostty use a stop every 8 columns.
+			case '\t':
+				this.state.column = Math.min(
+					this.state.column + (8 - (this.state.column % 8)),
+					this.state.columns - 1
+				);
+				break;
 
-				// CR LF arrives as a single grapheme in some browsers and two graphemes
-				// in others; the combined cluster behaves as CR followed by LF.
-				case '\r\n':
-					this.state.column = 0;
-					this.state.linefeed();
-					break;
+			// CR LF arrives as a single grapheme in some browsers and two graphemes
+			// in others; the combined cluster behaves as CR followed by LF.
+			case '\r\n':
+				this.state.column = 0;
+				this.state.linefeed();
+				break;
 
-				case '\n': // LF (line feed)
-				case '\v': // VT (vertical tab)
-				case '\f': // FF (form feed)
-					this.state.linefeed();
-					break;
+			case '\n': // LF (line feed)
+			case '\v': // VT (vertical tab)
+			case '\f': // FF (form feed)
+				this.state.linefeed();
+				break;
 
-				// CR (carriage return)
-				case '\r':
-					this.state.column = 0;
-					break;
+			// CR (carriage return)
+			case '\r':
+				this.state.column = 0;
+				break;
 
-				case '\x0e': // SO (shift out)
-				case '\x0f': // SI (shift in)
-					console.log(`NOT IMPLEMENTED: ${JSON.stringify(grapheme)}`);
-					break;
+			case '\x0e': // SO (shift out)
+			case '\x0f': // SI (shift in)
+				console.log(`NOT IMPLEMENTED: ${JSON.stringify(grapheme)}`);
+				break;
 
-				// ESC (escape)
-				case '\x1b':
-					this.mode = MODE_ESCAPE;
-					return index + 1;
+			// ESC (escape)
+			case '\x1b':
+				this.mode = MODE_ESCAPE;
+				return index + 1;
 
-				// Printable Character
-				default:
-					this.state.print(grapheme);
-			}
+			// Printable Character
+			default:
+				this.state.print(grapheme);
+		}
 
-			index += 1;
-		} while (index < graphemes.length);
-
-		return index;
+		return index + 1;
 	};
 
 	private readonly escape = (graphemes: string[], index: number): number => {
@@ -261,40 +257,36 @@ export class Emulator {
 	private csiParams = '';
 
 	private readonly csi = (graphemes: string[], index: number): number => {
-		do {
-			const grapheme = graphemes[index];
-			const code = grapheme.length === 1 ? grapheme.charCodeAt(0) : -1;
+		const grapheme = graphemes[index];
+		const code = grapheme.length === 1 ? grapheme.charCodeAt(0) : -1;
 
-			// Final byte (0x40-0x7e): dispatch and return to ground.
-			if (code >= 0x40 && code <= 0x7e) {
-				this.csiDispatch(this.csiParams, grapheme);
-				this.csiParams = '';
-				this.mode = MODE_GROUND;
-				return index + 1;
-			}
+		// Final byte (0x40-0x7e): dispatch and return to ground.
+		if (code >= 0x40 && code <= 0x7e) {
+			this.csiDispatch(this.csiParams, grapheme);
+			this.csiParams = '';
+			this.mode = MODE_GROUND;
+			return index + 1;
+		}
 
-			// ESC aborts the sequence and begins a new escape (ESC \ forms ST).
-			if (grapheme === '\x1b') {
-				this.csiParams = '';
-				this.mode = MODE_ESCAPE;
-				return index + 1;
-			}
+		// ESC aborts the sequence and begins a new escape (ESC \ forms ST).
+		if (grapheme === '\x1b') {
+			this.csiParams = '';
+			this.mode = MODE_ESCAPE;
+			return index + 1;
+		}
 
-			// CAN / SUB abort the sequence outright.
-			if (grapheme === '\x18' || grapheme === '\x1a') {
-				this.csiParams = '';
-				this.mode = MODE_GROUND;
-				return index + 1;
-			}
+		// CAN / SUB abort the sequence outright.
+		if (grapheme === '\x18' || grapheme === '\x1a') {
+			this.csiParams = '';
+			this.mode = MODE_GROUND;
+			return index + 1;
+		}
 
-			// Parameter, intermediate, and private-marker bytes (0x20-0x3f) collect.
-			// Everything else (C0 controls, DEL) is ignored mid-sequence.
-			if (code >= 0x20 && code <= 0x3f) this.csiParams += grapheme;
+		// Parameter, intermediate, and private-marker bytes (0x20-0x3f) collect.
+		// Everything else (C0 controls, DEL) is ignored mid-sequence.
+		if (code >= 0x20 && code <= 0x3f) this.csiParams += grapheme;
 
-			index += 1;
-		} while (index < graphemes.length);
-
-		return index;
+		return index + 1;
 	};
 
 	private csiDispatch(params: string, final: string) {
@@ -372,68 +364,59 @@ export class Emulator {
 	// OSC (Operating System Command): xterm.js and ghostty both accept BEL or ST
 	// as the terminator. We have no use for the payload yet, so consume and ignore.
 	private readonly osc = (graphemes: string[], index: number): number => {
-		do {
-			const grapheme = graphemes[index];
+		const grapheme = graphemes[index];
 
-			switch (grapheme) {
-				case '\x07': // BEL terminates OSC
-				case '\x18': // CAN aborts
-				case '\x1a': // SUB aborts
-					this.mode = MODE_GROUND;
-					return index + 1;
+		switch (grapheme) {
+			case '\x07': // BEL terminates OSC
+			case '\x18': // CAN aborts
+			case '\x1a': // SUB aborts
+				this.mode = MODE_GROUND;
+				return index + 1;
 
-				// ESC ends the string; ESC \ forms ST.
-				case '\x1b':
-					this.mode = MODE_ESCAPE;
-					return index + 1;
+			// ESC ends the string; ESC \ forms ST.
+			case '\x1b':
+				this.mode = MODE_ESCAPE;
+				return index + 1;
 
-				default: // payload byte, ignored
-					break;
-			}
+			default: // payload byte, ignored
+				break;
+		}
 
-			index += 1;
-		} while (index < graphemes.length);
-
-		return index;
+		return index + 1;
 	};
 
 	// DCS / SOS / PM / APC passthrough. Unlike OSC, BEL is payload here, so only
 	// ST (via ESC) and CAN / SUB terminate. We consume and ignore the payload.
 	private readonly passthrough = (graphemes: string[], index: number): number => {
-		do {
-			const grapheme = graphemes[index];
+		const grapheme = graphemes[index];
 
-			switch (grapheme) {
-				case '\x18': // CAN aborts
-				case '\x1a': // SUB aborts
-					this.mode = MODE_GROUND;
-					return index + 1;
+		switch (grapheme) {
+			case '\x18': // CAN aborts
+			case '\x1a': // SUB aborts
+				this.mode = MODE_GROUND;
+				return index + 1;
 
-				// ESC ends the string; ESC \ forms ST.
-				case '\x1b':
-					this.mode = MODE_ESCAPE;
-					return index + 1;
+			// ESC ends the string; ESC \ forms ST.
+			case '\x1b':
+				this.mode = MODE_ESCAPE;
+				return index + 1;
 
-				default: // payload byte, ignored
-					break;
-			}
+			default: // payload byte, ignored
+				break;
+		}
 
-			index += 1;
-		} while (index < graphemes.length);
-
-		return index;
+		return index + 1;
 	};
 
 	mode: Mode = MODE_GROUND;
 
 	// pattern: each mode corresponds to a parser function.
-	// each parser function parses as many graphemes as it can,
-	// sets `mode` to the parser needed to continue, and
-	// returns the index at which that parser should start.
-	// parser functions are structured as do-while loops,
-	// since the common case is to remain in the same mode.
-	// mode changes therefore must be early returns, and loop
-	// exits within parser functions correspond to chunk boudaries.
+	// each parser function processes a single grapheme, sets
+	// `mode` to the parser needed to continue, and returns the
+	// index at which that parser should start (always the next
+	// grapheme). the dispatch loop below drives one grapheme per
+	// call. the optimized parser instead batches whole runs in
+	// each mode; here we favor clarity over throughput.
 	readonly parse = (chunk: string) => {
 		const graphemes: string[] = [];
 		for (const { segment } of segmenter.segment(chunk)) graphemes.push(segment);
