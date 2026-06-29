@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 // socket.io, so typing `pwd` should echo the shell's working directory — which
 // is the same directory the preview server (and this test) runs from.
 test('typing pwd prints the working directory', async ({ page }) => {
-	await page.goto('http://localhost:4173/optimized');
+	await page.goto('http://localhost:4173/');
 
 	const terminal = page.getByRole('application', { name: 'Terminal' });
 	await terminal.click();
