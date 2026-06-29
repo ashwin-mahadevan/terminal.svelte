@@ -55,6 +55,9 @@ export default defineConfig({
 	test: {
 		onConsoleLog: () => false,
 		expect: { requireAssertions: true },
+		// Scope benchmarks to source; the default glob also matches generated copies
+		// under .svelte-kit/__package__, which would run every benchmark twice.
+		benchmark: { include: ['src/lib/**/*.bench.ts'] },
 		projects: [
 			{
 				extends: './vite.config.ts',
