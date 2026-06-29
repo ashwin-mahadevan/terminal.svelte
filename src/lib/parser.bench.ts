@@ -4,18 +4,16 @@ import type { BenchOptions } from 'vitest';
 import { Emulator as ByteEmulator } from '$lib/optimized/parser.svelte';
 import { Emulator as StringEmulator } from '$lib/reference/parser.svelte';
 
-// Drive the run primarily by iteration count: 100 warmup iterations and 1000 measured
-// ones, enough samples that even the slow parsers settle to a low variance. tinybench
-// runs a task until it has BOTH reached the iteration count and spent the time budget
-// (whichever is longer), so warmupTime/time are a fallback ceiling on how long a single
-// benchmark may run, not the primary stopping condition — the iteration count is.
-// (tinybench has no way to stop *early* at the time budget, so a benchmark slower than
-// its time budget per 1000 iterations will overrun it to finish its iterations.)
+// Drive the measurement purely by iteration count — 1000 measured samples, enough that
+// even the slow parsers settle to a low variance. tinybench stops a task once it has
+// both reached the iteration count and spent its time budget (whichever is longer);
+// with no `time` set, its default 500ms budget is shorter than 1000 iterations of any
+// benchmark here, so the iteration count alone decides when the measurement stops. The
+// warmup still runs for at least its 10s warmupTime (and at least 100 iterations).
 const BENCH_OPTIONS = {
 	warmupIterations: 100,
 	warmupTime: 10_000,
-	iterations: 1000,
-	time: 60_000
+	iterations: 1000
 } satisfies BenchOptions;
 
 // Printable ASCII with a line break every 80 columns — the shape of ordinary
