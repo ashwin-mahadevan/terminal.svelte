@@ -25,7 +25,9 @@
 		"!dist/**/*.unit.js",
 		"!dist/**/*.unit.d.ts",
 		"!dist/**/*.dom.js",
-		"!dist/**/*.dom.d.ts"
+		"!dist/**/*.dom.d.ts",
+		"!dist/**/*.bench.js",
+		"!dist/**/*.bench.d.ts"
 	],
 	"sideEffects": [
 		"**/*.css"

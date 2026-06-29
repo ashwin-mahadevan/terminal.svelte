@@ -1,7 +1,19 @@
 import { Terminal as Xterm } from '@xterm/headless';
 import { bench, describe } from 'vitest';
+import type { BenchOptions } from 'vitest';
 import { Emulator as ByteEmulator } from '$lib/optimized/parser.svelte';
 import { Emulator as StringEmulator } from '$lib/reference/parser.svelte';
+
+// Vitest warms up each task before timing, but only for tinybench's default 100ms /
+// 5 iterations — too few for the heavy small-chunk groups (~20ms an iteration). Warm
+// up explicitly and generously so V8 reaches its optimizing tier and the reused
+// buffers settle into steady state before the timed run, then measure for longer to
+// keep the variance down.
+const BENCH_OPTIONS = {
+	warmupTime: 500,
+	warmupIterations: 20,
+	time: 1000
+} satisfies BenchOptions;
 
 // Printable ASCII with a line break every 80 columns — the shape of ordinary
 // terminal output (a directory listing, source code, a log scrolling by). This is
@@ -53,21 +65,33 @@ for (const size of CHUNK_SIZES) {
 	const xterm = new Xterm({ cols: 80, rows: 24 });
 
 	describe(`ascii printing — ${size}-byte chunks`, () => {
-		bench('optimized (bytes)', () => {
-			for (const chunk of bytes) byte.parse(chunk);
-		});
+		bench(
+			'optimized (bytes)',
+			() => {
+				for (const chunk of bytes) byte.parse(chunk);
+			},
+			BENCH_OPTIONS
+		);
 
-		bench('reference (strings)', () => {
-			for (const chunk of texts) string.parse(chunk);
-		});
+		bench(
+			'reference (strings)',
+			() => {
+				for (const chunk of texts) string.parse(chunk);
+			},
+			BENCH_OPTIONS
+		);
 
 		// xterm parses asynchronously through its write buffer. Enqueue every chunk,
 		// then await the callback on the last one — it fires once the whole payload has
 		// been parsed, so the async write-buffer cost (one event-loop hop) is amortised
 		// across the payload rather than charged per chunk.
-		bench('xterm.js (headless)', async () => {
-			for (let i = 0; i < bytes.length - 1; i += 1) xterm.write(bytes[i]);
-			await new Promise<void>((resolve) => xterm.write(bytes[bytes.length - 1], resolve));
-		});
+		bench(
+			'xterm.js (headless)',
+			async () => {
+				for (let i = 0; i < bytes.length - 1; i += 1) xterm.write(bytes[i]);
+				await new Promise<void>((resolve) => xterm.write(bytes[bytes.length - 1], resolve));
+			},
+			BENCH_OPTIONS
+		);
 	});
 }
