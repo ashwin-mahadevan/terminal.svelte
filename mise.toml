@@ -30,12 +30,15 @@ touch node_modules/.mise/playwright.stamp
 sources = ["package.json", "pnpm-lock.yaml", "playwright.config.ts", "mise.toml"]
 outputs = ["node_modules/.mise/playwright.stamp"]
 
+[tasks.clean]
+run = "rm -rf .svelte-kit build dist playwright-report test-results coverage"
+
 [tasks.dev]
 depends = ["install"]
 run = "pnpm exec vite dev"
 
 [tasks.build]
-depends = ["install"]
+depends = ["clean", "install"]
 run = "pnpm exec vite build"
 
 [tasks.preview]
@@ -65,13 +68,13 @@ depends = ["install:playwright", "build"]
 run = "pnpm exec playwright test"
 
 [tasks."test:dom"]
-depends = ["install:playwright"]
+depends = ["clean", "install:playwright"]
 run = "pnpm exec vitest run --project dom"
 
 [tasks."test:unit"]
-depends = ["install"]
+depends = ["clean", "install"]
 run = "pnpm exec vitest run --project unit"
 
 [tasks.bench]
-depends = ["install"]
+depends = ["clean", "install"]
 run = "pnpm exec vitest bench --run --project unit"
