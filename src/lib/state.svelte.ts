@@ -83,6 +83,16 @@ export class State {
 		}
 	}
 
+	reverseLinefeed() {
+		this.row -= 1;
+		if (this.row < 0) {
+			this.row = 0;
+			const blank: Line = { cells: new Array(this.columns), break: false };
+			this.buffer.pop();
+			this.buffer.unshift(blank);
+		}
+	}
+
 	print(text: string) {
 		// autowrap: if x is past the last column, wrap before writing.
 		if (this.column >= this.columns) {

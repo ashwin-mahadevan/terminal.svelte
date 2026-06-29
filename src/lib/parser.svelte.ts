@@ -180,7 +180,7 @@ export class Emulator {
 
 			// ESC M → RI (Reverse Index)
 			case 0x4d:
-				console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
+				this.state.reverseLinefeed();
 				break;
 
 			case 0x4e: // ESC N → SS2 (Single Shift 2)
