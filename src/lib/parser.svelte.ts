@@ -5,11 +5,11 @@ export type Events = {
 };
 
 const MODE_GROUND = 0x00;
-const MODE_UNICODE = 0x01;
+const MODE_GRAPHEME = 0x01;
 const MODE_ESCAPE = 0x02;
 const MODE_CSI = 0x03;
 
-type Mode = typeof MODE_GROUND | typeof MODE_UNICODE | typeof MODE_ESCAPE | typeof MODE_CSI;
+type Mode = typeof MODE_GROUND | typeof MODE_GRAPHEME | typeof MODE_ESCAPE | typeof MODE_CSI;
 
 const decoder = new TextDecoder('utf-8');
 
@@ -92,7 +92,7 @@ export class Emulator {
 				// Printable Character
 				default: {
 					if (byte & 0x80) {
-						this.mode = MODE_UNICODE;
+						this.mode = MODE_GRAPHEME;
 						return index;
 					}
 
@@ -106,11 +106,19 @@ export class Emulator {
 		return index;
 	};
 
-	private readonly unicode = (chunk: Uint8Array, index: number): number => {
+	private readonly grapheme = (chunk: Uint8Array, index: number): number => {
 		// In the future this will set the grapheme join state, and only return
 		// to MODE_GROUND after a grapheme break (ie null join state).
 
 		this.mode = MODE_GROUND;
+
+		// One-byte codepoint (ASCII).
+		// Most ASCII characters will be handled by MODE_GROUND;
+		// this only handles ones that may be part of a larger grapheme.
+		if ((chunk[index] & 0x80) === 0x00) {
+			this.state.print(decoder.decode(chunk.subarray(index, index + 1)));
+			return index + 1;
+		}
 
 		// Two-byte codepoint.
 		if ((chunk[index] & 0xe0) === 0xc0) {
@@ -253,8 +261,8 @@ export class Emulator {
 				case MODE_GROUND:
 					index = this.ground(chunk, index);
 					break;
-				case MODE_UNICODE:
-					index = this.unicode(chunk, index);
+				case MODE_GRAPHEME:
+					index = this.grapheme(chunk, index);
 					break;
 				case MODE_ESCAPE:
 					index = this.escape(chunk, index);
