@@ -1,24 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { Emulator } from './parser.svelte';
-import { State } from './state.svelte';
 
 const encoder = new TextEncoder();
 
 // A 4x4 terminal keeps the wrap arithmetic easy to read: column 3 is the last.
-function emulator(columns = 4, rows = 4) {
-	const e = new Emulator();
-	e.state = new State(columns, rows);
-	return e;
-}
-
-function feed(e: Emulator, text: string) {
-	e.parse(encoder.encode(text));
-}
-
 describe('autowrap (DECAWM)', () => {
 	it('defers the wrap after the last column is filled', () => {
-		const e = emulator();
-		feed(e, 'ABCD');
+		const e = new Emulator({}, 4, 4);
+		e.parse(encoder.encode('ABCD'));
 
 		// Nothing has wrapped yet: the cursor sits on the last column with a
 		// wrap pending, rather than running off to column 4.
@@ -29,8 +18,8 @@ describe('autowrap (DECAWM)', () => {
 	});
 
 	it('wraps to the next row on the following character', () => {
-		const e = emulator();
-		feed(e, 'ABCDE');
+		const e = new Emulator({}, 4, 4);
+		e.parse(encoder.encode('ABCDE'));
 
 		expect(e.state.row).toBe(1);
 		expect(e.state.column).toBe(1);
@@ -39,8 +28,8 @@ describe('autowrap (DECAWM)', () => {
 	});
 
 	it('does not double-wrap when a bare LF follows a full line', () => {
-		const e = emulator();
-		feed(e, 'ABCD\nX');
+		const e = new Emulator({}, 4, 4);
+		e.parse(encoder.encode('ABCD\nX'));
 
 		// The LF moves down one row and keeps the column; X continues on row 1
 		// at the last column — not row 2 column 0 — and row 0 is not a wrap.
@@ -50,8 +39,8 @@ describe('autowrap (DECAWM)', () => {
 	});
 
 	it('returns to the same row after CR on a full line', () => {
-		const e = emulator();
-		feed(e, 'ABCD\rX');
+		const e = new Emulator({}, 4, 4);
+		e.parse(encoder.encode('ABCD\rX'));
 
 		expect(e.state.row).toBe(0);
 		expect(e.state.buffer[0].break).toBe(false);
@@ -59,8 +48,8 @@ describe('autowrap (DECAWM)', () => {
 	});
 
 	it('clears the pending wrap on backspace', () => {
-		const e = emulator();
-		feed(e, 'ABCD\bX');
+		const e = new Emulator({}, 4, 4);
+		e.parse(encoder.encode('ABCD\bX'));
 
 		// Backspace from the pending last column lands on column 2; X overwrites
 		// it there rather than wrapping.
@@ -69,9 +58,9 @@ describe('autowrap (DECAWM)', () => {
 	});
 
 	it('overwrites the last column when autowrap is disabled', () => {
-		const e = emulator();
+		const e = new Emulator({}, 4, 4);
 		e.autowrap = false;
-		feed(e, 'ABCDEF');
+		e.parse(encoder.encode('ABCDEF'));
 
 		// D, E and F all land on the last column, each overwriting the last; the
 		// cursor never leaves row 0.

@@ -14,10 +14,16 @@ type Mode = typeof MODE_GROUND | typeof MODE_GRAPHEME | typeof MODE_ESCAPE | typ
 const decoder = new TextDecoder('utf-8');
 
 export class Emulator {
-	state = new State();
+	readonly state: State;
 	autowrap = $state(true);
 
-	constructor(public events: Events = {}) {}
+	constructor(
+		public events: Events = {},
+		columns = 80,
+		rows = 24
+	) {
+		this.state = new State(columns, rows);
+	}
 
 	private readonly ground = (chunk: Uint8Array, index: number) => {
 		do {
