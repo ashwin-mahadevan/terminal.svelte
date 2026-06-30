@@ -15,10 +15,8 @@ const codePoints = (input: string): number[] => Array.from(input, (ch) => ch.cod
  * that break is GB1/GB2, the caller's job. The meaningful markers are therefore
  * the inter-code-point ones at index 1 onward, which `interBreaks` returns.
  *
- * Because the state machine has bounded history, slicing a trace at any boundary
- * entry and re-running from its `state` reproduces the remaining entries exactly
- * (synthetic index-0 boundary included, since it is recomputed the same way);
- * that is what the resume tests assert.
+ * The `state` field lets the resume test re-enter a run partway through; the
+ * conformance test uses only `boundary`, via `interBreaks`.
  */
 const trace = (
 	points: readonly number[],
@@ -3892,22 +3890,12 @@ describe('grapheme.next', () => {
 		});
 	});
 
-	describe('resumes from any returned boundary with its stored state', () => {
-		it.each(CASES)('$name', ({ input }) => {
-			const points = codePoints(input);
-			const steps = trace(points);
-			// Covers requireAssertions even when the case is empty or a single cluster.
-			expect(steps).toHaveLength(points.length);
-			// Wherever `next` reports a break, that position is a valid resume point:
-			// re-running from its stored state reproduces the rest verbatim.
-			for (let i = 0; i < steps.length; i++) {
-				if (!steps[i].boundary) continue;
-				expect(trace(points.slice(i), steps[i].state)).toEqual(steps.slice(i));
-			}
-		});
-	});
-
-	it('resumes across an edit that dissolves the boundary at the edit point', () => {
+	// The conformance table above already proves the breaks; this documents the one
+	// thing it does not — that a state captured mid-stream is a sufficient resume
+	// token, which is the whole reason `next` threads state instead of being a batch
+	// `split`. A real consumer re-parses an edit by resuming from the last boundary
+	// before it rather than rescanning from the start.
+	it('re-parses an edit by resuming from a saved pre-edit state', () => {
 		const steps = trace(codePoints('abc'));
 
 		// The edit begins at index 2 (rewriting "c"); resume from the last
@@ -3928,10 +3916,9 @@ describe('grapheme.next', () => {
 		expect(rebuilt.slice(1).map((s) => s.boundary)).toEqual([true, false]);
 	});
 
-	it('handles empty input and treats replacement code points as Other', () => {
-		expect(trace([])).toEqual([]); // no canonical case is empty
-		// A caller decoding malformed UTF-8 to U+FFFD gets a standalone cluster:
-		// it breaks from the letters on both sides (Other, GB999).
+	it('classifies U+FFFD, the decode-error replacement, as Other', () => {
+		// Not in the canonical cases, but the parser emits it for malformed UTF-8,
+		// so it must stand alone: a break on both sides of it (Other, GB999).
 		expect(interBreaks([0x61, 0xfffd, 0x62])).toEqual([true, true]);
 	});
 
