@@ -15,6 +15,7 @@ const decoder = new TextDecoder('utf-8');
 
 export class Emulator {
 	state = new State();
+	autowrap = $state(true);
 
 	constructor(public events: Events = {}) {}
 
@@ -60,6 +61,7 @@ export class Emulator {
 
 				// BS (backspace)
 				case 0x08:
+					this.state.wrap = false;
 					if (this.state.column > 0) this.state.column -= 1;
 					break;
 
@@ -77,6 +79,7 @@ export class Emulator {
 				// CR (carriage return)
 				case 0x0d:
 					this.state.column = 0;
+					this.state.wrap = false;
 					break;
 
 				case 0x0e: // SO (shift out)
@@ -96,7 +99,7 @@ export class Emulator {
 						return index;
 					}
 
-					this.state.print(String.fromCharCode(byte)); // this only works for ascii.
+					this.state.print(String.fromCharCode(byte), this.autowrap); // this only works for ascii.
 				}
 			}
 
@@ -116,25 +119,25 @@ export class Emulator {
 		// Most ASCII characters will be handled by MODE_GROUND;
 		// this only handles ones that may be part of a larger grapheme.
 		if ((chunk[index] & 0x80) === 0x00) {
-			this.state.print(decoder.decode(chunk.subarray(index, index + 1)));
+			this.state.print(decoder.decode(chunk.subarray(index, index + 1)), this.autowrap);
 			return index + 1;
 		}
 
 		// Two-byte codepoint.
 		if ((chunk[index] & 0xe0) === 0xc0) {
-			this.state.print(decoder.decode(chunk.subarray(index, index + 2)));
+			this.state.print(decoder.decode(chunk.subarray(index, index + 2)), this.autowrap);
 			return index + 2;
 		}
 
 		// Three-byte codepoint.
 		if ((chunk[index] & 0xf0) === 0xe0) {
-			this.state.print(decoder.decode(chunk.subarray(index, index + 3)));
+			this.state.print(decoder.decode(chunk.subarray(index, index + 3)), this.autowrap);
 			return index + 3;
 		}
 
 		// Four-byte codepoint.
 		if ((chunk[index] & 0xf8) === 0xf0) {
-			this.state.print(decoder.decode(chunk.subarray(index, index + 4)));
+			this.state.print(decoder.decode(chunk.subarray(index, index + 4)), this.autowrap);
 			return index + 4;
 		}
 
