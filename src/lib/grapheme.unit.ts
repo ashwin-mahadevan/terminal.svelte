@@ -12,33 +12,26 @@ import { INITIAL, next } from './grapheme';
  * Keeping the file verbatim and parsing it here keeps the fixture a byte-for-byte
  * copy of the source instead of a hand-maintained transcription.
  */
-const parseGraphemeBreakTest = (
-	file: string
-): Array<{ name: string; points: number[]; breaks: boolean[] }> => {
-	const cases: Array<{ name: string; points: number[]; breaks: boolean[] }> = [];
-	for (const line of file.split('\n')) {
-		const hash = line.indexOf('#');
-		const data = (hash === -1 ? line : line.slice(0, hash)).trim();
-		if (data === '') continue; // license header, blank lines, and the trailing summary
+const file = await readFile(new URL('./GraphemeBreakTest.txt', import.meta.url), 'utf8');
 
-		// Tokens alternate marker, code point, marker, …, ending on a marker. The
-		// leading and trailing markers are always ÷ (start/end of text, GB1/GB2); the
-		// informative ones sit between code points, exactly what `next` reports.
-		const tokens = data.split(/\s+/);
-		const points: number[] = [];
-		const breaks: boolean[] = [];
-		for (let i = 1; i < tokens.length; i += 2) {
-			points.push(parseInt(tokens[i], 16));
-			if (i + 2 < tokens.length) breaks.push(tokens[i + 1] === '÷'); // drop the trailing marker
-		}
-		cases.push({ name: hash === -1 ? '' : line.slice(hash + 1).trim(), points, breaks });
+export const CASES: Array<{ name: string; points: number[]; breaks: boolean[] }> = [];
+for (const line of file.split('\n')) {
+	const hash = line.indexOf('#');
+	const data = (hash === -1 ? line : line.slice(0, hash)).trim();
+	if (data === '') continue; // license header, blank lines, and the trailing summary
+
+	// Tokens alternate marker, code point, marker, …, ending on a marker. The
+	// leading and trailing markers are always ÷ (start/end of text, GB1/GB2); the
+	// informative ones sit between code points, exactly what `next` reports.
+	const tokens = data.split(/\s+/);
+	const points: number[] = [];
+	const breaks: boolean[] = [];
+	for (let i = 1; i < tokens.length; i += 2) {
+		points.push(parseInt(tokens[i], 16));
+		if (i + 2 < tokens.length) breaks.push(tokens[i + 1] === '÷'); // drop the trailing marker
 	}
-	return cases;
-};
-
-export const CASES = parseGraphemeBreakTest(
-	await readFile(new URL('./GraphemeBreakTest.txt', import.meta.url), 'utf8')
-);
+	CASES.push({ name: hash === -1 ? '' : line.slice(hash + 1).trim(), points, breaks });
+}
 
 describe('grapheme.next', () => {
 	describe('matches the official UAX #29 GraphemeBreakTest cases', () => {
