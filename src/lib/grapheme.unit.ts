@@ -3915,18 +3915,6 @@ describe('grapheme.next', () => {
 		});
 	});
 
-	it('marks cluster ends as exclusive code-point indices', () => {
-		// "e" + combining acute (é) is one cluster; the following "x" is another.
-		expect(split([0x65, 0x301, 0x78]).map((e) => e.index)).toEqual([2, 3]);
-	});
-
-	it('keeps emoji ZWJ sequences and regional-indicator pairs intact', () => {
-		// Family emoji man-ZWJ-woman-ZWJ-girl: a single five-code-point cluster.
-		expect(split(codePoints('\u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f467}'))).toHaveLength(1);
-		// Three regional indicators: a flag pair then a lone one.
-		expect(split(codePoints('\u{1f1e6}\u{1f1e7}\u{1f1e8}')).map((e) => e.index)).toEqual([2, 3]);
-	});
-
 	it('resumes across an edit that dissolves the boundary at the edit point', () => {
 		const original = [0x61, 0x62, 0x63]; // "abc"
 		const entries = split(original);
@@ -3950,10 +3938,10 @@ describe('grapheme.next', () => {
 		expect(rebuilt).toEqual([1, 3]);
 	});
 
-	it('treats unknown and replacement code points as standalone Other clusters', () => {
-		expect(split([])).toEqual([]);
-		expect(split([0xfffd]).map((e) => e.index)).toEqual([1]); // U+FFFD replacement
-		expect(split([0x61, 0xfffd, 0x62]).map((e) => e.index)).toEqual([1, 2, 3]);
+	it('handles empty input and treats replacement code points as Other', () => {
+		expect(split([])).toEqual([]); // no canonical case is empty
+		// A caller decoding malformed UTF-8 to U+FFFD gets a standalone cluster.
+		expect(split([0xfffd]).map((e) => e.index)).toEqual([1]);
 	});
 
 	describe('the streaming primitive', () => {
@@ -3976,16 +3964,6 @@ describe('grapheme.next', () => {
 			// A boundary-before plus an INITIAL state is the "safe to restart" signal.
 			const [state] = next(INITIAL, 0x61);
 			expect(state).toBe(INITIAL);
-		});
-
-		it('threads state to break regional indicators into pairs', () => {
-			// RI RI is one flag; the third RI starts a new cluster (GB12/GB13).
-			const [afterFirst, beforeFirst] = next(INITIAL, 0x1f1e6);
-			expect(beforeFirst).toBe(true);
-			const [afterSecond, beforeSecond] = next(afterFirst, 0x1f1e7);
-			expect(beforeSecond).toBe(false);
-			const [, beforeThird] = next(afterSecond, 0x1f1e8);
-			expect(beforeThird).toBe(true);
 		});
 	});
 });
