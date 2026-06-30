@@ -8,3 +8,6 @@ bun.lockb
 # Miscellaneous
 /static/
 .claude/settings.local.json
+
+# Vendored verbatim from Unicode; must not be reformatted
+src/lib/GraphemeBreakTest.txt
