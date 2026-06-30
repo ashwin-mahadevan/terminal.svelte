@@ -31,39 +31,40 @@
  */
 
 // Grapheme_Cluster_Break property values (bits 0-3 of a packed table entry).
-const CR = 1;
-const LF = 2;
+const CARRIAGE_RETURN = 1;
+const LINE_FEED = 2;
 const CONTROL = 3;
 const EXTEND = 4;
-const ZWJ = 5;
-const RI = 6; // Regional_Indicator
+const ZERO_WIDTH_JOINER = 5;
+const REGIONAL_INDICATOR = 6;
 const PREPEND = 7;
-const SPACINGMARK = 8;
-const HANGUL_L = 9;
-const HANGUL_V = 10;
-const HANGUL_T = 11;
-const HANGUL_LV = 12;
-const HANGUL_LVT = 13;
+const SPACING_MARK = 8;
+const HANGUL_LEADING = 9;
+const HANGUL_VOWEL = 10;
+const HANGUL_TRAILING = 11;
+const HANGUL_LV_SYLLABLE = 12;
+const HANGUL_LVT_SYLLABLE = 13;
 
 // Indic_Conjunct_Break property values, as stored per code point (bits 4-5).
-const INCB_CONSONANT = 1;
-const INCB_EXTEND = 2;
-const INCB_LINKER = 3;
+const CONJUNCT_CONSONANT = 1;
+const CONJUNCT_EXTEND = 2;
+const CONJUNCT_LINKER = 3;
 
 // Running Indic-conjunct state carried between code points (state bits 4-5):
-// have we seen `Consonant [Extend Linker]*` (CONS) and has a Linker appeared in
-// that run yet (LINK)? A following Consonant joins only from LINK (GB9c).
-const IS_NONE = 0;
-const IS_CONS = 1;
-const IS_LINK = 2;
+// have we seen `Consonant [Extend Linker]*` (the CONSONANT state) and has a
+// Linker appeared in that run yet (the LINKER state)? A following Consonant
+// joins only from the LINKER state (GB9c).
+const CONJUNCT_STATE_NONE = 0;
+const CONJUNCT_STATE_CONSONANT = 1;
+const CONJUNCT_STATE_LINKER = 2;
 
 // Running emoji state carried between code points (state bits 6-7): are we
-// inside `\p{Extended_Pictographic} Extend*` (PICT), and has it been closed by a
-// ZWJ (PICTZWJ)? A following Extended_Pictographic joins only from PICTZWJ
-// (GB11).
-const ES_NONE = 0;
-const ES_PICT = 1;
-const ES_PICTZWJ = 2;
+// inside `\p{Extended_Pictographic} Extend*` (the PICTOGRAPHIC state), and has
+// it been closed by a ZWJ (the PICTOGRAPHIC_ZWJ state)? A following
+// Extended_Pictographic joins only from the PICTOGRAPHIC_ZWJ state (GB11).
+const EMOJI_STATE_NONE = 0;
+const EMOJI_STATE_PICTOGRAPHIC = 1;
+const EMOJI_STATE_PICTOGRAPHIC_ZWJ = 2;
 
 /**
  * Opaque resume token: a packed integer holding the previous code point's
@@ -76,103 +77,127 @@ export type State = number & { readonly __grapheme: unique symbol };
 export const INITIAL = 0 as State;
 
 // Field accessors for a packed *property* entry (from the table).
-const propGcb = (p: number) => p & 0xf;
-const propIncb = (p: number) => (p >> 4) & 3;
-const propExt = (p: number) => (p >> 6) & 1;
+const breakProperty = (property: number) => property & 0xf;
+const conjunctProperty = (property: number) => (property >> 4) & 3;
+const pictographicFlag = (property: number) => (property >> 6) & 1;
 
 // Field accessors for a packed *state*.
-const stPrev = (s: number) => s & 0xf;
-const stIncb = (s: number) => (s >> 4) & 3;
-const stEmoji = (s: number) => (s >> 6) & 3;
-const stRi = (s: number) => (s >> 8) & 1;
+const previousBreak = (state: number) => state & 0xf;
+const conjunctState = (state: number) => (state >> 4) & 3;
+const emojiState = (state: number) => (state >> 6) & 3;
+const regionalIndicatorParity = (state: number) => (state >> 8) & 1;
 
 /**
- * Is there a grapheme boundary between the code point summarised by `s` (the
- * left side) and the code point whose packed property is `p` (the right side)?
- * Rules are evaluated in UAX #29 order; the first that applies decides.
+ * Is there a grapheme boundary between the code point summarised by `state`
+ * (the left side) and the code point whose packed property is `property` (the
+ * right side)? Rules are evaluated in UAX #29 order; the first that applies
+ * decides.
  */
-function isBreak(s: number, p: number): boolean {
-	const l = stPrev(s);
-	const r = propGcb(p);
+function isBreak(state: number, property: number): boolean {
+	const left = previousBreak(state);
+	const right = breakProperty(property);
 
-	if (l === CR && r === LF) return false; // GB3
-	if (l === CR || l === LF || l === CONTROL) return true; // GB4
-	if (r === CR || r === LF || r === CONTROL) return true; // GB5
-	if (l === HANGUL_L && (r === HANGUL_L || r === HANGUL_V || r === HANGUL_LV || r === HANGUL_LVT))
+	if (left === CARRIAGE_RETURN && right === LINE_FEED) return false; // GB3
+	if (left === CARRIAGE_RETURN || left === LINE_FEED || left === CONTROL) return true; // GB4
+	if (right === CARRIAGE_RETURN || right === LINE_FEED || right === CONTROL) return true; // GB5
+	if (
+		left === HANGUL_LEADING &&
+		(right === HANGUL_LEADING ||
+			right === HANGUL_VOWEL ||
+			right === HANGUL_LV_SYLLABLE ||
+			right === HANGUL_LVT_SYLLABLE)
+	)
 		return false; // GB6
-	if ((l === HANGUL_LV || l === HANGUL_V) && (r === HANGUL_V || r === HANGUL_T)) return false; // GB7
-	if ((l === HANGUL_LVT || l === HANGUL_T) && r === HANGUL_T) return false; // GB8
-	if (r === EXTEND || r === ZWJ) return false; // GB9
-	if (r === SPACINGMARK) return false; // GB9a
-	if (l === PREPEND) return false; // GB9b
-	if (stIncb(s) === IS_LINK && propIncb(p) === INCB_CONSONANT) return false; // GB9c
-	if (stEmoji(s) === ES_PICTZWJ && propExt(p) === 1) return false; // GB11
-	if (r === RI && stRi(s) === 1) return false; // GB12, GB13
+	if (
+		(left === HANGUL_LV_SYLLABLE || left === HANGUL_VOWEL) &&
+		(right === HANGUL_VOWEL || right === HANGUL_TRAILING)
+	)
+		return false; // GB7
+	if ((left === HANGUL_LVT_SYLLABLE || left === HANGUL_TRAILING) && right === HANGUL_TRAILING)
+		return false; // GB8
+	if (right === EXTEND || right === ZERO_WIDTH_JOINER) return false; // GB9
+	if (right === SPACING_MARK) return false; // GB9a
+	if (left === PREPEND) return false; // GB9b
+	if (
+		conjunctState(state) === CONJUNCT_STATE_LINKER &&
+		conjunctProperty(property) === CONJUNCT_CONSONANT
+	)
+		return false; // GB9c
+	if (emojiState(state) === EMOJI_STATE_PICTOGRAPHIC_ZWJ && pictographicFlag(property) === 1)
+		return false; // GB11
+	if (right === REGIONAL_INDICATOR && regionalIndicatorParity(state) === 1) return false; // GB12, GB13
 	return true; // GB999
 }
 
-/** Fold the code point with packed property `p` into the running state `s`. */
-function advance(s: number, p: number): number {
-	const r = propGcb(p);
-	const incbProp = propIncb(p);
+/**
+ * Fold the code point with packed property `property` into the running `state`.
+ */
+function advance(state: number, property: number): number {
+	const right = breakProperty(property);
+	const incomingConjunct = conjunctProperty(property);
 
-	let incb = stIncb(s);
-	if (incbProp === INCB_CONSONANT) incb = IS_CONS;
-	else if (incb !== IS_NONE && (incbProp === INCB_EXTEND || incbProp === INCB_LINKER))
-		incb = incbProp === INCB_LINKER ? IS_LINK : incb;
-	else incb = IS_NONE;
+	let conjunct = conjunctState(state);
+	if (incomingConjunct === CONJUNCT_CONSONANT) conjunct = CONJUNCT_STATE_CONSONANT;
+	else if (
+		conjunct !== CONJUNCT_STATE_NONE &&
+		(incomingConjunct === CONJUNCT_EXTEND || incomingConjunct === CONJUNCT_LINKER)
+	)
+		conjunct = incomingConjunct === CONJUNCT_LINKER ? CONJUNCT_STATE_LINKER : conjunct;
+	else conjunct = CONJUNCT_STATE_NONE;
 
-	let emoji = stEmoji(s);
-	if (propExt(p) === 1) emoji = ES_PICT;
-	else if (r === EXTEND && emoji === ES_PICT) emoji = ES_PICT;
-	else if (r === ZWJ && emoji === ES_PICT) emoji = ES_PICTZWJ;
-	else emoji = ES_NONE;
+	let emoji = emojiState(state);
+	if (pictographicFlag(property) === 1) emoji = EMOJI_STATE_PICTOGRAPHIC;
+	else if (right === EXTEND && emoji === EMOJI_STATE_PICTOGRAPHIC) emoji = EMOJI_STATE_PICTOGRAPHIC;
+	else if (right === ZERO_WIDTH_JOINER && emoji === EMOJI_STATE_PICTOGRAPHIC)
+		emoji = EMOJI_STATE_PICTOGRAPHIC_ZWJ;
+	else emoji = EMOJI_STATE_NONE;
 
-	const riOdd = r === RI ? stRi(s) ^ 1 : 0;
+	const regionalParity = right === REGIONAL_INDICATOR ? regionalIndicatorParity(state) ^ 1 : 0;
 
-	return r | (incb << 4) | (emoji << 6) | (riOdd << 8);
+	return right | (conjunct << 4) | (emoji << 6) | (regionalParity << 8);
 }
 
 /**
- * Decode the UTF-8 sequence at `i`, returning `(size << 21) | codePoint`. An
- * invalid sequence decodes to U+FFFD over its maximal valid subpart (at least
- * one byte), matching the WHATWG replacement behaviour.
+ * Decode the UTF-8 sequence at `offset`, returning `(size << 21) | codePoint`.
+ * An invalid sequence decodes to U+FFFD over its maximal valid subpart (at
+ * least one byte), matching the WHATWG replacement behaviour.
  */
-function decode(bytes: Uint8Array, i: number, len: number): number {
-	const b0 = bytes[i];
-	if (b0 < 0x80) return (1 << 21) | b0;
-	if (b0 < 0xc2) return (1 << 21) | 0xfffd; // stray continuation, or overlong lead
-	if (b0 < 0xe0) {
-		if (i + 1 >= len) return (1 << 21) | 0xfffd;
-		const b1 = bytes[i + 1];
-		if ((b1 & 0xc0) !== 0x80) return (1 << 21) | 0xfffd;
-		return (2 << 21) | (((b0 & 0x1f) << 6) | (b1 & 0x3f));
+function decode(bytes: Uint8Array, offset: number, length: number): number {
+	const lead = bytes[offset];
+	if (lead < 0x80) return (1 << 21) | lead;
+	if (lead < 0xc2) return (1 << 21) | 0xfffd; // stray continuation, or overlong lead
+	if (lead < 0xe0) {
+		if (offset + 1 >= length) return (1 << 21) | 0xfffd;
+		const second = bytes[offset + 1];
+		if ((second & 0xc0) !== 0x80) return (1 << 21) | 0xfffd;
+		return (2 << 21) | (((lead & 0x1f) << 6) | (second & 0x3f));
 	}
-	if (b0 < 0xf0) {
-		if (i + 1 >= len) return (1 << 21) | 0xfffd;
-		const b1 = bytes[i + 1];
-		const lo = b0 === 0xe0 ? 0xa0 : 0x80; // exclude overlong
-		const hi = b0 === 0xed ? 0x9f : 0xbf; // exclude surrogates
-		if (b1 < lo || b1 > hi) return (1 << 21) | 0xfffd;
-		if (i + 2 >= len) return (2 << 21) | 0xfffd;
-		const b2 = bytes[i + 2];
-		if ((b2 & 0xc0) !== 0x80) return (2 << 21) | 0xfffd;
-		return (3 << 21) | (((b0 & 0x0f) << 12) | ((b1 & 0x3f) << 6) | (b2 & 0x3f));
+	if (lead < 0xf0) {
+		if (offset + 1 >= length) return (1 << 21) | 0xfffd;
+		const second = bytes[offset + 1];
+		const min = lead === 0xe0 ? 0xa0 : 0x80; // exclude overlong
+		const max = lead === 0xed ? 0x9f : 0xbf; // exclude surrogates
+		if (second < min || second > max) return (1 << 21) | 0xfffd;
+		if (offset + 2 >= length) return (2 << 21) | 0xfffd;
+		const third = bytes[offset + 2];
+		if ((third & 0xc0) !== 0x80) return (2 << 21) | 0xfffd;
+		return (3 << 21) | (((lead & 0x0f) << 12) | ((second & 0x3f) << 6) | (third & 0x3f));
 	}
-	if (b0 < 0xf5) {
-		if (i + 1 >= len) return (1 << 21) | 0xfffd;
-		const b1 = bytes[i + 1];
-		const lo = b0 === 0xf0 ? 0x90 : 0x80; // exclude overlong
-		const hi = b0 === 0xf4 ? 0x8f : 0xbf; // exclude > U+10FFFF
-		if (b1 < lo || b1 > hi) return (1 << 21) | 0xfffd;
-		if (i + 2 >= len) return (2 << 21) | 0xfffd;
-		const b2 = bytes[i + 2];
-		if ((b2 & 0xc0) !== 0x80) return (2 << 21) | 0xfffd;
-		if (i + 3 >= len) return (3 << 21) | 0xfffd;
-		const b3 = bytes[i + 3];
-		if ((b3 & 0xc0) !== 0x80) return (3 << 21) | 0xfffd;
+	if (lead < 0xf5) {
+		if (offset + 1 >= length) return (1 << 21) | 0xfffd;
+		const second = bytes[offset + 1];
+		const min = lead === 0xf0 ? 0x90 : 0x80; // exclude overlong
+		const max = lead === 0xf4 ? 0x8f : 0xbf; // exclude > U+10FFFF
+		if (second < min || second > max) return (1 << 21) | 0xfffd;
+		if (offset + 2 >= length) return (2 << 21) | 0xfffd;
+		const third = bytes[offset + 2];
+		if ((third & 0xc0) !== 0x80) return (2 << 21) | 0xfffd;
+		if (offset + 3 >= length) return (3 << 21) | 0xfffd;
+		const fourth = bytes[offset + 3];
+		if ((fourth & 0xc0) !== 0x80) return (3 << 21) | 0xfffd;
 		return (
-			(4 << 21) | (((b0 & 0x07) << 18) | ((b1 & 0x3f) << 12) | ((b2 & 0x3f) << 6) | (b3 & 0x3f))
+			(4 << 21) |
+			(((lead & 0x07) << 18) | ((second & 0x3f) << 12) | ((third & 0x3f) << 6) | (fourth & 0x3f))
 		);
 	}
 	return (1 << 21) | 0xfffd;
@@ -187,26 +212,27 @@ export function split(
 	bytes: Uint8Array,
 	state: State = INITIAL
 ): Array<{ index: number; state: State }> {
-	const out: Array<{ index: number; state: State }> = [];
-	const len = bytes.length;
-	let s: number = state;
-	let i = 0;
+	const boundaries: Array<{ index: number; state: State }> = [];
+	const length = bytes.length;
+	let current: number = state;
+	let offset = 0;
 
-	while (i < len) {
-		const dec = decode(bytes, i, len);
-		const cp = dec & 0x1fffff;
-		const size = dec >>> 21;
-		const p = lookup(cp);
+	while (offset < length) {
+		const decoded = decode(bytes, offset, length);
+		const codePoint = decoded & 0x1fffff;
+		const size = decoded >>> 21;
+		const property = lookup(codePoint);
 
-		// i === 0 is the resume point: its boundary is implied by `state`, never
-		// emitted here (the caller already holds it).
-		if (i > 0 && isBreak(s, p)) out.push({ index: i, state: s as State });
-		s = advance(s, p);
-		i += size;
+		// offset === 0 is the resume point: its boundary is implied by `state`,
+		// never emitted here (the caller already holds it).
+		if (offset > 0 && isBreak(current, property))
+			boundaries.push({ index: offset, state: current as State });
+		current = advance(current, property);
+		offset += size;
 	}
 
-	if (len > 0) out.push({ index: len, state: s as State }); // GB2
-	return out;
+	if (length > 0) boundaries.push({ index: length, state: current as State }); // GB2
+	return boundaries;
 }
 
 // Packed Unicode property table. `TABLE` is base64 of a byte stream of
@@ -218,44 +244,44 @@ const TABLE =
 
 const [STARTS, VALUES] = decodeTable(TABLE);
 
-function decodeTable(b64: string): [Uint32Array, Uint8Array] {
-	const bin = atob(b64);
-	const n = bin.length;
-	const buf = new Uint8Array(n);
-	for (let i = 0; i < n; i++) buf[i] = bin.charCodeAt(i);
+function decodeTable(base64: string): [Uint32Array, Uint8Array] {
+	const binary = atob(base64);
+	const length = binary.length;
+	const bytes = new Uint8Array(length);
+	for (let index = 0; index < length; index++) bytes[index] = binary.charCodeAt(index);
 
 	const starts: number[] = [];
 	const values: number[] = [];
-	let pos = 0;
-	let cp = 0;
-	while (pos < n) {
+	let position = 0;
+	let codePoint = 0;
+	while (position < length) {
 		let shift = 0;
 		let delta = 0;
-		let b: number;
+		let byte: number;
 		do {
-			b = buf[pos++];
-			delta |= (b & 0x7f) << shift;
+			byte = bytes[position++];
+			delta |= (byte & 0x7f) << shift;
 			shift += 7;
-		} while ((b & 0x80) !== 0);
-		cp += delta;
-		starts.push(cp);
-		values.push(buf[pos++]);
+		} while ((byte & 0x80) !== 0);
+		codePoint += delta;
+		starts.push(codePoint);
+		values.push(bytes[position++]);
 	}
 	return [Uint32Array.from(starts), Uint8Array.from(values)];
 }
 
 /** Packed property value for a code point (0 = the default Other/None/non-emoji). */
-function lookup(cp: number): number {
-	let lo = 0;
-	let hi = STARTS.length - 1;
+function lookup(codePoint: number): number {
+	let low = 0;
+	let high = STARTS.length - 1;
 	let value = 0;
-	while (lo <= hi) {
-		const mid = (lo + hi) >> 1;
-		if (STARTS[mid] <= cp) {
+	while (low <= high) {
+		const mid = (low + high) >> 1;
+		if (STARTS[mid] <= codePoint) {
 			value = VALUES[mid];
-			lo = mid + 1;
+			low = mid + 1;
 		} else {
-			hi = mid - 1;
+			high = mid - 1;
 		}
 	}
 	return value;
