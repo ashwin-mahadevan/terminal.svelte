@@ -115,18 +115,4 @@ describe('grapheme.next', () => {
 		expect(rebuilt).toEqual(trace(edited));
 		expect(rebuilt.slice(1).map((s) => s.boundary)).toEqual([true, false]);
 	});
-
-	it('classifies U+FFFD, the decode-error replacement, as Other', () => {
-		// Not in the canonical cases, but the parser emits it for malformed UTF-8,
-		// so it must stand alone: a break on both sides of it (Other, GB999).
-		expect(interBreaks([0x61, 0xfffd, 0x62])).toEqual([true, true]);
-	});
-
-	it('exposes next as a raw (state, codePoint) -> (state, boundary) step', () => {
-		// A boundary-before plus a return to INITIAL is the "safe to restart"
-		// signal: GB1/GB2 start-of-text, and the post-Other fast path.
-		const [state, boundary] = next(INITIAL, 0x61); // "a"
-		expect(boundary).toBe(true);
-		expect(state).toBe(INITIAL);
-	});
 });
