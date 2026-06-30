@@ -2,15 +2,38 @@ import { describe, expect, it } from 'vitest';
 import { INITIAL, split } from './grapheme';
 import type { State } from './grapheme';
 
-const encoder = new TextEncoder();
+/** Decode a string into its code points, the unit `split` now operates on. */
+const codePoints = (input: string): number[] => Array.from(input, (ch) => ch.codePointAt(0)!);
+
+/** UTF-8 byte length of a code point, used only to reinterpret the `want` data. */
+const utf8Length = (codePoint: number): number =>
+	codePoint < 0x80 ? 1 : codePoint < 0x800 ? 2 : codePoint < 0x10000 ? 3 : 4;
+
+/**
+ * Reinterpret the reference data's UTF-8 byte offsets as code-point indices.
+ * Cluster ends always fall on code-point boundaries, so each byte offset in
+ * `byteEnds` maps to the count of code points it spans.
+ */
+const codePointEnds = (input: string, byteEnds: number[]): number[] => {
+	const wanted = new Set(byteEnds);
+	const ends: number[] = [];
+	let bytes = 0;
+	let count = 0;
+	for (const codePoint of codePoints(input)) {
+		bytes += utf8Length(codePoint);
+		count += 1;
+		if (wanted.has(bytes)) ends.push(count);
+	}
+	return ends;
+};
 
 /**
  * The official UAX #29 GraphemeBreakTest cases (Unicode 17.0).
  * https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt.
  *
  * `name` is the human-readable description from the test file (character names + rule numbers);
- * `input` is the Unicode string (encoded to UTF-8 in the test loop);
- * `want` is the expected cluster-end byte offsets.
+ * `input` is the Unicode string (decoded to code points in the test loop);
+ * `want` is the expected cluster-end UTF-8 byte offsets (reinterpreted as code-point indices).
  */
 export const CASES: Array<{ name: string; input: string; want: number[] }> = [
 	{
@@ -3848,20 +3871,20 @@ export const CASES: Array<{ name: string; input: string; want: number[] }> = [
 describe('grapheme.split', () => {
 	describe('matches the official UAX #29 GraphemeBreakTest cases', () => {
 		it.each(CASES)('$name', ({ input, want }) => {
-			expect(split(encoder.encode(input)).map((e) => e.index)).toEqual(want);
+			expect(split(codePoints(input)).map((e) => e.index)).toEqual(codePointEnds(input, want));
 		});
 	});
 
 	describe('resumes from any returned boundary with its stored state', () => {
 		it.each(CASES)('$name', ({ input }) => {
-			const bytes = encoder.encode(input);
-			const full = split(bytes);
+			const points = codePoints(input);
+			const full = split(points);
 			// Every non-empty case yields at least one cluster, so this also
 			// satisfies requireAssertions when there is no inner boundary to resume.
 			expect(full.length).toBeGreaterThan(0);
 			for (let e = 0; e < full.length - 1; e++) {
 				const at = full[e];
-				const resumed = split(bytes.subarray(at.index), at.state).map((r) => ({
+				const resumed = split(points.slice(at.index), at.state).map((r) => ({
 					index: r.index + at.index,
 					state: r.state
 				}));
@@ -3870,51 +3893,44 @@ describe('grapheme.split', () => {
 		});
 	});
 
-	it('marks cluster ends as exclusive byte offsets', () => {
+	it('marks cluster ends as exclusive code-point indices', () => {
 		// "e" + combining acute (é) is one cluster; the following "x" is another.
-		const bytes = Uint8Array.of(0x65, 0xcc, 0x81, 0x78);
-		expect(split(bytes).map((e) => e.index)).toEqual([3, 4]);
+		expect(split([0x65, 0x301, 0x78]).map((e) => e.index)).toEqual([2, 3]);
 	});
 
 	it('keeps emoji ZWJ sequences and regional-indicator pairs intact', () => {
-		// Family emoji man-ZWJ-woman-ZWJ-girl: a single 18-byte cluster.
-		expect(split(encoder.encode('\u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f467}'))).toHaveLength(1);
-		// Three regional indicators: a flag pair (8 bytes) then a lone one.
-		expect(split(encoder.encode('\u{1f1e6}\u{1f1e7}\u{1f1e8}')).map((e) => e.index)).toEqual([
-			8, 12
-		]);
+		// Family emoji man-ZWJ-woman-ZWJ-girl: a single five-code-point cluster.
+		expect(split(codePoints('\u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f467}'))).toHaveLength(1);
+		// Three regional indicators: a flag pair then a lone one.
+		expect(split(codePoints('\u{1f1e6}\u{1f1e7}\u{1f1e8}')).map((e) => e.index)).toEqual([2, 3]);
 	});
 
 	it('resumes across an edit that dissolves the boundary at the edit point', () => {
-		const original = Uint8Array.of(0x61, 0x62, 0x63); // "abc"
+		const original = [0x61, 0x62, 0x63]; // "abc"
 		const entries = split(original);
 
-		// The edit begins at byte 2 (rewriting "c"); resume from the last
+		// The edit begins at index 2 (rewriting "c"); resume from the last
 		// boundary strictly before it.
 		const firstEdited = 2;
 		let resume: { index: number; state: State } = { index: 0, state: INITIAL };
 		for (const e of entries) if (e.index < firstEdited) resume = e;
 
 		// "c" becomes a combining mark (U+0301), so it joins "b": the boundary
-		// that used to sit at byte 2 disappears.
-		const edited = Uint8Array.of(0x61, 0x62, 0xcc, 0x81); // "ab" + combining acute
-		const tail = split(edited.subarray(resume.index), resume.state).map(
-			(r) => r.index + resume.index
-		);
+		// that used to sit at index 2 disappears.
+		const edited = [0x61, 0x62, 0x301]; // "ab" + combining acute
+		const tail = split(edited.slice(resume.index), resume.state).map((r) => r.index + resume.index);
 		const rebuilt = [
 			...entries.filter((e) => e.index <= resume.index).map((e) => e.index),
 			...tail
 		];
 
 		expect(rebuilt).toEqual(split(edited).map((e) => e.index));
-		expect(rebuilt).toEqual([1, 4]);
+		expect(rebuilt).toEqual([1, 3]);
 	});
 
-	it('decodes invalid UTF-8 as standalone U+FFFD clusters', () => {
-		expect(split(new Uint8Array([]))).toEqual([]);
-		expect(split(Uint8Array.of(0xff)).map((e) => e.index)).toEqual([1]);
-		expect(split(Uint8Array.of(0x80)).map((e) => e.index)).toEqual([1]); // stray continuation
-		expect(split(Uint8Array.of(0x61, 0xff, 0x62)).map((e) => e.index)).toEqual([1, 2, 3]);
-		expect(split(Uint8Array.of(0xe2, 0x82)).map((e) => e.index)).toEqual([2]); // truncated
+	it('treats unknown and replacement code points as standalone Other clusters', () => {
+		expect(split([])).toEqual([]);
+		expect(split([0xfffd]).map((e) => e.index)).toEqual([1]); // U+FFFD replacement
+		expect(split([0x61, 0xfffd, 0x62]).map((e) => e.index)).toEqual([1, 2, 3]);
 	});
 });

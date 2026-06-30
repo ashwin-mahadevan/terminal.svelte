@@ -1,11 +1,11 @@
 /**
- * Grapheme cluster segmentation per UAX #29 (Unicode 17.0), operating directly
- * on UTF-8 bytes and built for incremental re-parsing.
+ * Grapheme cluster segmentation per UAX #29 (Unicode 17.0), operating on decoded
+ * code points and built for incremental re-parsing.
  *
- * `split(bytes)` returns one `{ index, state }` entry per grapheme cluster.
- * `index` is the exclusive byte offset of the cluster's end, so the first entry
- * describes the cluster `[0, index)`, the next describes `[index, nextIndex)`,
- * and the final entry's `index` is `bytes.length`.
+ * `split(codePoints)` returns one `{ index, state }` entry per grapheme cluster.
+ * `index` is the exclusive code-point offset of the cluster's end, so the first
+ * entry describes the cluster `[0, index)`, the next describes
+ * `[index, nextIndex)`, and the final entry's `index` is `codePoints.length`.
  *
  * `state` is a compact (single number) summary of everything *before* `index`
  * that the algorithm needs to keep segmenting: the previous code point's break
@@ -13,16 +13,16 @@
  * multi-character rules (Indic conjuncts, emoji ZWJ sequences, regional
  * indicator parity). It is enough to resume without revisiting the prefix:
  *
- *   const tail = split(bytes.subarray(at.index), at.state);
+ *   const tail = split(codePoints.slice(at.index), at.state);
  *   // tail[k].index is relative to at.index; add at.index to absolutise.
  *
- * When some bytes change, resume from the last entry whose `index` is strictly
- * *before* the first edited byte (or from `INITIAL` at offset 0 if there is
- * none). It must be strictly before: an edit can dissolve the boundary at its
- * own position — e.g. appending a combining mark merges the byte at that
- * boundary into the previous cluster — and likewise, when streaming, more bytes
- * can extend the final cluster, so the last entry is never a safe resume point
- * while input may still grow.
+ * When some code points change, resume from the last entry whose `index` is
+ * strictly *before* the first edited code point (or from `INITIAL` at offset 0
+ * if there is none). It must be strictly before: an edit can dissolve the
+ * boundary at its own position — e.g. appending a combining mark merges the code
+ * point at that boundary into the previous cluster — and likewise, when
+ * streaming, more code points can extend the final cluster, so the last entry is
+ * never a safe resume point while input may still grow.
  *
  * Property data is generated from the Unicode Character Database 17.0 files
  * GraphemeBreakProperty.txt (Grapheme_Cluster_Break), emoji-data.txt
@@ -158,77 +158,25 @@ function advance(state: State, property: number): State {
 }
 
 /**
- * Decode the UTF-8 sequence at `offset`, returning `(size << 21) | codePoint`.
- * An invalid sequence decodes to U+FFFD over its maximal valid subpart (at
- * least one byte), matching the WHATWG replacement behaviour.
- */
-function decode(bytes: Uint8Array, offset: number, length: number): number {
-	const lead = bytes[offset];
-	if (lead < 0x80) return (1 << 21) | lead;
-	if (lead < 0xc2) return (1 << 21) | 0xfffd; // stray continuation, or overlong lead
-	if (lead < 0xe0) {
-		if (offset + 1 >= length) return (1 << 21) | 0xfffd;
-		const second = bytes[offset + 1];
-		if ((second & 0xc0) !== 0x80) return (1 << 21) | 0xfffd;
-		return (2 << 21) | (((lead & 0x1f) << 6) | (second & 0x3f));
-	}
-	if (lead < 0xf0) {
-		if (offset + 1 >= length) return (1 << 21) | 0xfffd;
-		const second = bytes[offset + 1];
-		const min = lead === 0xe0 ? 0xa0 : 0x80; // exclude overlong
-		const max = lead === 0xed ? 0x9f : 0xbf; // exclude surrogates
-		if (second < min || second > max) return (1 << 21) | 0xfffd;
-		if (offset + 2 >= length) return (2 << 21) | 0xfffd;
-		const third = bytes[offset + 2];
-		if ((third & 0xc0) !== 0x80) return (2 << 21) | 0xfffd;
-		return (3 << 21) | (((lead & 0x0f) << 12) | ((second & 0x3f) << 6) | (third & 0x3f));
-	}
-	if (lead < 0xf5) {
-		if (offset + 1 >= length) return (1 << 21) | 0xfffd;
-		const second = bytes[offset + 1];
-		const min = lead === 0xf0 ? 0x90 : 0x80; // exclude overlong
-		const max = lead === 0xf4 ? 0x8f : 0xbf; // exclude > U+10FFFF
-		if (second < min || second > max) return (1 << 21) | 0xfffd;
-		if (offset + 2 >= length) return (2 << 21) | 0xfffd;
-		const third = bytes[offset + 2];
-		if ((third & 0xc0) !== 0x80) return (2 << 21) | 0xfffd;
-		if (offset + 3 >= length) return (3 << 21) | 0xfffd;
-		const fourth = bytes[offset + 3];
-		if ((fourth & 0xc0) !== 0x80) return (3 << 21) | 0xfffd;
-		return (
-			(4 << 21) |
-			(((lead & 0x07) << 18) | ((second & 0x3f) << 12) | ((third & 0x3f) << 6) | (fourth & 0x3f))
-		);
-	}
-	return (1 << 21) | 0xfffd;
-}
-
-/**
- * Split UTF-8 `bytes` into grapheme clusters, returning the end offset and
- * resume state of each. Pass a `state` from a previous entry (and a matching
- * byte slice) to continue a parse instead of starting from the beginning.
+ * Split `codePoints` into grapheme clusters, returning the end index and resume
+ * state of each. Pass a `state` from a previous entry (and a matching code-point
+ * slice) to continue a parse instead of starting from the beginning.
  */
 export function split(
-	bytes: Uint8Array,
+	codePoints: readonly number[],
 	state: State = INITIAL
 ): Array<{ index: number; state: State }> {
 	const boundaries: Array<{ index: number; state: State }> = [];
-	const length = bytes.length;
+	const length = codePoints.length;
 	let current: State = state;
-	let offset = 0;
 
-	while (offset < length) {
-		const decoded = decode(bytes, offset, length);
-		const codePoint = decoded & 0x1fffff;
-		const size = decoded >>> 21;
-		const property = lookup(codePoint);
+	for (let index = 0; index < length; index++) {
+		const property = lookup(codePoints[index]);
 
-		// offset === 0 is the resume point: its boundary is implied by `state`,
+		// index === 0 is the resume point: its boundary is implied by `state`,
 		// never emitted here (the caller already holds it).
-		if (offset > 0 && isBreak(current, property))
-			boundaries.push({ index: offset, state: current });
+		if (index > 0 && isBreak(current, property)) boundaries.push({ index, state: current });
 		current = advance(current, property);
-		offset += size;
 	}
 
 	if (length > 0) boundaries.push({ index: length, state: current }); // GB2
