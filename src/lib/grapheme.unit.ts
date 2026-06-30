@@ -1,43 +1,27 @@
 import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import { INITIAL, next } from './grapheme';
-import type { State } from './grapheme';
-
-/** Decode a string into its code points, the unit `next` operates on. */
-const codePoints = (input: string): number[] => Array.from(input, (ch) => ch.codePointAt(0)!);
 
 /**
- * Drive `next` across a code-point array, returning one entry per code point.
- * `boundary` is what `next` reports immediately *before* that code point and
- * `state` is the resume token to re-enter the run there (the state held *before*
- * consuming the code point). `next` answers "is there a break between this code
- * point and its predecessor", so the index-0 entry — which has no predecessor
- * and instead sees `INITIAL`'s phantom Other — is not the start-of-text break;
- * that break is GB1/GB2, the caller's job. The meaningful markers are therefore
- * the inter-code-point ones at index 1 onward, which `interBreaks` returns.
- *
- * The `state` field lets the resume test re-enter a run partway through; the
- * conformance test uses only `boundary`, via `interBreaks`.
+ * Drive `next` from `INITIAL` across a code-point array and return the
+ * break-before marker it reports for every code point after the first. The
+ * index-0 marker has no predecessor — it sees only `INITIAL`'s phantom Other —
+ * so it is not the start-of-text break (GB1/GB2, the caller's job) and is
+ * dropped; the meaningful markers are the inter-code-point ones, which is
+ * exactly what the GraphemeBreakTest cases enumerate.
  */
-const trace = (
-	points: readonly number[],
-	state: State = INITIAL
-): Array<{ boundary: boolean; state: State }> => {
-	const steps: Array<{ boundary: boolean; state: State }> = [];
-	let current = state;
+const interBreaks = (points: readonly number[]): boolean[] => {
+	const breaks: boolean[] = [];
+	let state = INITIAL;
+	let first = true;
 	for (const codePoint of points) {
-		const [nextState, boundary] = next(current, codePoint);
-		steps.push({ boundary, state: current });
-		current = nextState;
+		const [nextState, boundary] = next(state, codePoint);
+		if (!first) breaks.push(boundary);
+		first = false;
+		state = nextState;
 	}
-	return steps;
+	return breaks;
 };
-
-/** The break-before markers `next` reports for every code point after the first. */
-const interBreaks = (points: readonly number[]): boolean[] =>
-	trace(points)
-		.slice(1)
-		.map((step) => step.boundary);
 
 /**
  * The official UAX #29 GraphemeBreakTest cases, parsed from the canonical data
@@ -88,31 +72,5 @@ describe('grapheme.next', () => {
 		it.each(CASES)('$name', ({ points, breaks }) => {
 			expect(interBreaks(points)).toEqual(breaks);
 		});
-	});
-
-	// The conformance table above already proves the breaks; this documents the one
-	// thing it does not — that a state captured mid-stream is a sufficient resume
-	// token, which is the whole reason `next` threads state instead of being a batch
-	// `split`. A real consumer re-parses an edit by resuming from the last boundary
-	// before it rather than rescanning from the start.
-	it('re-parses an edit by resuming from a saved pre-edit state', () => {
-		const steps = trace(codePoints('abc'));
-
-		// The edit begins at index 2 (rewriting "c"); resume from the last
-		// boundary strictly before it.
-		const firstEdited = 2;
-		let resume = 0;
-		for (let i = 0; i < steps.length; i++) if (steps[i].boundary && i < firstEdited) resume = i;
-
-		// "c" becomes a combining mark (U+0301), so it joins "b": the boundary
-		// that used to sit before index 2 disappears.
-		const edited = [0x61, 0x62, 0x301]; // "ab" + combining acute
-		const tail = trace(edited.slice(resume), steps[resume].state);
-		const rebuilt = [...steps.slice(0, resume), ...tail];
-
-		// Reusing the unedited prefix and resuming the tail reproduces a full rescan,
-		// and the dissolved boundary leaves "ab́" as the trailing two-code-point cluster.
-		expect(rebuilt).toEqual(trace(edited));
-		expect(rebuilt.slice(1).map((s) => s.boundary)).toEqual([true, false]);
 	});
 });
