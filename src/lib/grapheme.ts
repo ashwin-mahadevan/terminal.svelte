@@ -2,21 +2,26 @@
  * Grapheme cluster segmentation per UAX #29 (Unicode 17.0), operating on decoded
  * code points as a streaming state machine.
  *
- * `next(state, codePoint)` folds one code point into the running `state` and
- * returns `[nextState, boundary]`, where `boundary` is true iff a grapheme
- * cluster boundary falls immediately *before* `codePoint`. Drive it from
- * `INITIAL`:
+ * Segmentation is a streaming state machine over three exported primitives.
+ * `propertyOf(codePoint)` returns a code point's packed break property;
+ * `isBreak(state, property)` reports whether a grapheme cluster boundary falls
+ * immediately *before* that code point; and `advance(state, property)` folds the
+ * code point into the running `state`. Drive them from `INITIAL`:
  *
  *   let state = INITIAL;
  *   for (const codePoint of codePoints) {
- *     const [nextState, boundary] = next(state, codePoint);
- *     if (boundary) ...; // the cluster up to the previous code point is final
- *     state = nextState;
+ *     const property = propertyOf(codePoint);
+ *     if (isBreak(state, property)) ...; // the cluster up to the previous code point is final
+ *     state = advance(state, property);
  *   }
  *
- * Because grapheme breaking needs only one code point of lookahead, `boundary`
- * is final the moment `codePoint` is seen: a true value commits the cluster that
- * ended at the previous code point. The cluster `codePoint` opens is still
+ * Splitting the step into three keeps each rule's input explicit: `isBreak` reads
+ * only `state` and the incoming `property` without mutating, so it can be
+ * consulted before committing the `advance` that supersedes `state`.
+ *
+ * Because grapheme breaking needs only one code point of lookahead, the boundary
+ * is final the moment `codePoint` is seen: a true `isBreak` commits the cluster
+ * that ended at the previous code point. The cluster `codePoint` opens is still
  * provisional — a later code point can extend it (a combining mark, a ZWJ-joined
  * emoji, a second regional indicator) — so a streaming consumer can render it
  * eagerly and revise it in place when more input arrives, instead of stalling
@@ -27,7 +32,7 @@
  * point's break property plus the small amount of running context required by
  * the multi-character rules (Indic conjuncts, emoji ZWJ sequences, regional
  * indicator parity). It is a resume token — store it at a boundary and hand it
- * back to `next` to continue segmenting from there without revisiting the
+ * back to `advance` to continue segmenting from there without revisiting the
  * prefix. Resume only from a boundary strictly *before* an edit, never the last
  * one seen: an edit (or more streamed input) can dissolve that trailing boundary
  * by extending the cluster it ends.
@@ -81,7 +86,7 @@ const EMOJI_STATE_PICTOGRAPHIC_ZWJ = 2;
 /**
  * Opaque resume token: a packed integer holding the previous code point's
  * Grapheme_Cluster_Break value and the running conjunct / emoji / regional
- * indicator context. Treat it as a value to store and hand back to `split`.
+ * indicator context. Treat it as a value to store and hand back to `advance`.
  */
 export type State = number & { readonly __grapheme: unique symbol };
 
@@ -105,7 +110,7 @@ const regionalIndicatorParity = (state: State) => (state >> 8) & 1;
  * right side)? Rules are evaluated in UAX #29 order; the first that applies
  * decides.
  */
-function isBreak(state: State, property: number): boolean {
+export function isBreak(state: State, property: number): boolean {
 	const left = previousBreak(state);
 	const right = breakProperty(property);
 
@@ -144,7 +149,7 @@ function isBreak(state: State, property: number): boolean {
 /**
  * Fold the code point with packed property `property` into the running `state`.
  */
-function advance(state: State, property: number): State {
+export function advance(state: State, property: number): State {
 	const right = breakProperty(property);
 	const incomingConjunct = conjunctProperty(property);
 
@@ -167,18 +172,6 @@ function advance(state: State, property: number): State {
 	const regionalParity = right === REGIONAL_INDICATOR ? regionalIndicatorParity(state) ^ 1 : 0;
 
 	return (right | (conjunct << 4) | (emoji << 6) | (regionalParity << 8)) as State;
-}
-
-/**
- * Advance the segmenter by one code point. Returns the updated `state` and
- * whether a grapheme cluster boundary falls immediately *before* `codePoint`
- * (which commits the cluster ending at the previous code point — see the module
- * comment). Start from `INITIAL`; a boundary on the very first code point is the
- * start-of-text break (GB1/GB2).
- */
-export function next(state: State, codePoint: number): [State, boolean] {
-	const property = lookup(codePoint);
-	return [advance(state, property), isBreak(state, property)];
 }
 
 // Packed Unicode property table. `TABLE` is base64 of a byte stream of
@@ -217,7 +210,7 @@ function decodeTable(base64: string): [Uint32Array, Uint8Array] {
 }
 
 /** Packed property value for a code point (0 = the default Other/None/non-emoji). */
-function lookup(codePoint: number): number {
+export function propertyOf(codePoint: number): number {
 	let low = 0;
 	let high = STARTS.length - 1;
 	let value = 0;

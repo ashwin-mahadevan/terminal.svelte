@@ -1,7 +1,7 @@
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
 import { describe, expect, it } from 'vitest';
-import { INITIAL, next } from './grapheme';
+import { advance, INITIAL, isBreak, propertyOf } from './grapheme';
 
 /**
  * The official UAX #29 GraphemeBreakTest cases.
@@ -25,7 +25,7 @@ for await (const line of lines) {
 
 	// Tokens alternate marker, code point, marker, …, ending on a marker. The
 	// leading and trailing markers are always ÷ (start/end of text, GB1/GB2); the
-	// informative ones sit between code points, exactly what `next` reports.
+	// informative ones sit between code points, exactly what `isBreak` reports.
 	const tokens = data.split(/\s+/);
 	const points: number[] = [];
 	const breaks: boolean[] = [];
@@ -37,7 +37,7 @@ for await (const line of lines) {
 	CASES.push({ name: hash === -1 ? '' : line.slice(hash + 1).trim(), points, breaks });
 }
 
-describe('grapheme.next', () => {
+describe('grapheme', () => {
 	it('parsed all official test cases', () => {
 		expect(CASES).toHaveLength(766);
 	});
@@ -45,8 +45,9 @@ describe('grapheme.next', () => {
 	it.each(CASES)('$name', ({ points, breaks }) => {
 		let state = INITIAL;
 		for (let i = 0; i < points.length; i++) {
-			const [nextState, boundary] = next(state, points[i]);
-			state = nextState;
+			const property = propertyOf(points[i]);
+			const boundary = isBreak(state, property);
+			state = advance(state, property);
 
 			if (i > 0) expect(boundary, `break before code point ${i}`).toBe(breaks[i - 1]);
 		}
