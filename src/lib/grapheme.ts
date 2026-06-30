@@ -82,10 +82,10 @@ const conjunctProperty = (property: number) => (property >> 4) & 3;
 const pictographicFlag = (property: number) => (property >> 6) & 1;
 
 // Field accessors for a packed *state*.
-const previousBreak = (state: number) => state & 0xf;
-const conjunctState = (state: number) => (state >> 4) & 3;
-const emojiState = (state: number) => (state >> 6) & 3;
-const regionalIndicatorParity = (state: number) => (state >> 8) & 1;
+const previousBreak = (state: State) => state & 0xf;
+const conjunctState = (state: State) => (state >> 4) & 3;
+const emojiState = (state: State) => (state >> 6) & 3;
+const regionalIndicatorParity = (state: State) => (state >> 8) & 1;
 
 /**
  * Is there a grapheme boundary between the code point summarised by `state`
@@ -93,7 +93,7 @@ const regionalIndicatorParity = (state: number) => (state >> 8) & 1;
  * right side)? Rules are evaluated in UAX #29 order; the first that applies
  * decides.
  */
-function isBreak(state: number, property: number): boolean {
+function isBreak(state: State, property: number): boolean {
 	const left = previousBreak(state);
 	const right = breakProperty(property);
 
@@ -132,7 +132,7 @@ function isBreak(state: number, property: number): boolean {
 /**
  * Fold the code point with packed property `property` into the running `state`.
  */
-function advance(state: number, property: number): number {
+function advance(state: State, property: number): State {
 	const right = breakProperty(property);
 	const incomingConjunct = conjunctProperty(property);
 
@@ -154,7 +154,7 @@ function advance(state: number, property: number): number {
 
 	const regionalParity = right === REGIONAL_INDICATOR ? regionalIndicatorParity(state) ^ 1 : 0;
 
-	return right | (conjunct << 4) | (emoji << 6) | (regionalParity << 8);
+	return (right | (conjunct << 4) | (emoji << 6) | (regionalParity << 8)) as State;
 }
 
 /**
@@ -214,7 +214,7 @@ export function split(
 ): Array<{ index: number; state: State }> {
 	const boundaries: Array<{ index: number; state: State }> = [];
 	const length = bytes.length;
-	let current: number = state;
+	let current: State = state;
 	let offset = 0;
 
 	while (offset < length) {
@@ -226,12 +226,12 @@ export function split(
 		// offset === 0 is the resume point: its boundary is implied by `state`,
 		// never emitted here (the caller already holds it).
 		if (offset > 0 && isBreak(current, property))
-			boundaries.push({ index: offset, state: current as State });
+			boundaries.push({ index: offset, state: current });
 		current = advance(current, property);
 		offset += size;
 	}
 
-	if (length > 0) boundaries.push({ index: length, state: current as State }); // GB2
+	if (length > 0) boundaries.push({ index: length, state: current }); // GB2
 	return boundaries;
 }
 
