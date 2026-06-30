@@ -49,19 +49,17 @@ describe('grapheme.next', () => {
 		});
 
 		it.each(CASES)('$name', ({ points, breaks }) => {
-			// Drive `next` from `INITIAL` and collect the break-before marker for
-			// every code point after the first. The index-0 marker has no predecessor
-			// — it sees only `INITIAL`'s phantom Other — so it is the start-of-text
-			// break (GB1/GB2, the caller's job), not an inter-code-point one, and is
-			// dropped; the remaining markers are exactly what the cases enumerate.
-			const interBreaks: boolean[] = [];
+			// Drive `next` from `INITIAL`, checking the break-before marker for every
+			// code point against the case as we go. The index-0 marker has no
+			// predecessor — it sees only `INITIAL`'s phantom Other — so it is the
+			// start-of-text break (GB1/GB2, the caller's job), not an inter-code-point
+			// one, and is skipped; the rest line up with the markers the case enumerates.
 			let state = INITIAL;
-			for (const [index, codePoint] of points.entries()) {
-				const [nextState, boundary] = next(state, codePoint);
-				if (index > 0) interBreaks.push(boundary);
+			for (let i = 0; i < points.length; i++) {
+				const [nextState, boundary] = next(state, points[i]);
+				if (i > 0) expect(boundary, `break before code point ${i}`).toBe(breaks[i - 1]);
 				state = nextState;
 			}
-			expect(interBreaks).toEqual(breaks);
 		});
 	});
 });
