@@ -1,4 +1,5 @@
-import { readFile } from 'node:fs/promises';
+import { createReadStream } from 'fs';
+import { createInterface } from 'readline';
 import { describe, expect, it } from 'vitest';
 import { INITIAL, next } from './grapheme';
 
@@ -12,10 +13,13 @@ import { INITIAL, next } from './grapheme';
  * Keeping the file verbatim and parsing it here keeps the fixture a byte-for-byte
  * copy of the source instead of a hand-maintained transcription.
  */
-const file = await readFile(new URL('./GraphemeBreakTest.txt', import.meta.url), 'utf8');
+const lines = createInterface({
+	input: createReadStream(new URL('./GraphemeBreakTest.txt', import.meta.url)),
+	crlfDelay: Infinity
+});
 
 export const CASES: Array<{ name: string; points: number[]; breaks: boolean[] }> = [];
-for (const line of file.split('\n')) {
+for await (const line of lines) {
 	const hash = line.indexOf('#');
 	const data = (hash === -1 ? line : line.slice(0, hash)).trim();
 	if (data === '') continue; // license header, blank lines, and the trailing summary
