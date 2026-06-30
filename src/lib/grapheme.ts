@@ -2,11 +2,6 @@
  * Grapheme cluster segmentation per UAX #29 (Unicode 17.0), operating directly
  * on UTF-8 bytes and built for incremental re-parsing.
  *
- * It stays fully UAX #29 compliant, but is tuned for terminal text — which is
- * predominantly printable ASCII with control characters already stripped — via
- * a byte-by-byte fast path in `split` that emits each printable-ASCII cluster
- * without decoding or table lookup (see the comment there).
- *
  * `split(bytes)` returns one `{ index, state }` entry per grapheme cluster.
  * `index` is the exclusive byte offset of the cluster's end, so the first entry
  * describes the cluster `[0, index)`, the next describes `[index, nextIndex)`,
@@ -198,26 +193,6 @@ export function split(
 	let i = 0;
 
 	while (i < len) {
-		// ASCII fast path. A plain-Other context (`s === 0`: previous code point
-		// was Grapheme_Cluster_Break = Other with no Prepend / conjunct / emoji /
-		// regional-indicator carry) is the common state, and every printable-ASCII
-		// byte is itself an Other code point. Two Others always break (GB999) and
-		// the context stays plain Other, so each such byte is a one-byte cluster we
-		// can emit without decoding, table lookup, or rule evaluation — the bulk of
-		// terminal text. Control bytes (< 0x20, and DEL 0x7f) are excluded so the
-		// slow path still applies GB3–GB5 if any reach the parser; the caller's
-		// "no control characters" guarantee is what makes this branch dominant
-		// rather than a rare shortcut.
-		if (s === 0) {
-			let b = bytes[i];
-			while (b >= 0x20 && b < 0x7f) {
-				if (i > 0) out.push({ index: i, state: 0 as State });
-				if (++i >= len) break;
-				b = bytes[i];
-			}
-			if (i >= len) break;
-		}
-
 		const dec = decode(bytes, i, len);
 		const cp = dec & 0x1fffff;
 		const size = dec >>> 21;
