@@ -1,9 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import { INITIAL, split } from './grapheme';
+import { INITIAL, next } from './grapheme';
 import type { State } from './grapheme';
 
-/** Decode a string into its code points, the unit `split` now operates on. */
+/** Decode a string into its code points, the unit `next` operates on. */
 const codePoints = (input: string): number[] => Array.from(input, (ch) => ch.codePointAt(0)!);
+
+/**
+ * Run `next` across a code-point array, recovering one `{ index, state }` entry
+ * per cluster end exactly as the removed `split` did: `index` is the exclusive
+ * code-point offset of a cluster's end and `state` is the resume token there.
+ * This keeps the official case table exercising the streaming primitive.
+ */
+const split = (
+	points: readonly number[],
+	state: State = INITIAL
+): Array<{ index: number; state: State }> => {
+	const boundaries: Array<{ index: number; state: State }> = [];
+	let current = state;
+	for (let index = 0; index < points.length; index++) {
+		const [nextState, boundary] = next(current, points[index]);
+		// index 0's boundary is the resume break the caller already holds.
+		if (index > 0 && boundary) boundaries.push({ index, state: current });
+		current = nextState;
+	}
+	if (points.length > 0) boundaries.push({ index: points.length, state: current }); // GB2
+	return boundaries;
+};
 
 /** UTF-8 byte length of a code point, used only to reinterpret the `want` data. */
 const utf8Length = (codePoint: number): number =>
@@ -3868,7 +3890,7 @@ export const CASES: Array<{ name: string; input: string; want: number[] }> = [
 	}
 ];
 
-describe('grapheme.split', () => {
+describe('grapheme.next', () => {
 	describe('matches the official UAX #29 GraphemeBreakTest cases', () => {
 		it.each(CASES)('$name', ({ input, want }) => {
 			expect(split(codePoints(input)).map((e) => e.index)).toEqual(codePointEnds(input, want));
@@ -3932,5 +3954,38 @@ describe('grapheme.split', () => {
 		expect(split([])).toEqual([]);
 		expect(split([0xfffd]).map((e) => e.index)).toEqual([1]); // U+FFFD replacement
 		expect(split([0x61, 0xfffd, 0x62]).map((e) => e.index)).toEqual([1, 2, 3]);
+	});
+
+	describe('the streaming primitive', () => {
+		it('reports a boundary before the first code point (start of text)', () => {
+			const [, boundary] = next(INITIAL, 0x61); // "a"
+			expect(boundary).toBe(true);
+		});
+
+		it('reports no boundary while a combining mark extends its base', () => {
+			// "e" then combining acute (one cluster) then "x" (a new cluster).
+			const [afterE, beforeE] = next(INITIAL, 0x65);
+			expect(beforeE).toBe(true);
+			const [afterMark, beforeMark] = next(afterE, 0x301);
+			expect(beforeMark).toBe(false);
+			const [, beforeX] = next(afterMark, 0x78);
+			expect(beforeX).toBe(true);
+		});
+
+		it('returns to INITIAL after a plain Other code point', () => {
+			// A boundary-before plus an INITIAL state is the "safe to restart" signal.
+			const [state] = next(INITIAL, 0x61);
+			expect(state).toBe(INITIAL);
+		});
+
+		it('threads state to break regional indicators into pairs', () => {
+			// RI RI is one flag; the third RI starts a new cluster (GB12/GB13).
+			const [afterFirst, beforeFirst] = next(INITIAL, 0x1f1e6);
+			expect(beforeFirst).toBe(true);
+			const [afterSecond, beforeSecond] = next(afterFirst, 0x1f1e7);
+			expect(beforeSecond).toBe(false);
+			const [, beforeThird] = next(afterSecond, 0x1f1e8);
+			expect(beforeThird).toBe(true);
+		});
 	});
 });

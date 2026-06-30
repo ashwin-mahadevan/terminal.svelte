@@ -1,28 +1,40 @@
 /**
  * Grapheme cluster segmentation per UAX #29 (Unicode 17.0), operating on decoded
- * code points and built for incremental re-parsing.
+ * code points as a streaming state machine.
  *
- * `split(codePoints)` returns one `{ index, state }` entry per grapheme cluster.
- * `index` is the exclusive code-point offset of the cluster's end, so the first
- * entry describes the cluster `[0, index)`, the next describes
- * `[index, nextIndex)`, and the final entry's `index` is `codePoints.length`.
+ * `next(state, codePoint)` folds one code point into the running `state` and
+ * returns `[nextState, boundary]`, where `boundary` is true iff a grapheme
+ * cluster boundary falls immediately *before* `codePoint`. Drive it from
+ * `INITIAL`:
  *
- * `state` is a compact (single number) summary of everything *before* `index`
- * that the algorithm needs to keep segmenting: the previous code point's break
- * property plus the small amount of running context required by the
- * multi-character rules (Indic conjuncts, emoji ZWJ sequences, regional
- * indicator parity). It is enough to resume without revisiting the prefix:
+ *   let state = INITIAL;
+ *   for (const codePoint of codePoints) {
+ *     const [nextState, boundary] = next(state, codePoint);
+ *     if (boundary) ...; // the cluster up to the previous code point is final
+ *     state = nextState;
+ *   }
  *
- *   const tail = split(codePoints.slice(at.index), at.state);
- *   // tail[k].index is relative to at.index; add at.index to absolutise.
+ * Because grapheme breaking needs only one code point of lookahead, `boundary`
+ * is final the moment `codePoint` is seen: a true value commits the cluster that
+ * ended at the previous code point. The cluster `codePoint` opens is still
+ * provisional — a later code point can extend it (a combining mark, a ZWJ-joined
+ * emoji, a second regional indicator) — so a streaming consumer can render it
+ * eagerly and revise it in place when more input arrives, instead of stalling
+ * until the next code point (or chunk) confirms where the cluster ends.
  *
- * When some code points change, resume from the last entry whose `index` is
- * strictly *before* the first edited code point (or from `INITIAL` at offset 0
- * if there is none). It must be strictly before: an edit can dissolve the
- * boundary at its own position — e.g. appending a combining mark merges the code
- * point at that boundary into the previous cluster — and likewise, when
- * streaming, more code points can extend the final cluster, so the last entry is
- * never a safe resume point while input may still grow.
+ * `state` is a compact (single number) summary of everything *before* the next
+ * code point that the algorithm needs to keep segmenting: the previous code
+ * point's break property plus the small amount of running context required by
+ * the multi-character rules (Indic conjuncts, emoji ZWJ sequences, regional
+ * indicator parity). It is a resume token — store it at a boundary and hand it
+ * back to `next` to continue segmenting from there without revisiting the
+ * prefix. Resume only from a boundary strictly *before* an edit, never the last
+ * one seen: an edit (or more streamed input) can dissolve that trailing boundary
+ * by extending the cluster it ends.
+ *
+ * `INITIAL` is the start-of-text state; it is also the state after any plain
+ * "Other" code point, so re-reaching it marks a point where segmentation can
+ * safely restart from scratch.
  *
  * Property data is generated from the Unicode Character Database 17.0 files
  * GraphemeBreakProperty.txt (Grapheme_Cluster_Break), emoji-data.txt
@@ -158,29 +170,15 @@ function advance(state: State, property: number): State {
 }
 
 /**
- * Split `codePoints` into grapheme clusters, returning the end index and resume
- * state of each. Pass a `state` from a previous entry (and a matching code-point
- * slice) to continue a parse instead of starting from the beginning.
+ * Advance the segmenter by one code point. Returns the updated `state` and
+ * whether a grapheme cluster boundary falls immediately *before* `codePoint`
+ * (which commits the cluster ending at the previous code point — see the module
+ * comment). Start from `INITIAL`; a boundary on the very first code point is the
+ * start-of-text break (GB1/GB2).
  */
-export function split(
-	codePoints: readonly number[],
-	state: State = INITIAL
-): Array<{ index: number; state: State }> {
-	const boundaries: Array<{ index: number; state: State }> = [];
-	const length = codePoints.length;
-	let current: State = state;
-
-	for (let index = 0; index < length; index++) {
-		const property = lookup(codePoints[index]);
-
-		// index === 0 is the resume point: its boundary is implied by `state`,
-		// never emitted here (the caller already holds it).
-		if (index > 0 && isBreak(current, property)) boundaries.push({ index, state: current });
-		current = advance(current, property);
-	}
-
-	if (length > 0) boundaries.push({ index: length, state: current }); // GB2
-	return boundaries;
+export function next(state: State, codePoint: number): [State, boolean] {
+	const property = lookup(codePoint);
+	return [advance(state, property), isBreak(state, property)];
 }
 
 // Packed Unicode property table. `TABLE` is base64 of a byte stream of
