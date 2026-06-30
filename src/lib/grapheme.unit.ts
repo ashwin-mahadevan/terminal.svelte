@@ -3,27 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { INITIAL, next } from './grapheme';
 
 /**
- * Drive `next` from `INITIAL` across a code-point array and return the
- * break-before marker it reports for every code point after the first. The
- * index-0 marker has no predecessor — it sees only `INITIAL`'s phantom Other —
- * so it is not the start-of-text break (GB1/GB2, the caller's job) and is
- * dropped; the meaningful markers are the inter-code-point ones, which is
- * exactly what the GraphemeBreakTest cases enumerate.
- */
-const interBreaks = (points: readonly number[]): boolean[] => {
-	const breaks: boolean[] = [];
-	let state = INITIAL;
-	let first = true;
-	for (const codePoint of points) {
-		const [nextState, boundary] = next(state, codePoint);
-		if (!first) breaks.push(boundary);
-		first = false;
-		state = nextState;
-	}
-	return breaks;
-};
-
-/**
  * The official UAX #29 GraphemeBreakTest cases, parsed from the canonical data
  * file vendored beside this test (Unicode 17.0,
  * https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt).
@@ -70,7 +49,19 @@ describe('grapheme.next', () => {
 		});
 
 		it.each(CASES)('$name', ({ points, breaks }) => {
-			expect(interBreaks(points)).toEqual(breaks);
+			// Drive `next` from `INITIAL` and collect the break-before marker for
+			// every code point after the first. The index-0 marker has no predecessor
+			// — it sees only `INITIAL`'s phantom Other — so it is the start-of-text
+			// break (GB1/GB2, the caller's job), not an inter-code-point one, and is
+			// dropped; the remaining markers are exactly what the cases enumerate.
+			const interBreaks: boolean[] = [];
+			let state = INITIAL;
+			for (const [index, codePoint] of points.entries()) {
+				const [nextState, boundary] = next(state, codePoint);
+				if (index > 0) interBreaks.push(boundary);
+				state = nextState;
+			}
+			expect(interBreaks).toEqual(breaks);
 		});
 	});
 });
