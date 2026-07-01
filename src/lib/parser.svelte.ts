@@ -36,6 +36,7 @@ export class Emulator {
 				case 0x02: // STX (start of text)
 				case 0x03: // ETX (end of text)
 				case 0x04: // EOT (end of transmission)
+				case 0x05: // ENQ (enquiry)
 				case 0x06: // ACK (acknowledge)
 				case 0x10: // DLE (data link escape)
 				case 0x11: // DC1 (device control 1, XON)
@@ -53,11 +54,6 @@ export class Emulator {
 				case 0x1e: // RS (record separator)
 				case 0x1f: // US (unit separator)
 				case 0x7f: // DEL (delete)
-					break;
-
-				// ENQ (enquiry)
-				case 0x05:
-					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
 					break;
 
 				// BEL (bell)
