@@ -74,14 +74,8 @@ export class State {
 		this.reset();
 	}
 
-	// Pull the cursor back onto the last column, cancelling a pending wrap
-	// (this.column === this.columns) without otherwise moving it.
-	private cancelWrap() {
-		if (this.column === this.columns) this.column -= 1;
-	}
-
 	linefeed() {
-		this.cancelWrap();
+		if (this.column === this.columns) this.column -= 1;
 		this.row += 1;
 		if (this.row > this.rows - 1) {
 			this.row = this.rows - 1;
@@ -92,7 +86,7 @@ export class State {
 	}
 
 	reverseLinefeed() {
-		this.cancelWrap();
+		if (this.column === this.columns) this.column -= 1;
 		this.row -= 1;
 		if (this.row < 0) {
 			this.row = 0;
@@ -117,7 +111,7 @@ export class State {
 
 	// HT: move the cursor right to the next tab stop, or the last column if none remain.
 	tab() {
-		this.cancelWrap();
+		if (this.column === this.columns) this.column -= 1;
 		while (this.column < this.columns - 1) {
 			this.column += 1;
 			if (this.tabStops[this.column]) break;
@@ -140,7 +134,7 @@ export class State {
 				this.column = 0;
 				this.linefeed();
 			} else {
-				this.cancelWrap();
+				this.column -= 1;
 			}
 		}
 
