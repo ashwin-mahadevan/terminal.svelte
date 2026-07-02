@@ -273,7 +273,49 @@ const escape = (emulator: Emulator, chunk: Uint8Array, index: number): number =>
 };
 
 const csi = (emulator: Emulator, chunk: Uint8Array, index: number): number => {
-	console.log(`NOT IMPLEMENTED: CSI 0x${chunk[index].toString(16).padStart(2, '0')}`);
-	emulator.mode = MODE_GROUND;
-	return index + 1;
+	const byte = chunk[index];
+
+	switch (byte) {
+		// CAN (cancel), SUB (substitute): abort the sequence.
+		case 0x18:
+		case 0x1a:
+			emulator.mode = MODE_GROUND;
+			return index + 1;
+
+		// ESC (escape): abort and begin a new escape sequence.
+		case 0x1b:
+			emulator.mode = MODE_ESCAPE;
+			return index + 1;
+
+		// DEL (delete): ignored within a control sequence.
+		case 0x7f:
+			return index + 1;
+
+		default: {
+			// C0 controls execute and the sequence continues.
+			if (byte < 0x20) {
+				console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
+				return index + 1;
+			}
+
+			// 0x20–0x2f: intermediate bytes.
+			if (byte < 0x30) {
+				console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
+				emulator.mode = MODE_GROUND;
+				return index + 1;
+			}
+
+			// 0x30–0x3f: parameter bytes and private-mode markers.
+			if (byte < 0x40) {
+				console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
+				emulator.mode = MODE_GROUND;
+				return index + 1;
+			}
+
+			// 0x40–0x7e: final byte — dispatch the control sequence.
+			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
+			emulator.mode = MODE_GROUND;
+			return index + 1;
+		}
+	}
 };
