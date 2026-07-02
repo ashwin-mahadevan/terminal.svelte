@@ -69,6 +69,10 @@
 
 	// Render every row in the buffer and let the browser scroll the overflow.
 	const lines = $derived(emulator.state.buffer);
+
+	// A pending wrap parks the cursor one column past the edge
+	// (state.column === state.columns); draw it on the last column instead.
+	const cursorColumn = $derived(Math.min(emulator.state.column, emulator.state.columns - 1));
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -91,7 +95,7 @@
 	{#each lines as line, row (row)}
 		<div>
 			{#each line.cells as cell, col (col)}
-				<Cell {cell} isCursor={emulator.state.column === col && emulator.state.row === row} />
+				<Cell {cell} isCursor={cursorColumn === col && emulator.state.row === row} />
 			{/each}
 		</div>
 	{/each}

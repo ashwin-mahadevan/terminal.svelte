@@ -9,11 +9,10 @@ describe('autowrap (DECAWM)', () => {
 		const e = new Emulator({}, 4, 4);
 		e.parse(encoder.encode('ABCD'));
 
-		// Nothing has wrapped yet: the cursor sits on the last column with a
-		// wrap pending, rather than running off to column 4.
+		// Nothing has wrapped yet: the cursor sits one column past the edge,
+		// with a wrap pending, rather than running the row over.
 		expect(e.state.row).toBe(0);
-		expect(e.state.column).toBe(3);
-		expect(e.state.wrap).toBe(true);
+		expect(e.state.column).toBe(e.state.columns);
 		expect(e.state.buffer[0].break).toBe(false);
 	});
 

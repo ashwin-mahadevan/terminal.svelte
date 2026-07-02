@@ -62,10 +62,11 @@ export class Emulator {
 					break;
 
 				// BS (backspace)
-				case 0x08:
-					this.state.wrap = false;
-					if (this.state.column > 0) this.state.column -= 1;
+				case 0x08: {
+					const column = Math.min(this.state.column, this.state.columns - 1);
+					this.state.column = column > 0 ? column - 1 : 0;
 					break;
+				}
 
 				// HT (horizontal tab)
 				case 0x09:
@@ -81,7 +82,6 @@ export class Emulator {
 				// CR (carriage return)
 				case 0x0d:
 					this.state.column = 0;
-					this.state.wrap = false;
 					break;
 
 				case 0x0e: // SO (shift out)
