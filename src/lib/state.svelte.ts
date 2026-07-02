@@ -131,25 +131,28 @@ export class State {
 
 	print(text: string, autowrap: boolean) {
 		// A previous character filled the last column, leaving a wrap pending
-		// (this.column === this.columns). Resolve it now, before writing — but
-		// only if autowrap (DECAWM) is on. With autowrap off the cursor stays
-		// put and overwrites the last column.
-		if (this.column === this.columns && autowrap) {
-			this.buffer[this.row].break = true;
-			this.column = 0;
-			this.linefeed();
+		// (this.column === this.columns). With autowrap (DECAWM) on, resolve it
+		// by moving to a new line before writing; with it off, cancel the wrap
+		// so the cursor overwrites the last column instead.
+		if (this.column === this.columns) {
+			if (autowrap) {
+				this.buffer[this.row].break = true;
+				this.column = 0;
+				this.linefeed();
+			} else {
+				this.cancelWrap();
+			}
 		}
 
-		const column = this.column === this.columns ? this.columns - 1 : this.column;
-		this.buffer[this.row].cells[column] = {
+		this.buffer[this.row].cells[this.column] = {
 			text,
 			attrs: this.attributes
 		} satisfies Cell;
 
-		if (column < this.columns - 1) {
-			this.column = column + 1;
-		} else {
-			this.column = autowrap ? this.columns : column;
+		if (this.column < this.columns - 1) {
+			this.column += 1;
+		} else if (autowrap) {
+			this.column = this.columns;
 		}
 	}
 }
