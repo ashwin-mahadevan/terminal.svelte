@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Parser } from '$lib/parser.svelte';
 	import Cell from '$lib/cell.svelte';
+	import type { State } from './state.svelte';
 
 	type Props = {
-		emulator: Parser;
+		state: State;
 		ondata?: (data: string) => void;
 	};
 
-	const { emulator, ondata }: Props = $props();
+	const { state, ondata }: Props = $props();
 
 	let root: HTMLDivElement;
 
@@ -68,15 +68,11 @@
 	}
 
 	// Render every row in the buffer and let the browser scroll the overflow.
-	const lines = $derived(emulator.state.buffer);
+	const lines = $derived(state.buffer);
 
 	// A pending wrap parks the cursor one column past the edge
 	// (state.column === state.columns); draw it on the last column instead.
-	const cursorColumn = $derived(
-		emulator.state.column === emulator.state.columns
-			? emulator.state.columns - 1
-			: emulator.state.column
-	);
+	const cursorColumn = $derived(state.column === state.columns ? state.columns - 1 : state.column);
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -99,7 +95,7 @@
 	{#each lines as line, row (row)}
 		<div>
 			{#each line.cells as cell, col (col)}
-				<Cell {cell} isCursor={cursorColumn === col && emulator.state.row === row} />
+				<Cell {cell} isCursor={cursorColumn === col && state.row === row} />
 			{/each}
 		</div>
 	{/each}

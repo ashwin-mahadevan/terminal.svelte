@@ -5,26 +5,22 @@
 	import { browser } from '$app/environment';
 	import { State } from '$lib';
 
-	const state = new State();
-
 	const events = {
 		bell: () => console.log('BEL')
-	}
+	};
 
-	const emulator = new Parser(state, events);
+	const state = new State();
+	const parser = new Parser(state, events);
+
 	const socket = (browser as true) && io();
 
 	$effect(() => {
-		const write = (chunk: Uint8Array) => {
-			emulator.write(chunk);
-		};
-
-		socket.on('output', write);
-		return () => socket.off('output', write);
+		socket.on('output', parser.write);
+		return () => socket.off('output', parser.write);
 	});
 </script>
 
-<StreamTerminal {emulator} ondata={(data) => socket.emit('input', data)} />
+<StreamTerminal {state} ondata={(data) => socket.emit('input', data)} />
 
 <style>
 	:global(html, body) {
