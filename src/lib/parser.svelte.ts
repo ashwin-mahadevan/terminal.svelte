@@ -69,7 +69,7 @@ export class Emulator {
 
 				// HT (horizontal tab)
 				case 0x09:
-					console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+					this.state.tab();
 					break;
 
 				case 0x0a: // LF (line feed)
@@ -188,7 +188,7 @@ export class Emulator {
 
 			// ESC H → HTS (Horizontal Tab Set)
 			case 0x48:
-				console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
+				this.state.tabSet();
 				break;
 
 			// ESC M → RI (Reverse Index)

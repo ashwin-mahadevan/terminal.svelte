@@ -41,6 +41,17 @@ export type Line = {
 	break: boolean;
 };
 
+// Default interval between tab stops, in columns.
+const TAB_STOP_INTERVAL = 8;
+
+function defaultTabStops(columns: number): Array<boolean> {
+	const stops = new Array<boolean>(columns).fill(false);
+	for (let column = TAB_STOP_INTERVAL; column < columns; column += TAB_STOP_INTERVAL) {
+		stops[column] = true;
+	}
+	return stops;
+}
+
 export class State {
 	columns: number;
 	rows: number;
@@ -53,6 +64,10 @@ export class State {
 	style: 'block' | 'underline' | 'bar';
 	attributes: Attributes;
 	wrap: boolean;
+
+	// Tab stops, shared across the whole terminal (not per-screen): indexed by
+	// column, true where a stop is set.
+	tabStops: Array<boolean>;
 
 	constructor(columns = 80, rows = 24) {
 		this.columns = $state(columns);
@@ -74,6 +89,7 @@ export class State {
 		// Pending-wrap flag: set once the last column is written, so the next
 		// character wraps first. Starts clear; nothing is pending yet.
 		this.wrap = $state(false);
+		this.tabStops = $state(defaultTabStops(columns));
 	}
 
 	linefeed() {
@@ -111,6 +127,22 @@ export class State {
 		this.style = 'block';
 		this.attributes = DEFAULT_ATTRIBUTES;
 		this.wrap = false;
+		this.tabStops = defaultTabStops(this.columns);
+	}
+
+	// HT: move the cursor right to the next tab stop, or the last column if none remain.
+	tab() {
+		// Moving the cursor resolves any pending wrap.
+		this.wrap = false;
+		while (this.column < this.columns - 1) {
+			this.column += 1;
+			if (this.tabStops[this.column]) break;
+		}
+	}
+
+	// HTS: set a tab stop at the cursor's current column.
+	tabSet() {
+		this.tabStops[this.column] = true;
 	}
 
 	print(text: string, autowrap: boolean) {

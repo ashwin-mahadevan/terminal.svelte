@@ -69,3 +69,41 @@ describe('autowrap (DECAWM)', () => {
 		expect(e.state.buffer[0].cells[3]?.text).toBe('F');
 	});
 });
+
+// A 20-column terminal keeps two default tab stops (8, 16) plus room to
+// clamp against the last column (19) without them colliding.
+describe('tab stops', () => {
+	it('moves to the next default stop, every 8 columns', () => {
+		const e = new Emulator({}, 20, 1);
+		e.parse(encoder.encode('\t'));
+		expect(e.state.column).toBe(8);
+
+		e.parse(encoder.encode('\t'));
+		expect(e.state.column).toBe(16);
+	});
+
+	it('clamps to the last column once no stop remains', () => {
+		const e = new Emulator({}, 20, 1);
+		e.parse(encoder.encode('\t\t\t'));
+		expect(e.state.column).toBe(19);
+	});
+
+	it('sets a custom stop with HTS (ESC H) at the cursor column', () => {
+		const e = new Emulator({}, 20, 1);
+		e.parse(encoder.encode('ABC\x1bH\rX\t'));
+
+		// HTS marks column 3; the following CR/tab reaches it before the
+		// default stop at column 8.
+		expect(e.state.column).toBe(3);
+	});
+
+	it('clears the pending wrap on tab', () => {
+		const e = new Emulator({}, 4, 4);
+		e.parse(encoder.encode('ABCD\tX'));
+
+		// At the last column there's no further stop to move to, but the tab
+		// still resolves the deferred wrap, so X overwrites D in place.
+		expect(e.state.row).toBe(0);
+		expect(e.state.buffer[0].cells[3]?.text).toBe('X');
+	});
+});
