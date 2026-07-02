@@ -359,6 +359,46 @@ const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
 			emulator.mode = MODE_ESCAPE;
 			return 1;
 
+		// 0x40–0x7e: final bytes — dispatch the control sequence.
+		case 0x40: // ICH (Insert Characters)
+		case 0x41: // CUU (Cursor Up)
+		case 0x42: // CUD (Cursor Down)
+		case 0x43: // CUF (Cursor Forward)
+		case 0x44: // CUB (Cursor Back)
+		case 0x45: // CNL (Cursor Next Line)
+		case 0x46: // CPL (Cursor Previous Line)
+		case 0x47: // CHA (Cursor Character Absolute)
+		case 0x48: // CUP (Cursor Position)
+		case 0x49: // CHT (Cursor Forward Tabulation)
+		case 0x4a: // ED (Erase in Display)
+		case 0x4b: // EL (Erase in Line)
+		case 0x4c: // IL (Insert Lines)
+		case 0x4d: // DL (Delete Lines)
+		case 0x50: // DCH (Delete Characters)
+		case 0x53: // SU (Scroll Up)
+		case 0x54: // SD (Scroll Down)
+		case 0x58: // ECH (Erase Characters)
+		case 0x5a: // CBT (Cursor Backward Tabulation)
+		case 0x60: // HPA (Horizontal Position Absolute)
+		case 0x61: // HPR (Horizontal Position Relative)
+		case 0x62: // REP (Repeat Preceding Character)
+		case 0x63: // DA (Device Attributes)
+		case 0x64: // VPA (Vertical Position Absolute)
+		case 0x65: // VPR (Vertical Position Relative)
+		case 0x66: // HVP (Horizontal and Vertical Position)
+		case 0x67: // TBC (Tab Clear)
+		case 0x68: // SM (Set Mode)
+		case 0x6c: // RM (Reset Mode)
+		case 0x6d: // SGR (Select Graphic Rendition)
+		case 0x6e: // DSR (Device Status Report)
+		case 0x72: // DECSTBM (Set Top and Bottom Margins)
+		case 0x73: // SCOSC (Save Cursor)
+		case 0x74: // XTWINOPS (Window Manipulation)
+		case 0x75: // SCORC (Restore Cursor)
+			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
+			emulator.mode = MODE_GROUND;
+			return 1;
+
 		default: {
 			// 0x20–0x2f: intermediate bytes.
 			if (byte < 0x30) {
@@ -372,7 +412,7 @@ const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
 				return 1;
 			}
 
-			// 0x40–0x7e: final byte — dispatch the control sequence.
+			// 0x40–0x7e: unrecognized final byte.
 			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
 			emulator.mode = MODE_GROUND;
 			return 1;
