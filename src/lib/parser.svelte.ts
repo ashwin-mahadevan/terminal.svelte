@@ -399,6 +399,38 @@ const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
 			emulator.mode = MODE_GROUND;
 			return 1;
 
+		// Intentionally Ignored: final bytes with no assigned meaning.
+		case 0x4e: // N
+		case 0x4f: // O
+		case 0x51: // Q
+		case 0x52: // R
+		case 0x55: // U
+		case 0x56: // V
+		case 0x57: // W
+		case 0x59: // Y
+		case 0x5b: // [
+		case 0x5c: // \
+		case 0x5d: // ]
+		case 0x5e: // ^
+		case 0x5f: // _
+		case 0x69: // i
+		case 0x6a: // j
+		case 0x6b: // k
+		case 0x6f: // o
+		case 0x70: // p
+		case 0x71: // q
+		case 0x76: // v
+		case 0x77: // w
+		case 0x78: // x
+		case 0x79: // y
+		case 0x7a: // z
+		case 0x7b: // {
+		case 0x7c: // |
+		case 0x7d: // }
+		case 0x7e: // ~
+			emulator.mode = MODE_GROUND;
+			return 1;
+
 		default: {
 			// 0x20–0x2f: intermediate bytes.
 			if (byte < 0x30) {
@@ -412,7 +444,7 @@ const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
 				return 1;
 			}
 
-			// 0x40–0x7e: unrecognized final byte.
+			// 0x80 and above: unexpected byte within the sequence.
 			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
 			emulator.mode = MODE_GROUND;
 			return 1;
