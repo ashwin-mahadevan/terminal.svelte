@@ -63,6 +63,8 @@ export class State {
 	row = $state<number>()!;
 	style = $state<'block' | 'underline' | 'bar'>()!;
 	attributes = $state<Attributes>()!;
+	// Pending-wrap flag: set once the last column is written, so the next
+	// character wraps first.
 	wrap = $state<boolean>()!;
 
 	// Tab stops, shared across the whole terminal (not per-screen): indexed by
@@ -72,24 +74,7 @@ export class State {
 	constructor(columns = 80, rows = 24) {
 		this.columns = columns;
 		this.rows = rows;
-
-		this.buffer = new Array(rows);
-
-		for (let index = 0; index < rows; index += 1) {
-			this.buffer[index] = {
-				cells: new Array(columns),
-				break: false
-			} satisfies Line;
-		}
-
-		this.column = 0;
-		this.row = 0;
-		this.style = 'block';
-		this.attributes = DEFAULT_ATTRIBUTES;
-		// Pending-wrap flag: set once the last column is written, so the next
-		// character wraps first. Starts clear; nothing is pending yet.
-		this.wrap = false;
-		this.tabStops = defaultTabStops(columns);
+		this.reset();
 	}
 
 	linefeed() {
