@@ -118,11 +118,6 @@ export class State {
 		}
 	}
 
-	// HTS: set a tab stop at the cursor's current column.
-	tabSet() {
-		this.tabStops[this.column] = true;
-	}
-
 	print(text: string, autowrap: boolean) {
 		// A previous character filled the last column, leaving a wrap pending
 		// (this.column === this.columns). With autowrap (DECAWM) on, resolve it

@@ -189,7 +189,7 @@ export class Emulator {
 
 			// ESC H → HTS (Horizontal Tab Set)
 			case 0x48:
-				this.state.tabSet();
+				this.state.tabStops[this.state.column] = true;
 				break;
 
 			// ESC M → RI (Reverse Index)
