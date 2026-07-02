@@ -29,8 +29,8 @@ export class Emulator {
 
 	// pattern: each mode corresponds to a parser function.
 	// each parser function parses as many bytes as it can,
-	// sets `mode` to the parser needed to continue, and
-	// returns the index at which that parser should start.
+	// starting at `start`, sets `mode` to the parser needed
+	// to continue, and returns the number of bytes it consumed.
 	// parser functions are structured as do-while loops,
 	// since the common case is to remain in the same mode.
 	// mode changes therefore must be early returns, and loop
@@ -41,23 +41,25 @@ export class Emulator {
 		while (index < chunk.length) {
 			switch (this.mode) {
 				case MODE_GROUND:
-					index = ground(this, chunk, index);
+					index += ground(this, chunk, index);
 					break;
 				case MODE_GRAPHEME:
-					index = grapheme(this, chunk, index);
+					index += grapheme(this, chunk, index);
 					break;
 				case MODE_ESCAPE:
-					index = escape(this, chunk, index);
+					index += escape(this, chunk, index);
 					break;
 				case MODE_CSI:
-					index = csi(this, chunk, index);
+					index += csi(this, chunk, index);
 					break;
 			}
 		}
 	};
 }
 
-const ground = (emulator: Emulator, chunk: Uint8Array, index: number) => {
+const ground = (emulator: Emulator, chunk: Uint8Array, start: number) => {
+	let index = start;
+
 	do {
 		const byte = chunk[index];
 
@@ -124,13 +126,13 @@ const ground = (emulator: Emulator, chunk: Uint8Array, index: number) => {
 			// ESC (escape)
 			case 0x1b:
 				emulator.mode = MODE_ESCAPE;
-				return index + 1;
+				return index + 1 - start;
 
 			// Printable Character
 			default: {
 				if (byte & 0x80) {
 					emulator.mode = MODE_GRAPHEME;
-					return index;
+					return index - start;
 				}
 
 				emulator.state.print(String.fromCharCode(byte), emulator.autowrap);
@@ -140,45 +142,45 @@ const ground = (emulator: Emulator, chunk: Uint8Array, index: number) => {
 		index += 1;
 	} while (index < chunk.length);
 
-	return index;
+	return index - start;
 };
 
-const grapheme = (emulator: Emulator, chunk: Uint8Array, index: number): number => {
+const grapheme = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
 	// This implementation is a placeholder. It doesn't handle chunk boundaries
 	// or grapheme clustering/width.
 
-	if ((chunk[index] & 0x80) === 0x00) {
-		emulator.state.print(decoder.decode(chunk.subarray(index, index + 1)), emulator.autowrap);
+	if ((chunk[start] & 0x80) === 0x00) {
+		emulator.state.print(decoder.decode(chunk.subarray(start, start + 1)), emulator.autowrap);
 		emulator.mode = MODE_GROUND;
-		return index + 1;
+		return 1;
 	}
 
 	// Two-byte codepoint.
-	if ((chunk[index] & 0xe0) === 0xc0) {
-		emulator.state.print(decoder.decode(chunk.subarray(index, index + 2)), emulator.autowrap);
+	if ((chunk[start] & 0xe0) === 0xc0) {
+		emulator.state.print(decoder.decode(chunk.subarray(start, start + 2)), emulator.autowrap);
 		emulator.mode = MODE_GROUND;
-		return index + 2;
+		return 2;
 	}
 
 	// Three-byte codepoint.
-	if ((chunk[index] & 0xf0) === 0xe0) {
-		emulator.state.print(decoder.decode(chunk.subarray(index, index + 3)), emulator.autowrap);
+	if ((chunk[start] & 0xf0) === 0xe0) {
+		emulator.state.print(decoder.decode(chunk.subarray(start, start + 3)), emulator.autowrap);
 		emulator.mode = MODE_GROUND;
-		return index + 3;
+		return 3;
 	}
 
 	// Four-byte codepoint.
-	if ((chunk[index] & 0xf8) === 0xf0) {
-		emulator.state.print(decoder.decode(chunk.subarray(index, index + 4)), emulator.autowrap);
-		return index + 4;
+	if ((chunk[start] & 0xf8) === 0xf0) {
+		emulator.state.print(decoder.decode(chunk.subarray(start, start + 4)), emulator.autowrap);
+		return 4;
 	}
 
 	// Lone continuation or invalid lead byte: skip it.
-	return index + 1;
+	return 1;
 };
 
-const escape = (emulator: Emulator, chunk: Uint8Array, index: number): number => {
-	const byte = chunk[index];
+const escape = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
+	const byte = chunk[start];
 
 	switch (byte) {
 		// Intentionally Ignored
@@ -239,7 +241,7 @@ const escape = (emulator: Emulator, chunk: Uint8Array, index: number): number =>
 		// ESC [ → CSI (Control Sequence Introducer)
 		case 0x5b:
 			emulator.mode = MODE_CSI;
-			return index + 1;
+			return 1;
 
 		case 0x5d: // ESC ] → OSC (Operating System Command)
 		case 0x5e: // ESC ^ → PM (Privacy Message)
@@ -261,7 +263,7 @@ const escape = (emulator: Emulator, chunk: Uint8Array, index: number): number =>
 		case 0x2b: // intermediate: G3 charset
 			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
 			emulator.mode = MODE_GROUND;
-			return index + 2;
+			return 2;
 
 		default:
 			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
@@ -269,11 +271,11 @@ const escape = (emulator: Emulator, chunk: Uint8Array, index: number): number =>
 	}
 
 	emulator.mode = MODE_GROUND;
-	return index + 1;
+	return 1;
 };
 
-const csi = (emulator: Emulator, chunk: Uint8Array, index: number): number => {
-	const byte = chunk[index];
+const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
+	const byte = chunk[start];
 
 	switch (byte) {
 		// Intentionally Ignored
@@ -298,70 +300,70 @@ const csi = (emulator: Emulator, chunk: Uint8Array, index: number): number => {
 		case 0x1e: // RS (record separator)
 		case 0x1f: // US (unit separator)
 		case 0x7f: // DEL (delete)
-			return index + 1;
+			return 1;
 
 		// BEL (bell)
 		case 0x07:
 			emulator.events.bell?.();
-			return index + 1;
+			return 1;
 
 		// BS (backspace)
 		case 0x08:
 			if (emulator.state.column === emulator.state.columns) emulator.state.column -= 1;
 			if (emulator.state.column > 0) emulator.state.column -= 1;
-			return index + 1;
+			return 1;
 
 		// HT (horizontal tab)
 		case 0x09:
 			emulator.state.tab();
-			return index + 1;
+			return 1;
 
 		case 0x0a: // LF (line feed)
 		case 0x0b: // VT (vertical tab)
 		case 0x0c: // FF (form feed)
 			emulator.state.linefeed();
-			return index + 1;
+			return 1;
 
 		// CR (carriage return)
 		case 0x0d:
 			emulator.state.column = 0;
-			return index + 1;
+			return 1;
 
 		case 0x0e: // SO (shift out)
 		case 0x0f: // SI (shift in)
 			console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
-			return index + 1;
+			return 1;
 
 		// CAN (cancel), SUB (substitute): abort the sequence.
 		case 0x18:
 		case 0x1a:
 			emulator.mode = MODE_GROUND;
-			return index + 1;
+			return 1;
 
 		// ESC (escape): abort and begin a new escape sequence.
 		case 0x1b:
 			emulator.mode = MODE_ESCAPE;
-			return index + 1;
+			return 1;
 
 		default: {
 			// 0x20–0x2f: intermediate bytes.
 			if (byte < 0x30) {
 				console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
 				emulator.mode = MODE_GROUND;
-				return index + 1;
+				return 1;
 			}
 
 			// 0x30–0x3f: parameter bytes and private-mode markers.
 			if (byte < 0x40) {
 				console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
 				emulator.mode = MODE_GROUND;
-				return index + 1;
+				return 1;
 			}
 
 			// 0x40–0x7e: final byte — dispatch the control sequence.
 			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
 			emulator.mode = MODE_GROUND;
-			return index + 1;
+			return 1;
 		}
 	}
 };
