@@ -2,49 +2,6 @@
  * Grapheme cluster segmentation per UAX #29 (Unicode 17.0), operating on decoded
  * code points as a streaming state machine.
  *
- * Segmentation is a streaming state machine over three exported primitives.
- * `propertyOf(codePoint)` returns a code point's packed break property;
- * `isBreak(state, property)` reports whether a grapheme cluster boundary falls
- * immediately *before* that code point; and `advance(state, property)` folds the
- * code point into the running `state`. Drive them from `INITIAL`:
- *
- *   let state = INITIAL;
- *   for (const codePoint of codePoints) {
- *     const property = propertyOf(codePoint);
- *     if (isBreak(state, property)) ...; // the cluster up to the previous code point is final
- *     state = advance(state, property);
- *   }
- *
- * Splitting the step into three keeps each rule's input explicit: `isBreak` reads
- * only `state` and the incoming `property` without mutating, so it can be
- * consulted before committing the `advance` that supersedes `state`.
- *
- * Because grapheme breaking needs only one code point of lookahead, the boundary
- * is final the moment `codePoint` is seen: a true `isBreak` commits the cluster
- * that ended at the previous code point. The cluster `codePoint` opens is still
- * provisional — a later code point can extend it (a combining mark, a ZWJ-joined
- * emoji, a second regional indicator) — so a streaming consumer can render it
- * eagerly and revise it in place when more input arrives, instead of stalling
- * until the next code point (or chunk) confirms where the cluster ends.
- *
- * `state` is a compact (single number) summary of everything *before* the next
- * code point that the algorithm needs to keep segmenting: the previous code
- * point's break property plus the small amount of running context required by
- * the multi-character rules (Indic conjuncts, emoji ZWJ sequences, regional
- * indicator parity). It is a resume token — store it at a boundary and hand it
- * back to `advance` to continue segmenting from there without revisiting the
- * prefix. Resume only from a boundary strictly *before* an edit, never the last
- * one seen: an edit (or more streamed input) can dissolve that trailing boundary
- * by extending the cluster it ends.
- *
- * `INITIAL` is the start-of-text state; it is also the state after any plain
- * "Other" code point, so re-reaching it marks a point where segmentation can
- * safely restart from scratch.
- *
- * Property data is generated from the Unicode Character Database 17.0 files
- * GraphemeBreakProperty.txt (Grapheme_Cluster_Break), emoji-data.txt
- * (Extended_Pictographic) and DerivedCoreProperties.txt (Indic_Conjunct_Break);
- * see TABLE below for the encoding.
  */
 
 // Grapheme_Cluster_Break property values (bits 0-3 of a packed table entry).

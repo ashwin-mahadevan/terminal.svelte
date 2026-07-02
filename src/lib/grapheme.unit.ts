@@ -6,11 +6,6 @@ import { advance, INITIAL, isBreak, propertyOf } from './grapheme';
 /**
  * The official UAX #29 GraphemeBreakTest cases.
  * https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt
- *
- * Each data line is `÷ HEX (÷|×) HEX … ÷  # comment`, where `÷` marks a cluster
- * boundary and `×` marks none, and the comment names the characters and rules.
- * Keeping the file verbatim and parsing it here keeps the fixture a byte-for-byte
- * copy of the source instead of a hand-maintained transcription.
  */
 const lines = createInterface({
 	input: createReadStream(new URL('./GraphemeBreakTest.txt', import.meta.url)),
@@ -20,21 +15,20 @@ const lines = createInterface({
 export const CASES: Array<{ name: string; points: number[]; breaks: boolean[] }> = [];
 for await (const line of lines) {
 	const hash = line.indexOf('#');
-	const data = (hash === -1 ? line : line.slice(0, hash)).trim();
+	const data = line.slice(0, hash).trim();
 	if (data === '') continue;
 
-	// Tokens alternate marker, code point, marker, …, ending on a marker. The
-	// leading and trailing markers are always ÷ (start/end of text, GB1/GB2); the
-	// informative ones sit between code points, exactly what `isBreak` reports.
 	const tokens = data.split(/\s+/);
-	const points: number[] = [];
-	const breaks: boolean[] = [];
+
+	const points = new Array<number>();
+	const breaks = new Array<boolean>();
+
 	for (let i = 1; i < tokens.length; i += 2) {
 		points.push(parseInt(tokens[i], 16));
 		if (i + 2 < tokens.length) breaks.push(tokens[i + 1] === '÷'); // drop the trailing marker
 	}
 
-	CASES.push({ name: hash === -1 ? '' : line.slice(hash + 1).trim(), points, breaks });
+	CASES.push({ name: line.slice(hash + 1).trim(), points, breaks });
 }
 
 describe('grapheme', () => {
