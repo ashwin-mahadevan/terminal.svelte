@@ -58,10 +58,10 @@ export class Emulator {
 }
 
 const ground = (emulator: Emulator, chunk: Uint8Array, start: number) => {
-	let index = start;
+	let index = 0;
 
 	do {
-		const byte = chunk[index];
+		const byte = chunk[start + index];
 
 		switch (byte) {
 			// Intentionally Ignored
@@ -126,13 +126,13 @@ const ground = (emulator: Emulator, chunk: Uint8Array, start: number) => {
 			// ESC (escape)
 			case 0x1b:
 				emulator.mode = MODE_ESCAPE;
-				return index + 1 - start;
+				return index + 1;
 
 			// Printable Character
 			default: {
 				if (byte & 0x80) {
 					emulator.mode = MODE_GRAPHEME;
-					return index - start;
+					return index;
 				}
 
 				emulator.state.print(String.fromCharCode(byte), emulator.autowrap);
@@ -140,9 +140,9 @@ const ground = (emulator: Emulator, chunk: Uint8Array, start: number) => {
 		}
 
 		index += 1;
-	} while (index < chunk.length);
+	} while (start + index < chunk.length);
 
-	return index - start;
+	return index;
 };
 
 const grapheme = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
