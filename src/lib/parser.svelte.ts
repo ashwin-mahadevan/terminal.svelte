@@ -8,8 +8,16 @@ const MODE_GROUND = 0x00;
 const MODE_GRAPHEME = 0x01;
 const MODE_ESCAPE = 0x02;
 const MODE_CSI = 0x03;
+const MODE_CSI_INTERMEDIATE = 0x04;
+const MODE_CSI_PARAM = 0x05;
 
-type Mode = typeof MODE_GROUND | typeof MODE_GRAPHEME | typeof MODE_ESCAPE | typeof MODE_CSI;
+type Mode =
+	| typeof MODE_GROUND
+	| typeof MODE_GRAPHEME
+	| typeof MODE_ESCAPE
+	| typeof MODE_CSI
+	| typeof MODE_CSI_INTERMEDIATE
+	| typeof MODE_CSI_PARAM;
 
 const decoder = new TextDecoder('utf-8');
 
@@ -51,6 +59,12 @@ export class Emulator {
 					break;
 				case MODE_CSI:
 					index += csi(this, chunk, index);
+					break;
+				case MODE_CSI_INTERMEDIATE:
+					index += csiIntermediate(this, chunk, index);
+					break;
+				case MODE_CSI_PARAM:
+					index += csiParam(this, chunk, index);
 					break;
 			}
 		}
@@ -348,15 +362,13 @@ const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
 		default: {
 			// 0x20–0x2f: intermediate bytes.
 			if (byte < 0x30) {
-				console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
-				emulator.mode = MODE_GROUND;
+				emulator.mode = MODE_CSI_INTERMEDIATE;
 				return 1;
 			}
 
 			// 0x30–0x3f: parameter bytes and private-mode markers.
 			if (byte < 0x40) {
-				console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
-				emulator.mode = MODE_GROUND;
+				emulator.mode = MODE_CSI_PARAM;
 				return 1;
 			}
 
@@ -366,4 +378,20 @@ const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
 			return 1;
 		}
 	}
+};
+
+const csiIntermediate = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
+	const byte = chunk[start];
+
+	console.log(`NOT IMPLEMENTED: CSI intermediate 0x${byte.toString(16).padStart(2, '0')}`);
+	emulator.mode = MODE_GROUND;
+	return 1;
+};
+
+const csiParam = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
+	const byte = chunk[start];
+
+	console.log(`NOT IMPLEMENTED: CSI param 0x${byte.toString(16).padStart(2, '0')}`);
+	emulator.mode = MODE_GROUND;
+	return 1;
 };
