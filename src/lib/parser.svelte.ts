@@ -1,17 +1,21 @@
-import { State } from '$lib/state.svelte';
+import type { State } from '$lib/state.svelte';
+import { ground } from '$lib/parser/ground';
+import { grapheme } from '$lib/parser/grapheme';
+import { escape } from '$lib/parser/escape';
+import { csi, csiIntermediate, csiParam } from './parser/csi';
 
 export type Events = {
 	bell?: () => void;
 };
 
-const MODE_GROUND = 0x00;
-const MODE_GRAPHEME = 0x01;
-const MODE_ESCAPE = 0x02;
-const MODE_CSI = 0x03;
-const MODE_CSI_INTERMEDIATE = 0x04;
-const MODE_CSI_PARAM = 0x05;
+export const MODE_GROUND = 0x00;
+export const MODE_GRAPHEME = 0x01;
+export const MODE_ESCAPE = 0x02;
+export const MODE_CSI = 0x03;
+export const MODE_CSI_INTERMEDIATE = 0x04;
+export const MODE_CSI_PARAM = 0x05;
 
-type Mode =
+export type Mode =
 	| typeof MODE_GROUND
 	| typeof MODE_GRAPHEME
 	| typeof MODE_ESCAPE
@@ -19,32 +23,31 @@ type Mode =
 	| typeof MODE_CSI_INTERMEDIATE
 	| typeof MODE_CSI_PARAM;
 
-const decoder = new TextDecoder('utf-8');
-
-export class Emulator {
+export class Parser {
 	readonly state: State;
+	readonly events: Events;
+
+	mode = $state<Mode>()!;
+
 	autowrap = $state(true);
 
-	constructor(
-		public events: Events = {},
-		columns = 80,
-		rows = 24
-	) {
-		this.state = new State(columns, rows);
+	constructor(state: State, events: Events) {
+		this.state = state;
+		this.events = events;
+		this.mode = MODE_GROUND;
 	}
 
-	mode: Mode = MODE_GROUND;
-
-	// pattern: each mode corresponds to a parser function.
-	// each parser function parses as many bytes as it can,
-	// starting at `start`, sets `mode` to the parser needed
-	// to continue, and returns the number of bytes it consumed.
-	// parser functions are structured as do-while loops,
-	// since the common case is to remain in the same mode.
-	// mode changes therefore must be early returns, and loop
-	// exits within parser functions correspond to chunk boudaries.
-	readonly parse = (chunk: Uint8Array) => {
+	readonly write = (chunk: Uint8Array) => {
 		let index = 0;
+
+		// pattern: each mode corresponds to a parser function.
+		// each parser function parses as many bytes as it can,
+		// starting at `start`, sets `mode` to the parser needed
+		// to continue, and returns the number of bytes it consumed.
+		// parser functions are structured as do-while loops,
+		// since the common case is to remain in the same mode.
+		// mode changes therefore must be early returns, and loop
+		// exits within parser functions correspond to chunk boudaries.
 
 		while (index < chunk.length) {
 			switch (this.mode) {
@@ -70,401 +73,3 @@ export class Emulator {
 		}
 	};
 }
-
-const ground = (emulator: Emulator, chunk: Uint8Array, start: number) => {
-	let index = 0;
-
-	do {
-		const byte = chunk[start + index];
-
-		switch (byte) {
-			// Intentionally Ignored
-			case 0x00: // NUL (null)
-			case 0x01: // SOH (start of heading)
-			case 0x02: // STX (start of text)
-			case 0x03: // ETX (end of text)
-			case 0x04: // EOT (end of transmission)
-			case 0x05: // ENQ (enquiry)
-			case 0x06: // ACK (acknowledge)
-			case 0x10: // DLE (data link escape)
-			case 0x11: // DC1 (device control 1, XON)
-			case 0x12: // DC2 (device control 2)
-			case 0x13: // DC3 (device control 3, XOFF)
-			case 0x14: // DC4 (device control 4)
-			case 0x15: // NAK (negative acknowledge)
-			case 0x16: // SYN (synchronous idle)
-			case 0x17: // ETB (end of transmission block)
-			case 0x18: // CAN (cancel)
-			case 0x19: // EM (end of medium)
-			case 0x1a: // SUB (substitute)
-			case 0x1c: // FS (file separator)
-			case 0x1d: // GS (group separator)
-			case 0x1e: // RS (record separator)
-			case 0x1f: // US (unit separator)
-			case 0x7f: // DEL (delete)
-				break;
-
-			// BEL (bell)
-			case 0x07:
-				emulator.events.bell?.();
-				break;
-
-			// BS (backspace)
-			case 0x08: {
-				if (emulator.state.column === emulator.state.columns) emulator.state.column -= 1;
-				if (emulator.state.column > 0) emulator.state.column -= 1;
-				break;
-			}
-
-			// HT (horizontal tab)
-			case 0x09:
-				emulator.state.tab();
-				break;
-
-			case 0x0a: // LF (line feed)
-			case 0x0b: // VT (vertical tab)
-			case 0x0c: // FF (form feed)
-				emulator.state.linefeed();
-				break;
-
-			// CR (carriage return)
-			case 0x0d:
-				emulator.state.column = 0;
-				break;
-
-			case 0x0e: // SO (shift out)
-			case 0x0f: // SI (shift in)
-				console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
-				break;
-
-			// ESC (escape)
-			case 0x1b:
-				emulator.mode = MODE_ESCAPE;
-				return index + 1;
-
-			// Printable Character
-			default: {
-				if (byte & 0x80) {
-					emulator.mode = MODE_GRAPHEME;
-					return index;
-				}
-
-				emulator.state.print(String.fromCharCode(byte), emulator.autowrap);
-			}
-		}
-
-		index += 1;
-	} while (start + index < chunk.length);
-
-	return index;
-};
-
-const grapheme = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
-	// This implementation is a placeholder. It doesn't handle chunk boundaries
-	// or grapheme clustering/width.
-
-	if ((chunk[start] & 0x80) === 0x00) {
-		emulator.state.print(decoder.decode(chunk.subarray(start, start + 1)), emulator.autowrap);
-		emulator.mode = MODE_GROUND;
-		return 1;
-	}
-
-	// Two-byte codepoint.
-	if ((chunk[start] & 0xe0) === 0xc0) {
-		emulator.state.print(decoder.decode(chunk.subarray(start, start + 2)), emulator.autowrap);
-		emulator.mode = MODE_GROUND;
-		return 2;
-	}
-
-	// Three-byte codepoint.
-	if ((chunk[start] & 0xf0) === 0xe0) {
-		emulator.state.print(decoder.decode(chunk.subarray(start, start + 3)), emulator.autowrap);
-		emulator.mode = MODE_GROUND;
-		return 3;
-	}
-
-	// Four-byte codepoint.
-	if ((chunk[start] & 0xf8) === 0xf0) {
-		emulator.state.print(decoder.decode(chunk.subarray(start, start + 4)), emulator.autowrap);
-		return 4;
-	}
-
-	// Lone continuation or invalid lead byte: skip it.
-	return 1;
-};
-
-const escape = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
-	const byte = chunk[start];
-
-	switch (byte) {
-		// Intentionally Ignored
-		case 0x5c: // ST (string terminator)
-			break;
-
-		// ESC 7 → DECSC (Save Cursor)
-		case 0x37:
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			break;
-
-		// ESC 8 → DECRC (Restore Cursor)
-		case 0x38:
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			break;
-
-		// ESC = → DECKPAM (Application Keypad Mode)
-		case 0x3d:
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			break;
-
-		// ESC > → DECKPNM (Normal Keypad Mode)
-		case 0x3e:
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			break;
-
-		// ESC D → IND (Index)
-		case 0x44:
-			emulator.state.linefeed();
-			break;
-
-		// ESC E → NEL (Next Line)
-		case 0x45:
-			emulator.state.column = 0;
-			emulator.state.linefeed();
-			break;
-
-		// ESC H → HTS (Horizontal Tab Set)
-		case 0x48:
-			emulator.state.tabStops[emulator.state.column] = true;
-			break;
-
-		// ESC M → RI (Reverse Index)
-		case 0x4d:
-			emulator.state.reverseLinefeed();
-			break;
-
-		case 0x4e: // ESC N → SS2 (Single Shift 2)
-		case 0x4f: // ESC O → SS3 (Single Shift 3)
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			break;
-
-		// ESC P → DCS (Device Control String)
-		case 0x50:
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			break;
-
-		// ESC [ → CSI (Control Sequence Introducer)
-		case 0x5b:
-			emulator.mode = MODE_CSI;
-			return 1;
-
-		case 0x5d: // ESC ] → OSC (Operating System Command)
-		case 0x5e: // ESC ^ → PM (Privacy Message)
-		case 0x5f: // ESC _ → APC (Application Program Command)
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			break;
-
-		// ESC c → RIS (Reset to Initial State)
-		case 0x63:
-			emulator.state.reset();
-			break;
-
-		// ESC SP, ESC #, ESC (, ESC ), ESC *, ESC + → two-byte sequences
-		case 0x20: // intermediate: 7/8-bit controls
-		case 0x23: // intermediate: line attributes
-		case 0x28: // intermediate: G0 charset
-		case 0x29: // intermediate: G1 charset
-		case 0x2a: // intermediate: G2 charset
-		case 0x2b: // intermediate: G3 charset
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			emulator.mode = MODE_GROUND;
-			return 2;
-
-		default:
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			break;
-	}
-
-	emulator.mode = MODE_GROUND;
-	return 1;
-};
-
-const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
-	const byte = chunk[start];
-
-	switch (byte) {
-		// Intentionally Ignored
-		case 0x00: // NUL (null)
-		case 0x01: // SOH (start of heading)
-		case 0x02: // STX (start of text)
-		case 0x03: // ETX (end of text)
-		case 0x04: // EOT (end of transmission)
-		case 0x05: // ENQ (enquiry)
-		case 0x06: // ACK (acknowledge)
-		case 0x10: // DLE (data link escape)
-		case 0x11: // DC1 (device control 1, XON)
-		case 0x12: // DC2 (device control 2)
-		case 0x13: // DC3 (device control 3, XOFF)
-		case 0x14: // DC4 (device control 4)
-		case 0x15: // NAK (negative acknowledge)
-		case 0x16: // SYN (synchronous idle)
-		case 0x17: // ETB (end of transmission block)
-		case 0x19: // EM (end of medium)
-		case 0x1c: // FS (file separator)
-		case 0x1d: // GS (group separator)
-		case 0x1e: // RS (record separator)
-		case 0x1f: // US (unit separator)
-		case 0x7f: // DEL (delete)
-			break;
-
-		// BEL (bell)
-		case 0x07:
-			emulator.events.bell?.();
-			break;
-
-		// BS (backspace)
-		case 0x08:
-			if (emulator.state.column === emulator.state.columns) emulator.state.column -= 1;
-			if (emulator.state.column > 0) emulator.state.column -= 1;
-			break;
-
-		// HT (horizontal tab)
-		case 0x09:
-			emulator.state.tab();
-			break;
-
-		case 0x0a: // LF (line feed)
-		case 0x0b: // VT (vertical tab)
-		case 0x0c: // FF (form feed)
-			emulator.state.linefeed();
-			break;
-
-		// CR (carriage return)
-		case 0x0d:
-			emulator.state.column = 0;
-			break;
-
-		case 0x0e: // SO (shift out)
-		case 0x0f: // SI (shift in)
-			console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
-			break;
-
-		// CAN (cancel), SUB (substitute): abort the sequence.
-		case 0x18:
-		case 0x1a:
-			emulator.mode = MODE_GROUND;
-			break;
-
-		// ESC (escape): abort and begin a new escape sequence.
-		case 0x1b:
-			emulator.mode = MODE_ESCAPE;
-			break;
-
-		// 0x40–0x7e: final bytes — dispatch the control sequence.
-		case 0x40: // ICH (Insert Characters)
-		case 0x41: // CUU (Cursor Up)
-		case 0x42: // CUD (Cursor Down)
-		case 0x43: // CUF (Cursor Forward)
-		case 0x44: // CUB (Cursor Back)
-		case 0x45: // CNL (Cursor Next Line)
-		case 0x46: // CPL (Cursor Previous Line)
-		case 0x47: // CHA (Cursor Character Absolute)
-		case 0x48: // CUP (Cursor Position)
-		case 0x49: // CHT (Cursor Forward Tabulation)
-		case 0x4a: // ED (Erase in Display)
-		case 0x4b: // EL (Erase in Line)
-		case 0x4c: // IL (Insert Lines)
-		case 0x4d: // DL (Delete Lines)
-		case 0x50: // DCH (Delete Characters)
-		case 0x53: // SU (Scroll Up)
-		case 0x54: // SD (Scroll Down)
-		case 0x58: // ECH (Erase Characters)
-		case 0x5a: // CBT (Cursor Backward Tabulation)
-		case 0x60: // HPA (Horizontal Position Absolute)
-		case 0x61: // HPR (Horizontal Position Relative)
-		case 0x62: // REP (Repeat Preceding Character)
-		case 0x63: // DA (Device Attributes)
-		case 0x64: // VPA (Vertical Position Absolute)
-		case 0x65: // VPR (Vertical Position Relative)
-		case 0x66: // HVP (Horizontal and Vertical Position)
-		case 0x67: // TBC (Tab Clear)
-		case 0x68: // SM (Set Mode)
-		case 0x6c: // RM (Reset Mode)
-		case 0x6d: // SGR (Select Graphic Rendition)
-		case 0x6e: // DSR (Device Status Report)
-		case 0x72: // DECSTBM (Set Top and Bottom Margins)
-		case 0x73: // SCOSC (Save Cursor)
-		case 0x74: // XTWINOPS (Window Manipulation)
-		case 0x75: // SCORC (Restore Cursor)
-			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
-			emulator.mode = MODE_GROUND;
-			break;
-
-		// Intentionally Ignored: final bytes with no assigned meaning.
-		case 0x4e: // N
-		case 0x4f: // O
-		case 0x51: // Q
-		case 0x52: // R
-		case 0x55: // U
-		case 0x56: // V
-		case 0x57: // W
-		case 0x59: // Y
-		case 0x5b: // [
-		case 0x5c: // \
-		case 0x5d: // ]
-		case 0x5e: // ^
-		case 0x5f: // _
-		case 0x69: // i
-		case 0x6a: // j
-		case 0x6b: // k
-		case 0x6f: // o
-		case 0x70: // p
-		case 0x71: // q
-		case 0x76: // v
-		case 0x77: // w
-		case 0x78: // x
-		case 0x79: // y
-		case 0x7a: // z
-		case 0x7b: // {
-		case 0x7c: // |
-		case 0x7d: // }
-		case 0x7e: // ~
-			emulator.mode = MODE_GROUND;
-			break;
-
-		default:
-			// 0x20–0x2f: intermediate bytes.
-			if (byte < 0x30) {
-				emulator.mode = MODE_CSI_INTERMEDIATE;
-				break;
-			}
-
-			// 0x30–0x3f: parameter bytes and private-mode markers.
-			if (byte < 0x40) {
-				emulator.mode = MODE_CSI_PARAM;
-				break;
-			}
-
-			// 0x80 and above: unexpected byte within the sequence.
-			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
-			emulator.mode = MODE_GROUND;
-			break;
-	}
-
-	return 1;
-};
-
-const csiIntermediate = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
-	const byte = chunk[start];
-
-	console.log(`NOT IMPLEMENTED: CSI intermediate 0x${byte.toString(16).padStart(2, '0')}`);
-	emulator.mode = MODE_GROUND;
-	return 1;
-};
-
-const csiParam = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
-	const byte = chunk[start];
-
-	console.log(`NOT IMPLEMENTED: CSI param 0x${byte.toString(16).padStart(2, '0')}`);
-	emulator.mode = MODE_GROUND;
-	return 1;
-};

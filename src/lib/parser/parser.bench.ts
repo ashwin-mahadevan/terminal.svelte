@@ -1,6 +1,6 @@
 import { Terminal as Xterm } from '@xterm/headless';
 import { bench, describe } from 'vitest';
-import { Emulator } from '$lib/parser.svelte';
+import { Parser } from '$lib/parser.svelte';
 
 // Printable ASCII with a line break every 80 columns — the shape of ordinary
 // terminal output (a directory listing, source code, a log scrolling by). This is
@@ -38,12 +38,12 @@ for (const size of CHUNK_SIZES) {
 	// One instance per implementation, reused across iterations to measure
 	// steady-state streaming rather than construction. Each buffer scrolls in place,
 	// so memory stays bounded and each parse begins in ground mode.
-	const emulator = new Emulator();
+	const emulator = new Parser();
 	const xterm = new Xterm({ cols: 80, rows: 24 });
 
 	describe(`ascii printing — ${size}-byte chunks`, () => {
 		bench('parser', () => {
-			for (const chunk of bytes) emulator.parse(chunk);
+			for (const chunk of bytes) emulator.write(chunk);
 		});
 
 		// xterm parses asynchronously through its write buffer. Enqueue every chunk,

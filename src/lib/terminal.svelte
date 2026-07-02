@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Emulator } from '$lib/parser.svelte';
+	import type { Parser } from '$lib/parser.svelte';
 	import Cell from '$lib/cell.svelte';
 
 	type Props = {
-		emulator: Emulator;
+		emulator: Parser;
 		ondata?: (data: string) => void;
 	};
 

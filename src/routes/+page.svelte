@@ -1,15 +1,22 @@
 <script lang="ts">
 	import { io } from 'socket.io-client';
-	import { Emulator } from '$lib/parser.svelte';
+	import { Parser } from '$lib/parser.svelte';
 	import StreamTerminal from '$lib/terminal.svelte';
 	import { browser } from '$app/environment';
+	import { State } from '$lib';
 
-	const emulator = new Emulator({ bell: () => console.log('BEL') });
+	const state = new State();
+
+	const events = {
+		bell: () => console.log('BEL')
+	}
+
+	const emulator = new Parser(state, events);
 	const socket = (browser as true) && io();
 
 	$effect(() => {
-		const write = (chunk: ArrayBuffer) => {
-			emulator.parse(new Uint8Array(chunk));
+		const write = (chunk: Uint8Array) => {
+			emulator.write(chunk);
 		};
 
 		socket.on('output', write);
