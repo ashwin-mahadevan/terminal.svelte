@@ -111,11 +111,11 @@ export class State {
 
 	// HT: move the cursor right to the next tab stop, or the last column if none remain.
 	tab() {
-		if (this.column === this.columns) this.column -= 1;
-		while (this.column < this.columns - 1) {
+		while (this.column < this.columns) {
 			this.column += 1;
 			if (this.tabStops[this.column]) break;
 		}
+		if (this.column === this.columns) this.column -= 1;
 	}
 
 	print(text: string, autowrap: boolean) {
