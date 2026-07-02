@@ -72,7 +72,11 @@
 
 	// A pending wrap parks the cursor one column past the edge
 	// (state.column === state.columns); draw it on the last column instead.
-	const cursorColumn = $derived(Math.min(emulator.state.column, emulator.state.columns - 1));
+	const cursorColumn = $derived(
+		emulator.state.column === emulator.state.columns
+			? emulator.state.columns - 1
+			: emulator.state.column
+	);
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->

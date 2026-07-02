@@ -140,7 +140,7 @@ export class State {
 			this.linefeed();
 		}
 
-		const column = Math.min(this.column, this.columns - 1);
+		const column = this.column === this.columns ? this.columns - 1 : this.column;
 		this.buffer[this.row].cells[column] = {
 			text,
 			attrs: this.attributes

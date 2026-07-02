@@ -63,7 +63,8 @@ export class Emulator {
 
 				// BS (backspace)
 				case 0x08: {
-					const column = Math.min(this.state.column, this.state.columns - 1);
+					const column =
+						this.state.column === this.state.columns ? this.state.columns - 1 : this.state.column;
 					this.state.column = column > 0 ? column - 1 : 0;
 					break;
 				}
