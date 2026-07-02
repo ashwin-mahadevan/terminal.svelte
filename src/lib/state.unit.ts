@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { Parser } from './parser.svelte';
+import { State } from './state.svelte';
 
 const encoder = new TextEncoder();
 
 // A 4x4 terminal keeps the wrap arithmetic easy to read: column 3 is the last.
 describe('autowrap (DECAWM)', () => {
 	it('defers the wrap after the last column is filled', () => {
-		const e = new Parser({}, 4, 4);
+		const e = new Parser(new State(4, 4), {});
 		e.write(encoder.encode('ABCD'));
 
 		// Nothing has wrapped yet: the cursor sits one column past the edge,
@@ -17,7 +18,7 @@ describe('autowrap (DECAWM)', () => {
 	});
 
 	it('wraps to the next row on the following character', () => {
-		const e = new Parser({}, 4, 4);
+		const e = new Parser(new State(4, 4), {});
 		e.write(encoder.encode('ABCDE'));
 
 		expect(e.state.row).toBe(1);
@@ -27,7 +28,7 @@ describe('autowrap (DECAWM)', () => {
 	});
 
 	it('does not double-wrap when a bare LF follows a full line', () => {
-		const e = new Parser({}, 4, 4);
+		const e = new Parser(new State(4, 4), {});
 		e.write(encoder.encode('ABCD\nX'));
 
 		// The LF moves down one row and keeps the column; X continues on row 1
@@ -38,7 +39,7 @@ describe('autowrap (DECAWM)', () => {
 	});
 
 	it('returns to the same row after CR on a full line', () => {
-		const e = new Parser({}, 4, 4);
+		const e = new Parser(new State(4, 4), {});
 		e.write(encoder.encode('ABCD\rX'));
 
 		expect(e.state.row).toBe(0);
@@ -47,7 +48,7 @@ describe('autowrap (DECAWM)', () => {
 	});
 
 	it('clears the pending wrap on backspace', () => {
-		const e = new Parser({}, 4, 4);
+		const e = new Parser(new State(4, 4), {});
 		e.write(encoder.encode('ABCD\bX'));
 
 		// Backspace from the pending last column lands on column 2; X overwrites
@@ -57,7 +58,7 @@ describe('autowrap (DECAWM)', () => {
 	});
 
 	it('overwrites the last column when autowrap is disabled', () => {
-		const e = new Parser({}, 4, 4);
+		const e = new Parser(new State(4, 4), {});
 		e.autowrap = false;
 		e.write(encoder.encode('ABCDEF'));
 
@@ -73,7 +74,7 @@ describe('autowrap (DECAWM)', () => {
 // clamp against the last column (19) without them colliding.
 describe('tab stops', () => {
 	it('moves to the next default stop, every 8 columns', () => {
-		const e = new Parser({}, 20, 1);
+		const e = new Parser(new State(20, 1), {});
 		e.write(encoder.encode('\t'));
 		expect(e.state.column).toBe(8);
 
@@ -82,13 +83,13 @@ describe('tab stops', () => {
 	});
 
 	it('clamps to the last column once no stop remains', () => {
-		const e = new Parser({}, 20, 1);
+		const e = new Parser(new State(20, 1), {});
 		e.write(encoder.encode('\t\t\t'));
 		expect(e.state.column).toBe(19);
 	});
 
 	it('sets a custom stop with HTS (ESC H) at the cursor column', () => {
-		const e = new Parser({}, 20, 1);
+		const e = new Parser(new State(20, 1), {});
 		e.write(encoder.encode('ABC\x1bH\rX\t'));
 
 		// HTS marks column 3; the following CR/tab reaches it before the
@@ -97,7 +98,7 @@ describe('tab stops', () => {
 	});
 
 	it('clears the pending wrap on tab', () => {
-		const e = new Parser({}, 4, 4);
+		const e = new Parser(new State(4, 4), {});
 		e.write(encoder.encode('ABCD\tX'));
 
 		// At the last column there's no further stop to move to, but the tab

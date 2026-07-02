@@ -1,6 +1,7 @@
 import { userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
 import { Parser } from './parser.svelte';
+import { State } from './state.svelte';
 import Terminal from './terminal.svelte';
 
 if (import.meta.vitest) {
@@ -24,7 +25,15 @@ if (import.meta.vitest) {
 	describe('terminal keyboard ondata', () => {
 		it.each(CASES)('$name', async ({ key, data }) => {
 			const ondata = vi.fn();
-			const screen = render(Terminal, { emulator: new Parser(), ondata });
+			const state = new State();
+			const parser = new Parser(state, {});
+			const screen = render(Terminal, {
+				state,
+				ondata: (d: string) => {
+					ondata(d);
+					parser.write(new TextEncoder().encode(d));
+				}
+			});
 
 			const terminal = screen.getByRole('application', { name: 'Terminal' });
 			await userEvent.click(terminal);
@@ -35,7 +44,15 @@ if (import.meta.vitest) {
 
 		it('ignores keys with no PTY mapping', async () => {
 			const ondata = vi.fn();
-			const screen = render(Terminal, { emulator: new Parser(), ondata });
+			const state = new State();
+			const parser = new Parser(state, {});
+			const screen = render(Terminal, {
+				state,
+				ondata: (d: string) => {
+					ondata(d);
+					parser.write(new TextEncoder().encode(d));
+				}
+			});
 
 			const terminal = screen.getByRole('application', { name: 'Terminal' });
 			await userEvent.click(terminal);
