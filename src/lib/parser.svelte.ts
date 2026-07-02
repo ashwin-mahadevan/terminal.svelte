@@ -314,50 +314,50 @@ const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
 		case 0x1e: // RS (record separator)
 		case 0x1f: // US (unit separator)
 		case 0x7f: // DEL (delete)
-			return 1;
+			break;
 
 		// BEL (bell)
 		case 0x07:
 			emulator.events.bell?.();
-			return 1;
+			break;
 
 		// BS (backspace)
 		case 0x08:
 			if (emulator.state.column === emulator.state.columns) emulator.state.column -= 1;
 			if (emulator.state.column > 0) emulator.state.column -= 1;
-			return 1;
+			break;
 
 		// HT (horizontal tab)
 		case 0x09:
 			emulator.state.tab();
-			return 1;
+			break;
 
 		case 0x0a: // LF (line feed)
 		case 0x0b: // VT (vertical tab)
 		case 0x0c: // FF (form feed)
 			emulator.state.linefeed();
-			return 1;
+			break;
 
 		// CR (carriage return)
 		case 0x0d:
 			emulator.state.column = 0;
-			return 1;
+			break;
 
 		case 0x0e: // SO (shift out)
 		case 0x0f: // SI (shift in)
 			console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
-			return 1;
+			break;
 
 		// CAN (cancel), SUB (substitute): abort the sequence.
 		case 0x18:
 		case 0x1a:
 			emulator.mode = MODE_GROUND;
-			return 1;
+			break;
 
 		// ESC (escape): abort and begin a new escape sequence.
 		case 0x1b:
 			emulator.mode = MODE_ESCAPE;
-			return 1;
+			break;
 
 		// 0x40–0x7e: final bytes — dispatch the control sequence.
 		case 0x40: // ICH (Insert Characters)
@@ -397,7 +397,7 @@ const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
 		case 0x75: // SCORC (Restore Cursor)
 			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
 			emulator.mode = MODE_GROUND;
-			return 1;
+			break;
 
 		// Intentionally Ignored: final bytes with no assigned meaning.
 		case 0x4e: // N
@@ -429,27 +429,28 @@ const csi = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
 		case 0x7d: // }
 		case 0x7e: // ~
 			emulator.mode = MODE_GROUND;
-			return 1;
+			break;
 
-		default: {
+		default:
 			// 0x20–0x2f: intermediate bytes.
 			if (byte < 0x30) {
 				emulator.mode = MODE_CSI_INTERMEDIATE;
-				return 1;
+				break;
 			}
 
 			// 0x30–0x3f: parameter bytes and private-mode markers.
 			if (byte < 0x40) {
 				emulator.mode = MODE_CSI_PARAM;
-				return 1;
+				break;
 			}
 
 			// 0x80 and above: unexpected byte within the sequence.
 			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
 			emulator.mode = MODE_GROUND;
-			return 1;
-		}
+			break;
 	}
+
+	return 1;
 };
 
 const csiIntermediate = (emulator: Emulator, chunk: Uint8Array, start: number): number => {
