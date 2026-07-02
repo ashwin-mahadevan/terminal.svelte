@@ -276,6 +276,62 @@ const csi = (emulator: Emulator, chunk: Uint8Array, index: number): number => {
 	const byte = chunk[index];
 
 	switch (byte) {
+		// Intentionally Ignored
+		case 0x00: // NUL (null)
+		case 0x01: // SOH (start of heading)
+		case 0x02: // STX (start of text)
+		case 0x03: // ETX (end of text)
+		case 0x04: // EOT (end of transmission)
+		case 0x05: // ENQ (enquiry)
+		case 0x06: // ACK (acknowledge)
+		case 0x10: // DLE (data link escape)
+		case 0x11: // DC1 (device control 1, XON)
+		case 0x12: // DC2 (device control 2)
+		case 0x13: // DC3 (device control 3, XOFF)
+		case 0x14: // DC4 (device control 4)
+		case 0x15: // NAK (negative acknowledge)
+		case 0x16: // SYN (synchronous idle)
+		case 0x17: // ETB (end of transmission block)
+		case 0x19: // EM (end of medium)
+		case 0x1c: // FS (file separator)
+		case 0x1d: // GS (group separator)
+		case 0x1e: // RS (record separator)
+		case 0x1f: // US (unit separator)
+		case 0x7f: // DEL (delete)
+			return index + 1;
+
+		// BEL (bell)
+		case 0x07:
+			emulator.events.bell?.();
+			return index + 1;
+
+		// BS (backspace)
+		case 0x08:
+			if (emulator.state.column === emulator.state.columns) emulator.state.column -= 1;
+			if (emulator.state.column > 0) emulator.state.column -= 1;
+			return index + 1;
+
+		// HT (horizontal tab)
+		case 0x09:
+			emulator.state.tab();
+			return index + 1;
+
+		case 0x0a: // LF (line feed)
+		case 0x0b: // VT (vertical tab)
+		case 0x0c: // FF (form feed)
+			emulator.state.linefeed();
+			return index + 1;
+
+		// CR (carriage return)
+		case 0x0d:
+			emulator.state.column = 0;
+			return index + 1;
+
+		case 0x0e: // SO (shift out)
+		case 0x0f: // SI (shift in)
+			console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+			return index + 1;
+
 		// CAN (cancel), SUB (substitute): abort the sequence.
 		case 0x18:
 		case 0x1a:
@@ -287,17 +343,7 @@ const csi = (emulator: Emulator, chunk: Uint8Array, index: number): number => {
 			emulator.mode = MODE_ESCAPE;
 			return index + 1;
 
-		// DEL (delete): ignored within a control sequence.
-		case 0x7f:
-			return index + 1;
-
 		default: {
-			// C0 controls execute and the sequence continues.
-			if (byte < 0x20) {
-				console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
-				return index + 1;
-			}
-
 			// 0x20–0x2f: intermediate bytes.
 			if (byte < 0x30) {
 				console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
