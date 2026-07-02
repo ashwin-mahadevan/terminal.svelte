@@ -53,27 +53,27 @@ function defaultTabStops(columns: number): Array<boolean> {
 }
 
 export class State {
-	columns: number;
-	rows: number;
+	columns = $state<number>()!;
+	rows = $state<number>()!;
 
-	buffer: Array<Line>;
+	buffer = $state<Array<Line>>()!;
 
 	// Cursor
-	column: number;
-	row: number;
-	style: 'block' | 'underline' | 'bar';
-	attributes: Attributes;
-	wrap: boolean;
+	column = $state<number>()!;
+	row = $state<number>()!;
+	style = $state<'block' | 'underline' | 'bar'>()!;
+	attributes = $state<Attributes>()!;
+	wrap = $state<boolean>()!;
 
 	// Tab stops, shared across the whole terminal (not per-screen): indexed by
 	// column, true where a stop is set.
-	tabStops: Array<boolean>;
+	tabStops = $state<Array<boolean>>()!;
 
 	constructor(columns = 80, rows = 24) {
-		this.columns = $state(columns);
-		this.rows = $state(rows);
+		this.columns = columns;
+		this.rows = rows;
 
-		this.buffer = $state(new Array(rows));
+		this.buffer = new Array(rows);
 
 		for (let index = 0; index < rows; index += 1) {
 			this.buffer[index] = {
@@ -82,14 +82,14 @@ export class State {
 			} satisfies Line;
 		}
 
-		this.column = $state(0);
-		this.row = $state(0);
-		this.style = $state('block');
-		this.attributes = $state(DEFAULT_ATTRIBUTES);
+		this.column = 0;
+		this.row = 0;
+		this.style = 'block';
+		this.attributes = DEFAULT_ATTRIBUTES;
 		// Pending-wrap flag: set once the last column is written, so the next
 		// character wraps first. Starts clear; nothing is pending yet.
-		this.wrap = $state(false);
-		this.tabStops = $state(defaultTabStops(columns));
+		this.wrap = false;
+		this.tabStops = defaultTabStops(columns);
 	}
 
 	linefeed() {
