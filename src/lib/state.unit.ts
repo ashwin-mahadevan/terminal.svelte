@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Parser } from './parser.svelte';
+import { Parser } from './parser/state-machine';
 import { State } from './state.svelte';
 
 const encoder = new TextEncoder();

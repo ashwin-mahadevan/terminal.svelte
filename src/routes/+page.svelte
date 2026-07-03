@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { io } from 'socket.io-client';
-	import { Parser } from '$lib/parser.svelte';
+	import { Parser } from '$lib/parser/parser.svelte';
 	import StreamTerminal from '$lib/terminal.svelte';
 	import { browser } from '$app/environment';
 	import { State } from '$lib';

@@ -2,7 +2,7 @@ import type { State } from '$lib/state.svelte';
 import { ground } from '$lib/parser/ground';
 import { grapheme } from '$lib/parser/grapheme';
 import { escape } from '$lib/parser/escape';
-import { csi, csiIntermediate, csiParam } from './parser/csi';
+import { csi, csiIntermediate, csiParam } from './csi';
 
 export type Events = {
 	bell?: () => void;
