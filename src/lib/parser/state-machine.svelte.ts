@@ -9,8 +9,10 @@ export type Events = {
 	ondata?: (chunk: Uint8Array) => void;
 };
 
-// CSI ? 6 c: the primary device attributes report, claiming a VT102.
-export const DA_RESPONSE = Uint8Array.of(0x1b, 0x5b, 0x3f, 0x36, 0x63);
+// CSI ? 1 ; 2 c: the primary device attributes report, claiming a plain
+// VT100 with AVO. TODO: upgrade the report once the functionality we want
+// is fully implemented.
+export const DEVICE_ATTRIBUTES_RESPONSE = Uint8Array.of(0x1b, 0x5b, 0x3f, 0x31, 0x3b, 0x32, 0x63);
 
 export const MODE_GROUND = 0x00;
 export const MODE_GRAPHEME = 0x01;

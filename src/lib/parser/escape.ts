@@ -1,4 +1,8 @@
-import { DA_RESPONSE, MODE_CSI, MODE_GROUND } from '$lib/parser/state-machine.svelte';
+import {
+	DEVICE_ATTRIBUTES_RESPONSE,
+	MODE_CSI,
+	MODE_GROUND
+} from '$lib/parser/state-machine.svelte';
 import type { Parser } from '$lib/parser/state-machine.svelte';
 
 export const escape = (emulator: Parser, chunk: Uint8Array, start: number): number => {
@@ -83,7 +87,7 @@ export const escape = (emulator: Parser, chunk: Uint8Array, start: number): numb
 
 		// ESC Z → DECID (Identify Terminal), answered like primary DA
 		case 0x5a:
-			emulator.events.ondata?.(DA_RESPONSE);
+			emulator.events.ondata?.(DEVICE_ATTRIBUTES_RESPONSE);
 			break;
 
 		// ESC [ → CSI (Control Sequence Introducer)

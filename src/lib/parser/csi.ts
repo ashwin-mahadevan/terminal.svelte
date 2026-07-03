@@ -1,5 +1,5 @@
 import {
-	DA_RESPONSE,
+	DEVICE_ATTRIBUTES_RESPONSE,
 	MODE_CSI_INTERMEDIATE,
 	MODE_CSI_PARAM,
 	MODE_ESCAPE,
@@ -119,7 +119,7 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 
 		// CSI c → DA (Device Attributes)
 		case 0x63:
-			emulator.events.ondata?.(DA_RESPONSE);
+			emulator.events.ondata?.(DEVICE_ATTRIBUTES_RESPONSE);
 			emulator.mode = MODE_GROUND;
 			break;
 

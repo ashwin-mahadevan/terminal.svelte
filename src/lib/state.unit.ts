@@ -120,7 +120,7 @@ describe('device attributes', () => {
 		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
 		e.write(encoder.encode('\x1bZ'));
 
-		expect(chunks).toEqual([encoder.encode('\x1b[?6c')]);
+		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
 		expect(e.state.column).toBe(0);
 	});
 
@@ -129,7 +129,7 @@ describe('device attributes', () => {
 		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
 		e.write(encoder.encode('\x1b[c'));
 
-		expect(chunks).toEqual([encoder.encode('\x1b[?6c')]);
+		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
 		expect(e.state.column).toBe(0);
 	});
 });
