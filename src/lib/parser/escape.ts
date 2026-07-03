@@ -1,4 +1,4 @@
-import { MODE_CSI, MODE_GROUND } from '$lib/parser/state-machine.svelte';
+import { DA_RESPONSE, MODE_CSI, MODE_GROUND } from '$lib/parser/state-machine.svelte';
 import type { Parser } from '$lib/parser/state-machine.svelte';
 
 export const escape = (emulator: Parser, chunk: Uint8Array, start: number): number => {
@@ -79,6 +79,11 @@ export const escape = (emulator: Parser, chunk: Uint8Array, start: number): numb
 		// ESC P → DCS (Device Control String)
 		case 0x50:
 			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
+			break;
+
+		// ESC Z → DECID (Identify Terminal), answered like primary DA
+		case 0x5a:
+			emulator.events.ondata?.(DA_RESPONSE);
 			break;
 
 		// ESC [ → CSI (Control Sequence Introducer)

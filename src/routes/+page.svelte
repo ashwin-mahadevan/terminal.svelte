@@ -5,14 +5,15 @@
 	import { browser } from '$app/environment';
 	import { State } from '$lib';
 
+	const socket = (browser as true) && io();
+
 	const events = {
-		bell: () => console.log('BEL')
+		bell: () => console.log('BEL'),
+		ondata: (chunk: Uint8Array) => socket.emit('input', chunk)
 	};
 
 	const state = new State();
 	const parser = new Parser(state, events);
-
-	const socket = (browser as true) && io();
 
 	$effect(() => {
 		const write = (chunk: ArrayBuffer) => parser.write(new Uint8Array(chunk));

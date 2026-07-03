@@ -1,4 +1,5 @@
 import {
+	DA_RESPONSE,
 	MODE_CSI_INTERMEDIATE,
 	MODE_CSI_PARAM,
 	MODE_ESCAPE,
@@ -100,7 +101,6 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 		case 0x60: // HPA (Horizontal Position Absolute)
 		case 0x61: // HPR (Horizontal Position Relative)
 		case 0x62: // REP (Repeat Preceding Character)
-		case 0x63: // DA (Device Attributes)
 		case 0x64: // VPA (Vertical Position Absolute)
 		case 0x65: // VPR (Vertical Position Relative)
 		case 0x66: // HVP (Horizontal and Vertical Position)
@@ -114,6 +114,12 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 		case 0x74: // XTWINOPS (Window Manipulation)
 		case 0x75: // SCORC (Restore Cursor)
 			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
+			emulator.mode = MODE_GROUND;
+			break;
+
+		// CSI c → DA (Device Attributes)
+		case 0x63:
+			emulator.events.ondata?.(DA_RESPONSE);
 			emulator.mode = MODE_GROUND;
 			break;
 

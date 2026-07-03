@@ -6,7 +6,11 @@ import { csi, csiIntermediate, csiParam } from './csi';
 
 export type Events = {
 	bell?: () => void;
+	ondata?: (chunk: Uint8Array) => void;
 };
+
+// CSI ? 6 c: the primary device attributes report, claiming a VT102.
+export const DA_RESPONSE = Uint8Array.of(0x1b, 0x5b, 0x3f, 0x36, 0x63);
 
 export const MODE_GROUND = 0x00;
 export const MODE_GRAPHEME = 0x01;
