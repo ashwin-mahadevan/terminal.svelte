@@ -6,6 +6,22 @@ export const escape = (emulator: Parser, chunk: Uint8Array, start: number): numb
 
 	switch (byte) {
 		// Intentionally Ignored
+		case 0x40: // PAD (padding character)
+		case 0x41: // HOP (high octet preset)
+		case 0x42: // BPH (break permitted here)
+		case 0x43: // NBH (no break here)
+		case 0x46: // SSA (start of selected area)
+		case 0x47: // ESA (end of selected area)
+		case 0x4a: // VTS (vertical tab set)
+		case 0x4b: // PLD (partial line down)
+		case 0x4c: // PLU (partial line up)
+		case 0x51: // PU1 (private use 1)
+		case 0x52: // PU2 (private use 2)
+		case 0x53: // STS (set transmit state)
+		case 0x54: // CCH (cancel character)
+		case 0x55: // MW (message waiting)
+		case 0x56: // SPA (start of guarded area)
+		case 0x57: // EPA (end of guarded area)
 		case 0x5c: // ST (string terminator)
 			break;
 
@@ -43,6 +59,11 @@ export const escape = (emulator: Parser, chunk: Uint8Array, start: number): numb
 		// ESC H → HTS (Horizontal Tab Set)
 		case 0x48:
 			emulator.state.tabStops[emulator.state.column] = true;
+			break;
+
+		// ESC I → HTJ (Horizontal Tab with Justification), treated as HT
+		case 0x49:
+			emulator.state.tab();
 			break;
 
 		// ESC M → RI (Reverse Index)

@@ -97,6 +97,12 @@ describe('tab stops', () => {
 		expect(e.state.column).toBe(3);
 	});
 
+	it('moves to the next stop on HTJ (ESC I), like HT', () => {
+		const e = new Parser(new State(20, 1), {});
+		e.write(encoder.encode('\x1bI'));
+		expect(e.state.column).toBe(8);
+	});
+
 	it('clears the pending wrap on tab', () => {
 		const e = new Parser(new State(4, 4), {});
 		e.write(encoder.encode('ABCD\tX'));
@@ -105,5 +111,21 @@ describe('tab stops', () => {
 		// still resolves the deferred wrap, so X overwrites D in place.
 		expect(e.state.row).toBe(0);
 		expect(e.state.buffer[0].cells[3]?.text).toBe('X');
+	});
+});
+
+describe('ignored C1 controls', () => {
+	it('leaves the screen and cursor untouched', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('A'));
+
+		for (const final of '@ABCFGJKLQRSTUVW\\') {
+			e.write(encoder.encode(`\x1b${final}`));
+		}
+
+		expect(e.state.row).toBe(0);
+		expect(e.state.column).toBe(1);
+		expect(e.state.buffer[0].cells[0]?.text).toBe('A');
+		expect(e.state.buffer[0].cells[1]).toBeUndefined();
 	});
 });
