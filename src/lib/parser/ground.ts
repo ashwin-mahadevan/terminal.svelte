@@ -1,5 +1,5 @@
-import { MODE_ESCAPE, MODE_GRAPHEME } from '$lib/parser/state-machine';
-import type { Parser } from '$lib/parser/state-machine';
+import { MODE_ESCAPE, MODE_GRAPHEME } from '$lib/parser/state-machine.svelte';
+import type { Parser } from '$lib/parser/state-machine.svelte';
 
 export const ground = (parser: Parser, chunk: Uint8Array, start: number) => {
 	let index = 0;

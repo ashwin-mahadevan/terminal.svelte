@@ -1,6 +1,6 @@
 import { Terminal as Xterm } from '@xterm/headless';
 import { bench, describe } from 'vitest';
-import { Parser } from '$lib/parser/state-machine';
+import { Parser } from '$lib/parser/state-machine.svelte';
 import { State } from '$lib/state.svelte';
 
 // Printable ASCII with a line break every 80 columns — the shape of ordinary

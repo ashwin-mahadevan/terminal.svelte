@@ -1,5 +1,5 @@
-import { MODE_GROUND } from '$lib/parser/state-machine';
-import type { Parser } from '$lib/parser/state-machine';
+import { MODE_GROUND } from '$lib/parser/state-machine.svelte';
+import type { Parser } from '$lib/parser/state-machine.svelte';
 
 const decoder = new TextDecoder();
 

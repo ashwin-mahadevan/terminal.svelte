@@ -1,5 +1,5 @@
-import { MODE_CSI, MODE_GROUND } from '$lib/parser/state-machine';
-import type { Parser } from '$lib/parser/state-machine';
+import { MODE_CSI, MODE_GROUND } from '$lib/parser/state-machine.svelte';
+import type { Parser } from '$lib/parser/state-machine.svelte';
 
 export const escape = (emulator: Parser, chunk: Uint8Array, start: number): number => {
 	const byte = chunk[start];

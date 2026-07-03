@@ -3,8 +3,8 @@ import {
 	MODE_CSI_PARAM,
 	MODE_ESCAPE,
 	MODE_GROUND
-} from '$lib/parser/state-machine';
-import type { Parser } from '$lib/parser';
+} from '$lib/parser/state-machine.svelte';
+import type { Parser } from '$lib/parser/state-machine.svelte';
 
 export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number => {
 	const byte = chunk[start];

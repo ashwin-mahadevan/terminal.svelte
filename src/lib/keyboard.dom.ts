@@ -1,6 +1,6 @@
 import { userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
-import { Parser } from './parser/state-machine';
+import { Parser } from './parser/state-machine.svelte';
 import { State } from './state.svelte';
 import Terminal from './terminal.svelte';
 
