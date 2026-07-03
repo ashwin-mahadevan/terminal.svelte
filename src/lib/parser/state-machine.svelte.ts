@@ -3,6 +3,8 @@ import { ground } from '$lib/parser/ground';
 import { grapheme } from '$lib/parser/grapheme';
 import { escape } from '$lib/parser/escape';
 import { csi, csiIntermediate, csiParam } from './csi';
+import { osc, oscEscape } from './osc';
+import { string } from './string';
 
 export type Events = {
 	bell?: () => void;
@@ -20,6 +22,9 @@ export const MODE_ESCAPE = 0x02;
 export const MODE_CSI = 0x03;
 export const MODE_CSI_INTERMEDIATE = 0x04;
 export const MODE_CSI_PARAM = 0x05;
+export const MODE_OSC = 0x06;
+export const MODE_OSC_ESCAPE = 0x07;
+export const MODE_STRING = 0x08;
 
 export type Mode =
 	| typeof MODE_GROUND
@@ -27,7 +32,10 @@ export type Mode =
 	| typeof MODE_ESCAPE
 	| typeof MODE_CSI
 	| typeof MODE_CSI_INTERMEDIATE
-	| typeof MODE_CSI_PARAM;
+	| typeof MODE_CSI_PARAM
+	| typeof MODE_OSC
+	| typeof MODE_OSC_ESCAPE
+	| typeof MODE_STRING;
 
 export class Parser {
 	readonly state: State;
@@ -38,6 +46,7 @@ export class Parser {
 	privateMarker: number | null = null;
 	parameters: Array<number | null> = [];
 	intermediates: Array<number> = [];
+	oscString: Array<number> = [];
 
 	autowrap = $state(true);
 
@@ -78,6 +87,15 @@ export class Parser {
 					break;
 				case MODE_CSI_PARAM:
 					index += csiParam(this, chunk, index);
+					break;
+				case MODE_OSC:
+					index += osc(this, chunk, index);
+					break;
+				case MODE_OSC_ESCAPE:
+					index += oscEscape(this, chunk, index);
+					break;
+				case MODE_STRING:
+					index += string(this, chunk, index);
 					break;
 			}
 		}

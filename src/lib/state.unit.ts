@@ -211,6 +211,89 @@ describe('csi sequences', () => {
 	});
 });
 
+describe('string sequences', () => {
+	it('accumulates the OSC string', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]0;hi'));
+
+		expect(e.oscString).toEqual([...encoder.encode('0;hi')]);
+	});
+
+	it('keeps the OSC string across chunk boundaries', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;a'));
+		e.write(encoder.encode('bc'));
+
+		expect(e.oscString).toEqual([...encoder.encode('2;abc')]);
+	});
+
+	it('terminates OSC on BEL without ringing it', () => {
+		let bells = 0;
+		const e = new Parser(new State(4, 4), {
+			bell: () => {
+				bells += 1;
+			}
+		});
+		e.write(encoder.encode('\x1b]0;title\x07A'));
+
+		expect(bells).toBe(0);
+		expect(e.state.buffer[0].cells[0]?.text).toBe('A');
+	});
+
+	it('terminates OSC on ST, even split across chunks', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]0;title\x1b'));
+		e.write(encoder.encode('\\A'));
+
+		expect(e.state.buffer[0].cells[0]?.text).toBe('A');
+	});
+
+	it('ignores other C0 controls inside an OSC string', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]a\nb\x07X'));
+
+		expect(e.oscString).toEqual([...encoder.encode('ab')]);
+		expect(e.state.row).toBe(0);
+		expect(e.state.buffer[0].cells[0]?.text).toBe('X');
+	});
+
+	it('aborts OSC when the ESC begins another sequence', () => {
+		const chunks: Array<Uint8Array> = [];
+		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
+		e.write(encoder.encode('\x1b]title\x1bZ'));
+
+		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
+	});
+
+	it('aborts OSC on CAN', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]abc\x18X'));
+
+		expect(e.state.buffer[0].cells[0]?.text).toBe('X');
+	});
+
+	it('swallows PM content up to ST', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b^secret\x1b\\A'));
+
+		expect(e.state.buffer[0].cells[0]?.text).toBe('A');
+		expect(e.state.buffer[0].cells[1]).toBeUndefined();
+	});
+
+	it('swallows APC content, ignoring BEL, up to ST', () => {
+		let bells = 0;
+		const e = new Parser(new State(4, 4), {
+			bell: () => {
+				bells += 1;
+			}
+		});
+		e.write(encoder.encode('\x1b_a\x07b\x1b\\X'));
+
+		expect(bells).toBe(0);
+		expect(e.state.buffer[0].cells[0]?.text).toBe('X');
+	});
+});
+
 describe('ignored C1 controls', () => {
 	it('leaves the screen and cursor untouched', () => {
 		const e = new Parser(new State(4, 4), {});

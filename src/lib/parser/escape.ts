@@ -1,7 +1,9 @@
 import {
 	DEVICE_ATTRIBUTES_RESPONSE,
 	MODE_CSI,
-	MODE_GROUND
+	MODE_GROUND,
+	MODE_OSC,
+	MODE_STRING
 } from '$lib/parser/state-machine.svelte';
 import type { Parser } from '$lib/parser/state-machine.svelte';
 
@@ -98,11 +100,16 @@ export const escape = (emulator: Parser, chunk: Uint8Array, start: number): numb
 			emulator.mode = MODE_CSI;
 			return 1;
 
-		case 0x5d: // ESC ] → OSC (Operating System Command)
+		// ESC ] → OSC (Operating System Command)
+		case 0x5d:
+			emulator.oscString = [];
+			emulator.mode = MODE_OSC;
+			return 1;
+
 		case 0x5e: // ESC ^ → PM (Privacy Message)
 		case 0x5f: // ESC _ → APC (Application Program Command)
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			break;
+			emulator.mode = MODE_STRING;
+			return 1;
 
 		// ESC c → RIS (Reset to Initial State)
 		case 0x63:
