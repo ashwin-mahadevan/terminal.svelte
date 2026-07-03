@@ -132,6 +132,83 @@ describe('device attributes', () => {
 		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
 		expect(e.state.column).toBe(0);
 	});
+
+	it('answers DA with an explicit zero parameter (CSI 0 c)', () => {
+		const chunks: Array<Uint8Array> = [];
+		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
+		e.write(encoder.encode('\x1b[0c'));
+
+		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
+	});
+
+	it('answers DA split across chunks', () => {
+		const chunks: Array<Uint8Array> = [];
+		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
+		e.write(encoder.encode('\x1b['));
+		e.write(encoder.encode('0'));
+		e.write(encoder.encode('c'));
+
+		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
+	});
+
+	it('does not answer DA for a nonzero parameter or a marked request', () => {
+		const chunks: Array<Uint8Array> = [];
+		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
+		e.write(encoder.encode('\x1b[1c\x1b[>c\x1b[?1;2c'));
+
+		expect(chunks).toEqual([]);
+	});
+});
+
+describe('csi sequences', () => {
+	it('accumulates the private marker, parameters and intermediates', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[?12;;25 q'));
+
+		expect(e.privateMarker).toBe(0x3f);
+		expect(e.parameters).toEqual([12, null, 25]);
+		expect(e.intermediates).toEqual([0x20]);
+	});
+
+	it('keeps parameters across chunk boundaries', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[1'));
+		e.write(encoder.encode('2;3'));
+
+		expect(e.parameters).toEqual([12, 3]);
+	});
+
+	it('executes C0 controls inside a sequence and continues it', () => {
+		const chunks: Array<Uint8Array> = [];
+		let bells = 0;
+		const e = new Parser(new State(4, 4), {
+			bell: () => {
+				bells += 1;
+			},
+			ondata: (chunk) => chunks.push(chunk)
+		});
+		e.write(encoder.encode('\x1b[0\x07c'));
+
+		expect(bells).toBe(1);
+		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
+	});
+
+	it('prints the remainder of a malformed sequence', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[1?x'));
+
+		expect(e.state.buffer[0].cells[0]?.text).toBe('?');
+		expect(e.state.buffer[0].cells[1]?.text).toBe('x');
+	});
+
+	it('treats sub-parameters as malformed', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[38:2m'));
+
+		expect(e.state.buffer[0].cells[0]?.text).toBe(':');
+		expect(e.state.buffer[0].cells[1]?.text).toBe('2');
+		expect(e.state.buffer[0].cells[2]?.text).toBe('m');
+	});
 });
 
 describe('ignored C1 controls', () => {

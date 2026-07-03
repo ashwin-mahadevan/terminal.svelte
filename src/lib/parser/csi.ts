@@ -1,5 +1,6 @@
 import {
 	DEVICE_ATTRIBUTES_RESPONSE,
+	MODE_CSI,
 	MODE_CSI_INTERMEDIATE,
 	MODE_CSI_PARAM,
 	MODE_ESCAPE,
@@ -117,9 +118,15 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 			emulator.mode = MODE_GROUND;
 			break;
 
-		// CSI c → DA (Device Attributes)
+		// CSI c → DA (Device Attributes), only for a plain request with parameter 0.
 		case 0x63:
-			emulator.events.ondata?.(DEVICE_ATTRIBUTES_RESPONSE);
+			if (
+				emulator.privateMarker === null &&
+				emulator.intermediates.length === 0 &&
+				(emulator.parameters[0] ?? 0) === 0
+			) {
+				emulator.events.ondata?.(DEVICE_ATTRIBUTES_RESPONSE);
+			}
 			emulator.mode = MODE_GROUND;
 			break;
 
@@ -159,11 +166,27 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 			// 0x20–0x2f: intermediate bytes.
 			if (byte < 0x30) {
 				emulator.mode = MODE_CSI_INTERMEDIATE;
-				break;
+				return 0;
 			}
 
-			// 0x30–0x3f: parameter bytes and private-mode markers.
+			// 0x30–0x3b: parameter bytes, malformed after an intermediate.
+			if (byte < 0x3c) {
+				emulator.mode = emulator.intermediates.length === 0 ? MODE_CSI_PARAM : MODE_GROUND;
+				return 0;
+			}
+
+			// 0x3c–0x3f: private markers, only valid before anything else.
 			if (byte < 0x40) {
+				if (
+					emulator.privateMarker !== null ||
+					emulator.parameters.length > 0 ||
+					emulator.intermediates.length > 0
+				) {
+					emulator.mode = MODE_GROUND;
+					return 0;
+				}
+
+				emulator.privateMarker = byte;
 				emulator.mode = MODE_CSI_PARAM;
 				break;
 			}
@@ -178,17 +201,65 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 };
 
 export const csiIntermediate = (emulator: Parser, chunk: Uint8Array, start: number): number => {
-	const byte = chunk[start];
+	let index = 0;
 
-	console.log(`NOT IMPLEMENTED: CSI intermediate 0x${byte.toString(16).padStart(2, '0')}`);
-	emulator.mode = MODE_GROUND;
-	return 1;
+	do {
+		const byte = chunk[start + index];
+
+		// 0x20–0x2f: collect intermediate bytes.
+		if (byte >= 0x20 && byte <= 0x2f) {
+			emulator.intermediates.push(byte);
+			index += 1;
+			continue;
+		}
+
+		// 0x30–0x3f: parameter bytes may not follow intermediates — malformed.
+		if (byte >= 0x30 && byte <= 0x3f) {
+			emulator.mode = MODE_GROUND;
+			return index;
+		}
+
+		// Anything else belongs to the csi parser.
+		emulator.mode = MODE_CSI;
+		return index;
+	} while (start + index < chunk.length);
+
+	return index;
 };
 
 export const csiParam = (emulator: Parser, chunk: Uint8Array, start: number): number => {
-	const byte = chunk[start];
+	let index = 0;
 
-	console.log(`NOT IMPLEMENTED: CSI param 0x${byte.toString(16).padStart(2, '0')}`);
-	emulator.mode = MODE_GROUND;
-	return 1;
+	do {
+		const byte = chunk[start + index];
+
+		// 0x30–0x39: a digit of the current parameter.
+		if (byte >= 0x30 && byte <= 0x39) {
+			if (emulator.parameters.length === 0) emulator.parameters.push(null);
+			const last = emulator.parameters.length - 1;
+			emulator.parameters[last] = (emulator.parameters[last] ?? 0) * 10 + (byte - 0x30);
+			index += 1;
+			continue;
+		}
+
+		// 0x3b: the parameter separator.
+		if (byte === 0x3b) {
+			if (emulator.parameters.length === 0) emulator.parameters.push(null);
+			emulator.parameters.push(null);
+			index += 1;
+			continue;
+		}
+
+		// 0x3a: sub-parameters are not supported — malformed.
+		if (byte === 0x3a) {
+			emulator.mode = MODE_GROUND;
+			return index;
+		}
+
+		// Anything else belongs to the csi parser.
+		emulator.mode = MODE_CSI;
+		return index;
+	} while (start + index < chunk.length);
+
+	return index;
 };

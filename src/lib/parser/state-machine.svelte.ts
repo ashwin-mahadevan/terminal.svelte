@@ -35,6 +35,10 @@ export class Parser {
 
 	mode = $state<Mode>()!;
 
+	privateMarker: number | null = null;
+	parameters: Array<number | null> = [];
+	intermediates: Array<number> = [];
+
 	autowrap = $state(true);
 
 	constructor(state: State, events: Events) {
