@@ -42,6 +42,58 @@ if (import.meta.vitest) {
 			expect(ondata).toHaveBeenCalledExactlyOnceWith(data);
 		});
 
+		// After DECKPAM (ESC =) arrives through the parser, keypad keys send the
+		// VT220 application sequences. The {Numpad5} syntax (not [Numpad5]) is
+		// deliberate: the bracket form resolves against a key map with no numpad
+		// entries, while the brace form passes the name straight through to the
+		// provider, which presses the physical keypad key.
+		const KEYPAD_CASES: Array<{ name: string; key: string; data: string }> = [
+			{ name: 'Numpad5 sends SS3 u', key: '{Numpad5}', data: '\x1bOu' },
+			{ name: 'NumpadEnter sends SS3 M', key: '{NumpadEnter}', data: '\x1bOM' },
+			{ name: 'NumpadAdd sends SS3 k', key: '{NumpadAdd}', data: '\x1bOk' },
+			{ name: 'NumpadDivide sends SS3 o', key: '{NumpadDivide}', data: '\x1bOo' }
+		];
+
+		it.each(KEYPAD_CASES)('in application keypad mode, $name', async ({ key, data }) => {
+			const ondata = vi.fn();
+			const state = new State();
+			const parser = new Parser(state, {});
+			parser.write(new TextEncoder().encode('\x1b='));
+			const screen = render(Terminal, {
+				state,
+				ondata: (d: string) => {
+					ondata(d);
+					parser.write(new TextEncoder().encode(d));
+				}
+			});
+
+			const terminal = screen.getByRole('application', { name: 'Terminal' });
+			await userEvent.click(terminal);
+			await userEvent.keyboard(key);
+
+			expect(ondata).toHaveBeenCalledExactlyOnceWith(data);
+		});
+
+		it('sends CR for NumpadEnter again after DECKPNM', async () => {
+			const ondata = vi.fn();
+			const state = new State();
+			const parser = new Parser(state, {});
+			parser.write(new TextEncoder().encode('\x1b=\x1b>'));
+			const screen = render(Terminal, {
+				state,
+				ondata: (d: string) => {
+					ondata(d);
+					parser.write(new TextEncoder().encode(d));
+				}
+			});
+
+			const terminal = screen.getByRole('application', { name: 'Terminal' });
+			await userEvent.click(terminal);
+			await userEvent.keyboard('{NumpadEnter}');
+
+			expect(ondata).toHaveBeenCalledExactlyOnceWith('\r');
+		});
+
 		it('ignores keys with no PTY mapping', async () => {
 			const ondata = vi.fn();
 			const state = new State();

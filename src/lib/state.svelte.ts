@@ -71,6 +71,10 @@ export class State {
 	// The cursor state saved by DECSC (ESC 7) and restored by DECRC (ESC 8).
 	savedCursor: { column: number; row: number; attributes: Attributes } | null = null;
 
+	// DECKPAM/DECKPNM: whether the keypad sends application sequences (SS3-
+	// prefixed) instead of the characters printed on the keys.
+	applicationKeypad = false;
+
 	constructor(columns = 80, rows = 24) {
 		this.columns = columns;
 		this.rows = rows;
@@ -111,6 +115,7 @@ export class State {
 		this.attributes = DEFAULT_ATTRIBUTES;
 		this.tabStops = defaultTabStops(this.columns);
 		this.savedCursor = null;
+		this.applicationKeypad = false;
 	}
 
 	// DECSC: save the cursor position, attributes, and — since a pending wrap

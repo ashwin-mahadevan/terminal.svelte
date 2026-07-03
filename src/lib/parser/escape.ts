@@ -43,12 +43,12 @@ export const escape = (emulator: Parser, chunk: Uint8Array, start: number): numb
 
 		// ESC = → DECKPAM (Application Keypad Mode)
 		case 0x3d:
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
+			emulator.state.applicationKeypad = true;
 			break;
 
 		// ESC > → DECKPNM (Normal Keypad Mode)
 		case 0x3e:
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
+			emulator.state.applicationKeypad = false;
 			break;
 
 		// ESC D → IND (Index)

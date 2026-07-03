@@ -162,6 +162,30 @@ describe('cursor save and restore', () => {
 	});
 });
 
+describe('keypad mode', () => {
+	it('enters application mode with DECKPAM (ESC =)', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b='));
+
+		expect(e.state.applicationKeypad).toBe(true);
+		expect(e.state.column).toBe(0);
+	});
+
+	it('returns to numeric mode with DECKPNM (ESC >)', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b=\x1b>'));
+
+		expect(e.state.applicationKeypad).toBe(false);
+	});
+
+	it('resets to numeric mode on RIS', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b=\x1bc'));
+
+		expect(e.state.applicationKeypad).toBe(false);
+	});
+});
+
 describe('device attributes', () => {
 	it('answers DECID (ESC Z) with the primary report', () => {
 		const chunks: Array<Uint8Array> = [];

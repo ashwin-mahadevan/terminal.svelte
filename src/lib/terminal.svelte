@@ -14,9 +14,41 @@
 
 	onMount(() => root.focus());
 
+	// DECKPAM: the VT220-style application keypad sequences, keyed by the
+	// physical key (KeyboardEvent.code).
+	const APPLICATION_KEYPAD: Record<string, string> = {
+		Numpad0: '\x1bOp',
+		Numpad1: '\x1bOq',
+		Numpad2: '\x1bOr',
+		Numpad3: '\x1bOs',
+		Numpad4: '\x1bOt',
+		Numpad5: '\x1bOu',
+		Numpad6: '\x1bOv',
+		Numpad7: '\x1bOw',
+		Numpad8: '\x1bOx',
+		Numpad9: '\x1bOy',
+		NumpadDecimal: '\x1bOn',
+		NumpadEnter: '\x1bOM',
+		NumpadAdd: '\x1bOk',
+		NumpadSubtract: '\x1bOm',
+		NumpadMultiply: '\x1bOj',
+		NumpadDivide: '\x1bOo'
+	};
+
 	// Translate a keydown into the bytes a PTY expects. Minimal on purpose:
 	// printable keys, the common control keys, Ctrl-<letter>, and arrows.
 	function handleKeydown(event: KeyboardEvent) {
+		// Keypad keys come first: NumpadEnter would otherwise be taken by the
+		// Enter case below.
+		if (state.applicationKeypad) {
+			const sequence = APPLICATION_KEYPAD[event.code];
+			if (sequence !== undefined) {
+				event.preventDefault();
+				ondata?.(sequence);
+				return;
+			}
+		}
+
 		switch (event.key) {
 			case 'Enter':
 				event.preventDefault();
