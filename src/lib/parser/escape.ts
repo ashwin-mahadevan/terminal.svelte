@@ -33,12 +33,12 @@ export const escape = (emulator: Parser, chunk: Uint8Array, start: number): numb
 
 		// ESC 7 → DECSC (Save Cursor)
 		case 0x37:
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
+			emulator.state.saveCursor();
 			break;
 
 		// ESC 8 → DECRC (Restore Cursor)
 		case 0x38:
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
+			emulator.state.restoreCursor();
 			break;
 
 		// ESC = → DECKPAM (Application Keypad Mode)

@@ -68,6 +68,9 @@ export class State {
 	// column, true where a stop is set.
 	tabStops = $state<Array<boolean>>()!;
 
+	// The cursor state saved by DECSC (ESC 7) and restored by DECRC (ESC 8).
+	savedCursor: { column: number; row: number; attributes: Attributes } | null = null;
+
 	constructor(columns = 80, rows = 24) {
 		this.columns = columns;
 		this.rows = rows;
@@ -107,6 +110,27 @@ export class State {
 		this.style = 'block';
 		this.attributes = DEFAULT_ATTRIBUTES;
 		this.tabStops = defaultTabStops(this.columns);
+		this.savedCursor = null;
+	}
+
+	// DECSC: save the cursor position, attributes, and — since a pending wrap
+	// is encoded as column === columns — the last-column flag.
+	saveCursor() {
+		this.savedCursor = { column: this.column, row: this.row, attributes: this.attributes };
+	}
+
+	// DECRC: restore the saved cursor state, or home the cursor with default
+	// attributes if nothing has been saved.
+	restoreCursor() {
+		if (this.savedCursor) {
+			this.column = this.savedCursor.column;
+			this.row = this.savedCursor.row;
+			this.attributes = this.savedCursor.attributes;
+		} else {
+			this.column = 0;
+			this.row = 0;
+			this.attributes = DEFAULT_ATTRIBUTES;
+		}
 	}
 
 	// HT: move the cursor right to the next tab stop, or the last column if none remain.

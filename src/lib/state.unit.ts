@@ -114,6 +114,54 @@ describe('tab stops', () => {
 	});
 });
 
+describe('cursor save and restore', () => {
+	it('restores the saved position with DECRC (ESC 8)', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('AB\x1b7\r\n\x1b8X'));
+
+		// The CR/LF move the cursor away; DECRC brings it back to (0, 2).
+		expect(e.state.buffer[0].cells[2]?.text).toBe('X');
+		expect(e.state.buffer[1].cells[0]).toBeUndefined();
+	});
+
+	it('restores the pending wrap', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('ABCD\x1b7\r\x1b8X'));
+
+		// DECSC captures the cursor one past the last column; after the restore,
+		// X resolves the deferred wrap onto row 1 rather than overwriting D.
+		expect(e.state.row).toBe(1);
+		expect(e.state.buffer[0].break).toBe(true);
+		expect(e.state.buffer[1].cells[0]?.text).toBe('X');
+	});
+
+	it('restores the saved attributes', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.state.attributes = { ...e.state.attributes, bold: true };
+		e.write(encoder.encode('\x1b7'));
+		e.state.attributes = { ...e.state.attributes, bold: false };
+		e.write(encoder.encode('\x1b8A'));
+
+		expect(e.state.buffer[0].cells[0]?.attrs.bold).toBe(true);
+	});
+
+	it('homes the cursor and resets attributes when nothing was saved', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.state.attributes = { ...e.state.attributes, bold: true };
+		e.write(encoder.encode('AB\x1b8X'));
+
+		expect(e.state.buffer[0].cells[0]?.text).toBe('X');
+		expect(e.state.buffer[0].cells[0]?.attrs.bold).toBe(false);
+	});
+
+	it('forgets the saved cursor on RIS', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('AB\x1b7\x1bc\x1b8'));
+
+		expect(e.state.column).toBe(0);
+	});
+});
+
 describe('device attributes', () => {
 	it('answers DECID (ESC Z) with the primary report', () => {
 		const chunks: Array<Uint8Array> = [];
