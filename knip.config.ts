@@ -1,4 +1,4 @@
 export default {
 	ignore: [],
-	ignoreDependencies: ['node-gyp', 'svelte-check']
+	ignoreDependencies: ['svelte-check']
 };
