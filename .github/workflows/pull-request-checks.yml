@@ -35,17 +35,25 @@ jobs:
 
   browser-test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
     steps:
       - uses: actions/checkout@v6
       - uses: jdx/mise-action@v2
-      - run: mise run test:browser
+      - run: mise run test:browser:${{ matrix.browser }}
 
   dom-test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
     steps:
       - uses: actions/checkout@v6
       - uses: jdx/mise-action@v2
-      - run: mise run test:dom
+      - run: mise run test:dom:${{ matrix.browser }}
 
   unit-test:
     runs-on: ubuntu-latest

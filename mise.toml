@@ -63,13 +63,32 @@ run = "pnpm exec svelte-kit sync && pnpm exec svelte-check --tsconfig ./tsconfig
 [tasks.tests]
 depends = ["test:*"]
 
-[tasks."test:browser"]
+[tasks."test:browser:chromium"]
 depends = ["install:playwright", "build"]
-run = "pnpm exec playwright test"
+env = { PREVIEW_PORT = "4173" }
+run = "pnpm exec playwright test --project chromium"
 
-[tasks."test:dom"]
+[tasks."test:browser:firefox"]
+depends = ["install:playwright", "build"]
+env = { PREVIEW_PORT = "4174" }
+run = "pnpm exec playwright test --project firefox"
+
+[tasks."test:browser:webkit"]
+depends = ["install:playwright", "build"]
+env = { PREVIEW_PORT = "4175" }
+run = "pnpm exec playwright test --project webkit"
+
+[tasks."test:dom:chromium"]
 depends = ["clean", "install:playwright"]
-run = "pnpm exec vitest run --project dom"
+run = "pnpm exec vitest run --project 'dom (chromium)'"
+
+[tasks."test:dom:firefox"]
+depends = ["clean", "install:playwright"]
+run = "pnpm exec vitest run --project 'dom (firefox)'"
+
+[tasks."test:dom:webkit"]
+depends = ["clean", "install:playwright"]
+run = "pnpm exec vitest run --project 'dom (webkit)'"
 
 [tasks."test:unit"]
 depends = ["clean", "install"]
