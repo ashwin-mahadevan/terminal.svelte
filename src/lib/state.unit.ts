@@ -541,3 +541,369 @@ describe('select graphic rendition (SGR)', () => {
 		expect(attributesAfter('\x1b[1;31m\x1bc')).toEqual(attributesAfter(''));
 	});
 });
+
+// The text of each row, with empty cells as spaces.
+const screen = (e: Parser): Array<string> =>
+	e.state.buffer.map((line) => Array.from(line.cells, (cell) => cell?.text ?? ' ').join(''));
+
+// A terminal of `rows` rows filled with the given lines, the cursor at (row, column).
+const filled = (lines: Array<string>, row: number, column: number): Parser => {
+	const e = new Parser(new State(lines[0].length, lines.length), {});
+	e.write(encoder.encode(lines.join('\r\n')));
+	e.write(encoder.encode(`\x1b[${row + 1};${column + 1}H`));
+	return e;
+};
+
+describe('cursor movement', () => {
+	it('moves relative to the cursor with CUU, CUD, CUF and CUB', () => {
+		const e = filled(['.....', '.....', '.....', '.....'], 1, 2);
+
+		e.write(encoder.encode('\x1b[A'));
+		expect([e.state.row, e.state.column]).toEqual([0, 2]);
+		e.write(encoder.encode('\x1b[2B'));
+		expect([e.state.row, e.state.column]).toEqual([2, 2]);
+		e.write(encoder.encode('\x1b[C'));
+		expect([e.state.row, e.state.column]).toEqual([2, 3]);
+		e.write(encoder.encode('\x1b[3D'));
+		expect([e.state.row, e.state.column]).toEqual([2, 0]);
+	});
+
+	it('treats a missing, empty or zero count as 1', () => {
+		for (const sequence of ['\x1b[C', '\x1b[0C', '\x1b[;C']) {
+			const e = filled(['.....', '.....'], 0, 1);
+			e.write(encoder.encode(sequence));
+			expect(e.state.column).toBe(2);
+		}
+	});
+
+	it('clamps to the screen', () => {
+		const e = filled(['.....', '.....', '.....'], 1, 2);
+
+		e.write(encoder.encode('\x1b[99A'));
+		expect(e.state.row).toBe(0);
+		e.write(encoder.encode('\x1b[99B'));
+		expect(e.state.row).toBe(2);
+		e.write(encoder.encode('\x1b[99C'));
+		expect(e.state.column).toBe(4);
+		e.write(encoder.encode('\x1b[99D'));
+		expect(e.state.column).toBe(0);
+	});
+
+	it('does not scroll when moving past the margins', () => {
+		const e = filled(['AAAAA', 'BBBBB'], 1, 0);
+		e.write(encoder.encode('\x1b[5B\x1b[5A'));
+
+		expect(screen(e)).toEqual(['AAAAA', 'BBBBB']);
+	});
+
+	it('moves to the start of another line with CNL and CPL', () => {
+		const e = filled(['.....', '.....', '.....'], 1, 3);
+
+		e.write(encoder.encode('\x1b[E'));
+		expect([e.state.row, e.state.column]).toEqual([2, 0]);
+		e.write(encoder.encode('\x1b[2F'));
+		expect([e.state.row, e.state.column]).toEqual([0, 0]);
+	});
+
+	it('moves to an absolute column with CHA and HPA, and row with VPA', () => {
+		const e = filled(['.....', '.....', '.....'], 0, 0);
+
+		e.write(encoder.encode('\x1b[4G'));
+		expect([e.state.row, e.state.column]).toEqual([0, 3]);
+		e.write(encoder.encode('\x1b[2`'));
+		expect([e.state.row, e.state.column]).toEqual([0, 1]);
+		e.write(encoder.encode('\x1b[3d'));
+		expect([e.state.row, e.state.column]).toEqual([2, 1]);
+	});
+
+	it('moves relative with HPR and VPR', () => {
+		const e = filled(['.....', '.....', '.....'], 0, 0);
+
+		e.write(encoder.encode('\x1b[3a\x1b[2e'));
+		expect([e.state.row, e.state.column]).toEqual([2, 3]);
+	});
+
+	it('positions the cursor with CUP and HVP, one-based', () => {
+		const e = filled(['.....', '.....', '.....'], 2, 4);
+
+		e.write(encoder.encode('\x1b[2;3H'));
+		expect([e.state.row, e.state.column]).toEqual([1, 2]);
+		e.write(encoder.encode('\x1b[3;5f'));
+		expect([e.state.row, e.state.column]).toEqual([2, 4]);
+	});
+
+	it('homes the cursor, or keeps the other axis at 1, when parameters are omitted', () => {
+		const e = filled(['.....', '.....', '.....'], 2, 4);
+
+		e.write(encoder.encode('\x1b[2H'));
+		expect([e.state.row, e.state.column]).toEqual([1, 0]);
+		e.write(encoder.encode('\x1b[;3H'));
+		expect([e.state.row, e.state.column]).toEqual([0, 2]);
+		e.write(encoder.encode('\x1b[H'));
+		expect([e.state.row, e.state.column]).toEqual([0, 0]);
+	});
+
+	it('clamps CUP to the screen', () => {
+		const e = filled(['.....', '.....', '.....'], 0, 0);
+		e.write(encoder.encode('\x1b[99;99H'));
+
+		expect([e.state.row, e.state.column]).toEqual([2, 4]);
+	});
+
+	it('cancels a pending wrap', () => {
+		const e = new Parser(new State(4, 2), {});
+		e.write(encoder.encode('ABCD\x1b[BX'));
+
+		// The cursor was on the last column; CUD keeps it there and X lands on
+		// the next row instead of wrapping onto it from the first.
+		expect(e.state.row).toBe(1);
+		expect(screen(e)).toEqual(['ABCD', '   X']);
+		expect(e.state.buffer[0].break).toBe(false);
+
+		e.write(encoder.encode('\x1b[1;1HABCD\x1b[DX'));
+		expect(screen(e)[0]).toBe('ABXD');
+	});
+
+	it('moves relative to the last column when a wrap is pending', () => {
+		const e = new Parser(new State(4, 2), {});
+		e.write(encoder.encode('ABCD\x1b[2D'));
+
+		expect(e.state.column).toBe(1);
+	});
+
+	it('ignores marked and intermediate forms', () => {
+		const e = filled(['.....', '.....'], 1, 2);
+		e.write(encoder.encode('\x1b[?A\x1b[1 A\x1b[>H'));
+
+		expect([e.state.row, e.state.column]).toEqual([1, 2]);
+	});
+
+	it('moves across chunk boundaries', () => {
+		const e = filled(['.....', '.....'], 1, 4);
+		e.write(encoder.encode('\x1b[1'));
+		e.write(encoder.encode('2;'));
+		e.write(encoder.encode('1H'));
+
+		expect([e.state.row, e.state.column]).toEqual([1, 0]);
+	});
+});
+
+describe('erase in display (ED)', () => {
+	it('erases from the cursor to the end of the screen by default', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC'], 1, 2);
+		e.write(encoder.encode('\x1b[J'));
+
+		expect(screen(e)).toEqual(['AAAA', 'BB  ', '    ']);
+		expect([e.state.row, e.state.column]).toEqual([1, 2]);
+	});
+
+	it('erases from the start of the screen to the cursor with 1', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC'], 1, 2);
+		e.write(encoder.encode('\x1b[1J'));
+
+		expect(screen(e)).toEqual(['    ', '   B', 'CCCC']);
+	});
+
+	it('erases the whole screen with 2, leaving the cursor', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC'], 1, 2);
+		e.write(encoder.encode('\x1b[2J'));
+
+		expect(screen(e)).toEqual(['    ', '    ', '    ']);
+		expect([e.state.row, e.state.column]).toEqual([1, 2]);
+	});
+
+	it('leaves the screen alone for 3, which has no scrollback to clear', () => {
+		const e = filled(['AAAA', 'BBBB'], 0, 0);
+		e.write(encoder.encode('\x1b[3J'));
+
+		expect(screen(e)).toEqual(['AAAA', 'BBBB']);
+	});
+
+	it('erases the cursor cell even with a wrap pending', () => {
+		const e = new Parser(new State(4, 1), {});
+		e.write(encoder.encode('ABCD\x1b[J'));
+
+		expect(screen(e)).toEqual(['ABC ']);
+	});
+
+	it('forgets that the erased lines wrapped', () => {
+		const e = new Parser(new State(4, 3), {});
+		e.write(encoder.encode('ABCDEFGH'));
+		expect(e.state.buffer[0].break).toBe(true);
+		e.write(encoder.encode('\x1b[H\x1b[J'));
+
+		expect(e.state.buffer[0].break).toBe(false);
+	});
+
+	it('fills with the current background color', () => {
+		const e = filled(['AAAA', 'BBBB'], 0, 2);
+		e.write(encoder.encode('\x1b[44m\x1b[J'));
+
+		const blue = { type: 'palette', index: 4 };
+		expect(e.state.buffer[0].cells[1]?.text).toBe('A');
+		expect(e.state.buffer[0].cells[2]?.attrs.background).toEqual(blue);
+		expect(e.state.buffer[1].cells[3]?.attrs.background).toEqual(blue);
+		// Only the background carries over, not the other attributes.
+		e.write(encoder.encode('\x1b[1;31m\x1b[2J'));
+		expect(e.state.buffer[1].cells[0]?.attrs.bold).toBe(false);
+		expect(e.state.buffer[1].cells[0]?.attrs.foreground).toBeNull();
+	});
+});
+
+describe('erase in line (EL)', () => {
+	it('erases from the cursor to the end of the line by default', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC'], 1, 2);
+		e.write(encoder.encode('\x1b[K'));
+
+		expect(screen(e)).toEqual(['AAAA', 'BB  ', 'CCCC']);
+	});
+
+	it('erases from the start of the line to the cursor with 1', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC'], 1, 2);
+		e.write(encoder.encode('\x1b[1K'));
+
+		expect(screen(e)).toEqual(['AAAA', '   B', 'CCCC']);
+	});
+
+	it('erases the whole line with 2, leaving the cursor', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC'], 1, 2);
+		e.write(encoder.encode('\x1b[2K'));
+
+		expect(screen(e)).toEqual(['AAAA', '    ', 'CCCC']);
+		expect([e.state.row, e.state.column]).toEqual([1, 2]);
+	});
+
+	it('ignores unknown modes', () => {
+		const e = filled(['AAAA'], 0, 1);
+		e.write(encoder.encode('\x1b[9K'));
+
+		expect(screen(e)).toEqual(['AAAA']);
+	});
+
+	it('forgets that the line wrapped when erasing to its end', () => {
+		const e = new Parser(new State(4, 3), {});
+		e.write(encoder.encode('ABCDEFGH\x1b[1;1H\x1b[K'));
+
+		expect(e.state.buffer[0].break).toBe(false);
+	});
+});
+
+describe('erase characters (ECH)', () => {
+	it('blanks characters from the cursor without shifting', () => {
+		const e = filled(['ABCDE'], 0, 1);
+		e.write(encoder.encode('\x1b[2X'));
+
+		expect(screen(e)).toEqual(['A  DE']);
+		expect(e.state.column).toBe(1);
+	});
+
+	it('defaults to one character and stops at the edge', () => {
+		const e = filled(['ABCDE'], 0, 3);
+		e.write(encoder.encode('\x1b[X'));
+		expect(screen(e)).toEqual(['ABC E']);
+
+		e.write(encoder.encode('\x1b[99X'));
+		expect(screen(e)).toEqual(['ABC  ']);
+	});
+});
+
+describe('insert and delete characters (ICH, DCH)', () => {
+	it('inserts blanks, pushing the rest of the line off the edge', () => {
+		const e = filled(['ABCDE'], 0, 1);
+		e.write(encoder.encode('\x1b[2@'));
+
+		expect(screen(e)).toEqual(['A  BC']);
+		expect(e.state.column).toBe(1);
+	});
+
+	it('inserts at most to the edge', () => {
+		const e = filled(['ABCDE'], 0, 3);
+		e.write(encoder.encode('\x1b[99@'));
+
+		expect(screen(e)).toEqual(['ABC  ']);
+	});
+
+	it('deletes characters, pulling the rest of the line left', () => {
+		const e = filled(['ABCDE'], 0, 1);
+		e.write(encoder.encode('\x1b[2P'));
+
+		expect(screen(e)).toEqual(['ADE  ']);
+		expect(e.state.column).toBe(1);
+	});
+
+	it('deletes at most to the edge', () => {
+		const e = filled(['ABCDE'], 0, 3);
+		e.write(encoder.encode('\x1b[99P'));
+
+		expect(screen(e)).toEqual(['ABC  ']);
+	});
+
+	it('works on the last column with a wrap pending, and cancels the wrap', () => {
+		const e = new Parser(new State(4, 2), {});
+		e.write(encoder.encode('ABCD\x1b[P'));
+
+		expect(screen(e)).toEqual(['ABC ', '    ']);
+		expect(e.state.column).toBe(3);
+	});
+
+	it('keeps the line the same length', () => {
+		const e = filled(['ABCDE'], 0, 1);
+		e.write(encoder.encode('\x1b[3@\x1b[3P'));
+
+		expect(e.state.buffer[0].cells).toHaveLength(5);
+	});
+
+	it('fills the vacated cells with the current background', () => {
+		const e = filled(['ABCDE'], 0, 3);
+		e.write(encoder.encode('\x1b[42m\x1b[P'));
+
+		expect(e.state.buffer[0].cells[4]?.attrs.background).toEqual({ type: 'palette', index: 2 });
+	});
+});
+
+describe('insert and delete lines (IL, DL)', () => {
+	it('inserts blank lines at the cursor, pushing the rest off the bottom', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC', 'DDDD'], 1, 2);
+		e.write(encoder.encode('\x1b[2L'));
+
+		expect(screen(e)).toEqual(['AAAA', '    ', '    ', 'BBBB']);
+	});
+
+	it('returns the cursor to the first column', () => {
+		const e = filled(['AAAA', 'BBBB'], 1, 2);
+		e.write(encoder.encode('\x1b[L'));
+
+		expect([e.state.row, e.state.column]).toEqual([1, 0]);
+	});
+
+	it('inserts at most to the bottom', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC'], 1, 0);
+		e.write(encoder.encode('\x1b[99L'));
+
+		expect(screen(e)).toEqual(['AAAA', '    ', '    ']);
+		expect(e.state.buffer).toHaveLength(3);
+	});
+
+	it('deletes lines at the cursor, pulling the rest up', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC', 'DDDD'], 1, 2);
+		e.write(encoder.encode('\x1b[2M'));
+
+		expect(screen(e)).toEqual(['AAAA', 'DDDD', '    ', '    ']);
+		expect([e.state.row, e.state.column]).toEqual([1, 0]);
+	});
+
+	it('deletes at most to the bottom', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC'], 1, 0);
+		e.write(encoder.encode('\x1b[99M'));
+
+		expect(screen(e)).toEqual(['AAAA', '    ', '    ']);
+		expect(e.state.buffer).toHaveLength(3);
+	});
+
+	it('leaves the lines above the cursor alone', () => {
+		const e = filled(['AAAA', 'BBBB', 'CCCC'], 2, 0);
+		e.write(encoder.encode('\x1b[L\x1b[M'));
+
+		expect(screen(e)).toEqual(['AAAA', 'BBBB', '    ']);
+	});
+});

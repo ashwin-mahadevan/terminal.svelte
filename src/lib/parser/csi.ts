@@ -8,6 +8,69 @@ import {
 } from '$lib/parser/state-machine.svelte';
 import type { Parser } from '$lib/parser/state-machine.svelte';
 
+// A count parameter: absent, empty and 0 all mean 1.
+const count = (emulator: Parser, index: number): number => emulator.parameters[index] || 1;
+
+const edit = (emulator: Parser, final: number) => {
+	const { state, parameters } = emulator;
+	const n = count(emulator, 0);
+
+	switch (final) {
+		case 0x40: // ICH
+			state.insertCharacters(n);
+			break;
+		case 0x41: // CUU
+			state.moveBy(-n, 0);
+			break;
+		case 0x42: // CUD
+		case 0x65: // VPR
+			state.moveBy(n, 0);
+			break;
+		case 0x43: // CUF
+		case 0x61: // HPR
+			state.moveBy(0, n);
+			break;
+		case 0x44: // CUB
+			state.moveBy(0, -n);
+			break;
+		case 0x45: // CNL
+			state.moveTo(state.row + n, 0);
+			break;
+		case 0x46: // CPL
+			state.moveTo(state.row - n, 0);
+			break;
+		case 0x47: // CHA
+		case 0x60: // HPA
+			state.moveTo(state.row, n - 1);
+			break;
+		case 0x48: // CUP
+		case 0x66: // HVP
+			state.moveTo(n - 1, count(emulator, 1) - 1);
+			break;
+		case 0x4a: // ED
+			state.eraseInDisplay(parameters[0] ?? 0);
+			break;
+		case 0x4b: // EL
+			state.eraseInLine(parameters[0] ?? 0);
+			break;
+		case 0x4c: // IL
+			state.insertLines(n);
+			break;
+		case 0x4d: // DL
+			state.deleteLines(n);
+			break;
+		case 0x50: // DCH
+			state.deleteCharacters(n);
+			break;
+		case 0x58: // ECH
+			state.eraseCharacters(n);
+			break;
+		case 0x64: // VPA
+			state.moveTo(n - 1, state.cursorColumn);
+			break;
+	}
+};
+
 export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number => {
 	const byte = chunk[start];
 
@@ -79,7 +142,8 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 			emulator.mode = MODE_ESCAPE;
 			break;
 
-		// 0x40–0x7e: final bytes — dispatch the control sequence.
+		// Cursor movement and editing. Marked and intermediate forms, like DECSED
+		// (CSI ? J), are something else entirely and are ignored.
 		case 0x40: // ICH (Insert Characters)
 		case 0x41: // CUU (Cursor Up)
 		case 0x42: // CUD (Cursor Down)
@@ -89,22 +153,29 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 		case 0x46: // CPL (Cursor Previous Line)
 		case 0x47: // CHA (Cursor Character Absolute)
 		case 0x48: // CUP (Cursor Position)
-		case 0x49: // CHT (Cursor Forward Tabulation)
 		case 0x4a: // ED (Erase in Display)
 		case 0x4b: // EL (Erase in Line)
 		case 0x4c: // IL (Insert Lines)
 		case 0x4d: // DL (Delete Lines)
 		case 0x50: // DCH (Delete Characters)
-		case 0x53: // SU (Scroll Up)
-		case 0x54: // SD (Scroll Down)
 		case 0x58: // ECH (Erase Characters)
-		case 0x5a: // CBT (Cursor Backward Tabulation)
 		case 0x60: // HPA (Horizontal Position Absolute)
 		case 0x61: // HPR (Horizontal Position Relative)
-		case 0x62: // REP (Repeat Preceding Character)
 		case 0x64: // VPA (Vertical Position Absolute)
 		case 0x65: // VPR (Vertical Position Relative)
 		case 0x66: // HVP (Horizontal and Vertical Position)
+			if (emulator.privateMarker === null && emulator.intermediates.length === 0) {
+				edit(emulator, byte);
+			}
+			emulator.mode = MODE_GROUND;
+			break;
+
+		// 0x40–0x7e: final bytes — not implemented yet.
+		case 0x49: // CHT (Cursor Forward Tabulation)
+		case 0x53: // SU (Scroll Up)
+		case 0x54: // SD (Scroll Down)
+		case 0x5a: // CBT (Cursor Backward Tabulation)
+		case 0x62: // REP (Repeat Preceding Character)
 		case 0x67: // TBC (Tab Clear)
 		case 0x68: // SM (Set Mode)
 		case 0x6c: // RM (Reset Mode)

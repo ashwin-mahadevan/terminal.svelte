@@ -69,6 +69,10 @@ function extendedColor(
 	}
 }
 
+function clamp(value: number, minimum: number, maximum: number): number {
+	return Math.min(Math.max(value, minimum), maximum);
+}
+
 // Default interval between tab stops, in columns.
 const TAB_STOP_INTERVAL = 8;
 
@@ -258,6 +262,118 @@ export class State {
 		}
 
 		this.attributes = attributes;
+	}
+
+	// The column the cursor is drawn in: a pending wrap parks `column` one past
+	// the edge, but the cursor itself is still on the last column.
+	get cursorColumn(): number {
+		return Math.min(this.column, this.columns - 1);
+	}
+
+	// Cursor movement. Every move is clamped to the screen and cancels a
+	// pending wrap. (Scroll regions and origin mode don't exist yet.)
+	moveTo(row: number, column: number) {
+		this.row = clamp(row, 0, this.rows - 1);
+		this.column = clamp(column, 0, this.columns - 1);
+	}
+
+	moveBy(rows: number, columns: number) {
+		this.moveTo(this.row + rows, this.cursorColumn + columns);
+	}
+
+	// The cell left behind by an erase. Like xterm's "back color erase", it
+	// takes the current background, and is otherwise empty.
+	private blankCell(): Cell | undefined {
+		const { background } = this.attributes;
+		if (background === null) return undefined;
+		return { text: ' ', attrs: { ...DEFAULT_ATTRIBUTES, background } };
+	}
+
+	private blankLine(): Line {
+		const blank = this.blankCell();
+		return { cells: new Array<Cell | undefined>(this.columns).fill(blank), break: false };
+	}
+
+	// Blank the columns in [from, to) of a row.
+	private eraseColumns(row: number, from: number, to: number) {
+		const blank = this.blankCell();
+		const cells = this.buffer[row].cells;
+		for (let column = from; column < to; column += 1) cells[column] = blank;
+	}
+
+	// ED: 0 erases from the cursor to the end of the screen, 1 from the start
+	// of the screen to the cursor, and 2 the whole screen. 3 would also erase
+	// the scrollback, which doesn't exist yet. The cursor does not move.
+	eraseInDisplay(mode: number) {
+		const first = mode === 0 ? this.row : 0;
+		const last = mode === 1 ? this.row : this.rows - 1;
+		if (mode > 2) return;
+
+		for (let row = first; row <= last; row += 1) {
+			const from = mode === 0 && row === this.row ? this.cursorColumn : 0;
+			const to = mode === 1 && row === this.row ? this.cursorColumn + 1 : this.columns;
+			this.eraseColumns(row, from, to);
+			if (to === this.columns) this.buffer[row].break = false;
+		}
+	}
+
+	// EL: 0 erases from the cursor to the end of the line, 1 from the start
+	// of the line to the cursor, and 2 the whole line. The cursor does not move.
+	eraseInLine(mode: number) {
+		if (mode > 2) return;
+		const from = mode === 0 ? this.cursorColumn : 0;
+		const to = mode === 1 ? this.cursorColumn + 1 : this.columns;
+		this.eraseColumns(this.row, from, to);
+		if (to === this.columns) this.buffer[this.row].break = false;
+	}
+
+	// ECH: blank `count` characters from the cursor, without shifting.
+	eraseCharacters(count: number) {
+		this.column = this.cursorColumn;
+		this.eraseColumns(this.row, this.column, Math.min(this.column + count, this.columns));
+	}
+
+	// ICH: insert `count` blanks at the cursor, pushing the rest of the line
+	// right and off the edge.
+	insertCharacters(count: number) {
+		this.column = this.cursorColumn;
+		const cells = this.buffer[this.row].cells;
+		const shift = Math.min(count, this.columns - this.column);
+		for (let column = this.columns - 1; column >= this.column + shift; column -= 1) {
+			cells[column] = cells[column - shift];
+		}
+		this.eraseColumns(this.row, this.column, this.column + shift);
+	}
+
+	// DCH: delete `count` characters at the cursor, pulling the rest of the
+	// line left and blanking the end.
+	deleteCharacters(count: number) {
+		this.column = this.cursorColumn;
+		const cells = this.buffer[this.row].cells;
+		const shift = Math.min(count, this.columns - this.column);
+		for (let column = this.column; column < this.columns - shift; column += 1) {
+			cells[column] = cells[column + shift];
+		}
+		this.eraseColumns(this.row, this.columns - shift, this.columns);
+	}
+
+	// IL: insert `count` blank lines at the cursor row, pushing the lines
+	// below it down and off the bottom. The cursor returns to the first column.
+	insertLines(count: number) {
+		const inserted = Math.min(count, this.rows - this.row);
+		const blanks = Array.from({ length: inserted }, () => this.blankLine());
+		this.buffer.splice(this.row, 0, ...blanks);
+		this.buffer.splice(this.rows, inserted);
+		this.column = 0;
+	}
+
+	// DL: delete `count` lines at the cursor row, pulling the lines below it
+	// up and blanking the bottom. The cursor returns to the first column.
+	deleteLines(count: number) {
+		const deleted = Math.min(count, this.rows - this.row);
+		this.buffer.splice(this.row, deleted);
+		this.buffer.push(...Array.from({ length: deleted }, () => this.blankLine()));
+		this.column = 0;
 	}
 
 	// HT: move the cursor right to the next tab stop, or the last column if none remain.
