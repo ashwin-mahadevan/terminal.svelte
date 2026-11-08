@@ -108,13 +108,21 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 		case 0x67: // TBC (Tab Clear)
 		case 0x68: // SM (Set Mode)
 		case 0x6c: // RM (Reset Mode)
-		case 0x6d: // SGR (Select Graphic Rendition)
 		case 0x6e: // DSR (Device Status Report)
 		case 0x72: // DECSTBM (Set Top and Bottom Margins)
 		case 0x73: // SCOSC (Save Cursor)
 		case 0x74: // XTWINOPS (Window Manipulation)
 		case 0x75: // SCORC (Restore Cursor)
 			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
+			emulator.mode = MODE_GROUND;
+			break;
+
+		// CSI m → SGR (Select Graphic Rendition). Marked forms, like XTMODKEYS
+		// (CSI > m), are something else entirely and are ignored.
+		case 0x6d:
+			if (emulator.privateMarker === null && emulator.intermediates.length === 0) {
+				emulator.state.selectGraphicRendition(emulator.parameters);
+			}
 			emulator.mode = MODE_GROUND;
 			break;
 

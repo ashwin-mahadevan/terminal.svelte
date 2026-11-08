@@ -381,3 +381,163 @@ describe('ignored C1 controls', () => {
 		expect(e.state.buffer[0].cells[1]).toBeUndefined();
 	});
 });
+
+describe('select graphic rendition (SGR)', () => {
+	// The attributes the cell printed after `input` was stamped with.
+	const attributesAfter = (input: string) => {
+		const e = new Parser(new State(20, 4), {});
+		e.write(encoder.encode(`${input}X`));
+		return e.state.buffer[0].cells[0]?.attrs;
+	};
+
+	it.each([
+		{ name: 'bold', parameter: 1, field: 'bold' },
+		{ name: 'dim', parameter: 2, field: 'dim' },
+		{ name: 'italic', parameter: 3, field: 'italic' },
+		{ name: 'underline', parameter: 4, field: 'underline' },
+		{ name: 'double underline, as underline', parameter: 21, field: 'underline' },
+		{ name: 'blink', parameter: 5, field: 'blink' },
+		{ name: 'rapid blink, as blink', parameter: 6, field: 'blink' },
+		{ name: 'inverse', parameter: 7, field: 'inverse' },
+		{ name: 'invisible', parameter: 8, field: 'invisible' },
+		{ name: 'strikethrough', parameter: 9, field: 'strikethrough' }
+	] as const)('sets $name with SGR $parameter', ({ parameter, field }) => {
+		expect(attributesAfter(`\x1b[${parameter}m`)?.[field]).toBe(true);
+	});
+
+	it.each([
+		{ name: 'italic', on: 3, off: 23, field: 'italic' },
+		{ name: 'underline', on: 4, off: 24, field: 'underline' },
+		{ name: 'blink', on: 5, off: 25, field: 'blink' },
+		{ name: 'inverse', on: 7, off: 27, field: 'inverse' },
+		{ name: 'invisible', on: 8, off: 28, field: 'invisible' },
+		{ name: 'strikethrough', on: 9, off: 29, field: 'strikethrough' }
+	] as const)('clears $name with SGR $off', ({ on, off, field }) => {
+		expect(attributesAfter(`\x1b[${on}m\x1b[${off}m`)?.[field]).toBe(false);
+	});
+
+	it('clears both bold and dim with SGR 22', () => {
+		const attrs = attributesAfter('\x1b[1;2m\x1b[22m');
+		expect(attrs?.bold).toBe(false);
+		expect(attrs?.dim).toBe(false);
+	});
+
+	it.each([
+		{ name: 'SGR 0', input: '\x1b[0m' },
+		{ name: 'an empty SGR', input: '\x1b[m' },
+		{ name: 'an empty parameter', input: '\x1b[;m' }
+	])('resets everything with $name', ({ input }) => {
+		const reset = attributesAfter('');
+		expect(attributesAfter(`\x1b[1;3;4;7;31;42m${input}`)).toEqual(reset);
+	});
+
+	it('applies parameters left to right, so a reset only undoes what came before', () => {
+		const attrs = attributesAfter('\x1b[1;0;3m');
+		expect(attrs?.bold).toBe(false);
+		expect(attrs?.italic).toBe(true);
+	});
+
+	it('keeps attributes across sequences and printed text', () => {
+		const e = new Parser(new State(20, 4), {});
+		e.write(encoder.encode('\x1b[1mA\x1b[3mB'));
+
+		expect(e.state.buffer[0].cells[0]?.attrs.italic).toBe(false);
+		expect(e.state.buffer[0].cells[1]?.attrs.bold).toBe(true);
+		expect(e.state.buffer[0].cells[1]?.attrs.italic).toBe(true);
+	});
+
+	it('leaves earlier cells alone when attributes change', () => {
+		const e = new Parser(new State(20, 4), {});
+		e.write(encoder.encode('A\x1b[1mB'));
+
+		expect(e.state.buffer[0].cells[0]?.attrs.bold).toBe(false);
+	});
+
+	it.each([
+		{ name: 'standard foreground', input: '\x1b[31m', field: 'foreground', index: 1 },
+		{ name: 'standard background', input: '\x1b[47m', field: 'background', index: 7 },
+		{ name: 'bright foreground', input: '\x1b[90m', field: 'foreground', index: 8 },
+		{ name: 'bright background', input: '\x1b[107m', field: 'background', index: 15 },
+		{ name: '256-color foreground', input: '\x1b[38;5;208m', field: 'foreground', index: 208 },
+		{ name: '256-color background', input: '\x1b[48;5;17m', field: 'background', index: 17 },
+		{ name: 'empty 256-color index, as 0', input: '\x1b[38;5;m', field: 'foreground', index: 0 }
+	] as const)('sets a palette $name', ({ input, field, index }) => {
+		expect(attributesAfter(input)?.[field]).toEqual({ type: 'palette', index });
+	});
+
+	it('sets direct-color foreground and background', () => {
+		const attrs = attributesAfter('\x1b[38;2;255;128;0;48;2;0;0;64m');
+		expect(attrs?.foreground).toEqual({ type: 'rgb', r: 255, g: 128, b: 0 });
+		expect(attrs?.background).toEqual({ type: 'rgb', r: 0, g: 0, b: 64 });
+	});
+
+	it('restores the default colors with SGR 39 and 49', () => {
+		const attrs = attributesAfter('\x1b[31;42m\x1b[39;49m');
+		expect(attrs?.foreground).toBeNull();
+		expect(attrs?.background).toBeNull();
+	});
+
+	it('continues with the parameters after an extended color', () => {
+		const attrs = attributesAfter('\x1b[38;5;1;1;48;2;1;2;3;4m');
+		expect(attrs?.foreground).toEqual({ type: 'palette', index: 1 });
+		expect(attrs?.bold).toBe(true);
+		expect(attrs?.background).toEqual({ type: 'rgb', r: 1, g: 2, b: 3 });
+		expect(attrs?.underline).toBe(true);
+	});
+
+	it('skips an underline color (SGR 58) without reading its components as attributes', () => {
+		// Read naively, 2 would set dim and 0 would reset the bold.
+		const attrs = attributesAfter('\x1b[1;58;2;0;255;0m');
+		expect(attrs?.bold).toBe(true);
+		expect(attrs?.dim).toBe(false);
+	});
+
+	it('ignores an out-of-range extended color but keeps the rest', () => {
+		const attrs = attributesAfter('\x1b[31m\x1b[38;5;256;1m\x1b[38;2;0;300;0m');
+		expect(attrs?.foreground).toEqual({ type: 'palette', index: 1 });
+		expect(attrs?.bold).toBe(true);
+	});
+
+	it.each([
+		{ name: 'a truncated 256-color form', input: '\x1b[31m\x1b[38;5m' },
+		{ name: 'a truncated direct-color form', input: '\x1b[31m\x1b[38;2;1;2m' },
+		{ name: 'an unknown color kind', input: '\x1b[31m\x1b[38;9;1m' },
+		{ name: 'a missing color kind', input: '\x1b[31m\x1b[38m' }
+	])('ignores $name and everything after it', ({ input }) => {
+		const attrs = attributesAfter(input);
+		expect(attrs?.foreground).toEqual({ type: 'palette', index: 1 });
+		expect(attrs?.bold).toBe(false);
+	});
+
+	it('ignores unknown parameters', () => {
+		expect(attributesAfter('\x1b[1;73;3m')).toEqual(attributesAfter('\x1b[1;3m'));
+	});
+
+	it('ignores a marked sequence like XTMODKEYS (CSI > m)', () => {
+		expect(attributesAfter('\x1b[>4;1m')).toEqual(attributesAfter(''));
+	});
+
+	it('keeps the parameters across chunk boundaries', () => {
+		const e = new Parser(new State(20, 4), {});
+		e.write(encoder.encode('\x1b[38;2;1'));
+		e.write(encoder.encode('0;20;30'));
+		e.write(encoder.encode('mX'));
+
+		expect(e.state.buffer[0].cells[0]?.attrs.foreground).toEqual({
+			type: 'rgb',
+			r: 10,
+			g: 20,
+			b: 30
+		});
+	});
+
+	it('is saved by DECSC and restored by DECRC', () => {
+		const attrs = attributesAfter('\x1b[1;31m\x1b7\x1b[0m\x1b8');
+		expect(attrs?.bold).toBe(true);
+		expect(attrs?.foreground).toEqual({ type: 'palette', index: 1 });
+	});
+
+	it('resets on RIS', () => {
+		expect(attributesAfter('\x1b[1;31m\x1bc')).toEqual(attributesAfter(''));
+	});
+});
