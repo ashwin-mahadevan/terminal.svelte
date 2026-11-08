@@ -107,6 +107,17 @@ export class State {
 	// prefixed) instead of the characters printed on the keys.
 	applicationKeypad = false;
 
+	// DECSET/DECRST modes.
+	// DECAWM (?7): whether printing in the last column wraps to the next line.
+	autowrap = $state(true);
+	// DECTCEM (?25): whether the cursor is drawn.
+	cursorVisible = $state(true);
+	// DECCKM (?1): whether the arrow keys send SS3 sequences instead of CSI ones.
+	applicationCursor = $state(false);
+	// ?2004: whether pasted text is wrapped in markers, so the application can
+	// tell it from typing.
+	bracketedPaste = $state(false);
+
 	constructor(columns = 80, rows = 24) {
 		this.columns = columns;
 		this.rows = rows;
@@ -148,6 +159,31 @@ export class State {
 		this.tabStops = defaultTabStops(this.columns);
 		this.savedCursor = null;
 		this.applicationKeypad = false;
+		this.autowrap = true;
+		this.cursorVisible = true;
+		this.applicationCursor = false;
+		this.bracketedPaste = false;
+	}
+
+	// DECSET (enabled) and DECRST (disabled) for one private mode. Returns
+	// false if the mode isn't supported.
+	setPrivateMode(mode: number, enabled: boolean): boolean {
+		switch (mode) {
+			case 1:
+				this.applicationCursor = enabled;
+				return true;
+			case 7:
+				this.autowrap = enabled;
+				return true;
+			case 25:
+				this.cursorVisible = enabled;
+				return true;
+			case 2004:
+				this.bracketedPaste = enabled;
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	// DECSC: save the cursor position, attributes, and — since a pending wrap
@@ -385,13 +421,13 @@ export class State {
 		if (this.column === this.columns) this.column -= 1;
 	}
 
-	print(text: string, autowrap: boolean) {
+	print(text: string) {
 		// A previous character filled the last column, leaving a wrap pending
 		// (this.column === this.columns). With autowrap (DECAWM) on, resolve it
 		// by moving to a new line before writing; with it off, cancel the wrap
 		// so the cursor overwrites the last column instead.
 		if (this.column === this.columns) {
-			if (autowrap) {
+			if (this.autowrap) {
 				this.buffer[this.row].break = true;
 				this.column = 0;
 				this.linefeed();
@@ -407,7 +443,7 @@ export class State {
 
 		if (this.column < this.columns - 1) {
 			this.column += 1;
-		} else if (autowrap) {
+		} else if (this.autowrap) {
 			this.column = this.columns;
 		}
 	}

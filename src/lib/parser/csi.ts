@@ -4,9 +4,12 @@ import {
 	MODE_CSI_INTERMEDIATE,
 	MODE_CSI_PARAM,
 	MODE_ESCAPE,
-	MODE_GROUND
+	MODE_GROUND,
+	SECONDARY_DEVICE_ATTRIBUTES_RESPONSE
 } from '$lib/parser/state-machine.svelte';
 import type { Parser } from '$lib/parser/state-machine.svelte';
+
+const encoder = new TextEncoder();
 
 // A count parameter: absent, empty and 0 all mean 1.
 const count = (emulator: Parser, index: number): number => emulator.parameters[index] || 1;
@@ -177,9 +180,6 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 		case 0x5a: // CBT (Cursor Backward Tabulation)
 		case 0x62: // REP (Repeat Preceding Character)
 		case 0x67: // TBC (Tab Clear)
-		case 0x68: // SM (Set Mode)
-		case 0x6c: // RM (Reset Mode)
-		case 0x6e: // DSR (Device Status Report)
 		case 0x72: // DECSTBM (Set Top and Bottom Margins)
 		case 0x73: // SCOSC (Save Cursor)
 		case 0x74: // XTWINOPS (Window Manipulation)
@@ -197,14 +197,44 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 			emulator.mode = MODE_GROUND;
 			break;
 
-		// CSI c → DA (Device Attributes), only for a plain request with parameter 0.
+		// CSI h → SM (Set Mode), CSI l → RM (Reset Mode). Only the private (?)
+		// forms, DECSET and DECRST, are supported.
+		case 0x68:
+		case 0x6c:
+			if (emulator.privateMarker === 0x3f && emulator.intermediates.length === 0) {
+				for (const parameter of emulator.parameters) {
+					if (parameter !== null && !emulator.state.setPrivateMode(parameter, byte === 0x68)) {
+						console.log(`NOT IMPLEMENTED: DEC private mode ${parameter}`);
+					}
+				}
+			}
+			emulator.mode = MODE_GROUND;
+			break;
+
+		// CSI n → DSR (Device Status Report): 5 asks if the terminal is OK, and 6
+		// for the cursor position. Marked forms are different reports and are
+		// ignored.
+		case 0x6e:
+			if (emulator.privateMarker === null && emulator.intermediates.length === 0) {
+				if (emulator.parameters[0] === 5) {
+					emulator.events.ondata?.(encoder.encode('\x1b[0n'));
+				} else if (emulator.parameters[0] === 6) {
+					const { row, cursorColumn } = emulator.state;
+					emulator.events.ondata?.(encoder.encode(`\x1b[${row + 1};${cursorColumn + 1}R`));
+				}
+			}
+			emulator.mode = MODE_GROUND;
+			break;
+
+		// CSI c → DA (Device Attributes), only for a request with parameter 0:
+		// plain for the primary report, marked with > for the secondary one.
 		case 0x63:
-			if (
-				emulator.privateMarker === null &&
-				emulator.intermediates.length === 0 &&
-				(emulator.parameters[0] ?? 0) === 0
-			) {
-				emulator.events.ondata?.(DEVICE_ATTRIBUTES_RESPONSE);
+			if (emulator.intermediates.length === 0 && (emulator.parameters[0] ?? 0) === 0) {
+				if (emulator.privateMarker === null) {
+					emulator.events.ondata?.(DEVICE_ATTRIBUTES_RESPONSE);
+				} else if (emulator.privateMarker === 0x3e) {
+					emulator.events.ondata?.(SECONDARY_DEVICE_ATTRIBUTES_RESPONSE);
+				}
 			}
 			emulator.mode = MODE_GROUND;
 			break;

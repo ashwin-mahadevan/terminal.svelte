@@ -59,7 +59,7 @@ describe('autowrap (DECAWM)', () => {
 
 	it('overwrites the last column when autowrap is disabled', () => {
 		const e = new Parser(new State(4, 4), {});
-		e.autowrap = false;
+		e.state.autowrap = false;
 		e.write(encoder.encode('ABCDEF'));
 
 		// D, E and F all land on the last column, each overwriting the last; the
@@ -192,7 +192,7 @@ describe('device attributes', () => {
 		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
 		e.write(encoder.encode('\x1bZ'));
 
-		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
+		expect(chunks).toEqual([encoder.encode('\x1b[?62;22c')]);
 		expect(e.state.column).toBe(0);
 	});
 
@@ -201,7 +201,7 @@ describe('device attributes', () => {
 		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
 		e.write(encoder.encode('\x1b[c'));
 
-		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
+		expect(chunks).toEqual([encoder.encode('\x1b[?62;22c')]);
 		expect(e.state.column).toBe(0);
 	});
 
@@ -210,7 +210,7 @@ describe('device attributes', () => {
 		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
 		e.write(encoder.encode('\x1b[0c'));
 
-		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
+		expect(chunks).toEqual([encoder.encode('\x1b[?62;22c')]);
 	});
 
 	it('answers DA split across chunks', () => {
@@ -220,15 +220,146 @@ describe('device attributes', () => {
 		e.write(encoder.encode('0'));
 		e.write(encoder.encode('c'));
 
-		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
+		expect(chunks).toEqual([encoder.encode('\x1b[?62;22c')]);
 	});
 
-	it('does not answer DA for a nonzero parameter or a marked request', () => {
+	it('does not answer DA for a nonzero parameter, an intermediate or a ? marker', () => {
 		const chunks: Array<Uint8Array> = [];
 		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
-		e.write(encoder.encode('\x1b[1c\x1b[>c\x1b[?1;2c'));
+		e.write(encoder.encode('\x1b[1c\x1b[?c\x1b[?1;2c\x1b[>1c\x1b[ c'));
 
 		expect(chunks).toEqual([]);
+	});
+});
+
+describe('secondary device attributes', () => {
+	it('answers DA2 (CSI > c) with the secondary report', () => {
+		const chunks: Array<Uint8Array> = [];
+		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
+		e.write(encoder.encode('\x1b[>c\x1b[>0c'));
+
+		expect(chunks).toEqual([encoder.encode('\x1b[>1;0;0c'), encoder.encode('\x1b[>1;0;0c')]);
+		expect(e.state.column).toBe(0);
+	});
+});
+
+describe('device status report (DSR)', () => {
+	it('reports that the terminal is OK for CSI 5 n', () => {
+		const chunks: Array<Uint8Array> = [];
+		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
+		e.write(encoder.encode('\x1b[5n'));
+
+		expect(chunks).toEqual([encoder.encode('\x1b[0n')]);
+	});
+
+	it('reports the cursor position, one-based, for CSI 6 n', () => {
+		const chunks: Array<Uint8Array> = [];
+		const e = new Parser(new State(10, 5), { ondata: (chunk) => chunks.push(chunk) });
+		e.write(encoder.encode('\x1b[6n\x1b[3;7H\x1b[6n'));
+
+		expect(chunks).toEqual([encoder.encode('\x1b[1;1R'), encoder.encode('\x1b[3;7R')]);
+	});
+
+	it('reports the last column while a wrap is pending', () => {
+		const chunks: Array<Uint8Array> = [];
+		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
+		e.write(encoder.encode('ABCD\x1b[6n'));
+
+		expect(chunks).toEqual([encoder.encode('\x1b[1;4R')]);
+		// The report doesn't disturb the pending wrap.
+		expect(e.state.column).toBe(4);
+	});
+
+	it('does not answer other or marked reports', () => {
+		const chunks: Array<Uint8Array> = [];
+		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
+		e.write(encoder.encode('\x1b[n\x1b[0n\x1b[7n\x1b[?6n\x1b[?5n'));
+
+		expect(chunks).toEqual([]);
+	});
+});
+
+describe('private modes (DECSET, DECRST)', () => {
+	it('starts with the defaults', () => {
+		const state = new State(4, 4);
+
+		expect(state.autowrap).toBe(true);
+		expect(state.cursorVisible).toBe(true);
+		expect(state.applicationCursor).toBe(false);
+		expect(state.bracketedPaste).toBe(false);
+	});
+
+	it('toggles application cursor keys with ?1', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[?1h'));
+		expect(e.state.applicationCursor).toBe(true);
+		e.write(encoder.encode('\x1b[?1l'));
+		expect(e.state.applicationCursor).toBe(false);
+	});
+
+	it('toggles autowrap with ?7', () => {
+		const e = new Parser(new State(4, 2), {});
+		e.write(encoder.encode('\x1b[?7lABCDEF'));
+
+		expect(screen(e)).toEqual(['ABCF', '    ']);
+		e.write(encoder.encode('\x1b[?7h\x1b[H\x1b[2JABCDEF'));
+		expect(screen(e)).toEqual(['ABCD', 'EF  ']);
+	});
+
+	it('toggles cursor visibility with ?25', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[?25l'));
+		expect(e.state.cursorVisible).toBe(false);
+		e.write(encoder.encode('\x1b[?25h'));
+		expect(e.state.cursorVisible).toBe(true);
+	});
+
+	it('toggles bracketed paste with ?2004', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[?2004h'));
+		expect(e.state.bracketedPaste).toBe(true);
+		e.write(encoder.encode('\x1b[?2004l'));
+		expect(e.state.bracketedPaste).toBe(false);
+	});
+
+	it('applies every mode in a list, skipping unknown and empty ones', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[?1;9999;;25;2004h'));
+		expect(e.state.applicationCursor).toBe(true);
+		expect(e.state.bracketedPaste).toBe(true);
+
+		e.write(encoder.encode('\x1b[?25;1;9999l'));
+		expect(e.state.cursorVisible).toBe(false);
+		expect(e.state.applicationCursor).toBe(false);
+		expect(e.state.bracketedPaste).toBe(true);
+	});
+
+	it('applies modes split across chunks', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[?20'));
+		e.write(encoder.encode('04'));
+		e.write(encoder.encode('h'));
+
+		expect(e.state.bracketedPaste).toBe(true);
+	});
+
+	it('ignores the unmarked and intermediate forms', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[1h\x1b[25l\x1b[>7l\x1b[?7 l\x1b[?25$l'));
+
+		expect(e.state.autowrap).toBe(true);
+		expect(e.state.cursorVisible).toBe(true);
+		expect(e.state.applicationCursor).toBe(false);
+	});
+
+	it('restores the defaults on RIS', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[?1;25l\x1b[?7l\x1b[?2004h\x1bc'));
+
+		expect(e.state.autowrap).toBe(true);
+		expect(e.state.cursorVisible).toBe(true);
+		expect(e.state.applicationCursor).toBe(false);
+		expect(e.state.bracketedPaste).toBe(false);
 	});
 });
 
@@ -262,7 +393,7 @@ describe('csi sequences', () => {
 		e.write(encoder.encode('\x1b[0\x07c'));
 
 		expect(bells).toBe(1);
-		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
+		expect(chunks).toEqual([encoder.encode('\x1b[?62;22c')]);
 	});
 
 	it('prints the remainder of a malformed sequence', () => {
@@ -334,7 +465,7 @@ describe('string sequences', () => {
 		const e = new Parser(new State(4, 4), { ondata: (chunk) => chunks.push(chunk) });
 		e.write(encoder.encode('\x1b]title\x1bZ'));
 
-		expect(chunks).toEqual([encoder.encode('\x1b[?1;2c')]);
+		expect(chunks).toEqual([encoder.encode('\x1b[?62;22c')]);
 	});
 
 	it('aborts OSC on CAN', () => {

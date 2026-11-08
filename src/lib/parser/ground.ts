@@ -79,7 +79,7 @@ export const ground = (parser: Parser, chunk: Uint8Array, start: number) => {
 					return index;
 				}
 
-				parser.state.print(String.fromCharCode(byte), parser.autowrap);
+				parser.state.print(String.fromCharCode(byte));
 			}
 		}
 
