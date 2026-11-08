@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Cell from '$lib/cell.svelte';
+	import { DEFAULT_BACKGROUND, DEFAULT_FOREGROUND } from '$lib/palette';
 	import type { State } from './state.svelte';
 
 	type Props = {
@@ -115,8 +116,8 @@
 	aria-label="Terminal"
 	tabindex="0"
 	onkeydown={handleKeydown}
-	style:background="#000"
-	style:color="#fff"
+	style:background={DEFAULT_BACKGROUND}
+	style:color={DEFAULT_FOREGROUND}
 	style:font-family="monospace"
 	style:display="inline-block"
 	style:line-height="normal"
