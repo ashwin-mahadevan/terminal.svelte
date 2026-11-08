@@ -69,19 +69,19 @@
 				return;
 			case 'ArrowUp':
 				event.preventDefault();
-				ondata?.('\x1b[A');
+				ondata?.(state.applicationCursor ? '\x1bOA' : '\x1b[A');
 				return;
 			case 'ArrowDown':
 				event.preventDefault();
-				ondata?.('\x1b[B');
+				ondata?.(state.applicationCursor ? '\x1bOB' : '\x1b[B');
 				return;
 			case 'ArrowRight':
 				event.preventDefault();
-				ondata?.('\x1b[C');
+				ondata?.(state.applicationCursor ? '\x1bOC' : '\x1b[C');
 				return;
 			case 'ArrowLeft':
 				event.preventDefault();
-				ondata?.('\x1b[D');
+				ondata?.(state.applicationCursor ? '\x1bOD' : '\x1b[D');
 				return;
 			default: {
 				if (event.key.length !== 1) return;
@@ -100,6 +100,21 @@
 		}
 	}
 
+	// Paste: line breaks become CRs, as if the text had been typed. When the
+	// application asked for bracketed paste (?2004), the text is wrapped in
+	// markers so it can tell a paste from typing; ESCs are dropped then, so the
+	// text can't close the bracket early.
+	function handlePaste(event: ClipboardEvent) {
+		const text = event.clipboardData?.getData('text/plain');
+		if (!text) return;
+
+		event.preventDefault();
+		const normalized = text.replace(/\r\n|\n/g, '\r');
+		ondata?.(
+			state.bracketedPaste ? `\x1b[200~${normalized.replaceAll('\x1b', '')}\x1b[201~` : normalized
+		);
+	}
+
 	// Render every row in the buffer and let the browser scroll the overflow.
 	const lines = $derived(state.buffer);
 
@@ -116,6 +131,7 @@
 	aria-label="Terminal"
 	tabindex="0"
 	onkeydown={handleKeydown}
+	onpaste={handlePaste}
 	style:background={DEFAULT_BACKGROUND}
 	style:color={DEFAULT_FOREGROUND}
 	style:font-family="monospace"
@@ -128,7 +144,7 @@
 	{#each lines as line, row (row)}
 		<div>
 			{#each line.cells as cell, col (col)}
-				<Cell {cell} isCursor={cursorColumn === col && state.row === row} />
+				<Cell {cell} isCursor={state.cursorVisible && cursorColumn === col && state.row === row} />
 			{/each}
 		</div>
 	{/each}

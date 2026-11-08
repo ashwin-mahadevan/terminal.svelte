@@ -17,6 +17,29 @@ if (import.meta.vitest) {
 		return getComputedStyle(cell);
 	};
 
+	// The computed style of the cell at `column` in the first row.
+	const cellStyle = (input: string, column: number) => {
+		const state = new State(4, 2);
+		new Parser(state, {}).write(new TextEncoder().encode(input));
+		const screen = render(Terminal, { state });
+		const row = screen.getByRole('application', { name: 'Terminal' }).element().firstElementChild!;
+		return getComputedStyle(row.children[column]);
+	};
+
+	describe('cursor', () => {
+		it('is drawn as inverse video by default', () => {
+			expect(cellStyle('', 0).backgroundColor).toBe('rgb(255, 255, 255)');
+		});
+
+		it('is not drawn while hidden with DECRST ?25', () => {
+			expect(cellStyle('\x1b[?25l', 0).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+		});
+
+		it('is drawn again after DECSET ?25', () => {
+			expect(cellStyle('\x1b[?25l\x1b[?25h', 0).backgroundColor).toBe('rgb(255, 255, 255)');
+		});
+	});
+
 	describe('cell rendition', () => {
 		it('draws default colors with no SGR', () => {
 			const style = styleOf('');
