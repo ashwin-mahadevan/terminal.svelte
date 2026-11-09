@@ -14,7 +14,16 @@ test('typing pwd prints the working directory', async ({ page }) => {
 	await page.goto('/');
 
 	const terminal = page.getByRole('application', { name: 'Terminal' });
-	const text = async () => (await terminal.textContent()) ?? '';
+	// The text of the rows. The terminal's own textContent isn't enough: it also
+	// has the hidden glyph the terminal measures its cells with, so it's never
+	// empty.
+	const text = () =>
+		terminal.evaluate((element) =>
+			Array.from(element.children)
+				.filter((child) => child.tagName === 'DIV' && child.getAttribute('aria-hidden') !== 'true')
+				.map((row) => row.textContent ?? '')
+				.join('')
+		);
 
 	// Wait for the shell's prompt before typing, so `pwd` reaches a shell that is
 	// reading input, not one still starting up.
