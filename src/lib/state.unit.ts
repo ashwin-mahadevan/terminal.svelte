@@ -451,13 +451,21 @@ describe('csi sequences', () => {
 		expect(e.state.buffer[0].cells[1]?.text).toBe('x');
 	});
 
-	it('treats sub-parameters as malformed', () => {
+	it('accumulates sub-parameters after colons', () => {
 		const e = new Parser(new State(4, 4), {});
-		e.write(encoder.encode('\x1b[38:2m'));
+		e.write(encoder.encode('\x1b[1;38:2::3'));
 
-		expect(e.state.buffer[0].cells[0]?.text).toBe(':');
-		expect(e.state.buffer[0].cells[1]?.text).toBe('2');
-		expect(e.state.buffer[0].cells[2]?.text).toBe('m');
+		expect(e.parameters).toEqual([1, 38, 2, null, 3]);
+		expect(e.subParameters).toEqual([false, false, true, true, true]);
+	});
+
+	it('ignores sequences other than SGR with sub-parameters, printing nothing', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b[2:3H\x1b[1:2J'));
+
+		expect(e.state.row).toBe(0);
+		expect(e.state.column).toBe(0);
+		expect(e.state.buffer[0].cells[0]).toBeUndefined();
 	});
 });
 
@@ -811,6 +819,59 @@ describe('select graphic rendition (SGR)', () => {
 
 	it('ignores unknown parameters', () => {
 		expect(attributesAfter('\x1b[1;73;3m')).toEqual(attributesAfter('\x1b[1;3m'));
+	});
+
+	it.each([
+		{ name: '2:r:g:b', input: '\x1b[38:2:1:2:3m' },
+		{ name: '2:cs:r:g:b, with an empty color space', input: '\x1b[38:2::1:2:3m' },
+		{ name: '2:cs:r:g:b, with a color space', input: '\x1b[38:2:0:1:2:3m' }
+	])('sets a direct color in the colon form $name', ({ input }) => {
+		expect(attributesAfter(input)?.foreground).toEqual({ type: 'rgb', r: 1, g: 2, b: 3 });
+	});
+
+	it('sets colors in the colon forms, alongside other parameters', () => {
+		const attrs = attributesAfter('\x1b[1;38:5:208;48:2::0:0:64;3m');
+		expect(attrs?.bold).toBe(true);
+		expect(attrs?.foreground).toEqual({ type: 'palette', index: 208 });
+		expect(attrs?.background).toEqual({ type: 'rgb', r: 0, g: 0, b: 64 });
+		expect(attrs?.italic).toBe(true);
+	});
+
+	it('skips an underline color in the colon form', () => {
+		const attrs = attributesAfter('\x1b[1;58:2::0:255:0;3m');
+		expect(attrs?.bold).toBe(true);
+		expect(attrs?.italic).toBe(true);
+		expect(attrs?.foreground).toBeNull();
+	});
+
+	it('ignores a colon-form color that is out of range or incomplete, but keeps the rest', () => {
+		const attrs = attributesAfter('\x1b[31m\x1b[38:5:256;38:2:1:2;38:9:1;1m');
+		expect(attrs?.foreground).toEqual({ type: 'palette', index: 1 });
+		expect(attrs?.bold).toBe(true);
+	});
+
+	it.each([1, 2, 3, 4, 5])('draws underline style 4:%i as an underline', (style) => {
+		expect(attributesAfter(`\x1b[4:${style}m`)?.underline).toBe(true);
+	});
+
+	it('clears the underline with 4:0', () => {
+		expect(attributesAfter('\x1b[4m\x1b[4:0m')?.underline).toBe(false);
+	});
+
+	it('ignores an unknown underline style, and sub-parameters on other parameters', () => {
+		expect(attributesAfter('\x1b[4:9;1:2;3m')).toEqual(attributesAfter('\x1b[3m'));
+	});
+
+	it('keeps sub-parameters across chunk boundaries', () => {
+		const e = new Parser(new State(20, 4), {});
+		e.write(encoder.encode('\x1b[38:2:'));
+		e.write(encoder.encode(':1:2:3mX'));
+		expect(e.state.buffer[0].cells[0]?.attrs.foreground).toEqual({
+			type: 'rgb',
+			r: 1,
+			g: 2,
+			b: 3
+		});
 	});
 
 	it('ignores a marked sequence like XTMODKEYS (CSI > m)', () => {

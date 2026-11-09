@@ -97,8 +97,25 @@ const edit = (emulator: Parser, final: number) => {
 	}
 };
 
+// SGR's parameters, each with the sub-parameters that follow it.
+const groups = (emulator: Parser): Array<Array<number | null>> => {
+	const result: Array<Array<number | null>> = [];
+	emulator.parameters.forEach((parameter, index) => {
+		if (emulator.subParameters[index] && result.length > 0)
+			result[result.length - 1].push(parameter);
+		else result.push([parameter]);
+	});
+	return result;
+};
+
 export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number => {
 	const byte = chunk[start];
+
+	// Only SGR takes sub-parameters. Any other sequence with them is ignored.
+	if (byte >= 0x40 && byte <= 0x7e && byte !== 0x6d && emulator.subParameters.includes(true)) {
+		emulator.mode = MODE_GROUND;
+		return 1;
+	}
 
 	switch (byte) {
 		// Intentionally Ignored
@@ -259,7 +276,7 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 		// (CSI > m), are something else entirely and are ignored.
 		case 0x6d:
 			if (emulator.privateMarker === null && emulator.intermediates.length === 0) {
-				emulator.state.selectGraphicRendition(emulator.parameters);
+				emulator.state.selectGraphicRendition(groups(emulator));
 			}
 			emulator.mode = MODE_GROUND;
 			break;
@@ -411,25 +428,26 @@ export const csiParam = (emulator: Parser, chunk: Uint8Array, start: number): nu
 
 		// 0x30–0x39: a digit of the current parameter.
 		if (byte >= 0x30 && byte <= 0x39) {
-			if (emulator.parameters.length === 0) emulator.parameters.push(null);
+			if (emulator.parameters.length === 0) {
+				emulator.parameters.push(null);
+				emulator.subParameters.push(false);
+			}
 			const last = emulator.parameters.length - 1;
 			emulator.parameters[last] = (emulator.parameters[last] ?? 0) * 10 + (byte - 0x30);
 			index += 1;
 			continue;
 		}
 
-		// 0x3b: the parameter separator.
-		if (byte === 0x3b) {
-			if (emulator.parameters.length === 0) emulator.parameters.push(null);
+		// 0x3b: the parameter separator, and 0x3a, the sub-parameter separator.
+		if (byte === 0x3b || byte === 0x3a) {
+			if (emulator.parameters.length === 0) {
+				emulator.parameters.push(null);
+				emulator.subParameters.push(false);
+			}
 			emulator.parameters.push(null);
+			emulator.subParameters.push(byte === 0x3a);
 			index += 1;
 			continue;
-		}
-
-		// 0x3a: sub-parameters are not supported — malformed.
-		if (byte === 0x3a) {
-			emulator.mode = MODE_GROUND;
-			return index;
 		}
 
 		// Anything else belongs to the csi parser.

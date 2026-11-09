@@ -104,6 +104,7 @@ export const escape = (emulator: Parser, chunk: Uint8Array, start: number): numb
 		case 0x5b:
 			emulator.privateMarker = null;
 			emulator.parameters = [];
+			emulator.subParameters = [];
 			emulator.intermediates = [];
 			emulator.mode = MODE_CSI;
 			return 1;

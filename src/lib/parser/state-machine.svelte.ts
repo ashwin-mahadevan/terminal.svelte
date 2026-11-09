@@ -54,6 +54,9 @@ export class Parser {
 
 	privateMarker: number | null = null;
 	parameters: Array<number | null> = [];
+	// Whether each parameter followed a colon, which makes it a sub-parameter
+	// of the one before, like the 3 of SGR 4:3 (curly underline).
+	subParameters: Array<boolean> = [];
 	intermediates: Array<number> = [];
 	oscString: Array<number> = [];
 

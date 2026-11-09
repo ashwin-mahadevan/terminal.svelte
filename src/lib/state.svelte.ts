@@ -72,6 +72,52 @@ function extendedColor(
 	}
 }
 
+// SGR 38, 48 and 58 in their colon form: 5:n, a palette index, or a direct
+// color, as 2:r:g:b or 2:cs:r:g:b. The ID of the color space, cs, is usually
+// empty, and is ignored. Returns undefined for anything else, or a component
+// out of range.
+function subParameterColor(subParameters: ReadonlyArray<number | null>): Color | undefined {
+	const [type, ...rest] = subParameters;
+	if (type === 5 && rest.length >= 1) {
+		const palette = rest[0] ?? 0;
+		return palette <= 255 ? { type: 'palette', index: palette } : undefined;
+	}
+	if (type === 2 && rest.length >= 3) {
+		const [r, g, b] = (rest.length === 3 ? rest : rest.slice(1, 4)).map((value) => value ?? 0);
+		return r <= 255 && g <= 255 && b <= 255 ? { type: 'rgb', r, g, b } : undefined;
+	}
+	return undefined;
+}
+
+// Apply an SGR parameter that came with sub-parameters: 4:n, an underline
+// style (0 for none, then single, double, curly, dotted and dashed, all drawn
+// as a single underline), or 38, 48 and 58 with their color. Others are
+// ignored.
+function withSubParameters(
+	attributes: Attributes,
+	parameter: number,
+	subParameters: ReadonlyArray<number | null>
+): Attributes {
+	switch (parameter) {
+		case 4: {
+			const style = subParameters[0] ?? 0;
+			return style <= 5 ? { ...attributes, underline: style !== 0 } : attributes;
+		}
+		case 38:
+		case 48:
+		case 58: {
+			const color = subParameterColor(subParameters);
+			// 58 (underline color) isn't drawn.
+			if (color === undefined || parameter === 58) return attributes;
+			return parameter === 38
+				? { ...attributes, foreground: color }
+				: { ...attributes, background: color };
+		}
+		default:
+			return attributes;
+	}
+}
+
 function clamp(value: number, minimum: number, maximum: number): number {
 	return Math.min(Math.max(value, minimum), maximum);
 }
@@ -446,14 +492,26 @@ export class State {
 		}
 	}
 
-	// SGR: apply each parameter in turn to the current attributes. An empty
-	// parameter, like an empty list, means 0 (reset); unknown ones are ignored.
-	selectGraphicRendition(parameters: ReadonlyArray<number | null>) {
+	// SGR: apply each parameter in turn to the current attributes. Each comes
+	// with any sub-parameters that followed it after colons, like the 3 of 4:3.
+	// An empty parameter, like an empty list, means 0 (reset); unknown ones are
+	// ignored.
+	selectGraphicRendition(groups: ReadonlyArray<ReadonlyArray<number | null>>) {
 		let attributes: Attributes = this.attributes;
-		if (parameters.length === 0) attributes = DEFAULT_ATTRIBUTES;
+		if (groups.length === 0) attributes = DEFAULT_ATTRIBUTES;
 
-		for (let index = 0; index < parameters.length; index += 1) {
-			const parameter = parameters[index] ?? 0;
+		// The semicolon forms of 38, 48 and 58 spread their color over the
+		// parameters after them.
+		const parameters = groups.map(([parameter]) => parameter);
+
+		for (let index = 0; index < groups.length; index += 1) {
+			const [first, ...subParameters] = groups[index];
+			const parameter = first ?? 0;
+			if (subParameters.length > 0) {
+				attributes = withSubParameters(attributes, parameter, subParameters);
+				continue;
+			}
+
 			switch (parameter) {
 				case 0:
 					attributes = DEFAULT_ATTRIBUTES;
