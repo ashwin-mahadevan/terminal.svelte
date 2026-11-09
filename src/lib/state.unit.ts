@@ -112,6 +112,40 @@ describe('tab stops', () => {
 		expect(e.state.row).toBe(0);
 		expect(e.state.buffer[0].cells[3]?.text).toBe('X');
 	});
+
+	it('moves forward n stops with CHT (CSI I)', () => {
+		const e = new Parser(new State(30, 1), {});
+		e.write(encoder.encode('\x1b[I'));
+		expect(e.state.column).toBe(8);
+		e.write(encoder.encode('\x1b[2I'));
+		expect(e.state.column).toBe(24);
+	});
+
+	it('moves back n stops with CBT (CSI Z), stopping at the first column', () => {
+		const e = new Parser(new State(30, 1), {});
+		e.write(encoder.encode('\x1b[1;20H\x1b[Z'));
+		expect(e.state.column).toBe(16);
+		e.write(encoder.encode('\x1b[2Z'));
+		expect(e.state.column).toBe(0);
+	});
+
+	it('moves back from a pending wrap with CBT', () => {
+		const e = new Parser(new State(20, 1), {});
+		e.write(encoder.encode('\x1b[1;20HX\x1b[Z'));
+		expect(e.state.column).toBe(16);
+	});
+
+	it('clears the stop at the cursor with TBC (CSI g)', () => {
+		const e = new Parser(new State(30, 1), {});
+		e.write(encoder.encode('\x1b[1;9H\x1b[g\r\t'));
+		expect(e.state.column).toBe(16);
+	});
+
+	it('clears every stop with TBC 3', () => {
+		const e = new Parser(new State(30, 1), {});
+		e.write(encoder.encode('\x1b[3g\t'));
+		expect(e.state.column).toBe(29);
+	});
 });
 
 describe('cursor save and restore', () => {
@@ -159,6 +193,19 @@ describe('cursor save and restore', () => {
 		e.write(encoder.encode('AB\x1b7\x1bc\x1b8'));
 
 		expect(e.state.column).toBe(0);
+	});
+
+	it('saves and restores with SCOSC and SCORC (CSI s, CSI u)', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('AB\x1b[s\r\n\x1b[uX'));
+		expect(e.state.buffer[0].cells[2]?.text).toBe('X');
+	});
+
+	it('ignores CSI s with parameters (DECSLRM), and the marked forms of CSI u', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('AB\x1b7\r\x1b[1;2s\x1b[?u\x1b[>1u\n\x1b[uX'));
+		// Only DECSC saved the cursor, at (0, 2).
+		expect(e.state.buffer[0].cells[2]?.text).toBe('X');
 	});
 });
 
@@ -510,6 +557,59 @@ describe('ignored C1 controls', () => {
 		expect(e.state.column).toBe(1);
 		expect(e.state.buffer[0].cells[0]?.text).toBe('A');
 		expect(e.state.buffer[0].cells[1]).toBeUndefined();
+	});
+});
+
+describe('repeat (REP)', () => {
+	const firstRow = (input: string, columns = 8) => {
+		const e = new Parser(new State(columns, 2), {});
+		e.write(encoder.encode(input));
+		return Array.from(e.state.buffer[0].cells, (cell) => cell?.text ?? ' ').join('');
+	};
+
+	it('repeats the last character printed', () => {
+		expect(firstRow('ab\x1b[3b')).toBe('abbbb   ');
+	});
+
+	it('repeats it once with no count', () => {
+		expect(firstRow('a\x1b[b')).toBe('aa      ');
+	});
+
+	it('repeats it with the current attributes', () => {
+		const e = new Parser(new State(4, 1), {});
+		e.write(encoder.encode('\x1b[1mA\x1b[0m\x1b[b'));
+		expect(e.state.buffer[0].cells[1]?.text).toBe('A');
+		expect(e.state.buffer[0].cells[1]?.attrs.bold).toBe(false);
+	});
+
+	it('repeats the character as it was drawn, in its character set', () => {
+		expect(firstRow('\x1b(0q\x1b(B\x1b[2b')).toBe('───     ');
+	});
+
+	it('repeats non-ASCII text', () => {
+		expect(firstRow('é\x1b[2b')).toBe('ééé     ');
+	});
+
+	it('wraps like printing', () => {
+		const e = new Parser(new State(4, 2), {});
+		e.write(encoder.encode('a\x1b[5b'));
+		expect(e.state.row).toBe(1);
+		expect(e.state.buffer[1].cells[1]?.text).toBe('a');
+	});
+
+	it('repeats the last character even after a control', () => {
+		expect(firstRow('ab\r\x1b[b')).toBe('bb      ');
+	});
+
+	it('does nothing before anything is printed, or after RIS', () => {
+		expect(firstRow('\x1b[3b')).toBe('        ');
+		expect(firstRow('a\x1bc\x1b[3b')).toBe('        ');
+	});
+
+	it('caps a huge count', () => {
+		const e = new Parser(new State(4, 2, { scrollbackLimit: 0 }), {});
+		e.write(encoder.encode('a\x1b[999999999b'));
+		expect(e.state.buffer[1].cells[0]?.text).toBe('a');
 	});
 });
 

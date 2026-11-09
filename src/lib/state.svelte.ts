@@ -82,6 +82,10 @@ const TAB_STOP_INTERVAL = 8;
 // The number of titles XTWINOPS 22 can save.
 const TITLE_STACK_LIMIT = 10;
 
+// The most characters one REP prints, so a huge count can't hang the page.
+// It's the largest parameter xterm and Ghostty accept.
+const REPEAT_LIMIT = 65535;
+
 // The default number of lines kept in the scrollback.
 const SCROLLBACK_LIMIT = 1000;
 
@@ -240,6 +244,9 @@ export class State {
 	shift: 0 | 1 = 0;
 	singleShift: 2 | 3 | null = null;
 
+	// The last character printed, which REP repeats.
+	private lastPrinted: string | null = null;
+
 	// DECKPAM/DECKPNM: whether the keypad sends application sequences (SS3-
 	// prefixed) instead of the characters printed on the keys.
 	applicationKeypad = false;
@@ -347,6 +354,7 @@ export class State {
 		this.charsets = ['ascii', 'ascii', 'ascii', 'ascii'];
 		this.shift = 0;
 		this.singleShift = null;
+		this.lastPrinted = null;
 		this.applicationKeypad = false;
 		this.autowrap = true;
 		this.cursorVisible = true;
@@ -787,6 +795,30 @@ export class State {
 		if (this.column === this.columns) this.column -= 1;
 	}
 
+	// CBT: move the cursor left to the previous tab stop, or the first column
+	// if none remain.
+	backTab() {
+		this.column = this.cursorColumn;
+		while (this.column > 0) {
+			this.column -= 1;
+			if (this.tabStops[this.column]) break;
+		}
+	}
+
+	// TBC: 0 clears the tab stop at the cursor, and 3 clears them all.
+	clearTabStops(mode: number) {
+		if (mode === 0) this.tabStops[this.cursorColumn] = false;
+		else if (mode === 3) this.tabStops.fill(false);
+	}
+
+	// REP: print the last character printed `count` more times, in the same
+	// character set. With nothing printed since RIS, it does nothing.
+	repeat(count: number) {
+		const text = this.lastPrinted;
+		if (text === null) return;
+		for (let index = 0; index < Math.min(count, REPEAT_LIMIT); index += 1) this.put(text);
+	}
+
 	// Print a character in the character set in use.
 	print(text: string) {
 		if (this.singleShift !== null || this.charsets[this.shift] !== 'ascii') {
@@ -823,5 +855,6 @@ export class State {
 		} else if (this.autowrap) {
 			this.column = this.columns;
 		}
+		this.lastPrinted = text;
 	}
 }

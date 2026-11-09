@@ -82,6 +82,18 @@ const edit = (emulator: Parser, final: number) => {
 		case 0x72: // DECSTBM
 			state.setScrollRegion(n - 1, (parameters[1] || state.rows) - 1);
 			break;
+		case 0x49: // CHT
+			for (let index = 0; index < Math.min(n, state.columns); index += 1) state.tab();
+			break;
+		case 0x5a: // CBT
+			for (let index = 0; index < Math.min(n, state.columns); index += 1) state.backTab();
+			break;
+		case 0x62: // REP
+			state.repeat(n);
+			break;
+		case 0x67: // TBC
+			state.clearTabStops(parameters[0] ?? 0);
+			break;
 	}
 };
 
@@ -200,20 +212,30 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 		case 0x65: // VPR (Vertical Position Relative)
 		case 0x66: // HVP (Horizontal and Vertical Position)
 		case 0x72: // DECSTBM (Set Top and Bottom Margins)
+		case 0x49: // CHT (Cursor Forward Tabulation)
+		case 0x5a: // CBT (Cursor Backward Tabulation)
+		case 0x62: // REP (Repeat Preceding Character)
+		case 0x67: // TBC (Tab Clear)
 			if (emulator.privateMarker === null && emulator.intermediates.length === 0) {
 				edit(emulator, byte);
 			}
 			emulator.mode = MODE_GROUND;
 			break;
 
-		// 0x40–0x7e: final bytes — not implemented yet.
-		case 0x49: // CHT (Cursor Forward Tabulation)
-		case 0x5a: // CBT (Cursor Backward Tabulation)
-		case 0x62: // REP (Repeat Preceding Character)
-		case 0x67: // TBC (Tab Clear)
-		case 0x73: // SCOSC (Save Cursor)
-		case 0x75: // SCORC (Restore Cursor)
-			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
+		// CSI s → SCOSC (Save Cursor), CSI u → SCORC (Restore Cursor): like
+		// DECSC and DECRC. With parameters, CSI s is DECSLRM (Set Left and Right
+		// Margins), which isn't supported; the marked forms of CSI u are the
+		// kitty keyboard protocol's, which are ignored.
+		case 0x73:
+		case 0x75:
+			if (
+				emulator.privateMarker === null &&
+				emulator.intermediates.length === 0 &&
+				emulator.parameters.length === 0
+			) {
+				if (byte === 0x73) emulator.state.saveCursor();
+				else emulator.state.restoreCursor();
+			}
 			emulator.mode = MODE_GROUND;
 			break;
 
