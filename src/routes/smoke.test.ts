@@ -8,7 +8,7 @@ test('typing pwd prints the working directory', async ({ page }) => {
 
 	const terminal = page.getByRole('application', { name: 'Terminal' });
 	await terminal.click();
-	await expect(terminal).toBeFocused();
+	await expect(page.getByRole('textbox', { name: 'Terminal input' })).toBeFocused();
 
 	await page.keyboard.type('pwd');
 	await page.keyboard.press('Enter');
