@@ -60,6 +60,11 @@ export class Parser {
 	intermediates: Array<number> = [];
 	oscString: Array<number> = [];
 
+	// The UTF-8 decoder's progress through a multi-byte sequence: the bits of
+	// the code point so far, how many continuation bytes it needs and has seen,
+	// and the range the next one must be in.
+	utf8 = { codePoint: 0, needed: 0, seen: 0, lower: 0x80, upper: 0xbf };
+
 	constructor(state: State, events: Events) {
 		this.state = state;
 		this.events = events;

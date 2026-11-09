@@ -568,6 +568,65 @@ describe('ignored C1 controls', () => {
 	});
 });
 
+describe('UTF-8', () => {
+	// Print `chunks` on a single wide row, and return its text up to the last
+	// cell written, one code point per cell.
+	const printed = (...chunks: Array<Uint8Array>) => {
+		const e = new Parser(new State(64, 1), {});
+		for (const chunk of chunks) e.write(chunk);
+		const cells = Array.from(e.state.buffer[0].cells, (cell) => cell?.text ?? ' ');
+		return cells.slice(0, e.state.column).join('');
+	};
+
+	// TextDecoder's output, one cell per code point.
+	const decoded = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
+
+	const bytes = (...values: Array<number>) => Uint8Array.from(values);
+
+	const cases = [
+		{ name: 'two-byte characters', input: encoder.encode('aé£b') },
+		{ name: 'three-byte characters', input: encoder.encode('a€─中b') },
+		{ name: 'four-byte characters', input: encoder.encode('a😀𝄞b') },
+		{ name: 'a lone continuation byte', input: bytes(0x61, 0x80, 0x62) },
+		{ name: 'bytes UTF-8 never uses', input: bytes(0x61, 0xc0, 0xc1, 0xf5, 0xff, 0x62) },
+		{ name: 'an overlong form', input: bytes(0x61, 0xe0, 0x80, 0xaf, 0x62) },
+		{ name: 'a surrogate', input: bytes(0x61, 0xed, 0xa0, 0x80, 0x62) },
+		{ name: 'a code point past U+10FFFF', input: bytes(0x61, 0xf4, 0x90, 0x80, 0x80, 0x62) },
+		{ name: 'a sequence cut short by ASCII', input: bytes(0x61, 0xe2, 0x82, 0x62) },
+		{ name: 'a sequence cut short by another lead byte', input: bytes(0xe2, 0x82, 0xc3, 0xa9) }
+	];
+
+	it.each(cases)('decodes $name like TextDecoder', ({ input }) => {
+		expect(printed(input)).toBe(decoded(input));
+	});
+
+	it.each(cases)('decodes $name the same when split at any byte', ({ input }) => {
+		for (let split = 1; split < input.length; split += 1) {
+			expect(printed(input.subarray(0, split), input.subarray(split))).toBe(decoded(input));
+		}
+	});
+
+	it.each(cases)('decodes $name the same one byte at a time', ({ input }) => {
+		expect(printed(...Array.from(input, (byte) => bytes(byte)))).toBe(decoded(input));
+	});
+
+	it('replaces a sequence cut short by a control, then runs the control', () => {
+		const e = new Parser(new State(8, 2), {});
+		e.write(bytes(0xe2, 0x82));
+		e.write(encoder.encode('\r\nb'));
+		expect(e.state.buffer[0].cells[0]?.text).toBe('�');
+		expect(e.state.buffer[1].cells[0]?.text).toBe('b');
+	});
+
+	it('replaces a sequence cut short by an escape sequence, then runs it', () => {
+		const e = new Parser(new State(8, 2), {});
+		e.write(bytes(0xf0, 0x9f));
+		e.write(encoder.encode('\x1b[1mb'));
+		expect(e.state.buffer[0].cells[0]?.text).toBe('�');
+		expect(e.state.buffer[0].cells[1]?.attrs.bold).toBe(true);
+	});
+});
+
 describe('cursor style (DECSCUSR)', () => {
 	const styleAfter = (input: string) => {
 		const e = new Parser(new State(4, 1), {});
