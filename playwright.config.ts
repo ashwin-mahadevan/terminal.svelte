@@ -30,7 +30,10 @@ if (process.env.TEST_WORKER_INDEX === undefined) {
 export default defineConfig({
 	webServer: { command: `vite preview --port ${port} --strictPort`, port },
 	use: { baseURL: `http://localhost:${port}` },
-	testMatch: 'src/routes/**/*.test.ts',
+	// Search only src/routes: from the project root, Playwright would also find
+	// the tests (and a second Playwright) in worktrees under .claude/worktrees.
+	testDir: 'src/routes',
+	testMatch: '**/*.test.ts',
 	projects: [
 		{ name: 'chromium', use: { browserName: 'chromium', viewport } },
 		{
