@@ -15,6 +15,11 @@
 	const state = new State();
 	const parser = new Parser(state, events);
 
+	// The terminal resizes itself to fit its container; tell the PTY.
+	$effect(() => {
+		socket.emit('resize', state.columns, state.rows);
+	});
+
 	$effect(() => {
 		const write = (chunk: ArrayBuffer) => parser.write(new Uint8Array(chunk));
 
