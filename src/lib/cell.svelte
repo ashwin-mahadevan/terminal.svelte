@@ -10,6 +10,11 @@
 
 	const { cell, cursor = null }: Props = $props();
 
+	// A wide character is drawn exactly two cells wide, whatever its glyph's
+	// width, so the cells after it stay in line. The cell it covers (width 0)
+	// has no text, and so takes no room.
+	const wide = $derived(cell?.width === 2);
+
 	// A block cursor inverts the cell. An underline or a bar is a 2px line along
 	// its bottom or left edge.
 	const block = $derived(cursor === 'block');
@@ -54,6 +59,8 @@
 	style:color={block ? DEFAULT_BACKGROUND : fg}
 	style:background-color={block ? DEFAULT_FOREGROUND : bg}
 	style:box-shadow={line}
+	style:display={wide ? 'inline-block' : undefined}
+	style:width={wide ? 'calc(2 * var(--cell-width, 1ch))' : undefined}
 	style:font-weight={cell?.attrs.bold ? 'bold' : undefined}
 	style:font-style={cell?.attrs.italic ? 'italic' : undefined}
 	style:text-decoration={decoration}

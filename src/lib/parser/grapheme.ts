@@ -7,8 +7,8 @@ const REPLACEMENT_CHARACTER = '�';
 // chunks: the parser keeps the decoder's progress until the rest arrives.
 // Malformed input is replaced as TextDecoder does (the WHATWG UTF-8 decoder):
 // each invalid byte, or truncated sequence, prints U+FFFD, and a byte that
-// interrupts a sequence is then parsed on its own. Grapheme clusters aren't
-// joined yet: each code point gets a cell of its own.
+// interrupts a sequence is then parsed on its own. State.print joins the code
+// points into grapheme clusters.
 export const grapheme = (emulator: Parser, chunk: Uint8Array, start: number): number => {
 	const decoder = emulator.utf8;
 	let index = 0;

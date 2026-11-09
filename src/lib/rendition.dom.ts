@@ -102,6 +102,43 @@ if (import.meta.vitest) {
 		});
 	});
 
+	describe('wide characters', () => {
+		// The cells of each row, after `input`.
+		const rowsAfter = (input: string) => {
+			const state = new State(6, 2);
+			new Parser(state, {}).write(new TextEncoder().encode(input));
+			const screen = render(Terminal, { state });
+			const root = screen.getByRole('application', { name: 'Terminal' }).element();
+			return Array.from(root.children)
+				.slice(0, state.rows)
+				.map((row) => Array.from(row.children) as Array<HTMLElement>);
+		};
+
+		const left = (cell: HTMLElement) => cell.getBoundingClientRect().left;
+		const width = (cell: HTMLElement) => cell.getBoundingClientRect().width;
+
+		it('are drawn exactly two cells wide', () => {
+			const [[wide, , narrow]] = rowsAfter('中a');
+			expect(width(wide)).toBeCloseTo(2 * width(narrow), 1);
+		});
+
+		it('draw nothing in the cell they cover', () => {
+			const [[, covered]] = rowsAfter('中a');
+			expect(covered.textContent).toBe('');
+			expect(width(covered)).toBe(0);
+		});
+
+		it('keep the cells after them in line with the row below', () => {
+			const [first, second] = rowsAfter('中a\r\nbcd');
+			expect(left(first[2])).toBeCloseTo(left(second[2]), 1);
+		});
+
+		it('show the cursor when it is on their right half', () => {
+			const [[wide]] = rowsAfter('中\x1b[1;2H');
+			expect(getComputedStyle(wide).backgroundColor).toBe('rgb(255, 255, 255)');
+		});
+	});
+
 	describe('cell rendition', () => {
 		it('draws default colors with no SGR', () => {
 			const style = styleOf('');

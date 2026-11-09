@@ -165,6 +165,12 @@
 	const cursorColumn = $derived(
 		screen.column === screen.columns ? screen.columns - 1 : screen.column
 	);
+
+	// On the right half of a wide character, the cursor is drawn on the
+	// character, since that half draws nothing.
+	const cursorCell = $derived(
+		lines[screen.row]?.cells[cursorColumn]?.width === 0 ? cursorColumn - 1 : cursorColumn
+	);
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -187,6 +193,7 @@
 	style:overflow-y="auto"
 	style:scrollbar-gutter="stable"
 	style:line-height="normal"
+	style:--cell-width={glyph?.width ? `${glyph.width}px` : undefined}
 	style:outline="none"
 >
 	{#each history as line, index (index)}
@@ -202,7 +209,7 @@
 			{#each line.cells as cell, col (col)}
 				<Cell
 					{cell}
-					cursor={screen.cursorVisible && blinkOn && cursorColumn === col && screen.row === row
+					cursor={screen.cursorVisible && blinkOn && cursorCell === col && screen.row === row
 						? screen.style
 						: null}
 				/>

@@ -1,5 +1,14 @@
 import { translate } from '$lib/charsets';
 import type { Charset } from '$lib/charsets';
+import {
+	advance,
+	INITIAL as GRAPHEME_INITIAL,
+	isBreak,
+	propertyOf as graphemeProperty
+} from '$lib/grapheme';
+import type { State as GraphemeState } from '$lib/grapheme';
+import { width as clusterWidth, INITIAL as WIDTH_INITIAL } from '$lib/width';
+import type { State as WidthState } from '$lib/width';
 
 export type Color =
 	| null // default
@@ -33,8 +42,12 @@ const DEFAULT_ATTRIBUTES = {
 } as const satisfies Attributes;
 
 export type Cell = {
+	// A grapheme cluster: one or more code points drawn as one character.
 	text: string;
 	attrs: Attributes;
+	// 2 for a wide character, which covers the next cell too, and 0 for that
+	// next cell, which has no text of its own. Absent for the usual one cell.
+	width?: 0 | 2;
 };
 
 export type Line = {
@@ -150,6 +163,37 @@ type SavedCursor = {
 // As elsewhere, column === columns means a wrap is pending.
 type Position = { row: number; column: number };
 
+// The grapheme and width states at the end of a cluster's text, which the
+// next code point is folded into.
+function fold(text: string): [GraphemeState, WidthState] {
+	let grapheme = GRAPHEME_INITIAL;
+	let width = WIDTH_INITIAL;
+	for (const character of text) {
+		const codePoint = character.codePointAt(0)!;
+		grapheme = advance(grapheme, graphemeProperty(codePoint));
+		[width] = clusterWidth(width, codePoint);
+	}
+	return [grapheme, width];
+}
+
+// Before a cell is written: blank the other half of the wide character it's
+// part of, if any.
+function clearWide(cells: Array<Cell | undefined>, column: number) {
+	const cell = cells[column];
+	if (cell?.width === 2) cells[column + 1] = undefined;
+	else if (cell?.width === 0 && column > 0) cells[column - 1] = undefined;
+}
+
+// After cells are moved, erased or cut off: replace either half of a wide
+// character left without the other with `blank`.
+function repair(cells: Array<Cell | undefined>, blank: Cell | undefined) {
+	for (let column = 0; column < cells.length; column += 1) {
+		const cell = cells[column];
+		if (cell?.width === 2 && cells[column + 1]?.width !== 0) cells[column] = blank;
+		else if (cell?.width === 0 && cells[column - 1]?.width !== 2) cells[column] = blank;
+	}
+}
+
 const emptyLine = (columns: number): Line => ({ cells: new Array(columns), break: false });
 
 const isBlank = (line: Line): boolean =>
@@ -171,17 +215,48 @@ function rewrap(
 		let end = start;
 		while (end < lines.length - 1 && lines[end].break) end += 1;
 
-		// The text of the logical line. Wrapped lines are full; the last one
-		// ends at its last cell that was ever written.
+		// The text of the logical line, and where each of its lines starts in
+		// it. Wrapped lines are full, but for one padded at the end because the
+		// wide character after it didn't fit: the padding isn't text. The last
+		// one ends at its last cell that was ever written.
 		const cells: Array<Cell | undefined> = [];
+		const starts: Array<number> = [];
 		for (let index = start; index <= end; index += 1) {
+			starts.push(cells.length);
 			const line = lines[index].cells;
 			let length = width;
 			if (index === end) while (length > 0 && line[length - 1] === undefined) length -= 1;
+			else if (line[length - 1] === undefined && lines[index + 1].cells[0]?.width === 2)
+				length -= 1;
 			for (let column = 0; column < length; column += 1) cells.push(line[column]);
 		}
 
-		let height = Math.max(1, Math.ceil(cells.length / columns));
+		// Lay the text out `columns` wide. A wide character that would straddle
+		// the edge moves to the next row, leaving padding.
+		const rows: Array<Array<Cell | undefined>> = [[]];
+		const places: Array<Position> = [];
+		let row = 0;
+		let column = 0;
+		for (const cell of cells) {
+			if (column === columns || (cell?.width === 2 && column === columns - 1 && columns > 1)) {
+				row += 1;
+				column = 0;
+				rows.push([]);
+			}
+			places.push({ row, column });
+			rows[row][column] = cell;
+			column += 1;
+		}
+
+		// Where an offset into the text lands: on its cell, or past the end of
+		// the text, counting on from the end.
+		const place = (offset: number): Position => {
+			if (offset < cells.length) return places[offset];
+			const total = row * columns + column + (offset - cells.length);
+			return { row: Math.floor(total / columns), column: total % columns };
+		};
+
+		let height = rows.length;
 		positions.forEach((position, index) => {
 			if (position.row < start || position.row > end) return;
 
@@ -189,23 +264,22 @@ function rewrap(
 			// stays pending only if that character lands in the last column again.
 			// The same goes for a cursor just after the text that now ends in the
 			// last column, so it doesn't start a line of its own.
-			const offset = (position.row - start) * width + Math.min(position.column, width);
+			const offset = starts[position.row - start] + Math.min(position.column, width);
 			const pending =
-				position.column >= width ||
-				(offset > 0 && offset === cells.length && offset % columns === 0);
-			const at = pending ? offset - 1 : offset;
-			const row = Math.floor(at / columns);
-			let column = at % columns;
-			if (pending) column = column === columns - 1 ? columns : column + 1;
+				position.column >= width || (offset > 0 && offset === cells.length && column === columns);
+			const at = place(pending ? offset - 1 : offset);
+			let landed = at.column;
+			if (pending) landed = landed === columns - 1 ? columns : landed + 1;
 
-			height = Math.max(height, row + 1);
-			moved[index] = { row: result.length + row, column };
+			height = Math.max(height, at.row + 1);
+			moved[index] = { row: result.length + at.row, column: landed };
 		});
 
-		for (let row = 0; row < height; row += 1) {
-			const chunk = cells.slice(row * columns, (row + 1) * columns);
-			chunk.length = columns;
-			result.push({ cells: chunk, break: row < height - 1 });
+		for (let index = 0; index < height; index += 1) {
+			const line = rows[index] ?? [];
+			line.length = columns;
+			repair(line, undefined);
+			result.push({ cells: line, break: index < height - 1 });
 		}
 		start = end + 1;
 	}
@@ -292,8 +366,8 @@ export class State {
 	shift: 0 | 1 = 0;
 	singleShift: 2 | 3 | null = null;
 
-	// The last character printed, which REP repeats.
-	private lastPrinted: string | null = null;
+	// The last grapheme cluster printed, and its width, which REP repeats.
+	private lastPrinted: { text: string; width: 1 | 2 } | null = null;
 
 	// DECKPAM/DECKPNM: whether the keypad sends application sequences (SS3-
 	// prefixed) instead of the characters printed on the keys.
@@ -668,6 +742,7 @@ export class State {
 		const blank = this.blankCell();
 		const cells = this.buffer[row].cells;
 		for (let column = from; column < to; column += 1) cells[column] = blank;
+		repair(cells, blank);
 	}
 
 	// ED: 0 erases from the cursor to the end of the screen, 1 from the start
@@ -840,7 +915,10 @@ export class State {
 		positions: Array<Position>
 	): Array<Line> {
 		const lines = [...screen];
-		for (const line of lines) line.cells.length = columns;
+		for (const line of lines) {
+			line.cells.length = columns;
+			repair(line.cells, undefined);
+		}
 		for (const position of positions) {
 			if (position.column >= this.columns) position.column = columns;
 			else position.column = Math.min(position.column, columns - 1);
@@ -886,23 +964,83 @@ export class State {
 	// REP: print the last character printed `count` more times, in the same
 	// character set. With nothing printed since RIS, it does nothing.
 	repeat(count: number) {
-		const text = this.lastPrinted;
-		if (text === null) return;
-		for (let index = 0; index < Math.min(count, REPEAT_LIMIT); index += 1) this.put(text);
+		const last = this.lastPrinted;
+		if (last === null) return;
+		for (let index = 0; index < Math.min(count, REPEAT_LIMIT); index += 1) {
+			this.put(last.text, last.width);
+		}
 	}
 
-	// Print a character in the character set in use.
+	// Print a code point in the character set in use. One that continues the
+	// grapheme cluster before the cursor joins its cell, rather than taking a
+	// cell of its own. Like Ghostty, only code points past U+00FF are checked:
+	// none before can continue a cluster.
 	print(text: string) {
 		if (this.singleShift !== null || this.charsets[this.shift] !== 'ascii') {
 			const charset = this.charsets[this.singleShift ?? this.shift];
 			this.singleShift = null;
 			text = translate(charset, text);
 		}
-		this.put(text);
+
+		const codePoint = text.codePointAt(0)!;
+		if (codePoint <= 0xff) this.put(text, 1);
+		else if (!this.join(text, codePoint)) this.put(text, clusterWidth(WIDTH_INITIAL, codePoint)[1]);
 	}
 
-	// Write a character at the cursor and advance it.
-	private put(text: string) {
+	// Add a code point to the cluster before the cursor, unless there's a
+	// grapheme break between them. Returns whether it was added. The cluster
+	// may get wider (with VS16, say) or narrower (with VS15).
+	private join(text: string, codePoint: number): boolean {
+		const cells = this.buffer[this.row].cells;
+
+		// The cluster is under the cursor if a wrap is pending, or if the cursor
+		// is on a written last column with autowrap off; otherwise it's to the
+		// left. A wide character's right half stands for the character.
+		let column = this.column - 1;
+		if (this.column === this.columns) column = this.columns - 1;
+		else if (!this.autowrap && this.column === this.columns - 1 && cells[this.column]) {
+			column = this.column;
+		}
+		if (cells[column]?.width === 0) column -= 1;
+		const cell = cells[column];
+		if (cell === undefined || cell.text === '') return false;
+
+		const [grapheme, width] = fold(cell.text);
+		if (isBreak(grapheme, graphemeProperty(codePoint))) return false;
+		const wide = clusterWidth(width, codePoint)[1] === 2;
+		const joined = cell.text + text;
+		this.lastPrinted = { text: joined, width: wide ? 2 : 1 };
+
+		if (wide === (cell.width === 2)) {
+			cells[column] = { ...cell, text: joined };
+		} else if (!wide) {
+			// Narrower: drop the right half, and put the cursor just after it.
+			cells[column] = { text: joined, attrs: cell.attrs };
+			if (column + 1 < this.columns) cells[column + 1] = undefined;
+			this.column = Math.min(column + 1, this.columns - 1);
+		} else if (column < this.columns - 1) {
+			// Wider: take the next cell too, and put the cursor after it.
+			clearWide(cells, column + 1);
+			cells[column] = { text: joined, attrs: cell.attrs, width: 2 };
+			cells[column + 1] = { text: '', attrs: cell.attrs, width: 0 };
+			const next = column + 2;
+			this.column = next < this.columns ? next : this.autowrap ? this.columns : this.columns - 1;
+		} else if (this.autowrap) {
+			// Wider, in the last column: move it to the next line.
+			cells[column] = undefined;
+			this.buffer[this.row].break = true;
+			this.column = 0;
+			this.linefeed();
+			this.put(joined, 2, cell.attrs);
+		} else {
+			// With no room to grow, it stays narrow.
+			cells[column] = { ...cell, text: joined };
+		}
+		return true;
+	}
+
+	// Write a grapheme cluster `width` cells wide at the cursor, and advance it.
+	private put(text: string, width: 1 | 2, attrs: Attributes = this.attributes) {
 		// A previous character filled the last column, leaving a wrap pending
 		// (this.column === this.columns). With autowrap (DECAWM) on, resolve it
 		// by moving to a new line before writing; with it off, cancel the wrap
@@ -917,16 +1055,38 @@ export class State {
 			}
 		}
 
-		this.buffer[this.row].cells[this.column] = {
-			text,
-			attrs: this.attributes
-		} satisfies Cell;
-
-		if (this.column < this.columns - 1) {
-			this.column += 1;
-		} else if (this.autowrap) {
-			this.column = this.columns;
+		// A wide character needs two columns. In the last one, it wraps to the
+		// next line, leaving padding, or with autowrap off isn't printed. On a
+		// one-column screen, it leaves the cell empty.
+		if (width === 2 && this.column === this.columns - 1) {
+			if (this.columns === 1) {
+				clearWide(this.buffer[this.row].cells, this.column);
+				this.buffer[this.row].cells[this.column] = undefined;
+				if (this.autowrap) this.column = this.columns;
+				return;
+			}
+			if (!this.autowrap) return;
+			clearWide(this.buffer[this.row].cells, this.column);
+			this.buffer[this.row].cells[this.column] = undefined;
+			this.buffer[this.row].break = true;
+			this.column = 0;
+			this.linefeed();
 		}
-		this.lastPrinted = text;
+
+		const cells = this.buffer[this.row].cells;
+		clearWide(cells, this.column);
+		if (width === 2) {
+			clearWide(cells, this.column + 1);
+			cells[this.column] = { text, attrs, width: 2 } satisfies Cell;
+			cells[this.column + 1] = { text: '', attrs, width: 0 } satisfies Cell;
+		} else {
+			cells[this.column] = { text, attrs } satisfies Cell;
+		}
+
+		const next = this.column + width;
+		if (next < this.columns) this.column = next;
+		else if (this.autowrap) this.column = this.columns;
+		else this.column = this.columns - 1;
+		this.lastPrinted = { text, width };
 	}
 }

@@ -2083,3 +2083,197 @@ describe('title stack (XTWINOPS 22, 23)', () => {
 		expect([e.state.columns, e.state.rows]).toEqual([4, 4]);
 	});
 });
+
+describe('grapheme clusters', () => {
+	const run = (input: string, columns = 8, rows = 2) => {
+		const e = new Parser(new State(columns, rows), {});
+		e.write(encoder.encode(input));
+		return e;
+	};
+
+	it('joins a combining mark to the character before it', () => {
+		const e = run('éx');
+		expect(e.state.buffer[0].cells[0]?.text).toBe('é');
+		expect(e.state.buffer[0].cells[1]?.text).toBe('x');
+		expect(e.state.column).toBe(2);
+	});
+
+	it('joins across writes, even with the mark split between them', () => {
+		const e = new Parser(new State(8, 2), {});
+		e.write(encoder.encode('e'));
+		e.write(Uint8Array.of(0xcc));
+		e.write(Uint8Array.of(0x81));
+		e.write(encoder.encode('x'));
+		expect(e.state.buffer[0].cells[0]?.text).toBe('é');
+		expect(e.state.buffer[0].cells[1]?.text).toBe('x');
+	});
+
+	it.each([
+		{ name: 'a ZWJ sequence', cluster: '👨‍👩‍👧' },
+		{ name: 'a flag', cluster: '🇯🇵' },
+		{ name: 'an emoji with a skin tone', cluster: '👋🏽' },
+		{ name: 'a keycap', cluster: '1️⃣' },
+		{ name: 'a symbol with VS16', cluster: '▶️' }
+	])('draws $name as one wide character', ({ cluster }) => {
+		const e = run(`${cluster}x`);
+		expect(e.state.buffer[0].cells[0]).toMatchObject({ text: cluster, width: 2 });
+		expect(e.state.buffer[0].cells[1]).toMatchObject({ text: '', width: 0 });
+		expect(e.state.buffer[0].cells[2]?.text).toBe('x');
+		expect(e.state.column).toBe(3);
+	});
+
+	it('starts a new cluster at each pair of regional indicators', () => {
+		const e = run('🇯🇵🇺🇸');
+		expect(e.state.buffer[0].cells[0]?.text).toBe('🇯🇵');
+		expect(e.state.buffer[0].cells[2]?.text).toBe('🇺🇸');
+		expect(e.state.column).toBe(4);
+	});
+
+	it('narrows an emoji with VS15, giving back its right half', () => {
+		const e = run('⚡︎x');
+		expect(e.state.buffer[0].cells[0]).toEqual({ text: '⚡︎', attrs: expect.anything() });
+		expect(e.state.buffer[0].cells[1]?.text).toBe('x');
+		expect(e.state.column).toBe(2);
+	});
+
+	it('gives a combining mark with nothing before it a cell of its own', () => {
+		const e = run('́x');
+		expect(e.state.buffer[0].cells[0]?.text).toBe('́');
+		expect(e.state.buffer[0].cells[1]?.text).toBe('x');
+	});
+
+	it('joins only the cell just left of the cursor', () => {
+		const e = run('e\x1b[Ć');
+		expect(e.state.buffer[0].cells[0]?.text).toBe('e');
+		expect(e.state.buffer[0].cells[2]?.text).toBe('́');
+	});
+
+	it('joins the last column while a wrap is pending, without wrapping', () => {
+		const e = run('abcd́', 4);
+		expect(e.state.buffer[0].cells[3]?.text).toBe('d́');
+		expect(e.state.row).toBe(0);
+		expect(e.state.column).toBe(4);
+	});
+
+	it('keeps the attributes the cluster was printed with', () => {
+		const e = run('\x1b[1me\x1b[0ḿ');
+		expect(e.state.buffer[0].cells[0]?.attrs.bold).toBe(true);
+	});
+
+	it('repeats the whole cluster with REP', () => {
+		const e = run('é\x1b[2b');
+		expect(Array.from(e.state.buffer[0].cells.slice(0, 3), (cell) => cell?.text)).toEqual([
+			'é',
+			'é',
+			'é'
+		]);
+	});
+
+	it('moves a cluster that widens in the last column to the next line', () => {
+		const e = run('abc▶️', 4);
+		expect(e.state.buffer[0].cells[3]).toBeUndefined();
+		expect(e.state.buffer[0].break).toBe(true);
+		expect(e.state.buffer[1].cells[0]).toMatchObject({ text: '▶️', width: 2 });
+		expect(e.state.row).toBe(1);
+		expect(e.state.column).toBe(2);
+	});
+});
+
+describe('wide characters', () => {
+	const run = (input: string, columns = 8, rows = 2) => {
+		const e = new Parser(new State(columns, rows), {});
+		e.write(encoder.encode(input));
+		return e;
+	};
+
+	it('takes two cells, the second with no text', () => {
+		const e = run('中a');
+		expect(e.state.buffer[0].cells[0]).toMatchObject({ text: '中', width: 2 });
+		expect(e.state.buffer[0].cells[1]).toMatchObject({ text: '', width: 0 });
+		expect(e.state.buffer[0].cells[2]?.text).toBe('a');
+		expect(e.state.column).toBe(3);
+	});
+
+	it('wraps when only one column is left, leaving it empty', () => {
+		const e = run('abc中', 4);
+		expect(screen(e)).toEqual(['abc ', '中  ']);
+		expect(e.state.buffer[0].break).toBe(true);
+		expect(e.state.row).toBe(1);
+		expect(e.state.column).toBe(2);
+	});
+
+	it('leaves a wrap pending when it fills the last two columns', () => {
+		const e = run('ab中', 4);
+		expect(e.state.row).toBe(0);
+		expect(e.state.column).toBe(4);
+	});
+
+	it('is not printed in the last column with autowrap off', () => {
+		const e = run('\x1b[?7labc中', 4);
+		expect(screen(e)[0]).toBe('abc ');
+		expect(e.state.column).toBe(3);
+	});
+
+	it('loses its right half when its left half is overwritten', () => {
+		const e = run('中\rx');
+		expect(e.state.buffer[0].cells[0]?.text).toBe('x');
+		expect(e.state.buffer[0].cells[1]).toBeUndefined();
+	});
+
+	it('loses its left half when its right half is overwritten', () => {
+		const e = run('中\x1b[1;2Hx');
+		expect(e.state.buffer[0].cells[0]).toBeUndefined();
+		expect(e.state.buffer[0].cells[1]?.text).toBe('x');
+	});
+
+	it('clears both wide characters it overlaps', () => {
+		const e = run('中中\x1b[1;2H文');
+		expect(screen(e)[0]).toBe(' 文     ');
+		expect(e.state.buffer[0].cells[3]).toBeUndefined();
+	});
+
+	it.each([
+		{ name: 'ECH on its right half', input: '中a\x1b[1;2H\x1b[X' },
+		{ name: 'EL from its right half', input: '中a\x1b[1;2H\x1b[K' },
+		{ name: 'DCH on its right half', input: '中a\x1b[1;2H\x1b[P' }
+	])('is erased whole by $name', ({ input }) => {
+		const e = run(input);
+		expect(e.state.buffer[0].cells[0]).toBeUndefined();
+		expect(e.state.buffer[0].cells[1]?.width).toBeUndefined();
+	});
+
+	it('is erased when ICH pushes its right half off the edge', () => {
+		const e = run('ab中\x1b[1;1H\x1b[@', 4);
+		expect(screen(e)[0]).toBe(' ab ');
+	});
+
+	it('repeats with REP', () => {
+		const e = run('中\x1b[2b');
+		expect(screen(e)[0]).toBe('中中中  ');
+		expect(e.state.column).toBe(6);
+	});
+
+	it('drops its padding when reflowed wider, and pads again when narrower', () => {
+		const e = run('abc中', 4);
+		e.state.resize(5, 2);
+		expect(screen(e)).toEqual(['abc中', '     ']);
+		expect([e.state.row, e.state.column]).toEqual([0, 5]);
+
+		e.state.resize(4, 2);
+		expect(screen(e)).toEqual(['abc ', '中  ']);
+		expect([e.state.row, e.state.column]).toEqual([1, 2]);
+	});
+
+	it('moves to the next line when a reflow would split it', () => {
+		const e = run('a中b', 4, 3);
+		e.state.resize(2, 3);
+		expect(screen(e)).toEqual(['a ', '中', 'b ']);
+		expect([e.state.row, e.state.column]).toEqual([2, 1]);
+	});
+
+	it('is erased when the alternate screen is cut short through it', () => {
+		const e = run('\x1b[?1049habc中', 5, 1);
+		e.state.resize(4, 1);
+		expect(screen(e)).toEqual(['abc ']);
+	});
+});
