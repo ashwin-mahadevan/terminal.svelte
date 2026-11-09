@@ -1,6 +1,15 @@
-## Mise
+# terminal.svelte
 
-This project uses `mise` for managing the environment and running tasks.
+An open-source (MIT) Svelte 5 streaming terminal emulator library, maintained by
+Ashwin Mahadevan and published to npm as `terminal.svelte`.
+
+**This repo is public.** Everything committed here, including commit messages,
+issues and PRs, is visible to anyone. Never bring in code or details from the
+private XTerm.app repo, even though it uses this library.
+
+## Tooling
+
+`mise` pins node and pnpm and runs every task (`mise tasks` lists them).
 
 ## Code Quality
 
