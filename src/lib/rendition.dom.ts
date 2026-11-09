@@ -1,10 +1,11 @@
+import { tick } from 'svelte';
 import { render } from 'vitest-browser-svelte';
 import { Parser } from './parser/state-machine.svelte';
 import { State } from './state.svelte';
 import Terminal from './terminal.svelte';
 
 if (import.meta.vitest) {
-	const { describe, expect, it } = import.meta.vitest;
+	const { describe, expect, it, vi } = import.meta.vitest;
 
 	// Render `input` followed by an X, and return the computed style of the X's
 	// cell. The cursor sits on the cell after it, so its colors don't interfere.
@@ -37,6 +38,67 @@ if (import.meta.vitest) {
 
 		it('is drawn again after DECSET ?25', () => {
 			expect(cellStyle('\x1b[?25l\x1b[?25h', 0).backgroundColor).toBe('rgb(255, 255, 255)');
+		});
+
+		it.each([
+			{ name: 'an underline', input: '\x1b[4 q', shadow: '0px -2px 0px 0px inset' },
+			{ name: 'a bar', input: '\x1b[6 q', shadow: '2px 0px 0px 0px inset' }
+		])('is drawn as $name along the cell, without inverting it', ({ input, shadow }) => {
+			const style = cellStyle(input, 0);
+			expect(style.backgroundColor).toBe('rgba(0, 0, 0, 0)');
+			expect(style.boxShadow).toBe(`rgb(255, 255, 255) ${shadow}`);
+		});
+
+		it('is not drawn as a line when it is a block', () => {
+			expect(cellStyle('', 0).boxShadow).toBe('none');
+		});
+
+		describe('blinking', () => {
+			// The cursor cell's live style. Timers are faked first, so the
+			// terminal's blink timer is too.
+			const blinking = (input: string) => {
+				vi.useFakeTimers();
+				return cellStyle(input, 0);
+			};
+
+			const advance = async (milliseconds: number) => {
+				vi.advanceTimersByTime(milliseconds);
+				await tick();
+			};
+
+			it('blinks with DECSCUSR 1, every 600ms', async () => {
+				try {
+					const style = blinking('\x1b[1 q');
+					await tick();
+					expect(style.backgroundColor).toBe('rgb(255, 255, 255)');
+					await advance(600);
+					expect(style.backgroundColor).toBe('rgba(0, 0, 0, 0)');
+					await advance(600);
+					expect(style.backgroundColor).toBe('rgb(255, 255, 255)');
+				} finally {
+					vi.useRealTimers();
+				}
+			});
+
+			it('blinks an underline with DECSET ?12', async () => {
+				try {
+					const style = blinking('\x1b[4 q\x1b[?12h');
+					await advance(600);
+					expect(style.boxShadow).toBe('none');
+				} finally {
+					vi.useRealTimers();
+				}
+			});
+
+			it('stays steady by default', async () => {
+				try {
+					const style = blinking('');
+					await advance(600);
+					expect(style.backgroundColor).toBe('rgb(255, 255, 255)');
+				} finally {
+					vi.useRealTimers();
+				}
+			});
 		});
 	});
 

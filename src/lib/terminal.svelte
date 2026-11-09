@@ -148,6 +148,18 @@
 	const history = $derived(screen.alternate ? [] : screen.scrollback);
 	const lines = $derived(screen.buffer);
 
+	// A blinking cursor is drawn for half of every BLINK_INTERVAL milliseconds.
+	// Moving it starts it over, drawn, so it can be seen while it moves.
+	const BLINK_INTERVAL = 1200;
+	let blinkOn = $state(true);
+	$effect(() => {
+		void [screen.row, screen.column];
+		blinkOn = true;
+		if (!screen.cursorBlink) return;
+		const timer = setInterval(() => (blinkOn = !blinkOn), BLINK_INTERVAL / 2);
+		return () => clearInterval(timer);
+	});
+
 	// A pending wrap parks the cursor one column past the edge
 	// (screen.column === screen.columns); draw it on the last column instead.
 	const cursorColumn = $derived(
@@ -180,7 +192,7 @@
 	{#each history as line, index (index)}
 		<div style:white-space="pre">
 			{#each line.cells as cell, col (col)}
-				<Cell {cell} isCursor={false} />
+				<Cell {cell} />
 			{/each}
 		</div>
 	{/each}
@@ -190,7 +202,9 @@
 			{#each line.cells as cell, col (col)}
 				<Cell
 					{cell}
-					isCursor={screen.cursorVisible && cursorColumn === col && screen.row === row}
+					cursor={screen.cursorVisible && blinkOn && cursorColumn === col && screen.row === row
+						? screen.style
+						: null}
 				/>
 			{/each}
 		</div>

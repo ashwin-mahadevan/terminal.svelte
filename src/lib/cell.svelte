@@ -4,10 +4,22 @@
 
 	type Props = {
 		cell: Cell | undefined;
-		isCursor: boolean;
+		// The cursor's shape, if it's drawn on this cell.
+		cursor?: 'block' | 'underline' | 'bar' | null;
 	};
 
-	const { cell, isCursor }: Props = $props();
+	const { cell, cursor = null }: Props = $props();
+
+	// A block cursor inverts the cell. An underline or a bar is a 2px line along
+	// its bottom or left edge.
+	const block = $derived(cursor === 'block');
+	const line = $derived(
+		cursor === 'underline'
+			? `inset 0 -2px ${DEFAULT_FOREGROUND}`
+			: cursor === 'bar'
+				? `inset 2px 0 ${DEFAULT_FOREGROUND}`
+				: undefined
+	);
 
 	// Palette colors can be themed through --xterm-color-N, falling back to
 	// xterm's defaults.
@@ -39,8 +51,9 @@
 </script>
 
 <span
-	style:color={isCursor ? DEFAULT_BACKGROUND : fg}
-	style:background-color={isCursor ? DEFAULT_FOREGROUND : bg}
+	style:color={block ? DEFAULT_BACKGROUND : fg}
+	style:background-color={block ? DEFAULT_FOREGROUND : bg}
+	style:box-shadow={line}
 	style:font-weight={cell?.attrs.bold ? 'bold' : undefined}
 	style:font-style={cell?.attrs.italic ? 'italic' : undefined}
 	style:text-decoration={decoration}

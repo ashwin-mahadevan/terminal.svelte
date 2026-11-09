@@ -272,7 +272,9 @@ export class State {
 	// Cursor
 	column = $state<number>()!;
 	row = $state<number>()!;
+	// DECSCUSR: the cursor's shape, and whether it blinks (also set by ?12).
 	style = $state<'block' | 'underline' | 'bar'>()!;
+	cursorBlink = $state(false);
 	attributes = $state<Attributes>()!;
 
 	// Tab stops, shared across the whole terminal (not per-screen): indexed by
@@ -394,6 +396,7 @@ export class State {
 		this.column = 0;
 		this.row = 0;
 		this.style = 'block';
+		this.cursorBlink = false;
 		this.attributes = DEFAULT_ATTRIBUTES;
 		this.tabStops = defaultTabStops(this.columns);
 		this.savedCursor = null;
@@ -421,6 +424,9 @@ export class State {
 				return true;
 			case 7:
 				this.autowrap = enabled;
+				return true;
+			case 12:
+				this.cursorBlink = enabled;
 				return true;
 			case 25:
 				this.cursorVisible = enabled;
@@ -456,6 +462,14 @@ export class State {
 			default:
 				return false;
 		}
+	}
+
+	// DECSCUSR: 0 restores the default, a steady block. Then 1 and 2 are a
+	// blinking and a steady block, 3 and 4 an underline, and 5 and 6 a bar.
+	setCursorStyle(style: number) {
+		if (style > 6) return;
+		this.style = style <= 2 ? 'block' : style <= 4 ? 'underline' : 'bar';
+		this.cursorBlink = style % 2 === 1;
 	}
 
 	// DECSC: save the cursor position, attributes, origin mode, character sets,

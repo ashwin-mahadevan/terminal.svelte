@@ -272,6 +272,20 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 			emulator.mode = MODE_GROUND;
 			break;
 
+		// CSI SP q → DECSCUSR (Set Cursor Style). Other forms of CSI q, like
+		// XTVERSION (CSI > q), are ignored.
+		case 0x71:
+			if (
+				emulator.privateMarker === null &&
+				emulator.intermediates.length === 1 &&
+				emulator.intermediates[0] === 0x20 &&
+				emulator.parameters.length <= 1
+			) {
+				emulator.state.setCursorStyle(emulator.parameters[0] ?? 0);
+			}
+			emulator.mode = MODE_GROUND;
+			break;
+
 		// CSI m → SGR (Select Graphic Rendition). Marked forms, like XTMODKEYS
 		// (CSI > m), are something else entirely and are ignored.
 		case 0x6d:
@@ -342,7 +356,6 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 		case 0x6b: // k
 		case 0x6f: // o
 		case 0x70: // p
-		case 0x71: // q
 		case 0x76: // v
 		case 0x77: // w
 		case 0x78: // x

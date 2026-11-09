@@ -568,6 +568,49 @@ describe('ignored C1 controls', () => {
 	});
 });
 
+describe('cursor style (DECSCUSR)', () => {
+	const styleAfter = (input: string) => {
+		const e = new Parser(new State(4, 1), {});
+		e.write(encoder.encode(input));
+		return { style: e.state.style, blink: e.state.cursorBlink };
+	};
+
+	it('starts as a steady block', () => {
+		expect(styleAfter('')).toEqual({ style: 'block', blink: false });
+	});
+
+	it.each([
+		{ parameter: 1, style: 'block', blink: true },
+		{ parameter: 2, style: 'block', blink: false },
+		{ parameter: 3, style: 'underline', blink: true },
+		{ parameter: 4, style: 'underline', blink: false },
+		{ parameter: 5, style: 'bar', blink: true },
+		{ parameter: 6, style: 'bar', blink: false }
+	])('sets $style, blinking: $blink, with CSI $parameter SP q', ({ parameter, style, blink }) => {
+		expect(styleAfter(`\x1b[${parameter} q`)).toEqual({ style, blink });
+	});
+
+	it.each([
+		{ name: 'CSI 0 SP q', input: '\x1b[5 q\x1b[0 q' },
+		{ name: 'CSI SP q', input: '\x1b[5 q\x1b[ q' },
+		{ name: 'RIS', input: '\x1b[5 q\x1bc' }
+	])('goes back to a steady block with $name', ({ input }) => {
+		expect(styleAfter(input)).toEqual({ style: 'block', blink: false });
+	});
+
+	it.each([
+		{ name: 'an unknown style', input: '\x1b[4 q\x1b[7 q' },
+		{ name: 'other forms of CSI q, like XTVERSION', input: '\x1b[4 q\x1b[>q\x1b[1q\x1b[1"q' }
+	])('ignores $name', ({ input }) => {
+		expect(styleAfter(input)).toEqual({ style: 'underline', blink: false });
+	});
+
+	it('starts and stops blinking with DECSET and DECRST ?12, keeping the shape', () => {
+		expect(styleAfter('\x1b[6 q\x1b[?12h')).toEqual({ style: 'bar', blink: true });
+		expect(styleAfter('\x1b[5 q\x1b[?12l')).toEqual({ style: 'bar', blink: false });
+	});
+});
+
 describe('repeat (REP)', () => {
 	const firstRow = (input: string, columns = 8) => {
 		const e = new Parser(new State(columns, 2), {});
