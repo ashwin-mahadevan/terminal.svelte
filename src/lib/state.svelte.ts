@@ -412,6 +412,61 @@ export class State {
 		this.column = 0;
 	}
 
+	// Resize the screen to the given dimensions. Lines are cut off or padded
+	// rather than reflowed, so text that no longer fits is lost until the
+	// application redraws it (which it does on SIGWINCH).
+	resize(columns: number, rows: number) {
+		columns = Math.max(1, Math.floor(columns));
+		rows = Math.max(1, Math.floor(rows));
+		if (columns === this.columns && rows === this.rows) return;
+
+		// A pending wrap stays pending at the new last column; otherwise the
+		// cursor can't be past the new edge.
+		const pending = this.column === this.columns;
+		this.column = pending ? columns : Math.min(this.column, columns - 1);
+
+		if (columns !== this.columns) {
+			// New cells are holes, like those of a fresh line.
+			for (const line of this.buffer) line.cells.length = columns;
+			const stops = this.tabStops;
+			stops.length = columns;
+			for (let column = this.columns; column < columns; column += 1) {
+				stops[column] = column % TAB_STOP_INTERVAL === 0 && column > 0;
+			}
+		}
+
+		// Shrinking: drop blank lines below the cursor first, then scroll the top
+		// off, keeping the cursor on its line.
+		let excess = this.buffer.length - rows;
+		while (excess > 0 && this.buffer.length - 1 > this.row) {
+			const last = this.buffer[this.buffer.length - 1];
+			if (last.cells.some((cell) => cell !== undefined)) break;
+			this.buffer.pop();
+			excess -= 1;
+		}
+		if (excess > 0) {
+			this.buffer.splice(0, excess);
+			this.row = Math.max(0, this.row - excess);
+		}
+
+		// Growing: blank lines appear at the bottom.
+		while (this.buffer.length < rows) {
+			this.buffer.push({ cells: new Array(columns), break: false });
+		}
+
+		this.columns = columns;
+		this.rows = rows;
+
+		// The saved cursor just has to stay on the screen.
+		if (this.savedCursor) {
+			this.savedCursor = {
+				...this.savedCursor,
+				column: Math.min(this.savedCursor.column, columns - 1),
+				row: Math.min(this.savedCursor.row, rows - 1)
+			};
+		}
+	}
+
 	// HT: move the cursor right to the next tab stop, or the last column if none remain.
 	tab() {
 		while (this.column < this.columns) {

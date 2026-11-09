@@ -1038,3 +1038,120 @@ describe('insert and delete lines (IL, DL)', () => {
 		expect(screen(e)).toEqual(['AAAA', 'BBBB', '    ']);
 	});
 });
+
+describe('resize', () => {
+	it('is reactive state: columns and rows follow the new size', () => {
+		const state = new State(4, 3);
+		state.resize(6, 5);
+
+		expect([state.columns, state.rows]).toEqual([6, 5]);
+		expect(state.buffer).toHaveLength(5);
+		for (const line of state.buffer) expect(line.cells).toHaveLength(6);
+	});
+
+	it('does nothing when the size is unchanged', () => {
+		const e = filled(['AB', 'CD'], 1, 1);
+		const buffer = e.state.buffer;
+		e.state.resize(2, 2);
+
+		expect(e.state.buffer).toBe(buffer);
+		expect(screen(e)).toEqual(['AB', 'CD']);
+	});
+
+	it('clamps to at least one column and row', () => {
+		const state = new State(4, 4);
+		state.resize(0, -3);
+
+		expect([state.columns, state.rows]).toEqual([1, 1]);
+	});
+
+	it('cuts lines off when narrowing and pads them when widening', () => {
+		const e = filled(['ABCD', 'EFGH'], 0, 0);
+		e.state.resize(2, 2);
+		expect(screen(e)).toEqual(['AB', 'EF']);
+
+		e.state.resize(4, 2);
+		expect(screen(e)).toEqual(['AB  ', 'EF  ']);
+	});
+
+	it('adds blank lines at the bottom when growing', () => {
+		const e = filled(['AB', 'CD'], 1, 0);
+		e.state.resize(2, 4);
+
+		expect(screen(e)).toEqual(['AB', 'CD', '  ', '  ']);
+		expect(e.state.row).toBe(1);
+	});
+
+	it('drops blank lines below the cursor first when shrinking', () => {
+		const e = new Parser(new State(2, 4), {});
+		e.write(encoder.encode('AB\r\nCD'));
+		e.state.resize(2, 2);
+
+		expect(screen(e)).toEqual(['AB', 'CD']);
+		expect(e.state.row).toBe(1);
+	});
+
+	it('scrolls the top off when the content does not fit, keeping the cursor on its line', () => {
+		const e = filled(['AB', 'CD', 'EF', 'GH'], 3, 1);
+		e.state.resize(2, 2);
+
+		expect(screen(e)).toEqual(['EF', 'GH']);
+		expect([e.state.row, e.state.column]).toEqual([1, 1]);
+	});
+
+	it('does not drop non-blank lines below the cursor to make room', () => {
+		const e = new Parser(new State(2, 3), {});
+		e.write(encoder.encode('\r\nAB\r\nCD\x1b[H'));
+		e.state.resize(2, 2);
+
+		expect(screen(e)).toEqual(['AB', 'CD']);
+		expect(e.state.row).toBe(0);
+	});
+
+	it('keeps the cursor on the screen when narrowing', () => {
+		const e = filled(['ABCDEF'], 0, 5);
+		e.state.resize(3, 1);
+
+		expect(e.state.column).toBe(2);
+	});
+
+	it('keeps a pending wrap pending at the new last column', () => {
+		const e = new Parser(new State(4, 2), {});
+		e.write(encoder.encode('ABCD'));
+		e.state.resize(6, 2);
+		expect(e.state.column).toBe(6);
+
+		e.write(encoder.encode('E'));
+		expect(screen(e)).toEqual(['ABCD  ', 'E     ']);
+	});
+
+	it('keeps the existing tab stops and adds the defaults for new columns', () => {
+		const e = new Parser(new State(10, 1), {});
+		e.write(encoder.encode('\x1b[4G\x1bH'));
+		e.state.resize(20, 1);
+		e.write(encoder.encode('\r\t'));
+		expect(e.state.column).toBe(3);
+		e.write(encoder.encode('\t'));
+		expect(e.state.column).toBe(8);
+		e.write(encoder.encode('\t'));
+		expect(e.state.column).toBe(16);
+	});
+
+	it('keeps the saved cursor on the screen', () => {
+		const e = filled(['ABCD', 'EFGH', 'IJKL'], 2, 3);
+		e.write(encoder.encode('\x1b7'));
+		e.state.resize(2, 2);
+		e.write(encoder.encode('\x1b8'));
+
+		expect([e.state.row, e.state.column]).toEqual([1, 1]);
+	});
+
+	it('keeps parsing after a resize', () => {
+		const e = new Parser(new State(4, 2), {});
+		e.write(encoder.encode('AB'));
+		e.state.resize(3, 3);
+		e.write(encoder.encode('CDE\x1b[3;3HX'));
+
+		expect(screen(e)).toEqual(['ABC', 'DE ', '  X']);
+	});
+});
