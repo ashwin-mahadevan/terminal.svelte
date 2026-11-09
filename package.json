@@ -22,6 +22,7 @@
 	},
 	"files": [
 		"dist",
+		"!dist/**/GraphemeBreakTest.txt",
 		"!dist/**/*.unit.js",
 		"!dist/**/*.unit.d.ts",
 		"!dist/**/*.dom.js",
