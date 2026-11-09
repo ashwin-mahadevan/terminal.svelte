@@ -1,7 +1,7 @@
 import type { State } from '$lib/state.svelte';
 import { ground } from '$lib/parser/ground';
 import { grapheme } from '$lib/parser/grapheme';
-import { escape } from '$lib/parser/escape';
+import { escape, escapeIntermediate } from '$lib/parser/escape';
 import { csi, csiIntermediate, csiParam } from './csi';
 import { osc, oscEscape } from './osc';
 import { string } from './string';
@@ -32,6 +32,7 @@ export const MODE_CSI_PARAM = 0x05;
 export const MODE_OSC = 0x06;
 export const MODE_OSC_ESCAPE = 0x07;
 export const MODE_STRING = 0x08;
+export const MODE_ESCAPE_INTERMEDIATE = 0x09;
 
 export type Mode =
 	| typeof MODE_GROUND
@@ -42,7 +43,8 @@ export type Mode =
 	| typeof MODE_CSI_PARAM
 	| typeof MODE_OSC
 	| typeof MODE_OSC_ESCAPE
-	| typeof MODE_STRING;
+	| typeof MODE_STRING
+	| typeof MODE_ESCAPE_INTERMEDIATE;
 
 export class Parser {
 	readonly state: State;
@@ -83,6 +85,9 @@ export class Parser {
 					break;
 				case MODE_ESCAPE:
 					index += escape(this, chunk, index);
+					break;
+				case MODE_ESCAPE_INTERMEDIATE:
+					index += escapeIntermediate(this, chunk, index);
 					break;
 				case MODE_CSI:
 					index += csi(this, chunk, index);

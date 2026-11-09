@@ -1,3 +1,6 @@
+import { translate } from '$lib/charsets';
+import type { Charset } from '$lib/charsets';
+
 export type Color =
 	| null // default
 	| { type: 'palette'; index: number }
@@ -82,7 +85,16 @@ const TITLE_STACK_LIMIT = 10;
 // The default number of lines kept in the scrollback.
 const SCROLLBACK_LIMIT = 1000;
 
-type SavedCursor = { column: number; row: number; attributes: Attributes; originMode: boolean };
+type Charsets = [Charset, Charset, Charset, Charset];
+
+type SavedCursor = {
+	column: number;
+	row: number;
+	attributes: Attributes;
+	originMode: boolean;
+	charsets: Charsets;
+	shift: 0 | 1;
+};
 
 // A cursor-like position that a resize moves along with the text under it.
 // As elsewhere, column === columns means a wrap is pending.
@@ -221,6 +233,13 @@ export class State {
 	// for the screen shown. Each screen has its own.
 	savedCursor: SavedCursor | null = null;
 
+	// The character sets designated into G0–G3 by SCS. SO and SI print with G1
+	// or G0 (`shift`), and SS2 and SS3 print just the next character with G2
+	// or G3 (`singleShift`).
+	charsets: Charsets = ['ascii', 'ascii', 'ascii', 'ascii'];
+	shift: 0 | 1 = 0;
+	singleShift: 2 | 3 | null = null;
+
 	// DECKPAM/DECKPNM: whether the keypad sends application sequences (SS3-
 	// prefixed) instead of the characters printed on the keys.
 	applicationKeypad = false;
@@ -325,6 +344,9 @@ export class State {
 		this.attributes = DEFAULT_ATTRIBUTES;
 		this.tabStops = defaultTabStops(this.columns);
 		this.savedCursor = null;
+		this.charsets = ['ascii', 'ascii', 'ascii', 'ascii'];
+		this.shift = 0;
+		this.singleShift = null;
 		this.applicationKeypad = false;
 		this.autowrap = true;
 		this.cursorVisible = true;
@@ -382,14 +404,17 @@ export class State {
 		}
 	}
 
-	// DECSC: save the cursor position, attributes, origin mode, and — since a
-	// pending wrap is encoded as column === columns — the last-column flag.
+	// DECSC: save the cursor position, attributes, origin mode, character sets,
+	// and — since a pending wrap is encoded as column === columns — the
+	// last-column flag.
 	saveCursor() {
 		this.savedCursor = {
 			column: this.column,
 			row: this.row,
 			attributes: this.attributes,
-			originMode: this.originMode
+			originMode: this.originMode,
+			charsets: [...this.charsets],
+			shift: this.shift
 		};
 	}
 
@@ -401,11 +426,15 @@ export class State {
 			this.row = this.savedCursor.row;
 			this.attributes = this.savedCursor.attributes;
 			this.originMode = this.savedCursor.originMode;
+			this.charsets = [...this.savedCursor.charsets];
+			this.shift = this.savedCursor.shift;
 		} else {
 			this.column = 0;
 			this.row = 0;
 			this.attributes = DEFAULT_ATTRIBUTES;
 			this.originMode = false;
+			this.charsets = ['ascii', 'ascii', 'ascii', 'ascii'];
+			this.shift = 0;
 		}
 	}
 
@@ -758,7 +787,18 @@ export class State {
 		if (this.column === this.columns) this.column -= 1;
 	}
 
+	// Print a character in the character set in use.
 	print(text: string) {
+		if (this.singleShift !== null || this.charsets[this.shift] !== 'ascii') {
+			const charset = this.charsets[this.singleShift ?? this.shift];
+			this.singleShift = null;
+			text = translate(charset, text);
+		}
+		this.put(text);
+	}
+
+	// Write a character at the cursor and advance it.
+	private put(text: string) {
 		// A previous character filled the last column, leaving a wrap pending
 		// (this.column === this.columns). With autowrap (DECAWM) on, resolve it
 		// by moving to a new line before writing; with it off, cancel the wrap

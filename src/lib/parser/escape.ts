@@ -1,6 +1,9 @@
+import { CHARSET_DESIGNATIONS } from '$lib/charsets';
 import {
 	DEVICE_ATTRIBUTES_RESPONSE,
 	MODE_CSI,
+	MODE_ESCAPE,
+	MODE_ESCAPE_INTERMEDIATE,
 	MODE_GROUND,
 	MODE_OSC,
 	MODE_STRING
@@ -77,9 +80,14 @@ export const escape = (emulator: Parser, chunk: Uint8Array, start: number): numb
 			emulator.state.reverseLinefeed();
 			break;
 
-		case 0x4e: // ESC N → SS2 (Single Shift 2)
-		case 0x4f: // ESC O → SS3 (Single Shift 3)
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
+		// ESC N → SS2 (Single Shift 2): print the next character with G2.
+		case 0x4e:
+			emulator.state.singleShift = 2;
+			break;
+
+		// ESC O → SS3 (Single Shift 3): print the next character with G3.
+		case 0x4f:
+			emulator.state.singleShift = 3;
 			break;
 
 		// ESC P → DCS (Device Control String)
@@ -116,22 +124,75 @@ export const escape = (emulator: Parser, chunk: Uint8Array, start: number): numb
 			emulator.state.reset();
 			break;
 
-		// ESC SP, ESC #, ESC (, ESC ), ESC *, ESC + → two-byte sequences
-		case 0x20: // intermediate: 7/8-bit controls
-		case 0x23: // intermediate: line attributes
-		case 0x28: // intermediate: G0 charset
-		case 0x29: // intermediate: G1 charset
-		case 0x2a: // intermediate: G2 charset
-		case 0x2b: // intermediate: G3 charset
-			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
-			emulator.mode = MODE_GROUND;
-			return 2;
-
 		default:
+			// 0x20–0x2f: intermediate bytes, like the ( of SCS, which a final
+			// byte follows.
+			if (byte >= 0x20 && byte <= 0x2f) {
+				emulator.intermediates = [byte];
+				emulator.mode = MODE_ESCAPE_INTERMEDIATE;
+				return 1;
+			}
+
 			console.log(`NOT IMPLEMENTED: ESC 0x${byte.toString(16).padStart(2, '0')}`);
 			break;
 	}
 
 	emulator.mode = MODE_GROUND;
 	return 1;
+};
+
+// ESC, intermediate bytes, then a final byte, which may arrive in a later chunk.
+export const escapeIntermediate = (emulator: Parser, chunk: Uint8Array, start: number): number => {
+	const byte = chunk[start];
+
+	// 0x20–0x2f: another intermediate byte.
+	if (byte >= 0x20 && byte <= 0x2f) {
+		emulator.intermediates.push(byte);
+		return 1;
+	}
+
+	// 0x30–0x7e: the final byte.
+	if (byte >= 0x30 && byte <= 0x7e) {
+		dispatch(emulator, byte);
+		emulator.mode = MODE_GROUND;
+		return 1;
+	}
+
+	switch (byte) {
+		// CAN, SUB: abort the sequence.
+		case 0x18:
+		case 0x1a:
+			emulator.mode = MODE_GROUND;
+			return 1;
+
+		// ESC: abort and begin a new escape sequence.
+		case 0x1b:
+			emulator.mode = MODE_ESCAPE;
+			return 1;
+	}
+
+	// Other C0 controls and DEL are ignored.
+	if (byte < 0x20 || byte === 0x7f) return 1;
+
+	// 0x80 and above: abort, and leave the byte to the ground parser.
+	emulator.mode = MODE_GROUND;
+	return 0;
+};
+
+const dispatch = (emulator: Parser, final: number) => {
+	const [intermediate, ...rest] = emulator.intermediates;
+
+	// ESC ( ) * + → SCS (Select Character Set): designate a set into G0–G3.
+	if (rest.length === 0 && intermediate >= 0x28 && intermediate <= 0x2b) {
+		const charset = CHARSET_DESIGNATIONS[final];
+		if (charset !== undefined) {
+			emulator.state.charsets[intermediate - 0x28] = charset;
+			return;
+		}
+	}
+
+	const bytes = [...emulator.intermediates, final];
+	console.log(
+		`NOT IMPLEMENTED: ESC ${bytes.map((b) => `0x${b.toString(16).padStart(2, '0')}`).join(' ')}`
+	);
 };

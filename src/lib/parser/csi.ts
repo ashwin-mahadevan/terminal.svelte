@@ -140,9 +140,14 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 			emulator.state.column = 0;
 			break;
 
-		case 0x0e: // SO (shift out)
-		case 0x0f: // SI (shift in)
-			console.log(`NOT IMPLEMENTED: 0x${byte.toString(16).padStart(2, '0')}`);
+		// SO (shift out): print with G1.
+		case 0x0e:
+			emulator.state.shift = 1;
+			break;
+
+		// SI (shift in): print with G0.
+		case 0x0f:
+			emulator.state.shift = 0;
 			break;
 
 		// CAN (cancel), SUB (substitute): abort the sequence.

@@ -513,6 +513,75 @@ describe('ignored C1 controls', () => {
 	});
 });
 
+describe('character sets (SCS)', () => {
+	// The text of the first row, with unwritten cells as spaces.
+	const firstRow = (input: string, columns = 10) => {
+		const e = new Parser(new State(columns, 2), {});
+		e.write(encoder.encode(input));
+		return Array.from(e.state.buffer[0].cells, (cell) => cell?.text ?? ' ').join('');
+	};
+
+	it('draws lines and corners with DEC Special Graphics in G0', () => {
+		expect(firstRow('\x1b(0lqqk\x1b(B')).toBe('┌──┐      ');
+	});
+
+	it('maps all of ` through ~', () => {
+		expect(firstRow('\x1b(0`abcdefghijklmnopqrstuvwxyz{|}~', 31)).toBe(
+			'◆▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π≠£·'
+		);
+	});
+
+	it('leaves uppercase letters, digits and non-ASCII text alone', () => {
+		expect(firstRow('\x1b(0AZ09é')).toBe('AZ09é     ');
+	});
+
+	it('goes back to ASCII with ESC ( B', () => {
+		expect(firstRow('\x1b(0q\x1b(Bq')).toBe('─q        ');
+	});
+
+	it('draws £ for # with the British set', () => {
+		expect(firstRow('\x1b(A#a')).toBe('£a        ');
+	});
+
+	it('prints with G1 after SO, and with G0 again after SI', () => {
+		expect(firstRow('\x1b)0q\x0eq\x0fq')).toBe('q─q       ');
+	});
+
+	it('prints one character with G2 after SS2, and G3 after SS3', () => {
+		expect(firstRow('\x1b*0\x1b+A\x1bNqq\x1bO#')).toBe('─q£       ');
+	});
+
+	it('handles SO and SI inside a CSI sequence', () => {
+		expect(firstRow('\x1b)0\x1b[1\x0emq')).toBe('─         ');
+	});
+
+	it('keeps the designation across chunk boundaries', () => {
+		const e = new Parser(new State(4, 1), {});
+		e.write(encoder.encode('\x1b'));
+		e.write(encoder.encode('('));
+		e.write(encoder.encode('0q'));
+		expect(e.state.buffer[0].cells[0]?.text).toBe('─');
+	});
+
+	it('ignores sets it does not support, and other ESC intermediate sequences', () => {
+		expect(firstRow('\x1b(0\x1b(<q\x1b#8\x1b %Gq')).toBe('──        ');
+	});
+
+	it('aborts the sequence on CAN', () => {
+		expect(firstRow('\x1b(\x180q')).toBe('0q        ');
+	});
+
+	it('saves and restores the sets and the shift with DECSC and DECRC', () => {
+		// Saved with DEC Special Graphics in G1, shifted in; both are undone
+		// before the restore.
+		expect(firstRow('a\x1b)0\x0e\x1b7\x0f\x1b)B\x1b8q')).toBe('a─        ');
+	});
+
+	it('goes back to ASCII on RIS', () => {
+		expect(firstRow('\x1b(0\x1bcq')).toBe('q         ');
+	});
+});
+
 describe('select graphic rendition (SGR)', () => {
 	// The attributes the cell printed after `input` was stamped with.
 	const attributesAfter = (input: string) => {
