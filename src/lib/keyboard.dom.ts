@@ -285,11 +285,10 @@ if (import.meta.vitest) {
 		const paste = (screen: ReturnType<typeof render>, text: string) => {
 			const transfer = new DataTransfer();
 			transfer.setData('text/plain', text);
-			const event = new ClipboardEvent('paste', {
-				clipboardData: transfer,
-				bubbles: true,
-				cancelable: true
-			});
+			const event = new ClipboardEvent('paste', { bubbles: true, cancelable: true });
+			// Firefox gives a synthetic event an empty copy of the clipboardData passed
+			// to its constructor, so set the property directly instead.
+			Object.defineProperty(event, 'clipboardData', { value: transfer });
 			screen.getByRole('application', { name: 'Terminal' }).element().dispatchEvent(event);
 			return event;
 		};
