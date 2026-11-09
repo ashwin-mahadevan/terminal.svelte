@@ -1,16 +1,20 @@
 <script lang="ts">
 	import { onMount, untrack } from 'svelte';
 	import Cell from '$lib/cell.svelte';
+	import { defaultAltSendsEscape, encodeKey } from '$lib/keyboard';
 	import { DEFAULT_BACKGROUND, DEFAULT_FOREGROUND } from '$lib/palette';
 	import type { State } from './state.svelte';
 
 	type Props = {
 		state: State;
 		ondata?: (data: string) => void;
+		// Whether Alt (Option, on a Mac) sends ESC before the key, as Meta. By
+		// default it does, except on a Mac, where Option types its characters.
+		altSendsEscape?: boolean;
 	};
 
 	// The prop is aliased: a local named `state` would shadow the $state rune.
-	const { state: screen, ondata }: Props = $props();
+	const { state: screen, ondata, altSendsEscape = defaultAltSendsEscape() }: Props = $props();
 
 	let root: HTMLDivElement;
 
@@ -32,8 +36,6 @@
 		const rows = Math.floor(box.height / glyph.height);
 		untrack(() => screen.resize(columns, rows));
 	});
-
-	onMount(() => root.focus());
 
 	// Scrollback: the terminal scrolls to show it, and follows the output as
 	// long as it's scrolled to the bottom. Scrolling up stops that, until it's
@@ -59,92 +61,71 @@
 		if (following && root) untrack(scrollToBottom);
 	});
 
-	// DECKPAM: the VT220-style application keypad sequences, keyed by the
-	// physical key (KeyboardEvent.code).
-	const APPLICATION_KEYPAD: Record<string, string> = {
-		Numpad0: '\x1bOp',
-		Numpad1: '\x1bOq',
-		Numpad2: '\x1bOr',
-		Numpad3: '\x1bOs',
-		Numpad4: '\x1bOt',
-		Numpad5: '\x1bOu',
-		Numpad6: '\x1bOv',
-		Numpad7: '\x1bOw',
-		Numpad8: '\x1bOx',
-		Numpad9: '\x1bOy',
-		NumpadDecimal: '\x1bOn',
-		NumpadEnter: '\x1bOM',
-		NumpadAdd: '\x1bOk',
-		NumpadSubtract: '\x1bOm',
-		NumpadMultiply: '\x1bOj',
-		NumpadDivide: '\x1bOo'
-	};
+	// Keys are read from a hidden textarea, which holds the focus: a plain
+	// element can't take text from an IME, dead keys or the emoji picker. It
+	// sits at the cursor, so the IME's candidate window opens there, and shows
+	// the text being composed until it's committed.
+	let input: HTMLTextAreaElement;
+	let composing = $state(false);
 
-	// Translate a keydown into the bytes a PTY expects. Minimal on purpose:
-	// printable keys, the common control keys, Ctrl-<letter>, and arrows.
-	function handleKeydown(event: KeyboardEvent) {
+	// Focusing it mustn't scroll the scrollback to the cursor.
+	const focus = () => input.focus({ preventScroll: true });
+
+	onMount(focus);
+
+	function send(data: string) {
 		// Anything typed goes to the bottom, where it's echoed.
-		if (!event.metaKey) scrollToBottom();
+		scrollToBottom();
+		ondata?.(data);
+	}
 
-		// Keypad keys come first: NumpadEnter would otherwise be taken by the
-		// Enter case below.
-		if (screen.applicationKeypad) {
-			const sequence = APPLICATION_KEYPAD[event.code];
-			if (sequence !== undefined) {
-				event.preventDefault();
-				ondata?.(sequence);
-				return;
-			}
+	function handleKeydown(event: KeyboardEvent) {
+		// Keys that compose text belong to the IME until it commits.
+		// Safari reports the key that ends a composition with isComposing false,
+		// and only the (deprecated) key code 229 gives it away.
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		if (event.isComposing || event.keyCode === 229) return;
+
+		// Shift+PageUp and Shift+PageDown scroll through the scrollback, when
+		// there is one to show.
+		if (
+			(event.key === 'PageUp' || event.key === 'PageDown') &&
+			event.shiftKey &&
+			!event.ctrlKey &&
+			!event.altKey &&
+			!event.metaKey &&
+			!screen.alternate
+		) {
+			event.preventDefault();
+			const page = root.clientHeight - (glyph?.height ?? 0);
+			root.scrollBy(0, event.key === 'PageUp' ? -page : page);
+			return;
 		}
 
-		switch (event.key) {
-			case 'Enter':
-				event.preventDefault();
-				ondata?.('\r');
-				return;
-			case 'Backspace':
-				event.preventDefault();
-				ondata?.('\x7f');
-				return;
-			case 'Tab':
-				event.preventDefault();
-				ondata?.('\t');
-				return;
-			case 'Escape':
-				event.preventDefault();
-				ondata?.('\x1b');
-				return;
-			case 'ArrowUp':
-				event.preventDefault();
-				ondata?.(screen.applicationCursor ? '\x1bOA' : '\x1b[A');
-				return;
-			case 'ArrowDown':
-				event.preventDefault();
-				ondata?.(screen.applicationCursor ? '\x1bOB' : '\x1b[B');
-				return;
-			case 'ArrowRight':
-				event.preventDefault();
-				ondata?.(screen.applicationCursor ? '\x1bOC' : '\x1b[C');
-				return;
-			case 'ArrowLeft':
-				event.preventDefault();
-				ondata?.(screen.applicationCursor ? '\x1bOD' : '\x1b[D');
-				return;
-			default: {
-				if (event.key.length !== 1) return;
-				if (event.metaKey || event.altKey) return;
-				if (event.ctrlKey) {
-					const code = event.key.toLowerCase().charCodeAt(0);
-					if (code >= 97 && code <= 122) {
-						event.preventDefault();
-						ondata?.(String.fromCharCode(code - 96)); // Ctrl-A..Z
-					}
-					return;
-				}
-				event.preventDefault();
-				ondata?.(event.key);
-			}
-		}
+		const data = encodeKey(event, {
+			applicationCursor: screen.applicationCursor,
+			applicationKeypad: screen.applicationKeypad,
+			altSendsEscape
+		});
+		if (data === undefined) return;
+
+		event.preventDefault();
+		send(data);
+	}
+
+	// Text the keydown handler left to the browser: the emoji picker,
+	// dictation, and anything else that inserts it.
+	function handleInput(event: Event) {
+		const { inputType, data, isComposing } = event as InputEvent;
+		if (isComposing || composing) return;
+		if (inputType === 'insertText' && data) send(data);
+		input.value = '';
+	}
+
+	function handleCompositionEnd(event: CompositionEvent) {
+		composing = false;
+		input.value = '';
+		if (event.data) send(event.data);
 	}
 
 	// Paste: line breaks become CRs, as if the text had been typed. When the
@@ -174,14 +155,13 @@
 	);
 </script>
 
-<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	bind:this={root}
 	bind:contentRect={box}
 	role="application"
 	aria-label="Terminal"
-	tabindex="0"
+	onclick={focus}
 	onkeydown={handleKeydown}
 	onpaste={handlePaste}
 	onscroll={handleScroll}
@@ -233,4 +213,34 @@
 	>
 		<span>W</span>
 	</div>
+
+	<textarea
+		bind:this={input}
+		aria-label="Terminal input"
+		autocapitalize="off"
+		autocomplete="off"
+		spellcheck="false"
+		oninput={handleInput}
+		oncompositionstart={() => (composing = true)}
+		oncompositionend={handleCompositionEnd}
+		style:position="absolute"
+		style:left="{cursorColumn * (glyph?.width ?? 0)}px"
+		style:top="{(history.length + screen.row) * (glyph?.height ?? 0)}px"
+		style:width="{(screen.columns - cursorColumn) * (glyph?.width ?? 0)}px"
+		style:height="{glyph?.height ?? 0}px"
+		style:margin="0"
+		style:padding="0"
+		style:border="none"
+		style:outline="none"
+		style:resize="none"
+		style:overflow="hidden"
+		style:white-space="pre"
+		style:font="inherit"
+		style:line-height="inherit"
+		style:color="inherit"
+		style:background={DEFAULT_BACKGROUND}
+		style:opacity={composing ? 1 : 0}
+		style:caret-color={composing ? 'auto' : 'transparent'}
+		style:z-index="1"
+	></textarea>
 </div>

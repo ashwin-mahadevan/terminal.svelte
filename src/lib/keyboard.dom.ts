@@ -145,8 +145,138 @@ if (import.meta.vitest) {
 
 			const terminal = screen.getByRole('application', { name: 'Terminal' });
 			await userEvent.click(terminal);
-			await userEvent.keyboard('{F1}');
+			await userEvent.keyboard('{Shift}{Control}{Alt}');
 
+			expect(ondata).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('terminal keys', () => {
+		// Real key events, through the browser, for a sample of what encodeKey
+		// covers in full.
+		const KEY_CASES: Array<{ name: string; key: string; data: string }> = [
+			{ name: 'Shift+Tab sends CSI Z', key: '{Shift>}{Tab}{/Shift}', data: '\x1b[Z' },
+			{
+				name: 'Ctrl+ArrowRight sends CSI 1;5C',
+				key: '{Control>}{ArrowRight}{/Control}',
+				data: '\x1b[1;5C'
+			},
+			{ name: 'Delete sends CSI 3~', key: '{Delete}', data: '\x1b[3~' },
+			{ name: 'Home sends CSI H', key: '{Home}', data: '\x1b[H' },
+			{ name: 'F1 sends SS3 P', key: '{F1}', data: '\x1bOP' },
+			{ name: 'F5 sends CSI 15~', key: '{F5}', data: '\x1b[15~' }
+		];
+
+		it.each(KEY_CASES)('$name', async ({ key, data }) => {
+			const ondata = vi.fn();
+			const screen = render(Terminal, { state: new State(), ondata });
+
+			await userEvent.click(screen.getByRole('application', { name: 'Terminal' }));
+			await userEvent.keyboard(key);
+
+			expect(ondata).toHaveBeenCalledExactlyOnceWith(data);
+		});
+
+		it('sends ESC before Alt keys when Alt sends ESC', async () => {
+			const ondata = vi.fn();
+			const screen = render(Terminal, { state: new State(), ondata, altSendsEscape: true });
+
+			const input = screen.getByRole('textbox', { name: 'Terminal input' }).element();
+			input.dispatchEvent(
+				new KeyboardEvent('keydown', { key: 'b', code: 'KeyB', altKey: true, bubbles: true })
+			);
+
+			expect(ondata).toHaveBeenCalledExactlyOnceWith('\x1bb');
+		});
+
+		it('holds the focus in the input, which follows the cursor', async () => {
+			const state = new State();
+			const screen = render(Terminal, { state });
+			const input = screen.getByRole('textbox', { name: 'Terminal input' }).element();
+			expect(document.activeElement).toBe(input);
+
+			const before = input.getBoundingClientRect();
+			new Parser(state, {}).write(new TextEncoder().encode('\x1b[3;5H'));
+			await expect.poll(() => input.getBoundingClientRect().top).toBeGreaterThan(before.top);
+			expect(input.getBoundingClientRect().left).toBeGreaterThan(before.left);
+		});
+	});
+
+	describe('terminal text input', () => {
+		const setup = () => {
+			const ondata = vi.fn();
+			const screen = render(Terminal, { state: new State(), ondata });
+			const input = screen
+				.getByRole('textbox', { name: 'Terminal input' })
+				.element() as HTMLTextAreaElement;
+			return { ondata, input };
+		};
+
+		it('sends text composed with an IME once, when it is committed', () => {
+			const { ondata, input } = setup();
+
+			input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+			input.dispatchEvent(
+				new KeyboardEvent('keydown', { key: 'n', isComposing: true, bubbles: true })
+			);
+			input.value = 'に';
+			input.dispatchEvent(
+				new InputEvent('input', {
+					inputType: 'insertCompositionText',
+					data: 'に',
+					isComposing: true,
+					bubbles: true
+				})
+			);
+			expect(ondata).not.toHaveBeenCalled();
+
+			input.dispatchEvent(new CompositionEvent('compositionend', { data: '日本', bubbles: true }));
+
+			expect(ondata).toHaveBeenCalledExactlyOnceWith('日本');
+			expect(input.value).toBe('');
+		});
+
+		it('ignores the keydown an IME reports as key code 229', () => {
+			const { ondata, input } = setup();
+			input.dispatchEvent(
+				new KeyboardEvent('keydown', { key: 'Process', keyCode: 229, bubbles: true })
+			);
+
+			expect(ondata).not.toHaveBeenCalled();
+		});
+
+		it('sends text inserted without a key press, like an emoji from the picker', () => {
+			const { ondata, input } = setup();
+
+			input.value = '😀';
+			input.dispatchEvent(
+				new InputEvent('input', { inputType: 'insertText', data: '😀', bubbles: true })
+			);
+
+			expect(ondata).toHaveBeenCalledExactlyOnceWith('😀');
+			expect(input.value).toBe('');
+		});
+
+		it('scrolls the scrollback with Shift+PageUp and Shift+PageDown, sending nothing', async () => {
+			const container = document.createElement('div');
+			container.style.width = '400px';
+			container.style.height = '200px';
+			document.body.appendChild(container);
+			const ondata = vi.fn();
+			const state = new State();
+			const screen = render(Terminal, { target: container, props: { state, ondata } });
+			await expect.poll(() => state.columns).not.toBe(80);
+
+			const lines = Array.from({ length: state.rows * 3 }, (_, index) => `${index}`);
+			new Parser(state, {}).write(new TextEncoder().encode(lines.join('\r\n')));
+			const terminal = screen.getByRole('application', { name: 'Terminal' }).element();
+			await expect.poll(() => terminal.scrollTop).toBeGreaterThan(0);
+			const bottom = terminal.scrollTop;
+
+			await userEvent.keyboard('{Shift>}{PageUp}{/Shift}');
+			expect(terminal.scrollTop).toBeLessThan(bottom);
+			await userEvent.keyboard('{Shift>}{PageDown}{/Shift}');
+			expect(terminal.scrollTop).toBe(bottom);
 			expect(ondata).not.toHaveBeenCalled();
 		});
 	});

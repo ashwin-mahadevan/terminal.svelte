@@ -65,7 +65,6 @@ if (import.meta.vitest) {
 			await new Promise((resolve) => setTimeout(resolve, 50));
 			expect(terminal.scrollTop).toBe(0);
 
-			(terminal as HTMLElement).focus();
 			await userEvent.keyboard('a');
 			expect(atBottom(terminal)).toBe(true);
 		});
