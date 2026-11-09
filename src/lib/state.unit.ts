@@ -1632,3 +1632,122 @@ describe('reflow', () => {
 		expect(e.state.buffer).toHaveLength(3);
 	});
 });
+
+describe('window title (OSC 0, OSC 2)', () => {
+	it('starts empty', () => {
+		expect(new State().title).toBe('');
+	});
+
+	it('sets the title with OSC 0 and OSC 2, ended by BEL or ST', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]0;vim\x07'));
+		expect(e.state.title).toBe('vim');
+
+		e.write(encoder.encode('\x1b]2;~/src\x1b\\'));
+		expect(e.state.title).toBe('~/src');
+	});
+
+	it('decodes the title as UTF-8, across chunks', () => {
+		const e = new Parser(new State(4, 4), {});
+		const bytes = encoder.encode('\x1b]2;日本 — ✓\x07');
+		e.write(bytes.subarray(0, 6));
+		e.write(bytes.subarray(6));
+
+		expect(e.state.title).toBe('日本 — ✓');
+	});
+
+	it('keeps semicolons in the title', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;a;b\x07'));
+
+		expect(e.state.title).toBe('a;b');
+	});
+
+	it('clears the title with an empty one', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;vim\x07\x1b]2;\x07'));
+
+		expect(e.state.title).toBe('');
+	});
+
+	it('leaves the title alone for OSC 1, the icon name, and other commands', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;vim\x07\x1b]1;icon\x07\x1b]7;file:///tmp\x07\x1b]2\x07'));
+
+		expect(e.state.title).toBe('vim');
+	});
+
+	it('leaves the title alone when the string is aborted', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;vim\x07\x1b]2;nope\x18'));
+
+		expect(e.state.title).toBe('vim');
+	});
+
+	it('survives RIS', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;vim\x07\x1bc'));
+
+		expect(e.state.title).toBe('vim');
+	});
+});
+
+describe('title stack (XTWINOPS 22, 23)', () => {
+	it('saves the title and restores it', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;shell\x07\x1b[22;0t\x1b]2;vim\x07'));
+		expect(e.state.title).toBe('vim');
+
+		e.write(encoder.encode('\x1b[23;0t'));
+		expect(e.state.title).toBe('shell');
+	});
+
+	it('nests, last saved first restored', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;a\x07\x1b[22t\x1b]2;b\x07\x1b[22;2t\x1b]2;c\x07'));
+
+		e.write(encoder.encode('\x1b[23;2t'));
+		expect(e.state.title).toBe('b');
+		e.write(encoder.encode('\x1b[23t'));
+		expect(e.state.title).toBe('a');
+	});
+
+	it('leaves the title alone when nothing is saved', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;vim\x07\x1b[23;0t'));
+
+		expect(e.state.title).toBe('vim');
+	});
+
+	it('ignores the icon name only form', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;a\x07\x1b[22;1t\x1b]2;b\x07\x1b[23;1t'));
+		expect(e.state.title).toBe('b');
+
+		// Nothing was saved, so there's nothing to restore.
+		e.write(encoder.encode('\x1b[23;0t'));
+		expect(e.state.title).toBe('b');
+	});
+
+	it('keeps the last 10 titles', () => {
+		const e = new Parser(new State(4, 4), {});
+		for (let index = 0; index < 12; index += 1) {
+			e.write(encoder.encode(`\x1b]2;${index}\x07\x1b[22t`));
+		}
+
+		const restored: Array<string> = [];
+		for (let index = 0; index < 12; index += 1) {
+			e.write(encoder.encode('\x1b]2;none\x07\x1b[23t'));
+			restored.push(e.state.title);
+		}
+		expect(restored).toEqual(['11', '10', '9', '8', '7', '6', '5', '4', '3', '2', 'none', 'none']);
+	});
+
+	it('ignores other window operations and marked forms', () => {
+		const e = new Parser(new State(4, 4), {});
+		e.write(encoder.encode('\x1b]2;a\x07\x1b[22t\x1b]2;b\x07\x1b[8;40;120t\x1b[>23t\x1b[?23t'));
+
+		expect(e.state.title).toBe('b');
+		expect([e.state.columns, e.state.rows]).toEqual([4, 4]);
+	});
+});

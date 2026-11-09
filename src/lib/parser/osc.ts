@@ -3,9 +3,29 @@ import type { Parser } from '$lib/parser/state-machine.svelte';
 
 const decoder = new TextDecoder();
 
+// Run a complete OSC string: a number, then ; and its text.
 const dispatch = (emulator: Parser) => {
-	console.log(`NOT IMPLEMENTED: OSC ${decoder.decode(Uint8Array.from(emulator.oscString))}`);
 	emulator.mode = MODE_GROUND;
+
+	const string = decoder.decode(Uint8Array.from(emulator.oscString));
+	const separator = string.indexOf(';');
+	const command = separator === -1 ? string : string.slice(0, separator);
+	const text = separator === -1 ? '' : string.slice(separator + 1);
+
+	switch (command) {
+		// OSC 0 sets the icon name and the window title, and OSC 2 just the
+		// title. There's no icon name to set, so both set the title.
+		// A bare number, with no ; for the text to follow, is ignored.
+		case '0':
+		case '2':
+			if (separator !== -1) emulator.state.title = text;
+			break;
+		// OSC 1 sets just the icon name.
+		case '1':
+			break;
+		default:
+			console.log(`NOT IMPLEMENTED: OSC ${string}`);
+	}
 };
 
 export const osc = (emulator: Parser, chunk: Uint8Array, start: number): number => {

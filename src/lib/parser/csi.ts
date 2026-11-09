@@ -207,9 +207,24 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 		case 0x62: // REP (Repeat Preceding Character)
 		case 0x67: // TBC (Tab Clear)
 		case 0x73: // SCOSC (Save Cursor)
-		case 0x74: // XTWINOPS (Window Manipulation)
 		case 0x75: // SCORC (Restore Cursor)
 			console.log(`NOT IMPLEMENTED: CSI 0x${byte.toString(16).padStart(2, '0')}`);
+			emulator.mode = MODE_GROUND;
+			break;
+
+		// CSI t → XTWINOPS (Window Manipulation). Only 22 and 23 are supported:
+		// they save and restore the title. Their second parameter picks the
+		// icon name (1), the title (2) or both (0, the default); there's no icon
+		// name, so 1 does nothing. The rest, like resizing the window or
+		// reporting its size, are ignored.
+		case 0x74:
+			if (emulator.privateMarker === null && emulator.intermediates.length === 0) {
+				const [operation, which] = emulator.parameters;
+				if ((which ?? 0) !== 1) {
+					if (operation === 22) emulator.state.pushTitle();
+					else if (operation === 23) emulator.state.popTitle();
+				}
+			}
 			emulator.mode = MODE_GROUND;
 			break;
 

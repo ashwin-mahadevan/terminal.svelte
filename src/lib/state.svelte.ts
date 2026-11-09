@@ -76,6 +76,9 @@ function clamp(value: number, minimum: number, maximum: number): number {
 // Default interval between tab stops, in columns.
 const TAB_STOP_INTERVAL = 8;
 
+// The number of titles XTWINOPS 22 can save.
+const TITLE_STACK_LIMIT = 10;
+
 // The default number of lines kept in the scrollback.
 const SCROLLBACK_LIMIT = 1000;
 
@@ -185,6 +188,24 @@ export class State {
 	// DECOM (?6): whether cursor positions count from the top of the scroll
 	// region, and keep the cursor inside it.
 	originMode = false;
+
+	// The window title, set by OSC 0 and OSC 2. It survives RIS, as in xterm.
+	title = $state('');
+
+	// Titles saved by XTWINOPS 22 and restored by 23, so an application like
+	// vim can put back the title it found. Like xterm, it holds up to 10.
+	private titleStack: Array<string> = [];
+
+	pushTitle() {
+		this.titleStack.push(this.title);
+		if (this.titleStack.length > TITLE_STACK_LIMIT) this.titleStack.shift();
+	}
+
+	// With nothing saved, the title stays as it is.
+	popTitle() {
+		const title = this.titleStack.pop();
+		if (title !== undefined) this.title = title;
+	}
 
 	// Cursor
 	column = $state<number>()!;

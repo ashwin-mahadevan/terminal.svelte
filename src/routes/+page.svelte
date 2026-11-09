@@ -28,6 +28,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{state.title || 'Terminal'}</title>
+</svelte:head>
+
 <div class="screen">
 	<StreamTerminal {state} ondata={(data) => socket.emit('input', data)} />
 </div>
