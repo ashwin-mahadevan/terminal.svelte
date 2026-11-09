@@ -1,10 +1,23 @@
+import { mkdtempSync } from 'node:fs';
 import type { Server as HttpServer } from 'node:http';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { spawn } from 'node-pty';
 import { Server } from 'socket.io';
 import { defineConfig } from 'vitest/config';
 import type { Plugin } from 'vitest/config';
+
+// On macOS 27, Firefox reads ~/Library/Application Support/Firefox at startup
+// even with its own profile, the OS privacy controls deny it, and it exits with
+// "Could not find profile folder". An empty home folder of its own (one per
+// run) lets it start; other platforms ignore the variable. See
+// microsoft/playwright#42768.
+const FIREFOX_ENV = {
+	...process.env,
+	CFFIXED_USER_HOME: mkdtempSync(join(tmpdir(), 'firefox-home-'))
+};
 
 const SHELL = process.env.SHELL ?? 'bash';
 const ARGUMENTS: Array<string> = [];
@@ -68,7 +81,11 @@ export default defineConfig({
 						provider: playwright(),
 						instances: [
 							{ browser: 'chromium', headless: true },
-							{ browser: 'firefox', headless: true },
+							{
+								browser: 'firefox',
+								headless: true,
+								provider: playwright({ launchOptions: { env: FIREFOX_ENV } })
+							},
 							{ browser: 'webkit', headless: true }
 						],
 						viewport: {
