@@ -54,20 +54,31 @@ if (import.meta.vitest) {
 			await expect.poll(() => state.rows).toBeGreaterThan(rows);
 		});
 
-		it('fits within the container', async () => {
-			const { container, state, screen } = renderSized('700px', '480px');
+		// Sizes where a whole-pixel cell measurement would round the wrong way.
+		it.each([
+			[700, 480],
+			[1008, 760],
+			[1001, 517]
+		])('fits within a %ix%i container, using all but part of a cell', async (width, height) => {
+			const { container, state, screen } = renderSized(`${width}px`, `${height}px`);
 			await expect.poll(() => state.columns).not.toBe(80);
 
 			const terminal = screen.getByRole('application', { name: 'Terminal' }).element();
-			const rows = Array.from(terminal.children).filter((child) => child.tagName === 'DIV');
-			const last = rows[rows.length - 1].getBoundingClientRect();
+			const rows = Array.from(terminal.children).filter(
+				(child) => child.tagName === 'DIV' && !child.hasAttribute('aria-hidden')
+			);
+			// The last row's line box gives the grid's height, and the last cell
+			// its width. (A cell's own box can overhang its line box slightly.)
+			const row = rows[rows.length - 1].getBoundingClientRect();
+			const cell = rows[0].lastElementChild!.getBoundingClientRect();
 			const bounds = container.getBoundingClientRect();
 
 			expect(rows).toHaveLength(state.rows);
-			expect(last.bottom).toBeLessThanOrEqual(bounds.bottom);
-			expect(last.right).toBeLessThanOrEqual(bounds.right);
-			// And it uses most of the space: less than one cell is left over.
-			expect(bounds.bottom - last.bottom).toBeLessThan(40);
+			expect(rows[0].children).toHaveLength(state.columns);
+			expect(cell.right).toBeLessThanOrEqual(bounds.right);
+			expect(row.bottom).toBeLessThanOrEqual(bounds.bottom);
+			expect(bounds.right - cell.right).toBeLessThan(cell.width);
+			expect(bounds.bottom - row.bottom).toBeLessThan(row.height);
 		});
 
 		it('respects padding on the container', async () => {
@@ -94,21 +105,6 @@ if (import.meta.vitest) {
 			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			expect([state.columns, state.rows]).toEqual([80, 24]);
-		});
-
-		it('does not shrink the grid in a container that is as tall as its content', async () => {
-			const state = new State(40, 10);
-			const container = document.createElement('div');
-			container.style.width = '800px';
-			// The DOM setup gives every body > div a full-height rule.
-			container.style.height = 'auto';
-			document.body.appendChild(container);
-			render(Terminal, { target: container, props: { state } });
-
-			await expect.poll(() => state.columns).not.toBe(40);
-			await new Promise((resolve) => setTimeout(resolve, 100));
-
-			expect(state.rows).toBe(10);
 		});
 
 		it('keeps the screen contents while resizing', async () => {

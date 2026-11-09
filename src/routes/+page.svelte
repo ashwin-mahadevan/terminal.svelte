@@ -28,7 +28,9 @@
 	});
 </script>
 
-<StreamTerminal {state} ondata={(data) => socket.emit('input', data)} />
+<div class="screen">
+	<StreamTerminal {state} ondata={(data) => socket.emit('input', data)} />
+</div>
 
 <style>
 	:global(html, body) {
@@ -36,5 +38,12 @@
 		height: 100%;
 		background: #000;
 		font-family: monospace;
+	}
+
+	/* The inset around the terminal, which fits itself inside the padding. */
+	.screen {
+		box-sizing: border-box;
+		height: 100%;
+		padding: 4px 8px;
 	}
 </style>

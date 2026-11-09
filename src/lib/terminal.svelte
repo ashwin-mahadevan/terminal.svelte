@@ -14,41 +14,22 @@
 
 	let root: HTMLDivElement;
 
-	// The terminal fills its container; its padding is subtracted from the size
-	// available to the grid.
-	const PADDING_X = 8;
-	const PADDING_Y = 4;
+	// The terminal fills its container, which must be sized: the grid is fitted
+	// to it, not the other way around. contentRect bindings are backed by a
+	// ResizeObserver and, unlike clientWidth and clientHeight, aren't rounded
+	// to whole pixels, so a fractional cell size is measured exactly.
+	let box = $state<DOMRectReadOnly>();
 
-	// The container's size, from bindings backed by a ResizeObserver.
-	let clientWidth = $state<number>();
-	let clientHeight = $state<number>();
+	// The cell size, from a hidden glyph that inherits the terminal's font. It
+	// re-measures when a web font loads and reflows it.
+	let glyph = $state<DOMRectReadOnly>();
 
-	// The cell size, measured from a hidden element that inherits the terminal's
-	// font: MEASURE_ROWS lines of MEASURE_COLUMNS glyphs, divided back down so a
-	// fractional cell size isn't lost to the integer rounding of clientWidth and
-	// clientHeight. The bindings re-fire when a web font loads and reflows it.
-	const MEASURE_COLUMNS = 32;
-	const MEASURE_ROWS = 8;
-	const MEASURE_TEXT = Array.from({ length: MEASURE_ROWS }, () => 'W'.repeat(MEASURE_COLUMNS)).join(
-		'\n'
-	);
-	let measureWidth = $state<number>();
-	let measureHeight = $state<number>();
-
-	// Fit the grid to the container. An unsized container (no room inside its
-	// padding) leaves the grid alone. The extra pixel absorbs the rounding of
-	// clientWidth and clientHeight, so a container that was sized to fit the
-	// grid doesn't shrink it.
+	// Fit the grid to the container. A zero-size container leaves it alone.
 	$effect(() => {
-		if (clientWidth === undefined || clientHeight === undefined) return;
-		if (!measureWidth || !measureHeight) return;
+		if (!box?.width || !box.height || !glyph?.width || !glyph.height) return;
 
-		const width = clientWidth - 2 * PADDING_X;
-		const height = clientHeight - 2 * PADDING_Y;
-		if (width <= 0 || height <= 0) return;
-
-		const columns = Math.floor((width + 1) / (measureWidth / MEASURE_COLUMNS));
-		const rows = Math.floor((height + 1) / (measureHeight / MEASURE_ROWS));
+		const columns = Math.floor(box.width / glyph.width);
+		const rows = Math.floor(box.height / glyph.height);
 		untrack(() => screen.resize(columns, rows));
 	});
 
@@ -168,8 +149,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	bind:this={root}
-	bind:clientWidth
-	bind:clientHeight
+	bind:contentRect={box}
 	role="application"
 	aria-label="Terminal"
 	tabindex="0"
@@ -179,12 +159,10 @@
 	style:color={DEFAULT_FOREGROUND}
 	style:font-family="monospace"
 	style:position="relative"
-	style:box-sizing="border-box"
 	style:width="100%"
 	style:height="100%"
 	style:overflow="hidden"
 	style:line-height="normal"
-	style:padding="{PADDING_Y}px {PADDING_X}px"
 	style:outline="none"
 >
 	{#each lines as line, row (row)}
@@ -198,17 +176,21 @@
 		</div>
 	{/each}
 
-	<!-- Cell measurement: see MEASURE_COLUMNS. Last, so the rows stay the first children. -->
-	<span
+	<!--
+		Cell measurement: see `glyph`. Built like a row (a block around a span), so
+		its height is a row's line box, and shrunk to one cell's width. Last, so
+		the rows stay the first children.
+	-->
+	<div
 		aria-hidden="true"
-		bind:clientWidth={measureWidth}
-		bind:clientHeight={measureHeight}
+		bind:contentRect={glyph}
 		style:position="absolute"
 		style:left="-9999px"
 		style:top="0"
 		style:visibility="hidden"
-		style:display="inline-block"
+		style:width="max-content"
 		style:white-space="pre"
-		style:font-kerning="none">{MEASURE_TEXT}</span
 	>
+		<span>W</span>
+	</div>
 </div>
