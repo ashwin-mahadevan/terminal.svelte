@@ -17,6 +17,16 @@ const FIREFOX_ENV = {
 	CFFIXED_USER_HOME: mkdtempSync(join(tmpdir(), 'firefox-home-'))
 };
 
+// Playwright starts the webServer in a process group of its own and kills it
+// from an `exit` handler, but Node skips `exit` handlers when SIGTERM ends the
+// process. When a sibling mise task fails, mise stops this one with SIGTERM,
+// and the preview server outlived it, holding its port for the next run.
+// Exiting on SIGTERM instead runs that cleanup. Only the runner needs this:
+// workers (which set TEST_WORKER_INDEX) close their browsers on SIGTERM already.
+if (process.env.TEST_WORKER_INDEX === undefined) {
+	process.once('SIGTERM', () => process.exit(143));
+}
+
 export default defineConfig({
 	webServer: { command: `vite preview --port ${port} --strictPort`, port },
 	use: { baseURL: `http://localhost:${port}` },
