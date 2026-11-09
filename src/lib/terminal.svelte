@@ -35,6 +35,30 @@
 
 	onMount(() => root.focus());
 
+	// Scrollback: the terminal scrolls to show it, and follows the output as
+	// long as it's scrolled to the bottom. Scrolling up stops that, until it's
+	// scrolled back down or a key is pressed.
+	let following = true;
+
+	// (A scroll event can arrive after unmounting, when root is gone.)
+	function handleScroll(event: Event & { currentTarget: HTMLDivElement }) {
+		const { scrollTop, clientHeight, scrollHeight } = event.currentTarget;
+		following = scrollTop + clientHeight >= scrollHeight - 1;
+	}
+
+	function scrollToBottom() {
+		following = true;
+		root.scrollTop = root.scrollHeight;
+	}
+
+	// The content only grows taller with the scrollback, or changes height with
+	// the screen. A full scrollback stays the same height while it scrolls.
+	$effect(() => {
+		void [history.length, screen.rows];
+		// root is bound after this effect first runs.
+		if (following && root) untrack(scrollToBottom);
+	});
+
 	// DECKPAM: the VT220-style application keypad sequences, keyed by the
 	// physical key (KeyboardEvent.code).
 	const APPLICATION_KEYPAD: Record<string, string> = {
@@ -59,6 +83,9 @@
 	// Translate a keydown into the bytes a PTY expects. Minimal on purpose:
 	// printable keys, the common control keys, Ctrl-<letter>, and arrows.
 	function handleKeydown(event: KeyboardEvent) {
+		// Anything typed goes to the bottom, where it's echoed.
+		if (!event.metaKey) scrollToBottom();
+
 		// Keypad keys come first: NumpadEnter would otherwise be taken by the
 		// Enter case below.
 		if (screen.applicationKeypad) {
@@ -135,7 +162,9 @@
 		);
 	}
 
-	// Render every row in the buffer and let the browser scroll the overflow.
+	// The scrollback, shown above the primary screen. The alternate screen is
+	// shown alone.
+	const history = $derived(screen.alternate ? [] : screen.scrollback);
 	const lines = $derived(screen.buffer);
 
 	// A pending wrap parks the cursor one column past the edge
@@ -155,16 +184,27 @@
 	tabindex="0"
 	onkeydown={handleKeydown}
 	onpaste={handlePaste}
+	onscroll={handleScroll}
 	style:background={DEFAULT_BACKGROUND}
 	style:color={DEFAULT_FOREGROUND}
 	style:font-family="monospace"
 	style:position="relative"
 	style:width="100%"
 	style:height="100%"
-	style:overflow="hidden"
+	style:overflow-x="hidden"
+	style:overflow-y="auto"
+	style:scrollbar-gutter="stable"
 	style:line-height="normal"
 	style:outline="none"
 >
+	{#each history as line, index (index)}
+		<div style:white-space="pre">
+			{#each line.cells as cell, col (col)}
+				<Cell {cell} isCursor={false} />
+			{/each}
+		</div>
+	{/each}
+
 	{#each lines as line, row (row)}
 		<div style:white-space="pre">
 			{#each line.cells as cell, col (col)}

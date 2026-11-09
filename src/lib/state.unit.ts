@@ -843,7 +843,7 @@ describe('erase in display (ED)', () => {
 		expect([e.state.row, e.state.column]).toEqual([1, 2]);
 	});
 
-	it('leaves the screen alone for 3, which has no scrollback to clear', () => {
+	it('leaves the screen alone for 3, which only clears the scrollback', () => {
 		const e = filled(['AAAA', 'BBBB'], 0, 0);
 		e.write(encoder.encode('\x1b[3J'));
 
@@ -1065,13 +1065,13 @@ describe('resize', () => {
 		expect([state.columns, state.rows]).toEqual([1, 1]);
 	});
 
-	it('cuts lines off when narrowing and pads them when widening', () => {
-		const e = filled(['ABCD', 'EFGH'], 0, 0);
-		e.state.resize(2, 2);
-		expect(screen(e)).toEqual(['AB', 'EF']);
+	it('pads lines with holes when widening', () => {
+		const e = filled(['ABCD', 'EFGH'], 1, 0);
+		e.state.resize(6, 2);
 
-		e.state.resize(4, 2);
-		expect(screen(e)).toEqual(['AB  ', 'EF  ']);
+		expect(screen(e)).toEqual(['ABCD  ', 'EFGH  ']);
+		expect(e.state.buffer[0].cells).toHaveLength(6);
+		expect(e.state.buffer[0].cells[5]).toBeUndefined();
 	});
 
 	it('adds blank lines at the bottom when growing', () => {
@@ -1099,12 +1099,12 @@ describe('resize', () => {
 		expect([e.state.row, e.state.column]).toEqual([1, 1]);
 	});
 
-	it('does not drop non-blank lines below the cursor to make room', () => {
+	it('keeps the cursor on its line, dropping lines below it that do not fit', () => {
 		const e = new Parser(new State(2, 3), {});
 		e.write(encoder.encode('\r\nAB\r\nCD\x1b[H'));
 		e.state.resize(2, 2);
 
-		expect(screen(e)).toEqual(['AB', 'CD']);
+		expect(screen(e)).toEqual(['  ', 'AB']);
 		expect(e.state.row).toBe(0);
 	});
 
@@ -1115,14 +1115,24 @@ describe('resize', () => {
 		expect(e.state.column).toBe(2);
 	});
 
-	it('keeps a pending wrap pending at the new last column', () => {
+	it('resolves a pending wrap to the next column when widening', () => {
 		const e = new Parser(new State(4, 2), {});
 		e.write(encoder.encode('ABCD'));
 		e.state.resize(6, 2);
-		expect(e.state.column).toBe(6);
+		expect(e.state.column).toBe(4);
 
 		e.write(encoder.encode('E'));
-		expect(screen(e)).toEqual(['ABCD  ', 'E     ']);
+		expect(screen(e)).toEqual(['ABCDE ', '      ']);
+	});
+
+	it('keeps a wrap pending when the last character ends a line again', () => {
+		const e = new Parser(new State(6, 2), {});
+		e.write(encoder.encode('ABCDEF'));
+		e.state.resize(3, 2);
+		expect([e.state.row, e.state.column]).toEqual([1, 3]);
+
+		e.write(encoder.encode('G'));
+		expect(screen(e)).toEqual(['DEF', 'G  ']);
 	});
 
 	it('keeps the existing tab stops and adds the defaults for new columns', () => {
@@ -1153,5 +1163,472 @@ describe('resize', () => {
 		e.write(encoder.encode('CDE\x1b[3;3HX'));
 
 		expect(screen(e)).toEqual(['ABC', 'DE ', '  X']);
+	});
+});
+
+// The text of each scrollback line, oldest first.
+const history = (e: Parser): Array<string> =>
+	e.state.scrollback.map((line) => Array.from(line.cells, (cell) => cell?.text ?? ' ').join(''));
+
+describe('scroll regions (DECSTBM)', () => {
+	it('homes the cursor', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD'], 3, 1);
+		e.write(encoder.encode('\x1b[2;3r'));
+
+		expect([e.state.scrollTop, e.state.scrollBottom]).toEqual([1, 2]);
+		expect([e.state.row, e.state.column]).toEqual([0, 0]);
+	});
+
+	it('scrolls only the region on a linefeed at its bottom margin', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD'], 0, 0);
+		e.write(encoder.encode('\x1b[2;3r\x1b[3;1H\n'));
+
+		expect(screen(e)).toEqual(['AA', 'CC', '  ', 'DD']);
+		expect(e.state.row).toBe(2);
+	});
+
+	it('moves down to the bottom of the screen below the region, without scrolling', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD'], 0, 0);
+		e.write(encoder.encode('\x1b[1;2r\x1b[3;1H\n\n\n'));
+
+		expect(screen(e)).toEqual(['AA', 'BB', 'CC', 'DD']);
+		expect(e.state.row).toBe(3);
+	});
+
+	it('scrolls the region down on a reverse index at its top margin', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD'], 0, 0);
+		e.write(encoder.encode('\x1b[2;3r\x1b[2;1H\x1bM'));
+
+		expect(screen(e)).toEqual(['AA', '  ', 'BB', 'DD']);
+		expect(e.state.row).toBe(1);
+	});
+
+	it('stops a reverse index at the top of the screen above the region', () => {
+		const e = filled(['AA', 'BB', 'CC'], 0, 0);
+		e.write(encoder.encode('\x1b[2;3r\x1b[1;1H\x1bM'));
+
+		expect(screen(e)).toEqual(['AA', 'BB', 'CC']);
+		expect(e.state.row).toBe(0);
+	});
+
+	it('scrolls up and down within the region with SU and SD', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD', 'EE'], 0, 0);
+		e.write(encoder.encode('\x1b[2;4r\x1b[S'));
+		expect(screen(e)).toEqual(['AA', 'CC', 'DD', '  ', 'EE']);
+
+		e.write(encoder.encode('\x1b[2T'));
+		expect(screen(e)).toEqual(['AA', '  ', '  ', 'CC', 'EE']);
+		expect([e.state.row, e.state.column]).toEqual([0, 0]);
+	});
+
+	it('scrolls at most the whole region', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD'], 0, 0);
+		e.write(encoder.encode('\x1b[2;3r\x1b[99S'));
+		expect(screen(e)).toEqual(['AA', '  ', '  ', 'DD']);
+
+		e.write(encoder.encode('\x1b[1;4r\x1b[99T'));
+		expect(screen(e)).toEqual(['  ', '  ', '  ', '  ']);
+	});
+
+	it('scrolls the whole screen with SU and SD by default', () => {
+		const e = filled(['AA', 'BB', 'CC'], 1, 1);
+		e.write(encoder.encode('\x1b[S'));
+		expect(screen(e)).toEqual(['BB', 'CC', '  ']);
+
+		e.write(encoder.encode('\x1b[T'));
+		expect(screen(e)).toEqual(['  ', 'BB', 'CC']);
+		expect([e.state.row, e.state.column]).toEqual([1, 1]);
+	});
+
+	it('ignores SD with more parameters, which is mouse tracking', () => {
+		const e = filled(['AA', 'BB'], 0, 0);
+		e.write(encoder.encode('\x1b[1;1;1;1;1T'));
+
+		expect(screen(e)).toEqual(['AA', 'BB']);
+	});
+
+	it('fills scrolled-in lines with the current background', () => {
+		const e = filled(['AA', 'BB'], 1, 0);
+		e.write(encoder.encode('\x1b[41m\n'));
+
+		expect(e.state.buffer[1].cells[0]?.attrs.background).toEqual({ type: 'palette', index: 1 });
+	});
+
+	it('inserts and deletes lines within the region', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD', 'EE'], 0, 0);
+		e.write(encoder.encode('\x1b[2;4r\x1b[2;1H\x1b[L'));
+		expect(screen(e)).toEqual(['AA', '  ', 'BB', 'CC', 'EE']);
+
+		e.write(encoder.encode('\x1b[3;1H\x1b[99M'));
+		expect(screen(e)).toEqual(['AA', '  ', '  ', '  ', 'EE']);
+	});
+
+	it('ignores IL and DL outside the region', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD'], 0, 0);
+		e.write(encoder.encode('\x1b[2;3r\x1b[1;2H\x1b[L\x1b[4;2H\x1b[M'));
+
+		expect(screen(e)).toEqual(['AA', 'BB', 'CC', 'DD']);
+		expect([e.state.row, e.state.column]).toEqual([3, 1]);
+	});
+
+	it('stops CUU and CUD at the margin they move toward', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD', 'EE'], 0, 0);
+		e.write(encoder.encode('\x1b[2;4r\x1b[3;1H\x1b[9A'));
+		expect(e.state.row).toBe(1);
+		e.write(encoder.encode('\x1b[9B'));
+		expect(e.state.row).toBe(3);
+
+		// Even from outside the region, as in xterm.
+		e.write(encoder.encode('\x1b[5;1H\x1b[9A'));
+		expect(e.state.row).toBe(1);
+		e.write(encoder.encode('\x1b[1;1H\x1b[9B'));
+		expect(e.state.row).toBe(3);
+	});
+
+	it('moves past the margins from beyond them', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD', 'EE'], 0, 0);
+		e.write(encoder.encode('\x1b[2;4r\x1b[1;1H\x1b[9A'));
+		expect(e.state.row).toBe(0);
+		e.write(encoder.encode('\x1b[5;1H\x1b[9B'));
+		expect(e.state.row).toBe(4);
+	});
+
+	it('resets to the whole screen when the parameters are omitted', () => {
+		const e = filled(['AA', 'BB', 'CC'], 0, 0);
+		e.write(encoder.encode('\x1b[2;3r\x1b[r'));
+
+		expect([e.state.scrollTop, e.state.scrollBottom]).toEqual([0, 2]);
+	});
+
+	it('clamps the bottom margin to the screen', () => {
+		const e = filled(['AA', 'BB', 'CC'], 0, 0);
+		e.write(encoder.encode('\x1b[2;99r'));
+
+		expect([e.state.scrollTop, e.state.scrollBottom]).toEqual([1, 2]);
+	});
+
+	it('ignores a region of less than two rows, and the marked form', () => {
+		const e = filled(['AA', 'BB', 'CC'], 2, 1);
+		e.write(encoder.encode('\x1b[2;2r\x1b[3;2r\x1b[?2;3r'));
+
+		expect([e.state.scrollTop, e.state.scrollBottom]).toEqual([0, 2]);
+		expect([e.state.row, e.state.column]).toEqual([2, 1]);
+	});
+
+	it('resets to the whole screen on resize and RIS', () => {
+		const e = filled(['AA', 'BB', 'CC'], 0, 0);
+		e.write(encoder.encode('\x1b[2;3r'));
+		e.state.resize(3, 4);
+		expect([e.state.scrollTop, e.state.scrollBottom]).toEqual([0, 3]);
+
+		e.write(encoder.encode('\x1b[2;3r\x1bc'));
+		expect([e.state.scrollTop, e.state.scrollBottom]).toEqual([0, 3]);
+	});
+});
+
+describe('origin mode (DECOM)', () => {
+	it('positions the cursor relative to the region, and homes it when set', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD', 'EE'], 4, 1);
+		e.write(encoder.encode('\x1b[2;4r\x1b[?6h'));
+		expect([e.state.row, e.state.column]).toEqual([1, 0]);
+
+		e.write(encoder.encode('\x1b[2;2H'));
+		expect([e.state.row, e.state.column]).toEqual([2, 1]);
+		e.write(encoder.encode('\x1b[1d'));
+		expect(e.state.row).toBe(1);
+	});
+
+	it('keeps the cursor inside the region', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD', 'EE'], 0, 0);
+		e.write(encoder.encode('\x1b[2;4r\x1b[?6h\x1b[99;1H'));
+
+		expect(e.state.row).toBe(3);
+	});
+
+	it('reports the cursor position relative to the region', () => {
+		const data: Array<string> = [];
+		const e = new Parser(new State(4, 5), {
+			ondata: (chunk) => data.push(new TextDecoder().decode(chunk))
+		});
+		e.write(encoder.encode('\x1b[2;4r\x1b[?6h\x1b[2;3H\x1b[6n'));
+
+		expect(data).toEqual(['\x1b[2;3R']);
+	});
+
+	it('homes the cursor to the top of the screen when reset', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD'], 0, 0);
+		e.write(encoder.encode('\x1b[2;3r\x1b[?6h\x1b[2;2H\x1b[?6l'));
+
+		expect([e.state.row, e.state.column]).toEqual([0, 0]);
+		e.write(encoder.encode('\x1b[4;1H'));
+		expect(e.state.row).toBe(3);
+	});
+
+	it('is saved and restored with the cursor', () => {
+		const e = filled(['AA', 'BB', 'CC', 'DD'], 0, 0);
+		e.write(encoder.encode('\x1b[2;3r\x1b[?6h\x1b7\x1b[?6l\x1b8'));
+
+		expect(e.state.originMode).toBe(true);
+	});
+});
+
+describe('alternate screen', () => {
+	it('switches to a cleared screen and back with ?1049, restoring the cursor', () => {
+		const e = filled(['AA', 'BB', 'CC'], 1, 1);
+		e.write(encoder.encode('\x1b[31m\x1b[?1049h'));
+		expect(e.state.alternate).toBe(true);
+		expect(screen(e)).toEqual(['  ', '  ', '  ']);
+
+		e.write(encoder.encode('\x1b[0m\x1b[HXY'));
+		expect(screen(e)).toEqual(['XY', '  ', '  ']);
+
+		e.write(encoder.encode('\x1b[?1049l'));
+		expect(e.state.alternate).toBe(false);
+		expect(screen(e)).toEqual(['AA', 'BB', 'CC']);
+		expect([e.state.row, e.state.column]).toEqual([1, 1]);
+		expect(e.state.attributes.foreground).toEqual({ type: 'palette', index: 1 });
+	});
+
+	it('clears the alternate screen each time ?1049 enters it', () => {
+		const e = filled(['AA', 'BB'], 0, 0);
+		e.write(encoder.encode('\x1b[?1049hXY\x1b[?1049l\x1b[?1049h'));
+
+		expect(screen(e)).toEqual(['  ', '  ']);
+	});
+
+	it('ignores ?1049 when already on that screen', () => {
+		const e = filled(['AA', 'BB'], 1, 1);
+		e.write(encoder.encode('\x1b[?1049h\x1b[HX\x1b[?1049h'));
+		expect(screen(e)).toEqual(['X ', '  ']);
+
+		e.write(encoder.encode('\x1b[?1049l\x1b[?1049l'));
+		expect([e.state.row, e.state.column]).toEqual([1, 1]);
+	});
+
+	it('keeps the alternate screen contents with ?47, and the cursor where it is', () => {
+		const e = filled(['AA', 'BB'], 0, 0);
+		e.write(encoder.encode('\x1b[?47hXY\x1b[?47l'));
+		expect(screen(e)).toEqual(['AA', 'BB']);
+		expect([e.state.row, e.state.column]).toEqual([0, 2]);
+
+		e.write(encoder.encode('\x1b[?47h'));
+		expect(screen(e)).toEqual(['XY', '  ']);
+	});
+
+	it('clears the alternate screen on leaving it with ?1047', () => {
+		const e = filled(['AA', 'BB'], 0, 0);
+		e.write(encoder.encode('\x1b[?1047hXY\x1b[?1047l'));
+		expect(screen(e)).toEqual(['AA', 'BB']);
+
+		e.write(encoder.encode('\x1b[?1047h'));
+		expect(screen(e)).toEqual(['  ', '  ']);
+	});
+
+	it('saves and restores the cursor with ?1048', () => {
+		const e = filled(['AA', 'BB'], 1, 1);
+		e.write(encoder.encode('\x1b[?1048h\x1b[H\x1b[?1048l'));
+
+		expect([e.state.row, e.state.column]).toEqual([1, 1]);
+	});
+
+	it('gives each screen its own saved cursor', () => {
+		const e = filled(['AA', 'BB', 'CC'], 2, 1);
+		e.write(encoder.encode('\x1b7\x1b[?47h\x1b[1;1H\x1b7\x1b[?47l\x1b8'));
+		expect([e.state.row, e.state.column]).toEqual([2, 1]);
+
+		e.write(encoder.encode('\x1b[?47h\x1b8'));
+		expect([e.state.row, e.state.column]).toEqual([0, 0]);
+	});
+
+	it('returns to the primary screen on RIS', () => {
+		const e = filled(['AA', 'BB'], 0, 0);
+		e.write(encoder.encode('\x1b[?1049h\x1bc'));
+
+		expect(e.state.alternate).toBe(false);
+	});
+});
+
+describe('scrollback', () => {
+	it('keeps lines scrolled off the top of the screen', () => {
+		const e = new Parser(new State(2, 2), {});
+		e.write(encoder.encode('AA\r\nBB\r\nCC\r\nDD'));
+
+		expect(history(e)).toEqual(['AA', 'BB']);
+		expect(screen(e)).toEqual(['CC', 'DD']);
+	});
+
+	it('keeps lines scrolled off by SU', () => {
+		const e = filled(['AA', 'BB'], 0, 0);
+		e.write(encoder.encode('\x1b[S'));
+
+		expect(history(e)).toEqual(['AA']);
+	});
+
+	it('forgets the oldest lines beyond the limit', () => {
+		const e = new Parser(new State(2, 1, { scrollbackLimit: 2 }), {});
+		e.write(encoder.encode('AA\r\nBB\r\nCC\r\nDD'));
+
+		expect(history(e)).toEqual(['BB', 'CC']);
+	});
+
+	it('keeps nothing when the region starts below the top of the screen', () => {
+		const e = filled(['AA', 'BB', 'CC'], 0, 0);
+		e.write(encoder.encode('\x1b[2;3r\x1b[3;1H\n'));
+
+		expect(history(e)).toEqual([]);
+	});
+
+	it('keeps lines scrolled off a region at the top of the screen', () => {
+		const e = filled(['AA', 'BB', 'CC'], 0, 0);
+		e.write(encoder.encode('\x1b[1;2r\x1b[2;1H\n'));
+
+		expect(history(e)).toEqual(['AA']);
+		expect(screen(e)).toEqual(['BB', '  ', 'CC']);
+	});
+
+	it('keeps nothing from the alternate screen', () => {
+		const e = filled(['AA', 'BB'], 0, 0);
+		e.write(encoder.encode('\x1b[?1049h\r\n\r\n\r\n\x1b[?1049l'));
+
+		expect(history(e)).toEqual([]);
+	});
+
+	it('remembers whether a line wrapped', () => {
+		const e = new Parser(new State(2, 1), {});
+		e.write(encoder.encode('ABC'));
+
+		expect(e.state.scrollback[0].break).toBe(true);
+	});
+
+	it('is cleared by ED 3, and only by it', () => {
+		const e = new Parser(new State(2, 2), {});
+		e.write(encoder.encode('AA\r\nBB\r\nCC\x1b[2J'));
+		expect(history(e)).toEqual(['AA']);
+
+		e.write(encoder.encode('\x1b[3J'));
+		expect(history(e)).toEqual([]);
+	});
+
+	it('survives RIS', () => {
+		const e = new Parser(new State(2, 1), {});
+		e.write(encoder.encode('AA\r\nBB\x1bc'));
+
+		expect(history(e)).toEqual(['AA']);
+	});
+});
+
+describe('reflow', () => {
+	it('wraps long lines when narrowing', () => {
+		const e = new Parser(new State(6, 3), {});
+		e.write(encoder.encode('ABCDEF\r\nGH'));
+		e.state.resize(3, 3);
+
+		expect(screen(e)).toEqual(['ABC', 'DEF', 'GH ']);
+		expect(e.state.buffer.map((line) => line.break)).toEqual([true, false, false]);
+		expect([e.state.row, e.state.column]).toEqual([2, 2]);
+	});
+
+	it('joins wrapped lines when widening', () => {
+		const e = new Parser(new State(3, 3), {});
+		e.write(encoder.encode('ABCDEFG'));
+		e.state.resize(6, 3);
+
+		expect(screen(e)).toEqual(['ABCDEF', 'G     ', '      ']);
+		expect([e.state.row, e.state.column]).toEqual([1, 1]);
+	});
+
+	it('does not join lines that ended with a newline', () => {
+		const e = new Parser(new State(3, 2), {});
+		e.write(encoder.encode('ABC\r\nDEF'));
+		e.state.resize(6, 2);
+
+		expect(screen(e)).toEqual(['ABC   ', 'DEF   ']);
+	});
+
+	it('round-trips', () => {
+		const e = new Parser(new State(5, 4), {});
+		e.write(encoder.encode('ABCDEFGHIJKL\r\nXY'));
+		const before = screen(e);
+		e.state.resize(2, 4);
+		e.state.resize(5, 4);
+
+		expect(screen(e)).toEqual(before);
+		expect(history(e)).toEqual([]);
+	});
+
+	it('moves the cursor with the text under it', () => {
+		const e = new Parser(new State(6, 2), {});
+		e.write(encoder.encode('ABCDEF\x1b[1;5H'));
+		e.state.resize(3, 2);
+
+		expect([e.state.row, e.state.column]).toEqual([1, 1]);
+	});
+
+	it('scrolls lines into the scrollback when they no longer fit', () => {
+		const e = new Parser(new State(4, 2), {});
+		e.write(encoder.encode('ABCD\r\nEF'));
+		e.state.resize(2, 2);
+
+		expect(history(e)).toEqual(['AB']);
+		expect(screen(e)).toEqual(['CD', 'EF']);
+		// The cursor stays just after F, with a wrap pending, rather than
+		// starting a line of its own.
+		expect([e.state.row, e.state.column]).toEqual([1, 2]);
+	});
+
+	it('brings lines back from the scrollback when growing', () => {
+		const e = new Parser(new State(2, 2), {});
+		e.write(encoder.encode('AA\r\nBB\r\nCC\r\nDD'));
+		e.state.resize(2, 3);
+
+		expect(history(e)).toEqual(['AA']);
+		expect(screen(e)).toEqual(['BB', 'CC', 'DD']);
+		expect(e.state.row).toBe(2);
+	});
+
+	it('reflows the scrollback', () => {
+		const e = new Parser(new State(2, 1), {});
+		e.write(encoder.encode('ABCD\r\nE'));
+		e.state.resize(4, 1);
+
+		expect(history(e)).toEqual(['ABCD']);
+		expect(screen(e)).toEqual(['E   ']);
+	});
+
+	it('keeps the scrollback within its limit', () => {
+		const e = new Parser(new State(4, 1, { scrollbackLimit: 2 }), {});
+		e.write(encoder.encode('ABCD\r\n'));
+		e.state.resize(1, 1);
+
+		expect(history(e)).toEqual(['C', 'D']);
+	});
+
+	it('moves the saved cursor with the text under it', () => {
+		const e = new Parser(new State(6, 2), {});
+		e.write(encoder.encode('ABCDEF\x1b[1;5H\x1b7\x1b[H'));
+		e.state.resize(3, 2);
+		e.write(encoder.encode('\x1b8'));
+
+		expect([e.state.row, e.state.column]).toEqual([1, 1]);
+	});
+
+	it('cuts the alternate screen off instead', () => {
+		const e = new Parser(new State(4, 2), {});
+		e.write(encoder.encode('\x1b[?1049hABCDEF'));
+		e.state.resize(2, 2);
+
+		expect(screen(e)).toEqual(['AB', 'EF']);
+		expect([e.state.row, e.state.column]).toEqual([1, 1]);
+	});
+
+	it('reflows the primary screen while the alternate one is shown', () => {
+		const e = new Parser(new State(4, 2), {});
+		e.write(encoder.encode('ABCDEF\x1b[?1049h'));
+		e.state.resize(2, 3);
+		e.write(encoder.encode('\x1b[?1049l'));
+
+		expect(screen(e)).toEqual(['AB', 'CD', 'EF']);
+		expect([e.state.row, e.state.column]).toEqual([2, 2]);
+		expect(e.state.buffer).toHaveLength(3);
 	});
 });

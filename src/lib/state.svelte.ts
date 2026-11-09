@@ -76,6 +76,80 @@ function clamp(value: number, minimum: number, maximum: number): number {
 // Default interval between tab stops, in columns.
 const TAB_STOP_INTERVAL = 8;
 
+// The default number of lines kept in the scrollback.
+const SCROLLBACK_LIMIT = 1000;
+
+type SavedCursor = { column: number; row: number; attributes: Attributes; originMode: boolean };
+
+// A cursor-like position that a resize moves along with the text under it.
+// As elsewhere, column === columns means a wrap is pending.
+type Position = { row: number; column: number };
+
+const emptyLine = (columns: number): Line => ({ cells: new Array(columns), break: false });
+
+const isBlank = (line: Line): boolean =>
+	!line.break && line.cells.every((cell) => cell === undefined);
+
+// Rewrap lines `width` columns wide to `columns`, joining the ones that
+// wrapped into one before splitting them again. Each position's row is an
+// index into `lines`, and is updated to an index into the result.
+function rewrap(
+	lines: ReadonlyArray<Line>,
+	width: number,
+	columns: number,
+	positions: Array<Position>
+): Array<Line> {
+	const result: Array<Line> = [];
+	const moved = positions.map((position) => ({ ...position }));
+
+	for (let start = 0; start < lines.length;) {
+		let end = start;
+		while (end < lines.length - 1 && lines[end].break) end += 1;
+
+		// The text of the logical line. Wrapped lines are full; the last one
+		// ends at its last cell that was ever written.
+		const cells: Array<Cell | undefined> = [];
+		for (let index = start; index <= end; index += 1) {
+			const line = lines[index].cells;
+			let length = width;
+			if (index === end) while (length > 0 && line[length - 1] === undefined) length -= 1;
+			for (let column = 0; column < length; column += 1) cells.push(line[column]);
+		}
+
+		let height = Math.max(1, Math.ceil(cells.length / columns));
+		positions.forEach((position, index) => {
+			if (position.row < start || position.row > end) return;
+
+			// A pending wrap is just after the character in the last column: it
+			// stays pending only if that character lands in the last column again.
+			// The same goes for a cursor just after the text that now ends in the
+			// last column, so it doesn't start a line of its own.
+			const offset = (position.row - start) * width + Math.min(position.column, width);
+			const pending =
+				position.column >= width ||
+				(offset > 0 && offset === cells.length && offset % columns === 0);
+			const at = pending ? offset - 1 : offset;
+			const row = Math.floor(at / columns);
+			let column = at % columns;
+			if (pending) column = column === columns - 1 ? columns : column + 1;
+
+			height = Math.max(height, row + 1);
+			moved[index] = { row: result.length + row, column };
+		});
+
+		for (let row = 0; row < height; row += 1) {
+			const chunk = cells.slice(row * columns, (row + 1) * columns);
+			chunk.length = columns;
+			result.push({ cells: chunk, break: row < height - 1 });
+		}
+		start = end + 1;
+	}
+
+	// In place: a position may be a saved cursor.
+	moved.forEach((position, index) => Object.assign(positions[index], position));
+	return result;
+}
+
 function defaultTabStops(columns: number): Array<boolean> {
 	const stops = new Array<boolean>(columns).fill(false);
 	for (let column = TAB_STOP_INTERVAL; column < columns; column += TAB_STOP_INTERVAL) {
@@ -88,7 +162,29 @@ export class State {
 	columns = $state<number>()!;
 	rows = $state<number>()!;
 
+	// The screen shown: the primary one, or the alternate one if `alternate`.
 	buffer = $state<Array<Line>>()!;
+
+	// Lines scrolled off the top of the primary screen, oldest first, keeping
+	// at most `scrollbackLimit` of them. The alternate screen has none.
+	scrollback = $state<Array<Line>>([]);
+	scrollbackLimit: number;
+
+	// ?47, ?1047 and ?1049: whether the alternate screen is shown. Full-screen
+	// applications draw there, so the shell's screen comes back when they exit.
+	alternate = $state(false);
+
+	// The screen that isn't shown, with its own saved cursor.
+	private hidden!: { buffer: Array<Line>; savedCursor: SavedCursor | null };
+
+	// DECSTBM: the scroll region, as the first and last rows (inclusive) that
+	// linefeeds, IL, DL, SU and SD scroll.
+	scrollTop = 0;
+	scrollBottom = 0;
+
+	// DECOM (?6): whether cursor positions count from the top of the scroll
+	// region, and keep the cursor inside it.
+	originMode = false;
 
 	// Cursor
 	column = $state<number>()!;
@@ -100,8 +196,9 @@ export class State {
 	// column, true where a stop is set.
 	tabStops = $state<Array<boolean>>()!;
 
-	// The cursor state saved by DECSC (ESC 7) and restored by DECRC (ESC 8).
-	savedCursor: { column: number; row: number; attributes: Attributes } | null = null;
+	// The cursor state saved by DECSC (ESC 7) and restored by DECRC (ESC 8),
+	// for the screen shown. Each screen has its own.
+	savedCursor: SavedCursor | null = null;
 
 	// DECKPAM/DECKPNM: whether the keypad sends application sequences (SS3-
 	// prefixed) instead of the characters printed on the keys.
@@ -118,39 +215,88 @@ export class State {
 	// tell it from typing.
 	bracketedPaste = $state(false);
 
-	constructor(columns = 80, rows = 24) {
+	constructor(columns = 80, rows = 24, { scrollbackLimit = SCROLLBACK_LIMIT } = {}) {
 		this.columns = columns;
 		this.rows = rows;
+		this.scrollbackLimit = scrollbackLimit;
 		this.reset();
 	}
 
+	// LF, IND: move down a row, scrolling the region at its bottom margin.
+	// Below the region, the cursor stops at the bottom of the screen instead.
 	linefeed() {
 		if (this.column === this.columns) this.column -= 1;
-		this.row += 1;
-		if (this.row > this.rows - 1) {
-			this.row = this.rows - 1;
-			const blank: Line = { cells: new Array(this.columns), break: false };
-			this.buffer.shift();
-			this.buffer.push(blank);
-		}
+		if (this.row === this.scrollBottom) this.scrollUp(1);
+		else if (this.row < this.rows - 1) this.row += 1;
 	}
 
+	// RI: move up a row, scrolling the region down at its top margin.
 	reverseLinefeed() {
 		if (this.column === this.columns) this.column -= 1;
-		this.row -= 1;
-		if (this.row < 0) {
-			this.row = 0;
-			const blank: Line = { cells: new Array(this.columns), break: false };
-			this.buffer.pop();
-			this.buffer.unshift(blank);
-		}
+		if (this.row === this.scrollTop) this.scrollDown(1);
+		else if (this.row > 0) this.row -= 1;
 	}
 
+	// SU, and a linefeed at the bottom margin: scroll the region up, blanking
+	// lines at its bottom. Lines scrolled off the top of the primary screen
+	// go to the scrollback. The cursor does not move.
+	scrollUp(count: number) {
+		const { scrollTop: top, scrollBottom: bottom } = this;
+		count = Math.min(count, bottom - top + 1);
+		const removed = this.buffer.splice(top, count);
+		this.buffer.splice(bottom - count + 1, 0, ...this.blankLines(count));
+		if (top === 0 && !this.alternate) this.keep(removed);
+	}
+
+	// SD, and a reverse linefeed at the top margin: scroll the region down,
+	// blanking lines at its top. The cursor does not move.
+	scrollDown(count: number) {
+		const { scrollTop: top, scrollBottom: bottom } = this;
+		count = Math.min(count, bottom - top + 1);
+		this.buffer.splice(bottom - count + 1, count);
+		this.buffer.splice(top, 0, ...this.blankLines(count));
+	}
+
+	// Add lines to the scrollback, forgetting the oldest beyond the limit.
+	private keep(lines: Array<Line>) {
+		this.scrollback.push(...lines);
+		const excess = this.scrollback.length - this.scrollbackLimit;
+		if (excess > 0) this.scrollback.splice(0, excess);
+	}
+
+	// DECSTBM: set the scroll region to rows top through bottom, zero-based
+	// and inclusive, and home the cursor. A region of less than two rows is
+	// ignored.
+	setScrollRegion(top: number, bottom: number) {
+		bottom = Math.min(bottom, this.rows - 1);
+		if (top < 0 || top >= bottom) return;
+		this.scrollTop = top;
+		this.scrollBottom = bottom;
+		this.setCursorPosition(0, 0);
+	}
+
+	// Show the alternate screen (or the primary one), keeping the other and
+	// its saved cursor for later. The cursor itself stays where it is.
+	private useAlternate(enabled: boolean) {
+		if (enabled === this.alternate) return;
+		const shown = { buffer: this.buffer, savedCursor: this.savedCursor };
+		this.buffer = this.hidden.buffer;
+		this.savedCursor = this.hidden.savedCursor;
+		this.hidden = shown;
+		this.alternate = enabled;
+	}
+
+	// RIS. The scrollback survives it, as in xterm.
 	reset() {
-		this.buffer = new Array(this.rows);
-		for (let index = 0; index < this.rows; index += 1) {
-			this.buffer[index] = { cells: new Array(this.columns), break: false } satisfies Line;
-		}
+		this.buffer = Array.from({ length: this.rows }, () => emptyLine(this.columns));
+		this.hidden = {
+			buffer: Array.from({ length: this.rows }, () => emptyLine(this.columns)),
+			savedCursor: null
+		};
+		this.alternate = false;
+		this.scrollTop = 0;
+		this.scrollBottom = this.rows - 1;
+		this.originMode = false;
 
 		this.column = 0;
 		this.row = 0;
@@ -172,11 +318,40 @@ export class State {
 			case 1:
 				this.applicationCursor = enabled;
 				return true;
+			case 6:
+				this.originMode = enabled;
+				this.setCursorPosition(0, 0);
+				return true;
 			case 7:
 				this.autowrap = enabled;
 				return true;
 			case 25:
 				this.cursorVisible = enabled;
+				return true;
+			case 47:
+				this.useAlternate(enabled);
+				return true;
+			// Like 47, but the alternate screen is cleared on leaving it.
+			case 1047:
+				if (!enabled && this.alternate) this.buffer = this.blankLines(this.rows);
+				this.useAlternate(enabled);
+				return true;
+			// DECSC and DECRC, as a mode.
+			case 1048:
+				if (enabled) this.saveCursor();
+				else this.restoreCursor();
+				return true;
+			// 1048 and 1047 together: save the cursor and switch to a cleared
+			// alternate screen, then switch back and restore the cursor.
+			case 1049:
+				if (enabled && !this.alternate) {
+					this.saveCursor();
+					this.useAlternate(true);
+					this.buffer = this.blankLines(this.rows);
+				} else if (!enabled && this.alternate) {
+					this.useAlternate(false);
+					this.restoreCursor();
+				}
 				return true;
 			case 2004:
 				this.bracketedPaste = enabled;
@@ -186,10 +361,15 @@ export class State {
 		}
 	}
 
-	// DECSC: save the cursor position, attributes, and — since a pending wrap
-	// is encoded as column === columns — the last-column flag.
+	// DECSC: save the cursor position, attributes, origin mode, and — since a
+	// pending wrap is encoded as column === columns — the last-column flag.
 	saveCursor() {
-		this.savedCursor = { column: this.column, row: this.row, attributes: this.attributes };
+		this.savedCursor = {
+			column: this.column,
+			row: this.row,
+			attributes: this.attributes,
+			originMode: this.originMode
+		};
 	}
 
 	// DECRC: restore the saved cursor state, or home the cursor with default
@@ -199,10 +379,12 @@ export class State {
 			this.column = this.savedCursor.column;
 			this.row = this.savedCursor.row;
 			this.attributes = this.savedCursor.attributes;
+			this.originMode = this.savedCursor.originMode;
 		} else {
 			this.column = 0;
 			this.row = 0;
 			this.attributes = DEFAULT_ATTRIBUTES;
+			this.originMode = false;
 		}
 	}
 
@@ -306,15 +488,33 @@ export class State {
 		return Math.min(this.column, this.columns - 1);
 	}
 
+	// The cursor row as the application addresses it: in origin mode, rows
+	// count from the top of the scroll region.
+	get cursorRow(): number {
+		return this.originMode ? this.row - this.scrollTop : this.row;
+	}
+
 	// Cursor movement. Every move is clamped to the screen and cancels a
-	// pending wrap. (Scroll regions and origin mode don't exist yet.)
+	// pending wrap.
 	moveTo(row: number, column: number) {
 		this.row = clamp(row, 0, this.rows - 1);
 		this.column = clamp(column, 0, this.columns - 1);
 	}
 
+	// CUP and VPA: like moveTo, but in origin mode the row counts from the top
+	// of the scroll region and stays inside it.
+	setCursorPosition(row: number, column: number) {
+		if (this.originMode) row = clamp(row + this.scrollTop, this.scrollTop, this.scrollBottom);
+		this.moveTo(row, column);
+	}
+
+	// Relative moves stop at a margin of the scroll region, if the cursor
+	// starts inside it, rather than leaving it.
 	moveBy(rows: number, columns: number) {
-		this.moveTo(this.row + rows, this.cursorColumn + columns);
+		let row = this.row + rows;
+		if (rows < 0 && this.row >= this.scrollTop) row = Math.max(row, this.scrollTop);
+		if (rows > 0 && this.row <= this.scrollBottom) row = Math.min(row, this.scrollBottom);
+		this.moveTo(row, this.cursorColumn + columns);
 	}
 
 	// The cell left behind by an erase. Like xterm's "back color erase", it
@@ -325,9 +525,12 @@ export class State {
 		return { text: ' ', attrs: { ...DEFAULT_ATTRIBUTES, background } };
 	}
 
-	private blankLine(): Line {
+	private blankLines(count: number): Array<Line> {
 		const blank = this.blankCell();
-		return { cells: new Array<Cell | undefined>(this.columns).fill(blank), break: false };
+		return Array.from({ length: count }, () => ({
+			cells: new Array<Cell | undefined>(this.columns).fill(blank),
+			break: false
+		}));
 	}
 
 	// Blank the columns in [from, to) of a row.
@@ -338,12 +541,13 @@ export class State {
 	}
 
 	// ED: 0 erases from the cursor to the end of the screen, 1 from the start
-	// of the screen to the cursor, and 2 the whole screen. 3 would also erase
-	// the scrollback, which doesn't exist yet. The cursor does not move.
+	// of the screen to the cursor, 2 the whole screen, and 3 the scrollback
+	// (only). The cursor does not move.
 	eraseInDisplay(mode: number) {
+		if (mode === 3) this.scrollback = [];
+		if (mode > 2) return;
 		const first = mode === 0 ? this.row : 0;
 		const last = mode === 1 ? this.row : this.rows - 1;
-		if (mode > 2) return;
 
 		for (let row = first; row <= last; row += 1) {
 			const from = mode === 0 && row === this.row ? this.cursorColumn : 0;
@@ -394,77 +598,134 @@ export class State {
 	}
 
 	// IL: insert `count` blank lines at the cursor row, pushing the lines
-	// below it down and off the bottom. The cursor returns to the first column.
+	// below it down and off the bottom margin. The cursor returns to the first
+	// column. Outside the scroll region, it does nothing.
 	insertLines(count: number) {
-		const inserted = Math.min(count, this.rows - this.row);
-		const blanks = Array.from({ length: inserted }, () => this.blankLine());
-		this.buffer.splice(this.row, 0, ...blanks);
-		this.buffer.splice(this.rows, inserted);
+		if (this.row < this.scrollTop || this.row > this.scrollBottom) return;
+		const inserted = Math.min(count, this.scrollBottom - this.row + 1);
+		this.buffer.splice(this.scrollBottom - inserted + 1, inserted);
+		this.buffer.splice(this.row, 0, ...this.blankLines(inserted));
 		this.column = 0;
 	}
 
 	// DL: delete `count` lines at the cursor row, pulling the lines below it
-	// up and blanking the bottom. The cursor returns to the first column.
+	// up and blanking the bottom of the scroll region. The cursor returns to
+	// the first column. Outside the scroll region, it does nothing.
 	deleteLines(count: number) {
-		const deleted = Math.min(count, this.rows - this.row);
+		if (this.row < this.scrollTop || this.row > this.scrollBottom) return;
+		const deleted = Math.min(count, this.scrollBottom - this.row + 1);
 		this.buffer.splice(this.row, deleted);
-		this.buffer.push(...Array.from({ length: deleted }, () => this.blankLine()));
+		this.buffer.splice(this.scrollBottom - deleted + 1, 0, ...this.blankLines(deleted));
 		this.column = 0;
 	}
 
-	// Resize the screen to the given dimensions. Lines are cut off or padded
-	// rather than reflowed, so text that no longer fits is lost until the
-	// application redraws it (which it does on SIGWINCH).
+	// Resize the screen to the given dimensions. The primary screen and its
+	// scrollback are reflowed: lines that wrapped are joined and wrapped again
+	// at the new width. The alternate screen's lines are cut off or padded
+	// instead, since the application redraws it anyway (on SIGWINCH). Each
+	// screen's cursor, and saved cursor, stay with the text under them. The
+	// scroll region is reset to the whole screen.
 	resize(columns: number, rows: number) {
 		columns = Math.max(1, Math.floor(columns));
 		rows = Math.max(1, Math.floor(rows));
 		if (columns === this.columns && rows === this.rows) return;
 
-		// A pending wrap stays pending at the new last column; otherwise the
-		// cursor can't be past the new edge.
-		const pending = this.column === this.columns;
-		this.column = pending ? columns : Math.min(this.column, columns - 1);
+		const cursor: Position = { row: this.row, column: this.column };
+		const shown = [cursor, ...(this.savedCursor ? [this.savedCursor] : [])];
+		const hidden = this.hidden.savedCursor ? [this.hidden.savedCursor] : [];
+		const [primary, alternate] = this.alternate
+			? [
+					{ lines: this.hidden.buffer, positions: hidden },
+					{ lines: this.buffer, positions: shown }
+				]
+			: [
+					{ lines: this.buffer, positions: shown },
+					{ lines: this.hidden.buffer, positions: hidden }
+				];
 
-		if (columns !== this.columns) {
-			// New cells are holes, like those of a fresh line.
-			for (const line of this.buffer) line.cells.length = columns;
-			const stops = this.tabStops;
-			stops.length = columns;
-			for (let column = this.columns; column < columns; column += 1) {
-				stops[column] = column % TAB_STOP_INTERVAL === 0 && column > 0;
-			}
+		const reflowed = this.reflow(primary.lines, columns, rows, primary.positions);
+		const truncated = this.truncate(alternate.lines, columns, rows, alternate.positions);
+		if (this.alternate) {
+			this.hidden.buffer = reflowed;
+			this.buffer = truncated;
+		} else {
+			this.buffer = reflowed;
+			this.hidden.buffer = truncated;
 		}
+		this.row = cursor.row;
+		this.column = cursor.column;
 
-		// Shrinking: drop blank lines below the cursor first, then scroll the top
-		// off, keeping the cursor on its line.
-		let excess = this.buffer.length - rows;
-		while (excess > 0 && this.buffer.length - 1 > this.row) {
-			const last = this.buffer[this.buffer.length - 1];
-			if (last.cells.some((cell) => cell !== undefined)) break;
-			this.buffer.pop();
-			excess -= 1;
-		}
-		if (excess > 0) {
-			this.buffer.splice(0, excess);
-			this.row = Math.max(0, this.row - excess);
-		}
-
-		// Growing: blank lines appear at the bottom.
-		while (this.buffer.length < rows) {
-			this.buffer.push({ cells: new Array(columns), break: false });
+		// New columns get the default tab stops.
+		const stops = this.tabStops;
+		stops.length = columns;
+		for (let column = this.columns; column < columns; column += 1) {
+			stops[column] = column % TAB_STOP_INTERVAL === 0 && column > 0;
 		}
 
 		this.columns = columns;
 		this.rows = rows;
+		this.scrollTop = 0;
+		this.scrollBottom = rows - 1;
+	}
 
-		// The saved cursor just has to stay on the screen.
-		if (this.savedCursor) {
-			this.savedCursor = {
-				...this.savedCursor,
-				column: Math.min(this.savedCursor.column, columns - 1),
-				row: Math.min(this.savedCursor.row, rows - 1)
-			};
+	// Reflow the primary screen, with the scrollback above it, to the new
+	// size, and return its new lines. Blank lines at the bottom are dropped
+	// before anything is scrolled off the top, and when the screen grows,
+	// lines come back from the scrollback before blank ones are added. The
+	// first position is the one kept on the screen.
+	private reflow(
+		screen: Array<Line>,
+		columns: number,
+		rows: number,
+		positions: Array<Position>
+	): Array<Line> {
+		const offset = this.scrollback.length;
+		for (const position of positions) position.row += offset;
+
+		let lines = [...this.scrollback, ...screen];
+		const lowest = Math.max(-1, ...positions.map((position) => position.row));
+		while (lines.length - 1 > lowest && isBlank(lines[lines.length - 1])) lines.pop();
+		if (columns !== this.columns) lines = rewrap(lines, this.columns, columns, positions);
+
+		// Scroll as much as fits off the top, but no further than the cursor's
+		// line (or, with the alternate screen shown, the saved cursor's): lines
+		// below it that don't fit are dropped instead.
+		const anchor = positions[0]?.row ?? Infinity;
+		const top = Math.min(Math.max(0, lines.length - rows), anchor);
+		this.scrollback = lines.slice(Math.max(0, top - this.scrollbackLimit), top);
+		for (const position of positions) position.row = Math.max(0, position.row - top);
+
+		const result = lines.slice(top, top + rows);
+		while (result.length < rows) result.push(emptyLine(columns));
+		return result;
+	}
+
+	// Fit the alternate screen to the new size, cutting lines off or padding
+	// them. When it's shorter, blank lines below the cursor go first, then
+	// lines off the top.
+	private truncate(
+		screen: Array<Line>,
+		columns: number,
+		rows: number,
+		positions: Array<Position>
+	): Array<Line> {
+		const lines = [...screen];
+		for (const line of lines) line.cells.length = columns;
+		for (const position of positions) {
+			if (position.column >= this.columns) position.column = columns;
+			else position.column = Math.min(position.column, columns - 1);
 		}
+
+		const lowest = Math.max(-1, ...positions.map((position) => position.row));
+		while (lines.length > rows && lines.length - 1 > lowest && isBlank(lines[lines.length - 1])) {
+			lines.pop();
+		}
+		const excess = Math.max(0, lines.length - rows);
+		lines.splice(0, excess);
+		for (const position of positions) position.row = Math.max(0, position.row - excess);
+
+		while (lines.length < rows) lines.push(emptyLine(columns));
+		return lines;
 	}
 
 	// HT: move the cursor right to the next tab stop, or the last column if none remain.

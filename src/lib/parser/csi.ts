@@ -37,10 +37,12 @@ const edit = (emulator: Parser, final: number) => {
 			state.moveBy(0, -n);
 			break;
 		case 0x45: // CNL
-			state.moveTo(state.row + n, 0);
+			state.moveBy(n, 0);
+			state.column = 0;
 			break;
 		case 0x46: // CPL
-			state.moveTo(state.row - n, 0);
+			state.moveBy(-n, 0);
+			state.column = 0;
 			break;
 		case 0x47: // CHA
 		case 0x60: // HPA
@@ -48,7 +50,7 @@ const edit = (emulator: Parser, final: number) => {
 			break;
 		case 0x48: // CUP
 		case 0x66: // HVP
-			state.moveTo(n - 1, count(emulator, 1) - 1);
+			state.setCursorPosition(n - 1, count(emulator, 1) - 1);
 			break;
 		case 0x4a: // ED
 			state.eraseInDisplay(parameters[0] ?? 0);
@@ -68,8 +70,17 @@ const edit = (emulator: Parser, final: number) => {
 		case 0x58: // ECH
 			state.eraseCharacters(n);
 			break;
+		case 0x53: // SU
+			state.scrollUp(n);
+			break;
+		case 0x54: // SD
+			state.scrollDown(n);
+			break;
 		case 0x64: // VPA
-			state.moveTo(n - 1, state.cursorColumn);
+			state.setCursorPosition(n - 1, state.cursorColumn);
+			break;
+		case 0x72: // DECSTBM
+			state.setScrollRegion(n - 1, (parameters[1] || state.rows) - 1);
 			break;
 	}
 };
@@ -145,8 +156,23 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 			emulator.mode = MODE_ESCAPE;
 			break;
 
-		// Cursor movement and editing. Marked and intermediate forms, like DECSED
-		// (CSI ? J), are something else entirely and are ignored.
+		// Cursor movement, editing and scrolling. Marked and intermediate forms,
+		// like DECSED (CSI ? J) and XTRESTORE (CSI ? r), are something else
+		// entirely and are ignored.
+
+		// CSI T → SD (Scroll Down). With more than one parameter, it's xterm's
+		// mouse highlight tracking instead, which is ignored.
+		case 0x54:
+			if (
+				emulator.privateMarker === null &&
+				emulator.intermediates.length === 0 &&
+				emulator.parameters.length <= 1
+			) {
+				edit(emulator, byte);
+			}
+			emulator.mode = MODE_GROUND;
+			break;
+
 		case 0x40: // ICH (Insert Characters)
 		case 0x41: // CUU (Cursor Up)
 		case 0x42: // CUD (Cursor Down)
@@ -161,12 +187,14 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 		case 0x4c: // IL (Insert Lines)
 		case 0x4d: // DL (Delete Lines)
 		case 0x50: // DCH (Delete Characters)
+		case 0x53: // SU (Scroll Up)
 		case 0x58: // ECH (Erase Characters)
 		case 0x60: // HPA (Horizontal Position Absolute)
 		case 0x61: // HPR (Horizontal Position Relative)
 		case 0x64: // VPA (Vertical Position Absolute)
 		case 0x65: // VPR (Vertical Position Relative)
 		case 0x66: // HVP (Horizontal and Vertical Position)
+		case 0x72: // DECSTBM (Set Top and Bottom Margins)
 			if (emulator.privateMarker === null && emulator.intermediates.length === 0) {
 				edit(emulator, byte);
 			}
@@ -175,12 +203,9 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 
 		// 0x40–0x7e: final bytes — not implemented yet.
 		case 0x49: // CHT (Cursor Forward Tabulation)
-		case 0x53: // SU (Scroll Up)
-		case 0x54: // SD (Scroll Down)
 		case 0x5a: // CBT (Cursor Backward Tabulation)
 		case 0x62: // REP (Repeat Preceding Character)
 		case 0x67: // TBC (Tab Clear)
-		case 0x72: // DECSTBM (Set Top and Bottom Margins)
 		case 0x73: // SCOSC (Save Cursor)
 		case 0x74: // XTWINOPS (Window Manipulation)
 		case 0x75: // SCORC (Restore Cursor)
@@ -219,8 +244,8 @@ export const csi = (emulator: Parser, chunk: Uint8Array, start: number): number 
 				if (emulator.parameters[0] === 5) {
 					emulator.events.ondata?.(encoder.encode('\x1b[0n'));
 				} else if (emulator.parameters[0] === 6) {
-					const { row, cursorColumn } = emulator.state;
-					emulator.events.ondata?.(encoder.encode(`\x1b[${row + 1};${cursorColumn + 1}R`));
+					const { cursorRow, cursorColumn } = emulator.state;
+					emulator.events.ondata?.(encoder.encode(`\x1b[${cursorRow + 1};${cursorColumn + 1}R`));
 				}
 			}
 			emulator.mode = MODE_GROUND;
