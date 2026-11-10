@@ -11,6 +11,15 @@ private XTerm.app repo, even though it uses this library.
 
 `mise` pins node and pnpm and runs every task (`mise tasks` lists them).
 
+## Releases
+
+To release, bump `version` in `package.json` in your PR. On every push to
+`master`, `.github/workflows/publish.yml` checks whether that version is on npm
+yet. If it isn't, it runs the full `checks.yml` suite and, only if everything
+passes, publishes to npm (trusted publishing) and creates a `v<version>` GitHub
+release. Prerelease versions go to the `next` dist-tag. PRs run `checks.yml`
+too.
+
 ## Code Quality
 
 After every change, before committing:

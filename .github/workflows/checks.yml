@@ -1,36 +1,41 @@
-name: Pull request checks
+# Builds, checks and tests everything. Runs on every PR, and publish.yml calls
+# it before publishing so a release never goes out unless every test passes.
+name: Checks
 on:
   pull_request:
     branches: [master]
-    types: [opened, synchronize, reopened, edited]
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
       - run: mise run build
 
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
       - run: mise run check:format
 
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
       - run: mise run check:lint
 
   typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
       - run: mise run check:types
 
   browser-test:
@@ -40,8 +45,8 @@ jobs:
       matrix:
         browser: [chromium, firefox, webkit]
     steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
       - run: mise run test:browser:${{ matrix.browser }}
 
   dom-test:
@@ -51,13 +56,13 @@ jobs:
       matrix:
         browser: [chromium, firefox, webkit]
     steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
       - run: mise run test:dom:${{ matrix.browser }}
 
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
       - run: mise run test:unit

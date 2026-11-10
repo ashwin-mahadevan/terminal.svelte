@@ -72,12 +72,16 @@ if (import.meta.vitest) {
 			const row = rows[rows.length - 1].getBoundingClientRect();
 			const cell = rows[0].lastElementChild!.getBoundingClientRect();
 			const bounds = container.getBoundingClientRect();
+			// The grid fits beside the scrollbar's gutter, which takes space where
+			// scrollbars aren't overlaid (Linux and Windows, but not a Mac).
+			const gutter = container.clientWidth - terminal.clientWidth;
+			const right = bounds.right - gutter;
 
 			expect(rows).toHaveLength(state.rows);
 			expect(rows[0].children).toHaveLength(state.columns);
-			expect(cell.right).toBeLessThanOrEqual(bounds.right);
+			expect(cell.right).toBeLessThanOrEqual(right);
 			expect(row.bottom).toBeLessThanOrEqual(bounds.bottom);
-			expect(bounds.right - cell.right).toBeLessThan(cell.width);
+			expect(right - cell.right).toBeLessThan(cell.width);
 			expect(bounds.bottom - row.bottom).toBeLessThan(row.height);
 		});
 
