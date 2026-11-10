@@ -13,6 +13,10 @@ private XTerm.app repo, even though it uses this library.
 
 ## Releases
 
+Merging a PR into `master` is the only way to publish. Never run `npm publish`
+or `gh release create` by hand. A merge that doesn't bump the version
+publishes nothing.
+
 To release, bump `version` in `package.json` in your PR. On every push to
 `master`, `.github/workflows/publish.yml` checks whether that version is on npm
 yet. If it isn't, it runs the full `checks.yml` suite and, only if everything
