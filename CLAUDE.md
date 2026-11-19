@@ -13,16 +13,17 @@ private XTerm.app repo, even though it uses this library.
 
 ## Releases
 
-Merging a PR into `master` is the only way to publish. Never run `npm publish`
-or `gh release create` by hand. A merge that doesn't bump the version
+Merging a PR into `master` is the only way to publish. To release, bump
+`version` in `package.json` in your PR. A merge that doesn't bump the version
 publishes nothing.
 
-To release, bump `version` in `package.json` in your PR. On every push to
-`master`, `.github/workflows/publish.yml` checks whether that version is on npm
-yet. If it isn't, it runs the full `checks.yml` suite and, only if everything
-passes, publishes to npm (trusted publishing) and creates a `v<version>` GitHub
-release. Prerelease versions go to the `next` dist-tag. PRs run `checks.yml`
-too.
+PRs are reviewed, checked and merged by the maintainer's merge queue. After a
+merge it runs `./release.sh`, which publishes a version that isn't out yet to
+npm and creates its `v<version>` GitHub release, by starting
+`.github/workflows/publish.yml`. Prerelease versions go to the `next` dist-tag.
+
+Never run `npm publish`, `./release.sh` or `gh release create` yourself, and
+never start the publish workflow.
 
 ## Code Quality
 
@@ -36,3 +37,6 @@ After every change, before committing:
 Only commit once all pass. ESLint must run before Prettier — ESLint reorders imports, and Prettier must run on top of those changes or `mise checks` will fail on formatting.
 
 Commit frequently as you work.
+
+Before opening a PR, run `./checks.sh`. It runs every check and test, one at a
+time, and must pass. No workflow checks a PR.

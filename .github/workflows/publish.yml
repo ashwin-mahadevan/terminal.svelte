@@ -1,17 +1,25 @@
-# Publishes to npm on every push to master when the version in package.json
-# isn't on npm yet, so to release, bump the version in your PR. The full
-# checks.yml suite (build, lint, types, unit/DOM/browser tests) runs first,
-# and nothing publishes unless all of it passes.
+# Publishes one commit of master to npm and creates its GitHub release. It runs
+# only when started: release.sh starts it, for the commit it is run from, after
+# a pull request that bumps the version in package.json has merged. It runs no
+# checks or tests: checks.sh covers those, before the merge.
 #
-# Auth is npm trusted publishing (OIDC): no npm token is stored in GitHub.
+# It does only what is missing, so it is safe to start again after a failure:
+# it publishes if the version isn't on npm, and creates the `v<version>`
+# release if GitHub doesn't have that tag.
+#
+# Auth is npm trusted publishing (OIDC): no npm token is stored anywhere.
 # npmjs.com must list this repo and workflow file (publish.yml) as a trusted
 # publisher with direct publishing allowed. Keep this filename, since that
 # setting refers to it.
 name: Publish
+run-name: Publish ${{ inputs.sha }} # release.sh finds its run by this name
 on:
-  push:
-    branches: [master]
   workflow_dispatch:
+    inputs:
+      sha:
+        description: The full sha of the commit on master to publish
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -21,51 +29,56 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  detect:
-    runs-on: ubuntu-latest
-    outputs:
-      pending: ${{ steps.detect.outputs.pending }}
-    steps:
-      - uses: actions/checkout@v7
-      - id: detect
-        name: Check whether this version is on npm yet
-        run: |
-          id="$(jq -r .name package.json)@$(jq -r .version package.json)"
-          if npm view "$id" version >/dev/null 2>&1; then
-            echo "$id is already on npm"
-            echo "pending=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "$id will be published"
-            echo "pending=true" >> "$GITHUB_OUTPUT"
-          fi
-
-  checks:
-    needs: detect
-    if: needs.detect.outputs.pending == 'true'
-    uses: ./.github/workflows/checks.yml
-
   publish:
-    needs: [detect, checks]
-    if: needs.detect.outputs.pending == 'true'
     runs-on: ubuntu-latest
     permissions:
-      contents: write # create the release tag
+      contents: write # create the release and its tag
       id-token: write # npm trusted publishing
+    env:
+      SHA: ${{ inputs.sha }}
+      GH_TOKEN: ${{ github.token }}
     steps:
+      # A run is started on a branch or a tag, which says nothing about the
+      # commit to publish. So the commit is an input, and only one that is on
+      # master is published.
+      - name: Refuse a commit that isn't on master
+        run: |
+          if [[ ! "$SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Not a full commit sha: $SHA"
+            exit 1
+          fi
+          # Comparing the commit with master says "identical" or "ahead" (master
+          # is ahead of it) only when master contains it.
+          status="$(gh api "repos/$GITHUB_REPOSITORY/compare/$SHA...master" --jq .status)"
+          if [[ "$status" != identical && "$status" != ahead ]]; then
+            echo "::error::$SHA is not on master (compared with master: $status)"
+            exit 1
+          fi
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.sha }}
+      - name: Check that the checkout is that commit
+        run: test "$(git rev-parse HEAD)" = "$SHA"
       - uses: jdx/mise-action@v5
       - run: mise run install
-      - name: Publish to npm
+      - name: Publish to npm, unless this version is there
         run: |
           version=$(jq -r .version package.json)
+          id="$(jq -r .name package.json)@$version"
+          if [[ "$(npm view "$id" version 2>/dev/null)" == "$version" ]]; then
+            echo "$id is already on npm"
+            exit 0
+          fi
           # Prereleases (1.2.0-beta.1) go to the "next" dist-tag, not "latest".
           if [[ "$version" == *-* ]]; then tag=next; else tag=latest; fi
           npm publish --tag "$tag"
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Create the GitHub release, unless its tag is there
         run: |
           version=$(jq -r .version package.json)
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$version" --silent 2>/dev/null; then
+            echo "v$version is already tagged"
+            exit 0
+          fi
           flags=()
           if [[ "$version" == *-* ]]; then flags+=(--prerelease); fi
-          gh release create "v$version" --target "$GITHUB_SHA" --title "v$version" --generate-notes "${flags[@]}"
+          gh release create "v$version" --target "$SHA" --title "v$version" --generate-notes "${flags[@]}"
