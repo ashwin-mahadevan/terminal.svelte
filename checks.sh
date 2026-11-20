@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Runs every check this repo has: the build, the format, lint and type checks,
 # the unit tests, and the DOM and browser tests in each browser. Run it before
-# opening a pull request. No workflow checks one: the maintainer's merge queue
-# runs these checks itself before it merges.
+# a change is merged into master: it must pass. No GitHub workflow checks a
+# change.
 #
 # It needs the tools in mise.toml (`mise install`). The mise tasks install the
 # dependencies and the browsers themselves.
