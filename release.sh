@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Releases the version in package.json, if it isn't out yet. The maintainer's
-# merge queue runs this after a pull request merges into master, from a
-# checkout of the merge commit. Don't run it yourself.
+# Releases the version in package.json, if it isn't out yet. Nothing runs this
+# by itself: whoever merges a change into master runs it from the merged
+# commit, right after the merge. Nobody else runs it.
 #
 # A version is out when it is on npm and GitHub has its `v<version>` tag, which
 # is made together with its GitHub release. If it is out, this starts nothing.
